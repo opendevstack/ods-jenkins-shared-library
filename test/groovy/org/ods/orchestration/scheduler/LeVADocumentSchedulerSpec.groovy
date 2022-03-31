@@ -7114,7 +7114,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             executeBlockAndFailBuild(_) >> { block ->
                 util_BASE.executeBlockAndFailBuild(block)
             }
-            createZipArtifact(_, _) >> { String name, Path [] filesPaths ->
+            createZipArtifact(_, _) >> { String name, String [] filesPaths ->
                 return filesPaths[0]
             }
         }
@@ -7124,7 +7124,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     JenkinsService getJenkinsService() {
         JenkinsService jenkinsService = Mock(JenkinsService) {
-            storeCurrentBuildLogInFile(_) >> { Path jenkinsLogFilePath ->
+            storeCurrentBuildLogInFile(_, _, _) >> { String workspace, String buildFolder, String jenkinsLogFileName ->
+                Path jenkinsLogFilePath = Paths.get(workspace, buildFolder, jenkinsLogFileName)
                 File file = jenkinsLogFilePath.toFile()
                 file.createNewFile()
                 file << "Tempus fugit !!"
@@ -7135,7 +7136,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     NexusService getNexusService() {
         NexusService nexusService = Mock(NexusService) {
-            uploadJenkinsJobLog(_, _, _) >> { String projectKey, String buildNumber, Path jenkinsJobLog ->
+            uploadJenkinsJobLog(_, _, _) >> { String projectKey, String buildNumber, String jenkinsJobLog ->
                 return UPLOAD_JENKINS_LOG_TO_NEXUS_URL
             }
         }

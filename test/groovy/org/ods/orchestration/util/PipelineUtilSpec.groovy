@@ -368,13 +368,4 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to load Groovy source file. Path ${path} does not exist."
     }
 
-    def "test fromStringPathsToPaths()"() {
-        when:
-        String [] fileNames = ["a", "b", "c"]
-        Path [] paths = util.fromStringPathsToPaths(fileNames)
-        then:
-        String result = paths.join(", ")
-        result == "a, b, c"
-        log.info(result)
-    }
 }

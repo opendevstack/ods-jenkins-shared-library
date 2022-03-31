@@ -167,7 +167,8 @@ class NexusServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to store artifact. Nexus could not be found at: 'http://localhost:${server.port()}' with repo: ${request.data.repository}."
+        e.message.startsWith("Error: unable to store artifact at")
+        e.message.endsWith("Nexus could not be found at: 'http://localhost:${server.port()}' with repo: ${request.data.repository}.")
 
         cleanup:
         stopServer(server)
@@ -189,7 +190,8 @@ class NexusServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to store artifact. Nexus responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+        e.message.startsWith("Error: unable to store artifact at")
+        e.message.endsWith("Nexus responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'.")
 
         cleanup:
         stopServer(server)
@@ -262,7 +264,7 @@ class NexusServiceSpec extends SpecHelper {
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
-        String expectedResult = "/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
+        String expectedResult = "repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
         String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
         String temporaryFolderAbsPath = temporaryFolder.getRoot().getAbsolutePath()
