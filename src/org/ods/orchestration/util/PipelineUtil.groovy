@@ -104,12 +104,7 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'filesPaths' is undefined.")
         }
 
-        String workspace = "${this.steps.env.WORKSPACE}".toString()
-        logger.info("Workspace: " + workspace + " class " + workspace.class.getName())
-        logger.info("ARTIFACTS_BASE_DIR: " + workspace + " class " + ARTIFACTS_BASE_DIR.class.getName())
-        logger.info("name: " + name + " class " + name.class.getName())
-        
-        String zipArtifactPath = getFullPath(workspace, ARTIFACTS_BASE_DIR, name)
+        String zipArtifactPath = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
         this.createZipFile(zipArtifactPath, filesPaths)
         if (doCreateArtifact) {
             this.steps.archiveArtifacts(zipArtifactPath)
@@ -117,13 +112,6 @@ class PipelineUtil {
 
         return zipArtifactPath
     }
-
-    @NonCPS
-    private String getFullPath(String first, String second, String third) {
-        Path fullPath = Paths.get(first, second, third)
-        return fullPath.toFile().getAbsolutePath()
-    }
-
 
     void createAndStashArtifact(String stashName, byte[] file) {
         if (!stashName?.trim()) {
