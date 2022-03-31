@@ -232,7 +232,7 @@ class NexusService {
             "${nexusRepository}",
             nexusDirectory,
             fileName,
-            zipFilePath.getBytes(),
+            zipFilePath,
             "application/octet-binary")
 
         return removeUrlHostName(report.toString())
@@ -267,6 +267,9 @@ class NexusService {
             result = result + originalUri.getFragment()
         }
 
+        if (result.startsWith("/")) {
+            result = result.substring(1)
+        }
         return result
     }
 
