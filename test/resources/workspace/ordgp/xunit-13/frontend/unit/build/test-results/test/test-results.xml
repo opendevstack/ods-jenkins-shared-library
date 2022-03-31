@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<testsuite name="HeadlessChrome 94.0.4606 (Linux 0.0.0)" package="" timestamp="2022-03-01T11:19:00" id="0" hostname="pod-d37d024c-2832-4049-9847-7054e8a20989-gpc5g-6t74v" tests="3" errors="0" failures="0" time="0.183">
+  <properties>
+    <property name="browser.fullName" value="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/94.0.4606.81 Safari/537.36"/>
+  </properties>
+  <testcase name="AppComponent should create the app" time="0.077" classname="AppComponent"/>
+  <testcase name="AppComponent should have as title 'frontend'" time="0.019" classname="AppComponent"/>
+  <testcase name="AppComponent should render title in a h1 tag" time="0.087" classname="AppComponent"/>
+  <system-out>
+    <![CDATA[
+]]>
+  </system-out>
+  <system-err/>
+</testsuite>
