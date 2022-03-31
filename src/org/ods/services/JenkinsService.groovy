@@ -86,25 +86,26 @@ class JenkinsService {
     String storeCurrentBuildLogInFile (String workspace, String buildFolder, String jenkinsLogFileName) {
 
         logger.warn("storeCurrentBuildLogInFile: 1st")
-        Path jenkinsLogFilePath = Paths.get(workspace, buildFolder, jenkinsLogFileName)
+        String jenkinsLogFilePath = getFullPath(workspace, buildFolder, jenkinsLogFileName)
+
         logger.warn("storeCurrentBuildLogInFile: 2nd")
-        String parentFolderPath = jenkinsLogFilePath.getParent().toFile().getAbsolutePath()
+        String parentFolderPath = getFullPath(workspace, buildFolder)
+
         logger.warn("storeCurrentBuildLogInFile: 3rd")
         if (! script.fileExists(parentFolderPath)) {
             script.sh(script: "mkdir -p ${parentFolderPath}", label: "creating folder ${parentFolderPath}")
         }
 
-        logger.warn("storeCurrentBuildLogInFile: 4th")
-        if (! jenkinsLogFilePath.toFile().getParentFile().isDirectory()) {
-            throw new RuntimeException("Folder path is not a directory. Folder path: ${parentFolderPath}")
-        }
-
-        logger.warn("storeCurrentBuildLogInFile: 5th")
-        String jenkinsLogFileAbsPath = jenkinsLogFilePath.toFile().getAbsolutePath()
         logger.warn("storeCurrentBuildLogInFile: 6th")
-        storeCurrentBuildLogStringInFile(jenkinsLogFileAbsPath)
+        storeCurrentBuildLogStringInFile(jenkinsLogFilePath)
 
-        return jenkinsLogFileAbsPath
+        return jenkinsLogFilePath
+    }
+
+    @NonCPS
+    String getFullPath(String first, String... more) {
+        Path fullPath = Paths.get(first, more)
+        return fullPath.toFile().getAbsolutePath()
     }
 
     @NonCPS
