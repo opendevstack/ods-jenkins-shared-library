@@ -11,18 +11,16 @@ import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestDa
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixturesOverall
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
-import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.UnirestConfig
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
 
-import java.nio.file.Paths
+import java.util.stream.Collectors
 
 /**
  * IMPORTANT:
@@ -144,15 +142,18 @@ class LevaDocUseCaseFunctTest extends Specification {
         String nexusDirectory = useCase.nexus.getNexusDirectory(projectId, buildNumber)
 
         when:
+        log.info("Uploading tests results... ")
         def frontendUnitRes = useCase.nexus.uploadTestsResults("Unit", xunitFilesPathUnitFrontend, workspacePath, nexusDirectory, "frontend")
         def backendUnitRes = useCase.nexus.uploadTestsResults("Unit", xunitFilesPathUnitBackend, workspacePath, nexusDirectory,"backend")
         def acceptanceRes = useCase.nexus.uploadTestsResults("Acceptance", xunitFilesPathAcceptance, workspacePath, nexusDirectory)
         def integrationRes = useCase.nexus.uploadTestsResults("Integration", xunitFilesPathIntegration, workspacePath, nexusDirectory)
         def installationRes = useCase.nexus.uploadTestsResults("Installation", xunitFilesPathInstallation, workspacePath, nexusDirectory)
 
+        log.info("Uploading jenkins log... ")
         String jenkinsLogPath = "test/resources/workspace/${projectKey}/jenkins-job-log.zip"
         def jenkinsLogJobRes = useCase.nexus.uploadJenkinsJobLog(projectKey, buildNumber, jenkinsLogPath)
 
+        log.info("Checking...")
         then:
         acceptanceRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/acceptance.zip"
         integrationRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/integration.zip"
@@ -162,7 +163,10 @@ class LevaDocUseCaseFunctTest extends Specification {
         jenkinsLogJobRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/jenkins-job-log.zip"
 
         where:
-        projectFixture << new DocTypeProjectFixture().getProjects()
+        projectFixture = new DocTypeProjectFixture().getProjects().stream()
+            .filter({ProjectFixture project -> project.project == "ordgp"})
+            .collect(Collectors.toList())
+            .get(0)
     }
 
     private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture) {
