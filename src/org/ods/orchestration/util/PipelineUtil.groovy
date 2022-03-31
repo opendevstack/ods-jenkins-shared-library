@@ -95,7 +95,6 @@ class PipelineUtil {
         return result
     }
 
-    @NonCPS
     String createZipArtifact(String name, String [] filesPaths, boolean doCreateArtifact = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
@@ -105,15 +104,21 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'filesPaths' is undefined.")
         }
 
-        Path zipArtifactPath = Paths.get("${this.steps.env.WORKSPACE}", ARTIFACTS_BASE_DIR, name)
-        String zipArtifactAbsPath = zipArtifactPath.toFile().getAbsolutePath()
-        this.createZipFile(zipArtifactAbsPath, filesPaths)
+        String zipArtifactPath = getFullPath("${this.steps.env.WORKSPACE}", ARTIFACTS_BASE_DIR, name)
+        this.createZipFile(zipArtifactPath, filesPaths)
         if (doCreateArtifact) {
-            this.steps.archiveArtifacts(zipArtifactAbsPath)
+            this.steps.archiveArtifacts(zipArtifactPath)
         }
 
-        return zipArtifactAbsPath
+        return zipArtifactPath
     }
+
+    @NonCPS
+    private String getFullPath(String first, String... more) {
+        Path fullPath = Paths.get(first, more)
+        return fullPath.toFile().getAbsolutePath()
+    }
+
 
     void createAndStashArtifact(String stashName, byte[] file) {
         if (!stashName?.trim()) {
@@ -175,7 +180,7 @@ class PipelineUtil {
         // Create the Zip file
         def zipFile = new ZipFile(path)
         filesPaths.each { String filePath ->
-            File fileToAdd = new File(filePath)
+            File fileToAdd = Paths.get(filePath).toFile()
             ZipParameters params = new ZipParameters()
             params.setIncludeRootFolder(false)
             params.setFileNameInZip(fileToAdd.getName())

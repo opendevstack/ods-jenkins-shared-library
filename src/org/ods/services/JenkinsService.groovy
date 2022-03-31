@@ -98,7 +98,7 @@ class JenkinsService {
 
         logger.warn("storeCurrentBuildLogInFile: 6th")
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        
+
         logger.warn("storeCurrentBuildLogInFile: 8th")
         FileUtils.copyInputStreamToFile(is, new File(jenkinsLogFilePath))
 
@@ -114,7 +114,7 @@ class JenkinsService {
     }
 
     @NonCPS
-    String getFullPath(String first, String... more) {
+    private String getFullPath(String first, String... more) {
         Path fullPath = Paths.get(first, more)
         return fullPath.toFile().getAbsolutePath()
     }
