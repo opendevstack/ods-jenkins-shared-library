@@ -80,7 +80,7 @@ class NexusService {
 
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, Path artifact, String contentType) {
-        ByteArrayInputStream bais = new ByteArrayInputStream(artifact.toFile())
+        ByteArrayInputStream bais = new ByteArrayInputStream(artifact.toFile().getBytes())
         return storeArtifact(repository, directory, name, bais, contentType)
     }
 
