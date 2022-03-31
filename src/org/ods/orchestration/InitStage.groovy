@@ -47,11 +47,9 @@ class InitStage extends Stage {
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        def gitReleaseManagerBranch
+        def gitReleaseManagerBranch = "*/" + git.getCurrentBranchName()
 
-        if (Project.isWorkInProgress(buildParams.version)) {
-            gitReleaseManagerBranch = git.getCurrentBranchName()
-        } else {
+        if (! Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
                     buildParams.version,
@@ -86,7 +84,6 @@ class InitStage extends Stage {
                         script.scm.userRemoteConfigs
                     )
                 } else {
-                    gitReleaseManagerBranch = git.getCurrentBranchName()
                     git.checkoutNewLocalBranch(gitReleaseBranch)
                 }
             }
