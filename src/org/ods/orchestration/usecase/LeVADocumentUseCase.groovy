@@ -95,9 +95,9 @@ class LeVADocumentUseCase {
 
         DocumentType documentType = getDocumentType(docType)
 
-        //if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
+        if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
             project.data.jenkinLog = uploadJenkinsJobLogToNexus()
-        //}
+        }
 
         Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
 
