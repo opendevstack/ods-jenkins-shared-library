@@ -93,7 +93,7 @@ class JenkinsService {
         }
 
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        FileUtils.copyInputStreamToFile(is, new File(jenkinsLogFilePath))
+        FileUtils.copyInputStreamToFile(is, Paths.get(jenkinsLogFilePath).toFile())
 
         return jenkinsLogFilePath
     }

@@ -4,8 +4,6 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 import com.google.common.base.Strings
-import kong.unirest.HttpRequestWithBody
-import kong.unirest.MultipartBody
 import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
