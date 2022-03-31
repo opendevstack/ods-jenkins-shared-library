@@ -115,15 +115,6 @@ class PipelineUtil {
         return zipArtifactAbsPath
     }
 
-    @NonCPS
-    private Path [] fromStringPathsToPaths(String [] filesPaths) {
-        ArrayList<Path> outFilesPaths = []
-        filesPaths.each {String filePath ->
-            outFilesPaths << Paths.get(filePath)
-        }
-        return outFilesPaths
-    }
-
     void createAndStashArtifact(String stashName, byte[] file) {
         if (!stashName?.trim()) {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'stashName' is undefined.")

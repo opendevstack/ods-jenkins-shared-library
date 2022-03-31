@@ -12,9 +12,6 @@ import org.ods.services.NexusService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
-import java.nio.file.Path
-import java.nio.file.Paths
-
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
@@ -98,9 +95,9 @@ class LeVADocumentUseCase {
 
         DocumentType documentType = getDocumentType(docType)
 
-        if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
+        //if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
             project.data.jenkinLog = uploadJenkinsJobLogToNexus()
-        }
+        //}
 
         Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
 
