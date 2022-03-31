@@ -273,9 +273,12 @@ class NexusService {
     }
 
     @NonCPS
-    private Path createTemporalZipFile(String workspacePath, String fileName, String testReportsUnstashPath) {
+    private Path createTemporalZipFile(String workspacePath, String fileName, String folderPath) {
         Path tempZipFilePath = Paths.get(workspacePath, fileName)
-        Path folderToCompressPath = Paths.get(testReportsUnstashPath)
+        Path folderToCompressPath = Paths.get(folderPath)
+        if (! folderToCompressPath.toFile().exists()) {
+            throw new RuntimeException("Folder to compress in zip file does not exist: ${folderPath} ")
+        }
 
         def zipFile = new ZipFile(tempZipFilePath.toString())
         ZipParameters zipParameters = new ZipParameters()

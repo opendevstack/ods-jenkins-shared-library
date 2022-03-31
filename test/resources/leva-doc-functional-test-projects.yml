@@ -24,7 +24,7 @@
 projects:
   - id: ordgp
     description: One release DocGen
-    buildNumber: 666
+    buildNumber: 13
     releaseId: ORDGP-123
     version: WIP
     releaseManagerRepo: ordgp-releasemanager
