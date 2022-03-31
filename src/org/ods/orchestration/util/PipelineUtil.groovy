@@ -105,6 +105,10 @@ class PipelineUtil {
         }
 
         String workspace = "${this.steps.env.WORKSPACE}".toString()
+        logger.info("Workspace: " + workspace + " class " + workspace.class.getName())
+        logger.info("ARTIFACTS_BASE_DIR: " + workspace + " class " + ARTIFACTS_BASE_DIR.class.getName())
+        logger.info("name: " + name + " class " + name.class.getName())
+        
         String zipArtifactPath = getFullPath(workspace, ARTIFACTS_BASE_DIR, name)
         this.createZipFile(zipArtifactPath, filesPaths)
         if (doCreateArtifact) {
