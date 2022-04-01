@@ -157,9 +157,9 @@ class LeVADocumentUseCase {
         String jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(
             "${steps.env.WORKSPACE}", BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
 
-        logger.info("Stored jenkins log file in file ${jenkinsLogFilePath}")
+        logger.debug("Stored jenkins log file in file ${jenkinsLogFilePath}")
         String jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as String[])
-        logger.info("Stored zipped jenkins log file in zip file ${jenkinsLogZipped}")
+        logger.debug("Stored zipped jenkins log file in zip file ${jenkinsLogZipped}")
 
         // project.steps.archiveArtifacts(workspacePath)
         return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), "${project.steps.env.BUILD_NUMBER}",

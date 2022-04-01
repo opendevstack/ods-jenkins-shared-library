@@ -98,7 +98,7 @@ class Stage {
         String type = typeIn.isBlank() ? Project.TestType.UNIT.toLowerCase() : typeIn.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-        logger.info("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
+        logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
 
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         if (type != 'unit') {

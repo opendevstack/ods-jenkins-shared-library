@@ -51,7 +51,7 @@ class WiremockManager {
         log.info("WireMockServer: [{}:{}]", serverType, wireMockServer.baseUrl())
         log.info("WireMockServer: [{}] targetURL:[{}]", serverType, defaultURL)
         log.info("WireMockServer: [{}] pathToFiles:[{}]", serverType, pathToFiles)
-        logAmountOfMappingFilesFoundInMappingsFolder(recording)
+        logIfThereAreRecordedFiles(recording)
 
         setUpRecordMode(recording, wireMockServer, defaultURL)
         return this
@@ -82,7 +82,7 @@ class WiremockManager {
         }
     }
 
-    private void logAmountOfMappingFilesFoundInMappingsFolder(boolean record) {
+    private void logIfThereAreRecordedFiles(boolean record) {
         int amountOfFilesInFolder = 0
         File resourcesFolder = new File("${pathToFiles}/${MAPPINGS_ROOT}")
         if (resourcesFolder.exists()) {
