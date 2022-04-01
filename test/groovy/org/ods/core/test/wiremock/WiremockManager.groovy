@@ -84,14 +84,17 @@ class WiremockManager {
 
     private void logAmountOfMappingFilesFoundInMappingsFolder(boolean record) {
         int amountOfFilesInFolder = 0
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
-            amountOfFilesInFolder++
+        File resourcesFolder = new File("${pathToFiles}/${MAPPINGS_ROOT}")
+        if (resourcesFolder.exists()) {
+            resourcesFolder.eachFileRecurse() {
+                amountOfFilesInFolder++
+            }
         }
         if (amountOfFilesInFolder > 0) {
             log.info("[{}] Loading mapping stubs from {} previously saved files. ", serverType, amountOfFilesInFolder)
         } else {
             if (! record) {
-                log.warn("[{}] NOT found mapping files to load stubs from. ", serverType)
+                log.warn("[{}] NOT found mapping files to load stubs from. Folder: {}", serverType, resourcesFolder.getAbsolutePath())
             }
         }
     }
@@ -99,29 +102,32 @@ class WiremockManager {
     private void checkAmountOfFilesInMappingsFolder(int stubsAmount) {
         int amountOfFilesInFolder = 0
         StringBuilder sb = new StringBuilder("\n")
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
-            sb.append(it.getAbsolutePath()).append("\n")
-            amountOfFilesInFolder++
+        File resourcesFolder = new File("${pathToFiles}/${MAPPINGS_ROOT}")
+        if (resourcesFolder.exists()) {
+            resourcesFolder.eachFileRecurse() {
+                sb.append(it.getAbsolutePath()).append("\n")
+                amountOfFilesInFolder++
+            }
         }
         log.info("Mapping stubs saved in files: " + sb.toString())
-        if (stubsAmount != amountOfFilesInFolder) {
+        if (stubsAmount > amountOfFilesInFolder) {
             throw new RuntimeException("[${serverType}] Problem storing stubs!!!")
         }
     }
 
     private void cleanExistingRecords() {
         try {
-            log.info("Clean resources directory [${serverType}]: $pathToFiles");
+            log.info("[${serverType}] Clean resources directory: $pathToFiles");
             FileUtils.cleanDirectory(new File(pathToFiles));
         } catch (Exception ex) {
-            log.warn("Exception deleting files in resources directory [${serverType}]: " + ex);
+            log.warn("[${serverType}] Exception deleting files in resources directory (${pathToFiles}): " + ex);
         }
         new File("${pathToFiles}/${MAPPINGS_ROOT}").mkdirs()
         new File("${pathToFiles}/${FILES_ROOT}").mkdirs()
     }
 
     private cleanWiremockDatafiles() {
-        log.info("cleanWiremockDatafiles [${serverType}]: date_created field")
+        log.info("[${serverType}] cleanWiremockDatafiles: date_created field")
         Map replaceAllMap = prepareReplaceMap()
         new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
             replaceFileInText(it, replaceAllMap)
