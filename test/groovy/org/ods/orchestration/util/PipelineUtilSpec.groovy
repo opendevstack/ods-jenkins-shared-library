@@ -1,7 +1,9 @@
 package org.ods.orchestration.util
 
+import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
@@ -13,6 +15,7 @@ import java.nio.file.Paths
 
 import static util.FixtureHelper.createProject
 
+@Slf4j
 class PipelineUtilSpec extends SpecHelper {
 
     @Rule
@@ -190,17 +193,15 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip file. 'files' is undefined."
     }
 
-    def "create Zip artifact from Paths"() {
+    def "create Zip artifact from Strings"() {
         given:
         File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
 
         when:
-        def name = "myZipArtifact"
-        Path file1 = Paths.get(logFile1.getAbsolutePath())
-        Path file2 = Paths.get(logFile2.getAbsolutePath())
-        Path [] files = [file1, file2]
-        def result = util.createZipArtifact(name, files)
+        String name = "myZipArtifact"
+        String [] files = [logFile1.getAbsolutePath(), logFile2.getAbsolutePath()]
+        String result = util.createZipArtifact(name, files)
 
         then:
         1 * util.createZipFile(*_)
@@ -210,15 +211,16 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         result.size() != 0
+        "${this.steps.env.WORKSPACE}/${PipelineUtil.ARTIFACTS_BASE_DIR}/${name}" == result
 
         cleanup:
         logFile1.delete()
         logFile2.delete()
     }
 
-    def "create Zip artifact with invalid name from Paths"() {
+    def "create Zip artifact with invalid name from Strings"() {
         given:
-        Path [] emptyArray = []
+        String [] emptyArray = []
 
         when:
         util.createZipArtifact(null, emptyArray)
@@ -245,7 +247,7 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip artifact. 'files' is undefined."
     }
 
-    def "create Zip file from Paths"() {
+    def "create Zip file from String Paths"() {
         given:
         File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
@@ -253,9 +255,7 @@ class PipelineUtilSpec extends SpecHelper {
         Path zipFile = Paths.get(zipFilePath)
         when:
 
-        Path file1 = Paths.get(logFile1.getAbsolutePath())
-        Path file2 = Paths.get(logFile2.getAbsolutePath())
-        Path [] files = [file1, file2]
+        String [] files = [logFile1.getAbsolutePath(), logFile2.getAbsolutePath()]
 
         util.createZipFile(zipFilePath, files)
 
@@ -268,9 +268,9 @@ class PipelineUtilSpec extends SpecHelper {
         zipFile.toFile().delete()
     }
 
-    def "create Zip file from Paths with invalid name"() {
+    def "create Zip file from String Paths with invalid name"() {
         when:
-        Path [] files = []
+        String [] files = []
         util.createZipFile(null, files)
 
         then:
@@ -367,4 +367,5 @@ class PipelineUtilSpec extends SpecHelper {
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to load Groovy source file. Path ${path} does not exist."
     }
+
 }

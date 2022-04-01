@@ -89,13 +89,13 @@ class Stage {
         script.parallel (executors)
     }
 
-    Map getTestResults(def steps, Map repo, String typeIn = 'unit') {
+    Map getTestResults(def steps, Map repo, String typeIn = Project.TestType.UNIT) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def nexusService = ServiceRegistry.instance.get(NexusService)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
-        String type = typeIn.toLowerCase()
+        String type = typeIn.isBlank() ? Project.TestType.UNIT.toLowerCase() : typeIn.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")

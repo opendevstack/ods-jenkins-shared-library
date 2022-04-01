@@ -41,7 +41,7 @@ class BuildStage extends Stage {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data.openshift.resurrectedBuild
                 if (!resultsResurrected) {
-                    data << [tests: [unit: getTestResults(steps, repo) ]]
+                    data << [tests: [unit: getTestResults(steps, repo, Project.TestType.UNIT) ]]
                     jira.reportTestResultsForComponent(
                         "Technology-${repo.id}",
                         [Project.TestType.UNIT],

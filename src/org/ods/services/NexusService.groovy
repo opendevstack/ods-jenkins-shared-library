@@ -8,7 +8,9 @@ import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.util.Project
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -79,8 +81,8 @@ class NexusService {
 
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, Path artifact, String contentType) {
-        ByteArrayInputStream bais = new ByteArrayInputStream(artifact.toFile())
-        return storeArtifact(repository, directory, name, bais, contentType)
+        InputStream inputStream = Files.newInputStream(artifact)
+        return storeArtifact(repository, directory, name, inputStream, contentType)
     }
 
     @NonCPS
@@ -91,7 +93,7 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    URI storeArtifact(String repository, String directory, String name, ByteArrayInputStream artifact, String contentType) {
+    URI storeArtifact(String repository, String directory, String name, InputStream artifact, String contentType) {
         Map nexusParams = [
             'raw.directory': directory,
             'raw.asset1.filename': name,
@@ -119,8 +121,9 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    URI storeComplextArtifact(String repository, ByteArrayInputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
-        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+    URI storeComplextArtifact(String repository, InputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+        String url = "${this.baseURL}/service/rest/v1/components?repository={repository}"
+        def restCall = Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
 
@@ -128,26 +131,26 @@ class NexusService {
             restCall = restCall.field(key, value)
         }
 
-        restCall = restCall.field(
-            repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
-            artifact, contentType)
+        String fieldName = (repositoryType == 'raw' || repositoryType == 'maven2') ?
+                            "${repositoryType}.asset1" : "${repositoryType}.asset"
+        restCall = restCall.field(fieldName, artifact, contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
-                    'Error: unable to store artifact. ' +
+                    "Error: unable to store artifact at ${url}. " +
                         "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
                 )
             }
         }
 
         response.ifFailure {
-            def message = 'Error: unable to store artifact. ' +
+            def message = "Error: unable to store artifact at ${url}. " +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}' with repo: ${repository}."
+                message = "Error: unable to store artifact at ${url}. Nexus could not be found at: '${this.baseURL}' with repo: ${repository}."
             }
 
             throw new RuntimeException(message)
@@ -229,22 +232,23 @@ class NexusService {
             "${nexusRepository}",
             nexusDirectory,
             fileName,
-            zipFilePath.getBytes(),
+            zipFilePath,
             "application/octet-binary")
 
         return removeUrlHostName(report.toString())
     }
 
     @NonCPS
-    String uploadJenkinsJobLog(String projectKey, String buildNumber, Path jenkinsJobLog) {
+    String uploadJenkinsJobLog(String projectKey, String buildNumber, String jenkinsJobLog) {
+        Path jenkinsJobLogPath = Paths.get(jenkinsJobLog)
         String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
-
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+
         URI report = storeArtifact(
             nexusRepository,
             nexusPath,
-            jenkinsJobLog.getFileName(),
-            jenkinsJobLog,
+            jenkinsJobLogPath.toFile().getName(),
+            jenkinsJobLogPath,
             CONTENT_TYPE_JENKINS_LOG_ZIP
         )
 
@@ -263,13 +267,19 @@ class NexusService {
             result = result + originalUri.getFragment()
         }
 
+        if (result.startsWith("/")) {
+            result = result.substring(1)
+        }
         return result
     }
 
     @NonCPS
-    private Path createTemporalZipFile(String workspacePath, String fileName, String testReportsUnstashPath) {
+    private Path createTemporalZipFile(String workspacePath, String fileName, String folderPath) {
         Path tempZipFilePath = Paths.get(workspacePath, fileName)
-        Path folderToCompressPath = Paths.get(testReportsUnstashPath)
+        Path folderToCompressPath = Paths.get(folderPath)
+        if (! folderToCompressPath.toFile().exists()) {
+            throw new RuntimeException("Folder to compress in zip file does not exist: ${folderPath} ")
+        }
 
         def zipFile = new ZipFile(tempZipFilePath.toString())
         ZipParameters zipParameters = new ZipParameters()
@@ -281,7 +291,7 @@ class NexusService {
 
     @NonCPS
     private String getFileName(String repoId, String testType) {
-        if (testType == "Unit") {
+        if (testType.equalsIgnoreCase(Project.TestType.UNIT)) {
             return ((!Strings.isNullOrEmpty(repoId)) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
         }
 

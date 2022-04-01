@@ -10,8 +10,7 @@ import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
-
-import java.nio.file.Path
+import org.ods.util.IPipelineSteps
 
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
@@ -68,18 +67,21 @@ class LeVADocumentUseCase {
     private final NexusService nexus
     private final LeVADocumentParamsMapper leVADocumentParamsMapper
     private final ILogger logger
+    private final IPipelineSteps steps
 
     LeVADocumentUseCase(Project project,
                         DocGenService docGen,
                         JenkinsService jenkins,
                         NexusService nexus,
                         LeVADocumentParamsMapper leVADocumentParamsMapper,
+                        IPipelineSteps steps,
                         ILogger logger) {
         this.project = project
         this.docGen = docGen
         this.jenkins = jenkins
         this.nexus = nexus
         this.leVADocumentParamsMapper = leVADocumentParamsMapper
+        this.steps = steps
         this.logger = logger
     }
 
@@ -90,6 +92,7 @@ class LeVADocumentUseCase {
 
     void createDocument(String docType, Map repo = null, Map data = null) {
         logger.info("create document ${docType} start ")
+        logger.info("repo: ${prettyPrint(toJson(repo))}, data: ${prettyPrint(toJson(data))}")
 
         DocumentType documentType = getDocumentType(docType)
 
@@ -102,7 +105,6 @@ class LeVADocumentUseCase {
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
 
-        logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(data))}")
         createDoc(documentType, buildNumber, params)
         logger.info("create document ${docType} end")
     }
@@ -152,12 +154,15 @@ class LeVADocumentUseCase {
             throw new RuntimeException(warnMsg)
         }
 
-        Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
-        logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
-        Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
-        logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")
+        String jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(
+            "${steps.env.WORKSPACE}", BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+
+        logger.debug("Stored jenkins log file in file ${jenkinsLogFilePath}")
+        String jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as String[])
+        logger.debug("Stored zipped jenkins log file in zip file ${jenkinsLogZipped}")
 
         // project.steps.archiveArtifacts(workspacePath)
-        return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), project.steps.env.BUILD_NUMBER, jenkinsLogZipped)
+        return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), "${project.steps.env.BUILD_NUMBER}",
+            jenkinsLogZipped)
     }
 }

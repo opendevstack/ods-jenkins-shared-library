@@ -1,5 +1,6 @@
 package org.ods.services
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.apache.commons.io.FileUtils
 import org.ods.util.ILogger
 
@@ -82,19 +83,25 @@ class JenkinsService {
         return writer.getBuffer().toString()
     }
 
-    Path storeCurrentBuildLogInFile (String folder, String fileName) {
+    String storeCurrentBuildLogInFile (String workspace, String buildFolder, String jenkinsLogFileName) {
+
+        String jenkinsLogFilePath = getFullPath(workspace, buildFolder, jenkinsLogFileName)
+        String parentFolderPath = getFullPath(workspace, buildFolder)
+
+        if (! script.fileExists(parentFolderPath)) {
+            script.sh(script: "mkdir -p ${parentFolderPath}", label: "creating folder ${parentFolderPath}")
+        }
+
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        Path targetFilePath = Paths.get(folder, fileName)
+        FileUtils.copyInputStreamToFile(is, Paths.get(jenkinsLogFilePath).toFile())
 
-        if (! script.fileExists(folder)) {
-            script.sh(script: "mkdir -p ${folder}", label: "creating folder ${folder}")
-        }
-        if (! targetFilePath.getParent().toFile().isDirectory()) {
-            throw new RuntimeException("Folder path is not a directory. Folder path: ${folder}")
-        }
+        return jenkinsLogFilePath
+    }
 
-        FileUtils.copyInputStreamToFile(is, targetFilePath.toFile())
-        return targetFilePath
+    @NonCPS
+    private String getFullPath(String first, String... more) {
+        Path fullPath = Paths.get(first, more)
+        return fullPath.toFile().getAbsolutePath()
     }
 
     String getCurrentBuildLogAsText () {
