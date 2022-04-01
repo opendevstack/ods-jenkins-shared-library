@@ -126,7 +126,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
-        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, "upload xunit and jenkins log")
 
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
         def projectKey = "${projectFixture.project}"
@@ -169,9 +169,9 @@ class LevaDocUseCaseFunctTest extends Specification {
             .get(0)
     }
 
-    private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture) {
+    private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture, String subScenarioId = "") {
         levaDocWiremock = new LevaDocWiremock()
-        levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root)
+        levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root, subScenarioId)
 
         // Mocks generation (spock don't let you add this outside a Spec)
         JenkinsService jenkins = Mock(JenkinsService)

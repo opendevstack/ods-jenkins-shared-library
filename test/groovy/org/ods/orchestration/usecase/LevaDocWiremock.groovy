@@ -22,8 +22,8 @@ class LevaDocWiremock {
     WiremockManager sonarServer
     WiremockManager bitbucketServer
 
-    void setUpWireMock(ProjectFixture projectFixture, File tempFolder) {
-        startUpWiremockServers(projectFixture, tempFolder)
+    void setUpWireMock(ProjectFixture projectFixture, File tempFolder, String subScenarioId = "") {
+        startUpWiremockServers(projectFixture, tempFolder, subScenarioId)
     }
 
     void tearDownWiremock(){
@@ -34,7 +34,7 @@ class LevaDocWiremock {
         bitbucketServer?.tearDown()
     }
 
-    private void startUpWiremockServers(ProjectFixture projectFixture, File tempFolder) {
+    private void startUpWiremockServers(ProjectFixture projectFixture, File tempFolder, String subScenarioId) {
         String projectKey = projectFixture.project, doctype = projectFixture.docType
         log.info "Using PROJECT_KEY:${projectKey}"
         log.info "Using RECORD Wiremock:${RECORD}"
@@ -43,11 +43,19 @@ class LevaDocWiremock {
 
         String overall = (projectFixture.overall) ? "/overall" : ""
         String component = (projectFixture.component) ? "/${projectFixture.component}" : ""
-        String scenarioPath = "${projectKey}${component}/${doctype}${overall}/${projectFixture.version}"
+        String subScenario = (subScenarioId) ? ("/subScenario-" + removeSpecialChars(subScenarioId)) : ""
+        String scenarioPath = "${projectKey}${component}${subScenario}/${doctype}${overall}/${projectFixture.version}"
+
         docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
         bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(RECORD)
+    }
+
+    private String removeSpecialChars(String pathRoute) {
+        pathRoute.replace("/", "_")
+            .replace(" ", "_")
+            .replace("\\", "_")
     }
 
     JiraService getJiraService(){
