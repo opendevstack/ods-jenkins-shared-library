@@ -123,6 +123,9 @@ class LevaDocUseCaseFunctTest extends Specification {
         projectFixture << new DocTypeProjectFixturesOverall().getProjects()
     }
 
+    // WARNING: The following method uploads the test results needed by docGen
+    //          to execute the end-to-end tests, when RECORD_MODE = true
+    // @Ignore
     @Unroll
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
