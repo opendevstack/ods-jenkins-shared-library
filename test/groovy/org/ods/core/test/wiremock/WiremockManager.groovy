@@ -51,6 +51,7 @@ class WiremockManager {
         log.info("WireMockServer: [{}:{}]", serverType, wireMockServer.baseUrl())
         log.info("WireMockServer: [{}] targetURL:[{}]", serverType, defaultURL)
         log.info("WireMockServer: [{}] pathToFiles:[{}]", serverType, pathToFiles)
+        logAmountOfMappingFilesFoundInMappingsFolder(recording)
 
         setUpRecordMode(recording, wireMockServer, defaultURL)
         return this
@@ -61,34 +62,66 @@ class WiremockManager {
     }
 
     void tearDown() {
-        log.info("tearDown")
+        log.info("tearDown [{}]", serverType)
 
         wireMockServer.stop();
         if (recording) {
             try {
                 SnapshotRecordResult recording = wireMockServer.stopRecording()
-                log.info("record files:[{}]", recording.stubMappings?.size())
+                int stubsAmount = recording.stubMappings?.size()
+                log.info("record files [{}]:[{}]", serverType, stubsAmount)
+
+                checkAmountOfFilesInMappingsFolder(stubsAmount)
+                log.info("Files: ")
+
                 cleanWiremockDatafiles()
             }catch(Exception e){
-                log.error("stopRecording error", e)
-                throw new RuntimeException("Error when stopRecording", e)
+                log.error("stopRecording error [${serverType}]", e)
+                throw new RuntimeException("Error when stopRecording [${serverType}]", e)
             }
+        }
+    }
+
+    private void logAmountOfMappingFilesFoundInMappingsFolder(boolean record) {
+        int amountOfFilesInFolder = 0
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
+            amountOfFilesInFolder++
+        }
+        if (amountOfFilesInFolder > 0) {
+            log.info("[{}] Loading mapping stubs from {} previously saved files. ", serverType, amountOfFilesInFolder)
+        } else {
+            if (! record) {
+                log.warn("[{}] NOT found mapping files to load stubs from. ", serverType)
+            }
+        }
+    }
+
+    private void checkAmountOfFilesInMappingsFolder(int stubsAmount) {
+        int amountOfFilesInFolder = 0
+        StringBuilder sb = new StringBuilder("\n")
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
+            sb.append(it.getAbsolutePath()).append("\n")
+            amountOfFilesInFolder++
+        }
+        log.info("Mapping stubs saved in files: " + sb.toString())
+        if (stubsAmount != amountOfFilesInFolder) {
+            throw new RuntimeException("[${serverType}] Problem storing stubs!!!")
         }
     }
 
     private void cleanExistingRecords() {
         try {
-            log.info("Clean directory $pathToFiles");
+            log.info("Clean resources directory [${serverType}]: $pathToFiles");
             FileUtils.cleanDirectory(new File(pathToFiles));
         } catch (Exception ex) {
-            log.warn("Exception deleting Files: " + ex);
+            log.warn("Exception deleting files in resources directory [${serverType}]: " + ex);
         }
         new File("${pathToFiles}/${MAPPINGS_ROOT}").mkdirs()
         new File("${pathToFiles}/${FILES_ROOT}").mkdirs()
     }
 
     private cleanWiremockDatafiles() {
-        log.info("cleanWiremock date_created field")
+        log.info("cleanWiremockDatafiles [${serverType}]: date_created field")
         Map replaceAllMap = prepareReplaceMap()
         new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
             replaceFileInText(it, replaceAllMap)
@@ -159,7 +192,7 @@ class WiremockManager {
 
     private void setUpRecordMode(boolean recording, WireMockServer wireMockServer, String targetURL) {
         if (recording) {
-            log.info("WireMockServer:[{}] - RECORD MODE!!!!")
+            log.info("WireMockServer:[{}] - RECORD MODE!!!!", serverType)
             wireMockServer.resetAll()
             wireMockServer.startRecording(WireMock.recordSpec().forTarget(targetURL).build())
             this.recording = recording
