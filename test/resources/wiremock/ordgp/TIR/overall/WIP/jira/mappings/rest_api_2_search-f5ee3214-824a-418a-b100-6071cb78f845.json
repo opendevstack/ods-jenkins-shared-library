@@ -1,0 +1,38 @@
+{
+  "id" : "f5ee3214-824a-418a-b100-6071cb78f845",
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"jql\":\"project = ordgp AND issuetype = 'Documentation'\",\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_search-f5ee3214-824a-418a-b100-6071cb78f845.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Fri, 01 Apr 2022 09:22:42 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "682x9156x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=25612E5EB8A206E9E2AFA8246AD26730; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_97b78d77c937c1c3ca8ae10292dc69d4b075da4d_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "15ahswc",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "f5ee3214-824a-418a-b100-6071cb78f845",
+  "persistent" : true,
+  "insertionIndex" : 20
+}

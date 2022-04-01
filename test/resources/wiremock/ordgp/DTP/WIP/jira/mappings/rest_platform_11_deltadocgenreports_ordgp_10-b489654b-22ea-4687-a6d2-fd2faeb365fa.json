@@ -1,0 +1,33 @@
+{
+  "id" : "b489654b-22ea-4687-a6d2-fd2faeb365fa",
+  "name" : "rest_platform_11_deltadocgenreports_ordgp_10",
+  "request" : {
+    "url" : "/rest/platform/1.1/deltadocgenreports/ORDGP/1.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_platform_11_deltadocgenreports_ordgp_10-b489654b-22ea-4687-a6d2-fd2faeb365fa.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Fri, 01 Apr 2022 09:06:03 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "665x8589x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=8283F46783A56F5366959E42AAD61CC3; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_58e13c230ba90fe48cc23759dfcc370fed833f12_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "ujj9ha",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "b489654b-22ea-4687-a6d2-fd2faeb365fa",
+  "persistent" : true,
+  "insertionIndex" : 14
+}

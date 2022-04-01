@@ -1,0 +1,33 @@
+{
+  "id" : "3d18b78c-d80c-4d3d-9bcc-27356e0c1ef6",
+  "name" : "rest_platform_11_productreleases_ordgp_versions_10",
+  "request" : {
+    "url" : "/rest/platform/1.1/productreleases/ORDGP/versions/1.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"addedIssues\":[],\"modifiedIssues\":{},\"continuedIssueKeys\":[],\"discontinuedIssueKeys\":[],\"predecessorIssueKeys\":[],\"addedLinks\":[],\"continuedLinks\":[],\"discontinuedLinks\":[],\"inheritedLinks\":[],\"predecessorLinks\":[],\"deletedIssuesAfterDeployToDev\":[],\"versionId\":26013,\"documentsCreated\":false,\"managerStatus\":\"Successful\",\"name\":\"1.0\",\"frozen\":false,\"version\":\"1.0\",\"releaseState\":\"Change Ready for Implementation\"}",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Fri, 01 Apr 2022 09:17:12 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "677x8903x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=F773853FF6203DD8A42A2FB05C9F1C18; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_a119cdb5f8a8fad957c8b9b607611cca953920de_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "q8314v",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "3d18b78c-d80c-4d3d-9bcc-27356e0c1ef6",
+  "persistent" : true,
+  "insertionIndex" : 13
+}

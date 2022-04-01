@@ -1,0 +1,33 @@
+{
+  "id" : "2fe4c3eb-a59a-4fa0-a205-0bbc6b4c05e8",
+  "name" : "rest_api_2_issue_ordgp-123",
+  "request" : {
+    "url" : "/rest/api/2/issue/ORDGP-123?fields=customfield_20101",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"896751\",\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issue/896751\",\"key\":\"ORDGP-123\",\"fields\":{\"customfield_20101\":{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/version/26013\",\"id\":\"26013\",\"description\":\"\",\"name\":\"1.0\",\"archived\":false,\"released\":false}}}",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Fri, 01 Apr 2022 09:16:17 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "676x8882x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=302FC16936EB0058FEE2AEEB0DBFD1C4; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_a82b32bba03e6e05bd169919167f157e549ce9a9_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "hzd2a1",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "2fe4c3eb-a59a-4fa0-a205-0bbc6b4c05e8",
+  "persistent" : true,
+  "insertionIndex" : 12
+}
