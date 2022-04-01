@@ -1896,4 +1896,22 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         'ab-c-d'  | 'ab&#x2011;c&#x2011;d'
     }
 
+    def "getTestDescription"(testIssue, expected) {
+        given:
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null, null, null, null)
+
+        when:
+        def result = leVADocumentUseCase.getTestDescription(testIssue)
+
+        then:
+        result == expected
+
+        where:
+        testIssue                                      |       expected
+        [name: '',description: '']                     |       'N/A'
+        [name: 'NAME',description: '']                 |       'NAME'
+        [name: '',description: 'DESCRIPTION']          |       'DESCRIPTION'
+        [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
+    }
 }

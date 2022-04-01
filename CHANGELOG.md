@@ -3,6 +3,11 @@
 ## Unreleased
 - Improve error message when two coded tests are linked to the same test issue ([#835](https://github.com/opendevstack/ods-jenkins-shared-library/pull/835))
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
+- Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Remove call to a cps method from a non_cps method ([852](https://github.com/opendevstack/ods-jenkins-shared-library/pull/852))
+- JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
+- Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
+- Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
 
 ## [4.0] - 2021-05-11
 
@@ -58,6 +63,7 @@
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 - Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Set test summary for empty description in TCP ([816](https://github.com/opendevstack/ods-jenkins-shared-library/pull/816))
 - Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
@@ -72,6 +78,9 @@
 - rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 - RM: test component causes new jenkins (run) instance after branch is created for release 
 ([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
+- Set test summary for empty description in TCR for integration tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
+- Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 
 ## [3.0] - 2020-08-11
@@ -195,7 +204,7 @@
 - Make ODS pipeline configurable for MRO ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
 - Make jenkins ods shared lib ready for MRO ([#108](https://github.com/opendevstack/ods-jenkins-shared-library/pull/108))
 ### Fixed
-- Job fails when using a custom test reports location ([#132](https://github.com/opendevstack/ods-jenkins-shared-library/issues/132)) 
+- Job fails when using a custom test reports location ([#132](https://github.com/opendevstack/ods-jenkins-shared-library/issues/132))
 - Seldom failure (OCP Build app-be-bonjour-451 was not successfull - status Running) - although build completed in same var / stage([#135](https://github.com/opendevstack/ods-jenkins-shared-library/issues/135))
 - Fix build still running issue during build check ([#136](https://github.com/opendevstack/ods-jenkins-shared-library/pull/136))
 - Auto Clone Environment fails during curl download ([#109](https://github.com/opendevstack/ods-jenkins-shared-library/pull/109))
