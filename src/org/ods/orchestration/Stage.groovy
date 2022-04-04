@@ -90,22 +90,37 @@ class Stage {
     }
 
     Map getTestResults(def steps, Map repo, String typeIn = Project.TestType.UNIT) {
-        def jenkins = ServiceRegistry.instance.get(JenkinsService)
+
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
-        def nexusService = ServiceRegistry.instance.get(NexusService)
+        NexusService nexusService = ServiceRegistry.instance.get(NexusService)
+
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
         String type = typeIn.isBlank() ? Project.TestType.UNIT.toLowerCase() : typeIn.toLowerCase()
-        def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
+        String testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
 
+        String testReportsUnstashPath = unstashTestFiles(steps, repo, type, testReportsPath)
+
+        uploadTestResultsToNexus(nexusService, steps, repo, type, testReportsUnstashPath)
+
+        def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
+
+        return [
+            // Parse JUnit test report files into a report
+            testResults: junit.parseTestReportFiles(testReportFiles),
+        ]
+    }
+
+    protected String unstashTestFiles(def steps, Map repo, String type, String testReportsPath) {
+        def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
-        if (type != 'unit') {
+        if (! type.equalsIgnoreCase(Project.TestType.UNIT)) {
             testReportsStashName = "${type}-${testReportsStashName}"
         }
 
-        def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
+        String testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
             testReportsUnstashPath,
@@ -115,16 +130,23 @@ class Stage {
         if (!hasStashedTestReports) {
             throw new RuntimeException(
                 "Error: unable to unstash JUnit XML reports, type '${type}' for repo '${repo.id}' " +
-                "from stash '${testReportsStashName}'."
+                    "from stash '${testReportsStashName}'."
             )
         }
 
-        String testResultsKey = type + repo.id ? "-" + repo.id : ""
+        return testReportsUnstashPath
+    }
+
+    protected void uploadTestResultsToNexus(NexusService nexusService, def steps, Map repo, String type,
+                                          String testReportsUnstashPath) {
+
+        String testResultsKey = getTestResultsKey(type, repo)
         String workspacePath = "${steps.env.WORKSPACE}"
         String nexusDirectory = nexusService.getNexusDirectory(
             project.getJiraProjectKey(),
-            project.steps.env.BUILD_NUMBER
+            steps.env.BUILD_NUMBER
         )
+
         project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
             testReportsUnstashPath,
@@ -132,12 +154,16 @@ class Stage {
             nexusDirectory,
             repo.id)
 
-        def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
+    }
 
-        return [
-            // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles),
-        ]
+    protected String getTestResultsKey(String type, Map repo) {
+        if (type.equalsIgnoreCase(Project.TestType.UNIT)) {
+            if (! repo.id) {
+                throw new RuntimeException("Cannot obtain repo id, needed for Unit tests.")
+            }
+            return (type + (repo.id ? "-" + repo.id : "")).capitalize()
+        }
+        return type.capitalize()
     }
 
     Map getLogReports(def steps, Map repo, String type) {
