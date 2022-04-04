@@ -161,9 +161,9 @@ class Stage {
             if (! repo.id) {
                 throw new RuntimeException("Cannot obtain repo id, needed for Unit tests.")
             }
-            return (type + (repo.id ? "-" + repo.id : "")).capitalize()
+            return (type + (repo.id ? "-" + repo.id : "")).toLowerCase()
         }
-        return type.capitalize()
+        return type.toLowerCase()
     }
 
     Map getLogReports(def steps, Map repo, String type) {

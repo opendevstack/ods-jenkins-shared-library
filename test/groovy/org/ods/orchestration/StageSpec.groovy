@@ -92,19 +92,19 @@ class StageSpec extends Specification {
         typeAndRepo << [
             [ type: Project.TestType.UNIT, repo: [id:"someRepoKey"], result:"Unit-someRepoKey" ],
             [ type: Project.TestType.ACCEPTANCE, repo: [id:"someRepoKey"],
-              result: Project.TestType.ACCEPTANCE.toLowerCase().capitalize() ],
+              result: Project.TestType.ACCEPTANCE.toLowerCase() ],
             [ type: Project.TestType.INSTALLATION, repo: [id:"someRepoKey"],
-              result: Project.TestType.INSTALLATION.toLowerCase().capitalize() ],
+              result: Project.TestType.INSTALLATION.toLowerCase() ],
             [ type: Project.TestType.INTEGRATION, repo: [id:"someRepoKey"],
-              result: Project.TestType.INTEGRATION.toLowerCase().capitalize() ],
+              result: Project.TestType.INTEGRATION.toLowerCase() ],
             // -------------------------------------------------------------------
             // [ type: Project.TestType.UNIT, repo: [:], result:null],
             [ type: Project.TestType.ACCEPTANCE, repo: [:],
-              result: Project.TestType.ACCEPTANCE.toLowerCase().capitalize() ],
+              result: Project.TestType.ACCEPTANCE.toLowerCase() ],
             [ type: Project.TestType.INSTALLATION, repo: [:],
-              result: Project.TestType.INSTALLATION.toLowerCase().capitalize() ],
+              result: Project.TestType.INSTALLATION.toLowerCase() ],
             [ type: Project.TestType.INTEGRATION, repo: [:],
-              result: Project.TestType.INTEGRATION.toLowerCase().capitalize() ],
+              result: Project.TestType.INTEGRATION.toLowerCase() ],
         ]
     }
 
