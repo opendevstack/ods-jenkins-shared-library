@@ -9,6 +9,7 @@ import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.orchestration.util.Project
+import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -29,7 +30,6 @@ import util.FixtureHelper
  *
  */
 
-@Ignore
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
 
@@ -151,25 +151,30 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     private void executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
-        useCase."create${projectFixture.docType}"()
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
+        useCase.createDocument("${projectFixture.docType}")
     }
 
     private String executeLeVADocumentUseCaseOverallMethod(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
-        return useCase."createOverall${projectFixture.docType}"()
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
+        return useCase.createDocument("OVERALL_${projectFixture.docType}")
     }
 
     private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
-        LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-        Map tests = repo.data.tests
-        return useCase."create${projectFixture.docType}"(null, tests)
+        try {
+            LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
+            LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
+            Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
+            Map tests = repo.data.tests
+            return useCase.createDocument("${projectFixture.docType}", repo, tests)
+        } catch(Throwable e) {
+            log.error(e.getMessage(), e)
+            throw e
+        }
     }
 
     private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
         Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
         Map tests = repo.data.tests
@@ -194,26 +199,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildURL url("https//jenkins-sample")
                 jobName string("ordgp-cd/ordgp-cd-release-master")
                 keyLike "testResultsURLs", {
-                    keyLike "acceptance", {
-                        url url("https//nexus-sample")
-                        type string("Acceptance")
-                        path string("path1")
-                    }
-                    keyLike "installation", {
-                        url url("https//nexus-sample")
-                        type string("Installation")
-                        path string("path2")
-                    }
-                    keyLike "integration", {
-                        url url("https//nexus-sample")
-                        type string("Integration")
-                        path string("path3")
-                    }
-                    keyLike "unit", {
-                        url url("https//nexus-sample")
-                        type string("Unit")
-                        path string("path4")
-                    }
+                    acceptance string("nexusRepo/nexusFolder/nexusFileAcceptaceTests")
+                    installation string("nexusRepo/nexusFolder/nexusFileInstallationTests")
+                    integration string("nexusRepo/nexusFolder/nexusFileIntegrationTests")
+                    'unit-backend' string("nexusRepo/nexusFolder/nexusFileBackendUnitTests")
+                    'unit-frontend' string("nexusRepo/nexusFolder/nexusFileFrontendUnitTests")
                 }
             }
             keyLike "git", {
@@ -317,7 +307,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
         jenkins.getCurrentBuildLogInputStream() >> new ByteArrayInputStream()
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
-        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null))
+        BitbucketService bitbucketService = Mock(BitbucketService)
+        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(bitbucketService, null, null))
         bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
             .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
 
@@ -327,7 +318,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
             tempFolder,
             jenkins,
             openShiftService,
-            bbT)
+            bbT,
+            bitbucketService)
     }
 
 }
