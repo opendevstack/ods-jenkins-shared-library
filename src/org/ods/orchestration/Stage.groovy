@@ -161,7 +161,7 @@ class Stage {
             if (! repo.id) {
                 throw new RuntimeException("Cannot obtain repo id, needed for Unit tests.")
             }
-            return (type + (repo.id ? "-" + repo.id : "")).toLowerCase()
+            return (type + "-" + repo.id).toLowerCase()
         }
         return type.toLowerCase()
     }
