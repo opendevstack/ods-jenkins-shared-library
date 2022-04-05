@@ -5857,7 +5857,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * useCase.createDocument("OVERALL_TIR", null, null)
         0 * useCase.createDocument(*_)
 
-        project.data.jenkinLog == UPLOAD_JENKINS_LOG_TO_NEXUS_URL
+        project.data.jenkinsLog == UPLOAD_JENKINS_LOG_TO_NEXUS_URL
     }
 
     def "run for GAMP category 1 in DEV"() {

@@ -207,7 +207,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildId string("${project.data.build.buildId}")
                 buildURL url("${project.data.build.buildURL}")
                 jobName string("${project.data.build.jobName}")
-                jenkinLog string("${project.data.build.jenkinLog}")
                 keyLike "testResultsURLs", {
                     'Acceptance' string("${project.data.build.testResultsURLs['Acceptance']}")
                     'Installation' string("${project.data.build.testResultsURLs['Installation']}")
@@ -215,6 +214,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     'Unit-frontend' string("${project.data.build.testResultsURLs['Unit-frontend']}")
                     'Unit-backend' string("${project.data.build.testResultsURLs['Unit-backend']}")
                 }
+                jenkinsLog string("${project.data.build.jenkinsLog}")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")

@@ -46,7 +46,7 @@ class ProjectFactory {
             project.load(gitService, jiraUseCase)
 
             project.data.openshift.targetApiUrl = "https://openshift-sample"
-            project.data.jenkinLog = project.data.build.jenkinLog
+            project.data.jenkinsLog = project.data.build.jenkinsLog
 
             project.repositories.each { repo -> repo.metadata = loadMetadataFromDataFixture(repo) }
 
