@@ -35,6 +35,10 @@ class LevaDocUseCaseFactory {
     private BitbucketTraceabilityUseCase bbt
     private IPipelineSteps steps
     private BitbucketService bitbucketService
+    private JiraServiceForWireMock jiraServiceForWireMock
+    private NexusService nexusService
+    private DocGenService docGenService
+    private Project project
 
     private class LeVADocumentParamsMapperWithLogging extends LeVADocumentParamsMapper {
         LeVADocumentParamsMapperWithLogging(Project project) {
@@ -62,7 +66,9 @@ class LevaDocUseCaseFactory {
                           JenkinsService jenkins,
                           OpenShiftService os,
                           BitbucketTraceabilityUseCase bbt,
-                          BitbucketService bitbucketService){
+                          BitbucketService bitbucketService,
+                          String docGenUrl = null){
+
         this.levaDocWiremock = levaDocWiremock
         this.gitService = gitService
         this.os = os
@@ -71,25 +77,20 @@ class LevaDocUseCaseFactory {
         this.jenkins = jenkins
         this.tempFolder = tempFolder
         this.steps = new PipelineSteps()
+
+        this.jiraServiceForWireMock = buildJiraServiceForWireMock()
+        this.docGenService = buildDocGenService(docGenUrl)
+        this.nexusService = buildNexusServiceForWireMock()
     }
 
-    LeVADocumentUseCase build(ProjectFixture projectFixture, String docGenUrl = null){
-        LevaDocDataFixture dataFixture = new LevaDocDataFixture(tempFolder.root)
-        JiraServiceForWireMock jiraServiceForWireMock = buildJiraServiceForWireMock()
+    LeVADocumentUseCase build(ProjectFixture projectFixture){
 
-        if (!docGenUrl){
-            docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
-        }
-        String nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
-        def nexusService = new NexusService(nexusUrl, WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
-
-        ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, new LoggerStub(log))
-        Project project = projectFactory.getProject(projectFixture, dataFixture)
+        buildProject(projectFixture)
 
         return new LeVADocumentUseCase
             (
                 project,
-                new DocGenService(docGenUrl),
+                docGenService,
                 jenkins,
                 nexusService,
                 new LeVADocumentParamsMapperWithLogging(project),
@@ -98,8 +99,32 @@ class LevaDocUseCaseFactory {
             )
     }
 
+    Project getProject() {
+        return this.project
+    }
+
+    private buildProject(ProjectFixture projectFixture) {
+        ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, new LoggerStub(log))
+        LevaDocDataFixture dataFixture = new LevaDocDataFixture(tempFolder.root)
+        this.project = projectFactory.getProject(projectFixture, dataFixture)
+    }
+
     private JiraServiceForWireMock buildJiraServiceForWireMock() {
         String jiraUrl = levaDocWiremock.jiraServer.server().baseUrl()
         new JiraServiceForWireMock(jiraUrl, WiremockServers.JIRA.getUser(), WiremockServers.JIRA.getPassword())
     }
+
+    private DocGenService buildDocGenService(String docGenUrl) {
+        if (!docGenUrl){
+            docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
+        }
+        return new DocGenService(docGenUrl)
+    }
+
+    private NexusService buildNexusServiceForWireMock() {
+        String nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
+        return new NexusService(nexusUrl, WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
+    }
+
+
 }

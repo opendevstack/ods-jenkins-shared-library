@@ -45,7 +45,10 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
-        Map projectDataMap = projectFixtureToProjectDataMap(docType)
+        Map projectDataMap = projectFixtureToProjectDataMap(projectFixture)
+
+        LevaDocUseCaseFactory levaDocUseCaseFactory = getLevaDocUseCaseFactory(projectFixture)
+        LeVADocumentUseCase useCase = levaDocUseCaseFactory.build(projectFixture)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -59,7 +62,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    executeLeVADocumentUseCaseMethod(projectFixture, context.url as String)
+                    String wiremockURL = context.url as String
+                    useCase.createDocument("${projectFixture.docType}")
                 }
             }
 
@@ -72,21 +76,28 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "testData"
         String docType = projectFixture.getDocType()
-        Map params = projectFixtureToProjectDataMap(docType)
+        Map projectDataMap = projectFixtureToProjectDataMap(projectFixture)
+
+        LevaDocUseCaseFactory levaDocUseCaseFactory = getLevaDocUseCaseFactory(projectFixture)
+        LeVADocumentUseCase useCase = levaDocUseCaseFactory.build(projectFixture)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
             .with {
                 serviceConsumer "buildDocument.${docTypeGroup}"
                 hasPactWith "createDoc.${docTypeGroup}"
-                given("project with data:", params)
+                given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
-                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url as String)
+                    String wiremockURL = context.url as String
+                    Map repoAndTestsData = getRepoAndTestsData(projectFixture, false)
+                    Map repo = repoAndTestsData.repoData
+                    Map data = repoAndTestsData.testsData
+                    useCase.createDocument("${projectFixture.docType}", repo, data)
                 }
             }
 
@@ -99,21 +110,28 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "component"
         String docType = projectFixture.getDocType()
-        Map params = projectFixtureToProjectDataMap(docType)
+        Map projectDataMap = projectFixtureToProjectDataMap(projectFixture)
+
+        LevaDocUseCaseFactory levaDocUseCaseFactory = getLevaDocUseCaseFactory(projectFixture)
+        LeVADocumentUseCase useCase = levaDocUseCaseFactory.build(projectFixture)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
             .with {
                 serviceConsumer "buildDocument.${docTypeGroup}"
                 hasPactWith "createDoc.${docTypeGroup}"
-                given("project with data:", params)
+                given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
-                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    executeLeVADocumentUseCaseMethodWithComponent(projectFixture, context.url as String)
+                    String wiremockURL = context.url as String
+                    Map repoAndTestsData = getRepoAndTestsData(projectFixture, true)
+                    Map repo = repoAndTestsData.repoData
+                    Map data = repoAndTestsData.testsData
+                    useCase.createDocument("${projectFixture.docType}", repo, data)
                 }
             }
 
@@ -126,21 +144,25 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "overall"
         String docType = "OVERALL_${projectFixture.getDocType()}"
-        Map params = projectFixtureToProjectDataMap(docType)
+        Map projectDataMap = projectFixtureToProjectDataMap(projectFixture)
+
+        LevaDocUseCaseFactory levaDocUseCaseFactory = getLevaDocUseCaseFactory(projectFixture)
+        LeVADocumentUseCase useCase = levaDocUseCaseFactory.build(projectFixture)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
             .with {
                 serviceConsumer "buildDocument.${docTypeGroup}"
                 hasPactWith "createDoc.${docTypeGroup}"
-                given("project with data:", params)
+                given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
-                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    executeLeVADocumentUseCaseOverallMethod(projectFixture, context.url as String)
+                    String wiremockURL = context.url as String
+                    useCase.createDocument("OVERALL_${projectFixture.docType}")
                 }
             }
 
@@ -153,31 +175,19 @@ class LeVADocumentUseCasePactSpec extends Specification {
         useCase.createDocument("${projectFixture.docType}")
     }
 
-    private String executeLeVADocumentUseCaseOverallMethod(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
-        return useCase.createDocument("OVERALL_${projectFixture.docType}")
-    }
+    private Map getRepoAndTestsData(ProjectFixture projectFixture, boolean isForComponent) {
 
-    private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
-        try {
-            LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
-            LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-            Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-            Map tests = repo.data.tests
-            return useCase.createDocument("${projectFixture.docType}", repo, tests)
-        } catch(Throwable e) {
-            log.error(e.getMessage(), e)
-            throw e
+        Map repoData = RepoDataBuilder.getRepoForComponent(projectFixture.component)
+        Map testsData = repoData.data.tests
+
+        if (isForComponent) {
+            repoData.data.remove('tests')
         }
-    }
 
-    private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).build(projectFixture)
-        LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-        Map tests = repo.data.tests
-        repo.data.remove('tests')
-        return useCase."create${projectFixture.docType}"(repo, tests)
+        return [
+            repoData: repoData,
+            testsData: testsData,
+        ]
     }
 
     private Closure defaultBodyParams() {
