@@ -7,6 +7,7 @@ import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
+import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -58,7 +59,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams())
+                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -89,7 +90,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams())
+                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -123,7 +124,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
+                withBody([prettyPrint: true], defaultBodyParamsWithComponent(levaDocUseCaseFactory.getProject(), projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -157,7 +158,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams())
+                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -190,28 +191,29 @@ class LeVADocumentUseCasePactSpec extends Specification {
         ]
     }
 
-    private Closure defaultBodyParams() {
+    private Closure defaultBodyParams(Project project) {
         return {
             keyLike "build", {
                 targetEnvironment string("dev")
                 targetEnvironmentToken string("D")
                 version string("WIP")
                 configItem string("BI-IT-DEVSTACK")
-                changeDescription string("changeDescription")
-                changeId string("changeId")
+                changeDescription string("${project.data.build.changeDescription}")
+                changeId string("${project.data.build.changeId}")
                 rePromote bool(false)
-                releaseStatusJiraIssueKey string("ORDGP-123")
-                runDisplayUrl url("https://jenkins-sample/blabla")
-                releaseParamVersion string("1.0")
-                buildId string("2022-01-22_23-59-59")
-                buildURL url("https//jenkins-sample")
-                jobName string("ordgp-cd/ordgp-cd-release-master")
+                releaseStatusJiraIssueKey string("${project.data.build.releaseStatusJiraIssueKey}")
+                runDisplayUrl url("${project.data.build.runDisplayUrl}")
+                releaseParamVersion string("${project.data.build.releaseParamVersion}")
+                buildId string("${project.data.build.buildId}")
+                buildURL url("${project.data.build.buildURL}")
+                jobName string("${project.data.build.jobName}")
+                jenkinLog string("${project.data.build.jenkinLog}")
                 keyLike "testResultsURLs", {
-                    acceptance string("nexusRepo/nexusFolder/nexusFileAcceptaceTests")
-                    installation string("nexusRepo/nexusFolder/nexusFileInstallationTests")
-                    integration string("nexusRepo/nexusFolder/nexusFileIntegrationTests")
-                    'unit-backend' string("nexusRepo/nexusFolder/nexusFileBackendUnitTests")
-                    'unit-frontend' string("nexusRepo/nexusFolder/nexusFileFrontendUnitTests")
+                    'Acceptance' string("${project.data.build.testResultsURLs['Acceptance']}")
+                    'Installation' string("${project.data.build.testResultsURLs['Installation']}")
+                    'Integration' string("${project.data.build.testResultsURLs['Integration']}")
+                    'Unit-frontend' string("${project.data.build.testResultsURLs['Unit-frontend']}")
+                    'Unit-backend' string("${project.data.build.testResultsURLs['Unit-backend']}")
                 }
             }
             keyLike "git", {
@@ -231,7 +233,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         }
     }
 
-    Closure defaultBodyParamsWithComponent(component) {
+    Closure defaultBodyParamsWithComponent(Project project, String component) {
         return {
             keyLike "repo", {
                 id string("theFirst")
@@ -291,7 +293,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParams()
+        } << defaultBodyParams(project)
     }
 
     Closure defaultDocGenerationResponse() {
