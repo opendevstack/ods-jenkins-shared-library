@@ -2,13 +2,11 @@ package org.ods.orchestration.usecase
 
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
-import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -47,16 +45,16 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
-        Map params = projectData(docType)
+        Map projectDataMap = projectFixtureToProjectDataMap(docType)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
             .with {
                 serviceConsumer "buildDocument.${docTypeGroup}"
                 hasPactWith "createDoc.${docTypeGroup}"
-                given("project with data:", params)
+                given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
-                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
@@ -74,7 +72,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "testData"
         String docType = projectFixture.getDocType()
-        Map params = projectData(docType)
+        Map params = projectFixtureToProjectDataMap(docType)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -101,7 +99,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "component"
         String docType = projectFixture.getDocType()
-        Map params = projectData(docType)
+        Map params = projectFixtureToProjectDataMap(docType)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -128,7 +126,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         given:
         String docTypeGroup = "overall"
         String docType = "OVERALL_${projectFixture.getDocType()}"
-        Map params = projectData(docType)
+        Map params = projectFixtureToProjectDataMap(docType)
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -293,8 +291,13 @@ class LeVADocumentUseCasePactSpec extends Specification {
         }
     }
 
-    Map projectData(docType) {
-        return [project: "FRML24113", buildNumber: "666", version: "WIP", docType: docType]
+    Map projectFixtureToProjectDataMap(ProjectFixture projectFixture) {
+        return [
+            project: projectFixture.getProject(),
+            buildNumber: projectFixture.getBuildNumber(),
+            version: projectFixture.getVersion(),
+            docType: projectFixture.getDocType(),
+        ]
     }
 
     private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {
