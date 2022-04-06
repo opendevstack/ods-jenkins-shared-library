@@ -72,7 +72,7 @@ class LevaDocUseCaseFactory {
 
     LeVADocumentUseCase build(ProjectFixture projectFixture){
 
-        buildProject(projectFixture)
+        this.project = buildProject(projectFixture)
 
         return new LeVADocumentUseCase
             (
@@ -90,14 +90,17 @@ class LevaDocUseCaseFactory {
         Project project
         try {
             File tmpWorkspace = setTemporalWorkspace(projectFixture)
+            LevaDocDataFixture levaDocDataFixture = new LevaDocDataFixture()
+            levaDocDataFixture.configStepsEnvFromFixture(projectFixture, steps, tmpWorkspace)
 
             Project.METADATA_FILE_NAME = 'metadata.yml'
-            project = new Project(steps, loggerStub, [:]).init("refs/heads/master")
-            new LevaDocDataFixture().buildFixtureData(projectFixture, project, steps, tmpWorkspace)
+            project = new Project(steps, loggerStub, [:]).init(projectFixture.releaseManagerBranch)
+            levaDocDataFixture.setupProjectFromFixture(projectFixture, project)
 
             def util = new MROPipelineUtil(project, steps, gitService, loggerStub)
             def jiraUseCase = new JiraUseCase(project, steps, util, jiraService, loggerStub)
             project.load(gitService, jiraUseCase)
+            levaDocDataFixture.fixOpenshiftData(projectFixture, project)
 
             project.repositories.each { repo -> repo.metadata = loadMetadataFromDataFixture(repo) }
 

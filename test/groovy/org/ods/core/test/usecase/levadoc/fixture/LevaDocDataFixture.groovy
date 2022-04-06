@@ -9,74 +9,54 @@ import org.ods.util.IPipelineSteps
 @Slf4j
 class LevaDocDataFixture {
 
+    static final String JENKINS_URLS_BASE = "https://jenkinsHost.org/"
+    static final String JENKINS_URL_RUN_DISPLAY = JENKINS_URLS_BASE + "display"
+    static final String JENKINS_URL_JOB_BUILD = JENKINS_URLS_BASE + "buildJob"
+
     LevaDocDataFixture(){
     }
 
-    LevaDocDataFixture buildFixtureData(ProjectFixture projectFixture, Project project, IPipelineSteps steps, File tmpWorkspace){
-        updateProjectFromFixture(projectFixture, project)
-        updateStepsEnvFromFixture(projectFixture, steps, tmpWorkspace)
-
-        return this
-    }
-
-    private updateProjectFromFixture(ProjectFixture projectFixture, Project project) {
-        project.data.buildParams = buildJobParams(projectFixture)
-        project.data.git =  buildGitData(projectFixture)
-        project.data.openshift = [targetApiUrl:"https://openshift-sample"]
-
-        // project.data.metadata = [ : ]
-        project.data.metadata.id = projectFixture.project
-        project.data.buildParams =  project.data.build
-
-        project.data.openshift.targetApiUrl = "https://openshift-sample"
-    }
-
-    private updateStepsEnvFromFixture(ProjectFixture projectFixture, IPipelineSteps steps, File tmpWorkspace) {
-        final String RUN_DISPLAY_URL = "https://jenkins-sample/blabla"
-        final String BUILD_URL = "https://jenkinsHost.org/job/" +
-            "${projectFixture.project}-cd/job/${projectFixture.project}-releasemanager/${projectFixture.buildNumber}"
-
+    void configStepsEnvFromFixture(ProjectFixture projectFixture, IPipelineSteps steps, File tmpWorkspace) {
         steps.env = [
             BUILD_ID             : "2022-01-22_23-59-59",
             WORKSPACE            : tmpWorkspace.absolutePath,
-            RUN_DISPLAY_URL      : RUN_DISPLAY_URL,
-            version              : projectFixture.version,
+            RUN_DISPLAY_URL      : JENKINS_URL_RUN_DISPLAY,
+            version              : "${projectFixture.version}",
             configItem           : "Functional-Test",
             RELEASE_PARAM_VERSION: "3.0",
             BUILD_NUMBER         : "${projectFixture.buildNumber}",
-            BUILD_URL            : BUILD_URL,
-            JOB_NAME             : "${projectFixture.project}-cd/${projectFixture.project}-releasemanager"
+            BUILD_URL            : JENKINS_URL_JOB_BUILD,
+            JOB_NAME             : "${projectFixture.getJobName()}"
         ]
+    }
 
+    void setupProjectFromFixture(ProjectFixture projectFixture, Project project) {
+        project.data.buildParams = buildJobParams(projectFixture)
+        project.data.git =  buildGitData(projectFixture)
+
+        String newMetadataId = "${projectFixture.project}"
+        log.warn("Changing project.data.metadata.id: " +
+            "${project.data.metadata?.id} -> ${newMetadataId}")
+        project.data.metadata.id = newMetadataId
+    }
+
+    void fixOpenshiftData(ProjectFixture projectFixture, Project project) {
+        project.data.openshift = projectFixture.getOpenshiftData()
     }
 
     private Map<String, String> buildJobParams(ProjectFixture projectFixture){
-        String projectWithBuild = "${projectFixture.project}/${projectFixture.buildNumber}"
+
         return  [
                 targetEnvironment: "dev",
                 targetEnvironmentToken: "D",
                 version: "${projectFixture.version}",
                 configItem: "BI-IT-DEVSTACK",
-                changeDescription: "UNDEFINED",
+                changeDescription: "${projectFixture.getChangeDescription()}",
                 changeId: "1.0",
                 rePromote: "false",
                 releaseStatusJiraIssueKey: projectFixture.releaseKey,
-                testResultsURLs: buildTestResultsUrls(projectWithBuild),
-                jenkinsLog: getJenkinsLogUrl(projectWithBuild)
-        ]
-    }
-
-    private String getJenkinsLogUrl(String projectWithBuild) {
-        "repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
-    }
-
-    private Map<String, String> buildTestResultsUrls(String projectWithBuild) {
-        return [
-                "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
-                "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
-                "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
-                'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
-                'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
+                testResultsURLs: projectFixture.getTestResultsUrls(),
+                jenkinsLog: projectFixture.getJenkinsLogUrl()
         ]
     }
 

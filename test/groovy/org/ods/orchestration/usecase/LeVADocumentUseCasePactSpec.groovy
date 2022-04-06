@@ -8,6 +8,7 @@ import org.ods.core.test.usecase.LevaDocUseCaseFactory
 
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
+import org.ods.orchestration.util.DocumentHistoryEntry
 import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
@@ -32,8 +33,6 @@ import util.FixtureHelper
 
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
-
-    private static final String RUN_DISPLAY_URL = ProjectFactory.RUN_DISPLAY_URL
 
     @Rule
     public TemporaryFolder tempFolder
@@ -62,9 +61,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
+                withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                //withBody([prettyPrint: true], defaultDocGenerationResponse())
+                // withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     useCase.createDocument("${projectFixture.docType}")
@@ -161,7 +160,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
+                withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -194,49 +193,49 @@ class LeVADocumentUseCasePactSpec extends Specification {
         ]
     }
 
-    private Closure defaultBodyParams(Project project) {
+    private Closure defaultBodyParams(ProjectFixture projectFixture) {
         return {
             keyLike "build", {
                 targetEnvironment string("dev")
                 targetEnvironmentToken string("D")
                 version string("WIP")
                 configItem string("BI-IT-DEVSTACK")
-                changeDescription string("${project.data.build.changeDescription}")
-                changeId string("${project.data.build.changeId}")
-                rePromote bool(false)
-                releaseStatusJiraIssueKey string("${project.data.build.releaseStatusJiraIssueKey}")
-                runDisplayUrl url("${RUN_DISPLAY_URL}")
-                releaseParamVersion string("${project.data.build.releaseParamVersion}")
-                buildId string("${project.data.build.buildId}")
-                buildURL url("${project.data.build.buildURL}")
-                jobName string("${project.data.build.jobName}")
+                changeDescription string("${projectFixture.getChangeDescription()}")
+                changeId string("1.0")
+                rePromote string("false")
+                releaseStatusJiraIssueKey string("${projectFixture.releaseKey}")
+                runDisplayUrl url(LevaDocDataFixture.getJENKINS_URL_RUN_DISPLAY())
+                releaseParamVersion string("3.0")
+                buildId string("2022-01-22_23-59-59")
+                buildURL url(LevaDocDataFixture.getJENKINS_URL_JOB_BUILD())
+                jobName string("${projectFixture.getJobName()}")
                 keyLike "testResultsURLs", {
-                    'Unit-backend' string("${project.data.build.testResultsURLs['Unit-backend']}")
-                    'Unit-frontend' string("${project.data.build.testResultsURLs['Unit-frontend']}")
-                    'Acceptance' string("${project.data.build.testResultsURLs['Acceptance']}")
-                    'Installation' string("${project.data.build.testResultsURLs['Installation']}")
-                    'Integration' string("${project.data.build.testResultsURLs['Integration']}")
+                    'Unit-backend' string("${projectFixture.getTestResultsUrls()['Unit-backend']}")
+                    'Unit-frontend' string("${projectFixture.getTestResultsUrls()['Unit-frontend']}")
+                    'Acceptance' string("${projectFixture.getTestResultsUrls()['Acceptance']}")
+                    'Installation' string("${projectFixture.getTestResultsUrls()['Installation']}")
+                    'Integration' string("${projectFixture.getTestResultsUrls()['Integration']}")
                 }
-                jenkinsLog string("${project.buildParams.jenkinsLog}")
+                jenkinsLog string("${projectFixture.getJenkinsLogUrl()}")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                releaseManagerRepo string("ordgp-releasemanager")
-                releaseManagerBranch string("refs/heads/master")
+                releaseManagerRepo string("${projectFixture.releaseManagerRepo}")
+                releaseManagerBranch string("${projectFixture.releaseManagerBranch}")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
                 targetTag string("ods-generated-v3.0-3.0-0b11-D")
-                author string("${project.data.git.author}")
-                message string("${project.data.git.message}")
-                time string("${project.data.git.time}")
+                author string("ODS Jenkins Shared Library System User (undefined)")
+                message string("Swingin' The Bottle")
+                time string("2021-04-20T14:58:31.042152")
                 // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
             }
             keyLike "openshift", {
-                targetApiUrl url("https://openshift-sample")
+                targetApiUrl url("${projectFixture.getOpenshiftData()["targetApiUrl"]}")
             }
         }
     }
 
-    Closure defaultBodyParamsWithComponent(Project project, String component) {
+    Closure defaultBodyParamsWithComponent(ProjectFixture projectFixture, String component) {
         return {
             keyLike "repo", {
                 id string("theFirst")
@@ -296,14 +295,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParams(project)
-    }
-
-    Closure defaultDocGenerationResponse() {
-        return {
-            nexusURL eachLike(){ url("http://lalala") }
-            [ tempFolder.root ]
-        }
+        } << defaultBodyParams(projectFixture)
     }
 
     Map projectFixtureToProjectDataMap(ProjectFixture projectFixture) {
@@ -340,4 +332,147 @@ class LeVADocumentUseCasePactSpec extends Specification {
             bitbucketService)
     }
 
+    Closure defaultDocGenerationResponse(ProjectFixture projectFixture) {
+        return
+        [
+            {
+                "components": [
+
+            ],
+                "requirements": [
+                {
+                    "action": "add",
+                    "key": "ORDGP-126"
+                },
+                {
+                    "action": "add",
+                    "key": "ORDGP-127"
+                },
+                {
+                    "action": "add",
+                    "key": "ORDGP-125"
+                },
+                {
+                    "action": "add",
+                    "key": "ORDGP-128"
+                },
+                {
+                    "action": "add",
+                    "key": "ORDGP-129"
+                }
+            ],
+                "epics": [
+                {
+                    "action": "add",
+                    "key": "ORDGP-124"
+                }
+            ],
+                "mitigations": [
+
+            ],
+                "entryId": 1,
+                "bugs": [
+
+            ],
+                "risks": [
+
+            ],
+                "tests": [
+
+            ],
+                "docs": [
+                {
+                    "number": "3.2",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Operational Requirements",
+                    "action": "add",
+                    "key": "ORDGP-45"
+                },
+                {
+                    "number": "6",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Reference Documents",
+                    "action": "add",
+                    "key": "ORDGP-44"
+                },
+                {
+                    "number": "1",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Introduction and Purpose",
+                    "action": "add",
+                    "key": "ORDGP-43"
+                },
+                {
+                    "number": "2",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Overview",
+                    "action": "add",
+                    "key": "ORDGP-42"
+                },
+                {
+                    "number": "3.1",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Related Business / GxP Process",
+                    "action": "add",
+                    "key": "ORDGP-41"
+                },
+                {
+                    "number": "5.1",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Definitions",
+                    "action": "add",
+                    "key": "ORDGP-40"
+                },
+                {
+                    "number": "5.2",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Abbreviations",
+                    "action": "add",
+                    "key": "ORDGP-39"
+                },
+                {
+                    "number": "7",
+                    "documents": [
+                    "CSD"
+                ],
+                    "heading": "Document History",
+                    "action": "add",
+                    "key": "ORDGP-38"
+                }
+            ],
+                "previousProjectVersion": "",
+                "techSpecs": [
+
+            ],
+                "rational": "Initial document version.",
+                "projectVersion": "1.0"
+            }
+        ]
+
+    }
+
+    private List<DocumentHistoryEntry> buildExpectedResponse(){
+        Map map = [bugs: [], components: [], epics: [key: "ORDGP-124", action: "add"]]
+        DocumentHistoryEntry historyEntry = new DocumentHistoryEntry(
+            map,
+            1,
+            "1.0",
+            "",
+            "Initial document version.")
+        return [historyEntry]
+    }
 }

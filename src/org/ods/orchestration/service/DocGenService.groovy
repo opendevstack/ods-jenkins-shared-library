@@ -44,14 +44,14 @@ class DocGenService {
 
     @NonCPS
     private Object doRequest(String url, String projectId, String buildNumber, String levaDocType, Map data) {
-        def response = Unirest.post(url)
+        def request = Unirest.post(url)
             .routeParam("projectId", projectId)
             .routeParam("build", buildNumber)
             .routeParam("levaDocType", levaDocType)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(data))
-            .asString()
+        def response = request.asString()
         response.ifFailure {
             checkError(levaDocType, response)
         }

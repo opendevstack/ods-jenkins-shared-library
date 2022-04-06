@@ -41,4 +41,38 @@ class ProjectFixture {
             .docType(docType)
     }
 
+    String getJobName() {
+        return "${project}-cd/${project}-releasemanager"
+    }
+
+    String getChangeDescription() {
+        return "changeDescriptionForTests"
+    }
+
+    String getProjectWithBuildNumber() {
+        return "${project}/${buildNumber}"
+    }
+
+    String getJenkinsLogUrl() {
+        String projectWithBuild = getProjectWithBuildNumber()
+        "repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
+    }
+
+    Map<String, String> getTestResultsUrls() {
+        String projectWithBuild = getProjectWithBuildNumber()
+        return [
+            "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
+            "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
+            "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
+            'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
+            'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
+        ]
+    }
+
+    Map<String, String> getOpenshiftData() {
+        return [
+            targetApiUrl: "https://openshiftTargetUrl.local"
+        ]
+    }
+
 }
