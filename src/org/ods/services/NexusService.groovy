@@ -81,8 +81,15 @@ class NexusService {
 
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, Path artifact, String contentType) {
-        InputStream inputStream = Files.newInputStream(artifact)
-        return storeArtifact(repository, directory, name, inputStream, contentType)
+        URI artifactURL
+        InputStream inputStream
+        try {
+            inputStream = Files.newInputStream(artifact)
+            artifactURL = storeArtifact(repository, directory, name, inputStream, contentType)
+        } finally {
+            inputStream.close()
+        }
+        return artifactURL
     }
 
     @NonCPS
