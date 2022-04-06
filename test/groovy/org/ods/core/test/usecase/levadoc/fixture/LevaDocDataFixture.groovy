@@ -4,24 +4,47 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
+import org.ods.util.IPipelineSteps
 
 @Slf4j
 class LevaDocDataFixture {
 
-    private final File tempFolder
-
-    LevaDocDataFixture(File tempFolder){
-        this.tempFolder = tempFolder
+    LevaDocDataFixture(){
     }
 
-    File getTempFolder() {
-        return tempFolder
+    LevaDocDataFixture buildFixtureData(ProjectFixture projectFixture, Project project, IPipelineSteps steps, File tmpWorkspace){
+        updateProjectFromFixture(projectFixture, project)
+        updateStepsEnvFromFixture(projectFixture, steps, tmpWorkspace)
+
+        return this
     }
 
-    void buildFixtureData(ProjectFixture projectFixture, Project project){
-        project.data.build = buildJobParams(projectFixture)
+    private updateProjectFromFixture(ProjectFixture projectFixture, Project project) {
+        project.data.buildParams = buildJobParams(projectFixture)
         project.data.git =  buildGitData(projectFixture)
         project.data.openshift = [targetApiUrl:"https://openshift-sample"]
+
+        // project.data.metadata = [ : ]
+        project.data.metadata.id = projectFixture.project
+        project.data.buildParams =  project.data.build
+
+        project.data.openshift.targetApiUrl = "https://openshift-sample"
+        project.data.jenkinsLog = project.data.build.jenkinsLog
+    }
+
+    private updateStepsEnvFromFixture(ProjectFixture projectFixture, IPipelineSteps steps, File tmpWorkspace) {
+        steps.env = [
+            BUILD_ID             : "2022-01-22_23-59-59",
+            WORKSPACE            : tmpWorkspace.absolutePath,
+            RUN_DISPLAY_URL      : RUN_DISPLAY_URL,
+            version              : projectFixture.version,
+            configItem           : "Functional-Test",
+            RELEASE_PARAM_VERSION: "3.0",
+            BUILD_NUMBER         : projectFixture.buildNumber,
+            BUILD_URL            : "https://jenkinsHost.org/job/${projectFixture.buildNumber}",
+            JOB_NAME             : "${project.data.buildParams.jobName}"
+        ]
+
     }
 
     private Map<String, String> buildJobParams(ProjectFixture projectFixture){
@@ -73,14 +96,6 @@ class LevaDocDataFixture {
         ]
     }
 
-    private String copyPdfToTemp(ProjectFixture projectFixture, Map data) {
-        def destPath = "${tempFolder}/reports/${projectFixture.component}"
-        new File(destPath).mkdirs()
-        File expected = testValidator.expectedDoc(projectFixture, data.build.buildId as String)
-        FileUtils.copyFile(expected, new File("${destPath}/${expected.name}"))
-        return expected.name.replaceFirst("pdf", "zip")
-    }
-
     void useExpectedComponentDocs(LeVADocumentUseCase useCase, ProjectFixture projectFixture) {
         useCase.project.repositories.each { repo ->
             if (!repo.data.documents) {
@@ -93,16 +108,4 @@ class LevaDocDataFixture {
         }
     }
 
-    /*
-    void updateExpectedComponentDocs(ProjectData projectData, Map data, ProjectFixture projectFixture) {
-        projectData.repositories.each {repo ->
-            projectFixture.component = repo.id
-            repo.data.documents = (repo.data.documents)?: [:]
-
-            // see @DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
-            repo.data.documents[projectFixture.docType] =  copyPdfToTemp(projectFixture, data)
-        }
-        projectFixture.component = null
-    }
-    */
 }

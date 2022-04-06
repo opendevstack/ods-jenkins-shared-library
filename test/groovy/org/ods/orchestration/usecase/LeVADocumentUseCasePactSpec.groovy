@@ -5,6 +5,7 @@ import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
+
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.orchestration.util.Project
@@ -31,6 +32,8 @@ import util.FixtureHelper
 
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
+
+    private static final String RUN_DISPLAY_URL = ProjectFactory.RUN_DISPLAY_URL
 
     @Rule
     public TemporaryFolder tempFolder
@@ -61,7 +64,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse())
+                //withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     useCase.createDocument("${projectFixture.docType}")
@@ -202,29 +205,29 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 changeId string("${project.data.build.changeId}")
                 rePromote bool(false)
                 releaseStatusJiraIssueKey string("${project.data.build.releaseStatusJiraIssueKey}")
-                runDisplayUrl url("${project.data.build.runDisplayUrl}")
+                runDisplayUrl url("${RUN_DISPLAY_URL}")
                 releaseParamVersion string("${project.data.build.releaseParamVersion}")
                 buildId string("${project.data.build.buildId}")
                 buildURL url("${project.data.build.buildURL}")
                 jobName string("${project.data.build.jobName}")
                 keyLike "testResultsURLs", {
+                    'Unit-backend' string("${project.data.build.testResultsURLs['Unit-backend']}")
+                    'Unit-frontend' string("${project.data.build.testResultsURLs['Unit-frontend']}")
                     'Acceptance' string("${project.data.build.testResultsURLs['Acceptance']}")
                     'Installation' string("${project.data.build.testResultsURLs['Installation']}")
                     'Integration' string("${project.data.build.testResultsURLs['Integration']}")
-                    'Unit-frontend' string("${project.data.build.testResultsURLs['Unit-frontend']}")
-                    'Unit-backend' string("${project.data.build.testResultsURLs['Unit-backend']}")
                 }
                 jenkinsLog string("${project.data.build.jenkinsLog}")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                releaseManagerBranch string("refs/heads/master")
                 releaseManagerRepo string("ordgp-releasemanager")
+                releaseManagerBranch string("refs/heads/master")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
                 targetTag string("ods-generated-v3.0-3.0-0b11-D")
-                author string("s2o")
-                message string("Swingin' The Bottle")
-                time string("2021-04-20T14:58:31.042152")
+                author string("${project.data.git.author}")
+                message string("${project.data.git.message}")
+                time string("${project.data.git.time}")
                 // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
             }
             keyLike "openshift", {
