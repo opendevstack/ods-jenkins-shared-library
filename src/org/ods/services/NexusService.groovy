@@ -87,7 +87,9 @@ class NexusService {
             inputStream = Files.newInputStream(artifact)
             artifactURL = storeArtifact(repository, directory, name, inputStream, contentType)
         } finally {
-            inputStream.close()
+            if (inputStream){
+                inputStream.close()
+            }
         }
         return artifactURL
     }
