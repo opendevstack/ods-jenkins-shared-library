@@ -29,10 +29,13 @@ class LevaDocDataFixture {
         project.data.buildParams =  project.data.build
 
         project.data.openshift.targetApiUrl = "https://openshift-sample"
-        project.data.jenkinsLog = project.data.build.jenkinsLog
     }
 
     private updateStepsEnvFromFixture(ProjectFixture projectFixture, IPipelineSteps steps, File tmpWorkspace) {
+        final String RUN_DISPLAY_URL = "https://jenkins-sample/blabla"
+        final String BUILD_URL = "https://jenkinsHost.org/job/" +
+            "${projectFixture.project}-cd/job/${projectFixture.project}-releasemanager/${projectFixture.buildNumber}"
+
         steps.env = [
             BUILD_ID             : "2022-01-22_23-59-59",
             WORKSPACE            : tmpWorkspace.absolutePath,
@@ -40,9 +43,9 @@ class LevaDocDataFixture {
             version              : projectFixture.version,
             configItem           : "Functional-Test",
             RELEASE_PARAM_VERSION: "3.0",
-            BUILD_NUMBER         : projectFixture.buildNumber,
-            BUILD_URL            : "https://jenkinsHost.org/job/${projectFixture.buildNumber}",
-            JOB_NAME             : "${project.data.buildParams.jobName}"
+            BUILD_NUMBER         : "${projectFixture.buildNumber}",
+            BUILD_URL            : BUILD_URL,
+            JOB_NAME             : "${projectFixture.project}-cd/${projectFixture.project}-releasemanager"
         ]
 
     }
@@ -58,11 +61,6 @@ class LevaDocDataFixture {
                 changeId: "1.0",
                 rePromote: "false",
                 releaseStatusJiraIssueKey: projectFixture.releaseKey,
-                runDisplayUrl : "",
-                releaseParamVersion : "3.0",
-                buildId : "2022-01-22_23-59-59",
-                buildURL : "https://jenkins-sample",
-                jobName : "${projectFixture.project}-cd/${projectFixture.project}-releasemanager",
                 testResultsURLs: buildTestResultsUrls(projectWithBuild),
                 jenkinsLog: getJenkinsLogUrl(projectWithBuild)
         ]

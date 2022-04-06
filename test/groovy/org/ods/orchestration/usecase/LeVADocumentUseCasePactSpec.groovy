@@ -217,7 +217,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     'Installation' string("${project.data.build.testResultsURLs['Installation']}")
                     'Integration' string("${project.data.build.testResultsURLs['Integration']}")
                 }
-                jenkinsLog string("${project.data.build.jenkinsLog}")
+                jenkinsLog string("${project.buildParams.jenkinsLog}")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")

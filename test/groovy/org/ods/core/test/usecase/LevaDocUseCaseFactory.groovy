@@ -32,8 +32,6 @@ import java.nio.file.Paths
 @Slf4j
 class LevaDocUseCaseFactory {
 
-    static final String RUN_DISPLAY_URL = "https://jenkins-sample/blabla"
-
     private LevaDocWiremock levaDocWiremock
     private TemporaryFolder tempFolder
     private JenkinsService jenkins
@@ -100,7 +98,7 @@ class LevaDocUseCaseFactory {
             def util = new MROPipelineUtil(project, steps, gitService, loggerStub)
             def jiraUseCase = new JiraUseCase(project, steps, util, jiraService, loggerStub)
             project.load(gitService, jiraUseCase)
-            
+
             project.repositories.each { repo -> repo.metadata = loadMetadataFromDataFixture(repo) }
 
         } catch(RuntimeException e){

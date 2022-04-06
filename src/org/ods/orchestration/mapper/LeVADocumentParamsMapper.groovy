@@ -48,8 +48,8 @@ class LeVADocumentParamsMapper {
             buildId: this.project.steps.env.BUILD_ID, // TODO is different?
             buildURL: this.project.steps.env.BUILD_URL, // TODO is different?
             jobName: this.project.steps.env.JOB_NAME,
-            testResultsURLs: this.project.data.build.testResultsURLs,
-            jenkinsLog: this.project.data.jenkinsLog,
+            testResultsURLs: this.project.buildParams.testResultsURLs,
+            jenkinsLog: this.project.buildParams.jenkinsLog,
         ]
     }
 
