@@ -100,7 +100,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
+                withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
@@ -136,7 +136,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", projectDataMap)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParamsWithComponent(levaDocUseCaseFactory.getProject(), projectFixture.getComponent()))
+                withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture, projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->

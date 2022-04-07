@@ -30,27 +30,33 @@ class DocGenService {
 
     @NonCPS
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
-        String url = "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
-        Object response = doRequest(url, projectId, buildNumber, levaDocType, data)
-        String responseBody = response.getBody() as String
-        Object parsedBody = new JsonSlurperClassic().parseText(responseBody)
-        List<DocumentHistoryEntry> result
-        try {
-            result = LEVADocResponseMapper.parse(parsedBody)
-        } catch(MissingPropertyException e) {
-            throw e
-        }
-        return result
+        Object response = doRequest(getCreateDocumentUrl(), projectId, buildNumber, levaDocType, data)
+        return processCreateDocumentResponseBody(response.getBody() as String)
     }
 
     @NonCPS
     void createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
-        String url = "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
-        doRequest(url, projectId, buildNumber, levaDocType, data)
+        doRequest(getCreateDocumentOverallUrl(), projectId, buildNumber, levaDocType, data)
     }
 
     @NonCPS
-    private Object doRequest(String url, String projectId, String buildNumber, String levaDocType, Map data) {
+    protected String getCreateDocumentUrl() {
+        return "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
+    }
+
+    @NonCPS
+    protected String getCreateDocumentOverallUrl() {
+        return "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
+    }
+
+    @NonCPS
+    protected List<DocumentHistoryEntry> processCreateDocumentResponseBody(String responseBody) {
+        Object parsedBody = new JsonSlurperClassic().parseText(responseBody)
+        return LEVADocResponseMapper.parse(parsedBody)
+    }
+
+    @NonCPS
+    protected Object doRequest(String url, String projectId, String buildNumber, String levaDocType, Map data) {
         def request = Unirest.post(url)
             .routeParam("projectId", projectId)
             .routeParam("build", buildNumber)

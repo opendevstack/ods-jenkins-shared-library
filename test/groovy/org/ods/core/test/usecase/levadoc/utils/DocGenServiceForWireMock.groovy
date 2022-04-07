@@ -18,15 +18,11 @@ class DocGenServiceForWireMock extends DocGenService {
 
     @NonCPS
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
-        def result = super.createDocument(projectId, buildNumber, levaDocType, data)
+        Object response = doRequest(getCreateDocumentUrl(), projectId, buildNumber, levaDocType, data)
+        String responseBody = response.getBody() as String
         log.info("Result of createDocument: ")
-        log.info(prettyPrint(toJson(result)))
-        return result
-    }
-
-    @NonCPS
-    void createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
-        createDocument(projectId, buildNumber, levaDocType, data)
+        log.info(prettyPrint(toJson(responseBody)))
+        return processCreateDocumentResponseBody(responseBody)
     }
 
     @Override
