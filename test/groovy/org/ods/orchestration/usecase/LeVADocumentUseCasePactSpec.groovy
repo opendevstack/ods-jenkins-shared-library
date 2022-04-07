@@ -14,6 +14,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
+import org.ods.util.UnirestConfig
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
@@ -41,6 +42,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
 
     LevaDocWiremock levaDocWiremock
 
+    def setup() {
+        UnirestConfig.init()
+    }
     def cleanup() {
         levaDocWiremock?.tearDownWiremock()
     }
@@ -68,6 +72,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
+                    levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
+
                     useCase.createDocument("${projectFixture.docType}")
                 }
             }
@@ -99,6 +105,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
+                    levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
+
                     Map repoAndTestsData = getRepoAndTestsData(projectFixture, false)
                     Map repo = repoAndTestsData.repoData
                     Map data = repoAndTestsData.testsData
@@ -133,6 +141,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
+                    levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
+
                     Map repoAndTestsData = getRepoAndTestsData(projectFixture, true)
                     Map repo = repoAndTestsData.repoData
                     Map data = repoAndTestsData.testsData
@@ -166,6 +176,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
+                    levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
                     useCase.createDocument("OVERALL_${projectFixture.docType}")
                 }
             }
@@ -211,11 +222,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildURL string(LevaDocDataFixture.getJENKINS_URL_JOB_BUILD())
                 jobName string("${projectFixture.getJobName()}")
                 keyLike "testResultsURLs", {
-                    'Unit-backend' string("${projectFixture.getTestResultsUrls()['Unit-backend']}")
-                    'Unit-frontend' string("${projectFixture.getTestResultsUrls()['Unit-frontend']}")
-                    'Acceptance' string("${projectFixture.getTestResultsUrls()['Acceptance']}")
-                    'Installation' string("${projectFixture.getTestResultsUrls()['Installation']}")
-                    'Integration' string("${projectFixture.getTestResultsUrls()['Integration']}")
+                    'unit-backend' string("${projectFixture.getTestResultsUrls()['unit-backend']}")
+                    'unit-frontend' string("${projectFixture.getTestResultsUrls()['unit-frontend']}")
+                    'acceptance' string("${projectFixture.getTestResultsUrls()['acceptance']}")
+                    'installation' string("${projectFixture.getTestResultsUrls()['installation']}")
+                    'integration' string("${projectFixture.getTestResultsUrls()['integration']}")
                 }
                 jenkinsLog string("${projectFixture.getJenkinsLogUrl()}")
             }

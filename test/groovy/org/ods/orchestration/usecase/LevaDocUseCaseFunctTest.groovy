@@ -193,7 +193,8 @@ class LevaDocUseCaseFunctTest extends Specification {
             jenkins,
             openShiftService,
             bbT,
-            bitbucketService)
+            bitbucketService
+        )
 
         return levaDocUseCaseFactory.build(projectFixture)
 

@@ -3,6 +3,7 @@ package org.ods.core.test.usecase
 
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
+import org.apache.http.client.utils.URIBuilder
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.LoggerStub
 import org.ods.core.test.jira.JiraServiceForWireMock
@@ -52,8 +53,7 @@ class LevaDocUseCaseFactory {
                           JenkinsService jenkins,
                           OpenShiftService os,
                           BitbucketTraceabilityUseCase bbt,
-                          BitbucketService bitbucketService,
-                          String docGenUrl = null){
+                          BitbucketService bitbucketService){
 
         this.levaDocWiremock = levaDocWiremock
         this.gitService = gitService
@@ -65,7 +65,7 @@ class LevaDocUseCaseFactory {
         this.steps = new PipelineSteps()
 
         this.jiraService = buildJiraServiceForWireMock()
-        this.docGenService = buildDocGenService(docGenUrl)
+        this.docGenService = buildDocGenService()
         this.nexusService = buildNexusServiceForWireMock()
         this.loggerStub = new LoggerStub(log)
     }
@@ -84,6 +84,11 @@ class LevaDocUseCaseFactory {
                 steps,
                 loggerStub
             )
+    }
+
+    void changeDocGenUrlForPactTesting(String url) {
+        URI docGenUri = new URIBuilder(url).build()
+        this.docGenService.setBaseURL(docGenUri)
     }
 
     private Project buildProject(ProjectFixture projectFixture) {
@@ -116,10 +121,8 @@ class LevaDocUseCaseFactory {
         new JiraServiceForWireMock(jiraUrl, WiremockServers.JIRA.getUser(), WiremockServers.JIRA.getPassword())
     }
 
-    private DocGenService buildDocGenService(String docGenUrl) {
-        if (!docGenUrl){
-            docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
-        }
+    private DocGenService buildDocGenService() {
+        String docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
         return new DocGenServiceForWireMock(docGenUrl)
     }
 

@@ -59,7 +59,7 @@ class DocGenService {
     }
 
     @NonCPS
-    private void checkError(String levaDocType, HttpResponse<String> response) {
+    protected void checkError(String levaDocType, HttpResponse<String> response) {
         String message = "Error: unable to create document '${levaDocType}'. " +
             "DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
         if (response.getStatus() == 404) {

@@ -2,6 +2,7 @@ package org.ods.core.test.usecase.levadoc.utils
 
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.util.logging.Slf4j
+import kong.unirest.HttpResponse
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.util.DocumentHistoryEntry
 
@@ -28,4 +29,8 @@ class DocGenServiceForWireMock extends DocGenService {
         createDocument(projectId, buildNumber, levaDocType, data)
     }
 
+    @Override
+    void setBaseURL(URI baseURL) {
+        super.setBaseURL(baseURL)
+    }
 }

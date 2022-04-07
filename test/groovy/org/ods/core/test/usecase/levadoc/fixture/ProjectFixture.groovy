@@ -61,11 +61,11 @@ class ProjectFixture {
     Map<String, String> getTestResultsUrls() {
         String projectWithBuild = getProjectWithBuildNumber()
         return [
-            "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
-            "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
-            "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
-            'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
-            'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
+            "unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
+            "unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
+            "acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
+            'installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
+            'integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
         ]
     }
 
