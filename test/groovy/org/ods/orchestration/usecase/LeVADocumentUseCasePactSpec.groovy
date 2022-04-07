@@ -174,6 +174,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
+                withBody()
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
@@ -207,7 +208,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
 
     private Closure defaultBodyParams(ProjectFixture projectFixture) {
         return {
-            keyLike "build", {
+            build {
                 targetEnvironment string("dev")
                 targetEnvironmentToken string("D")
                 version string("WIP")
@@ -230,7 +231,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 }
                 jenkinsLog string("${projectFixture.getJenkinsLogUrl()}")
             }
-            keyLike "git", {
+            git {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
                 releaseManagerRepo string("${projectFixture.releaseManagerRepo}")
                 releaseManagerBranch string("${projectFixture.releaseManagerBranch}")
@@ -241,61 +242,61 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 time string("2021-04-20T14:58:31.042152")
                 // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
             }
-            keyLike "openshift", {
+            openshift {
                 targetApiUrl string("${projectFixture.getOpenshiftData()["targetApiUrl"]}")
             }
         }
     }
 
     Closure defaultBodyParamsWithComponent(ProjectFixture projectFixture, String component) {
-        return {
+        return defaultBodyParams(projectFixture) << {
             keyLike "repo", {
-                id string("theFirst")
+                id string("${component}")
                 type string("ods")
                 keyLike "data", {
                     keyLike "openshift", {
                         keyLike "builds", {
                             keyLike "${component}", {
-                                buildId string("theFirst-3")
-                                image string("172.30.1.1:5000/ordgp-cd/teFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
+                                buildId string("${component}-3")
+                                image string("172.30.1.1:5000/ordgp-cd/${component}@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
                             }
                         }
                         keyLike "deployments", {
                             keyLike "${component}", {
-                                podName string("theFirst-3")
-                                podNamespace string("foi2004-dev")
+                                podName includesStr("${component}-3", "${component}-3-dshjl")
+                                podNamespace string("${projectFixture.project}-dev")
                                 podMetaDataCreationTimestamp string("2021-11-21T22:31:04Z")
-                                deploymentId string("theFirst-3")
+                                deploymentId string("${component}-3")
                                 podNode string("localhost")
                                 podIp string("172.17.0.39")
                                 podStatus string("Running")
                                 podStartupTimeStamp string("2021-11-21T22:31:04Z")
                                 podIp string("172.17.0.39")
                                 keyLike "containers", {
-                                    "${component}" string("172.30.1.1:5000/ordgp-cd/therFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
+                                    "${component}" string("172.30.1.1:5000/ordgp-cd/${component}@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
                                 }
                             }
                         }
-                        sonarqubeScanStashPath string("scrr-report-theFirst-1")
-                        'SCRR' string("SCRR-ordgp-theFirst.docx")
-                        'SCRR-MD' string("SCRR-ordgp-theFirst.md")
+                        sonarqubeScanStashPath string("scrr-report-${component}-1")
+                        'SCRR' string("SCRR-ordgp-${component}.docx")
+                        'SCRR-MD' string("SCRR-ordgp-${component}.md")
                         testResultsFolder string("build/test-results/test")
                         testResults string("1")
-                        xunitTestResultsStashPath string("test-reports-junit-xml-theFirst-1")
+                        xunitTestResultsStashPath string("test-reports-junit-xml-${component}-1")
                         'CREATED_BY_BUILD' string("WIP/1")
                     }
                     keyLike "documents", {}
                     keyLike "git", {
                         branch string("master")
-                        commit string("")
+                        commit regexp(~/\w+/, '46a05fce73c811e74f4f96d8f418daa4246ace09')
                         previousCommit nullValue()
                         previousSucessfulCommit nullValue()
-                        url url("http://bitbucket.odsbox.lan:7990/scm/ordgp/ordgp-theFirst.git")
+                        url string("http://bitbucket.odsbox.lan:7990/scm/${projectFixture.project}/${projectFixture.project}-${component}.git")
                         baseTag string("")
                         targetTag string("")
                     }
                 }
-                url url("http://bitbucket.odsbox.lan:7990/scm/ordgp/ordgp-theFirst.git")
+                url string("http://bitbucket.odsbox.lan:7990/scm/${projectFixture.project}/${projectFixture.project}-${component}.git")
                 branch string("master")
                 keyLike "pipelineConfig", {
                     dependencies eachLike([])
@@ -307,7 +308,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParams(projectFixture)
+        }
     }
 
     Map projectFixtureToProjectDataMap(ProjectFixture projectFixture) {
