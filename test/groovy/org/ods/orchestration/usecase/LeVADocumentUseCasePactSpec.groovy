@@ -18,6 +18,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
 
+import java.nio.file.Paths
+
 /**
  * Creates Consumer Contract Testing and validate LeVADocumentUse
  *
@@ -63,7 +65,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                // withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
+                withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     useCase.createDocument("${projectFixture.docType}")
@@ -94,7 +96,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(levaDocUseCaseFactory.getProject()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse())
+                withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     Map repoAndTestsData = getRepoAndTestsData(projectFixture, false)
@@ -128,7 +130,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithComponent(levaDocUseCaseFactory.getProject(), projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse())
+                withBody([prettyPrint: true], defaultDocGenerationResponse(projectFixture))
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     Map repoAndTestsData = getRepoAndTestsData(projectFixture, true)
@@ -162,7 +164,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     useCase.createDocument("OVERALL_${projectFixture.docType}")
@@ -204,10 +205,10 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 changeId string("1.0")
                 rePromote string("false")
                 releaseStatusJiraIssueKey string("${projectFixture.releaseKey}")
-                runDisplayUrl url(LevaDocDataFixture.getJENKINS_URL_RUN_DISPLAY())
+                runDisplayUrl string(LevaDocDataFixture.getJENKINS_URL_RUN_DISPLAY())
                 releaseParamVersion string("3.0")
                 buildId string("2022-01-22_23-59-59")
-                buildURL url(LevaDocDataFixture.getJENKINS_URL_JOB_BUILD())
+                buildURL string(LevaDocDataFixture.getJENKINS_URL_JOB_BUILD())
                 jobName string("${projectFixture.getJobName()}")
                 keyLike "testResultsURLs", {
                     'Unit-backend' string("${projectFixture.getTestResultsUrls()['Unit-backend']}")
@@ -230,7 +231,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
             }
             keyLike "openshift", {
-                targetApiUrl url("${projectFixture.getOpenshiftData()["targetApiUrl"]}")
+                targetApiUrl string("${projectFixture.getOpenshiftData()["targetApiUrl"]}")
             }
         }
     }
@@ -314,7 +315,10 @@ class LeVADocumentUseCasePactSpec extends Specification {
         // Mocks generation (spock don't let you add this outside a Spec)
         JenkinsService jenkins = Mock(JenkinsService)
         jenkins.unstashFilesIntoPath(_, _, _) >> true
-        jenkins.getCurrentBuildLogInputStream() >> new ByteArrayInputStream()
+        jenkins.storeCurrentBuildLogInFile(_, _, _) >> {
+            String workspace, String buildFolder, String jenkinsLogFileName ->
+                Paths.get(workspace, buildFolder, jenkinsLogFileName).toFile() << "Jenkins log example file"
+        }
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
         BitbucketService bitbucketService = Mock(BitbucketService)
@@ -332,139 +336,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
             bitbucketService)
     }
 
-    Closure defaultDocGenerationResponse(ProjectFixture projectFixture) {
-        return
-        [
-            {
-                "components": [
-
-            ],
-                "requirements": [
-                {
-                    "action": "add",
-                    "key": "ORDGP-126"
-                },
-                {
-                    "action": "add",
-                    "key": "ORDGP-127"
-                },
-                {
-                    "action": "add",
-                    "key": "ORDGP-125"
-                },
-                {
-                    "action": "add",
-                    "key": "ORDGP-128"
-                },
-                {
-                    "action": "add",
-                    "key": "ORDGP-129"
-                }
-            ],
-                "epics": [
-                {
-                    "action": "add",
-                    "key": "ORDGP-124"
-                }
-            ],
-                "mitigations": [
-
-            ],
-                "entryId": 1,
-                "bugs": [
-
-            ],
-                "risks": [
-
-            ],
-                "tests": [
-
-            ],
-                "docs": [
-                {
-                    "number": "3.2",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Operational Requirements",
-                    "action": "add",
-                    "key": "ORDGP-45"
-                },
-                {
-                    "number": "6",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Reference Documents",
-                    "action": "add",
-                    "key": "ORDGP-44"
-                },
-                {
-                    "number": "1",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Introduction and Purpose",
-                    "action": "add",
-                    "key": "ORDGP-43"
-                },
-                {
-                    "number": "2",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Overview",
-                    "action": "add",
-                    "key": "ORDGP-42"
-                },
-                {
-                    "number": "3.1",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Related Business / GxP Process",
-                    "action": "add",
-                    "key": "ORDGP-41"
-                },
-                {
-                    "number": "5.1",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Definitions",
-                    "action": "add",
-                    "key": "ORDGP-40"
-                },
-                {
-                    "number": "5.2",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Abbreviations",
-                    "action": "add",
-                    "key": "ORDGP-39"
-                },
-                {
-                    "number": "7",
-                    "documents": [
-                    "CSD"
-                ],
-                    "heading": "Document History",
-                    "action": "add",
-                    "key": "ORDGP-38"
-                }
-            ],
-                "previousProjectVersion": "",
-                "techSpecs": [
-
-            ],
-                "rational": "Initial document version.",
-                "projectVersion": "1.0"
-            }
-        ]
-
-    }
-
     private List<DocumentHistoryEntry> buildExpectedResponse(){
         Map map = [bugs: [], components: [], epics: [key: "ORDGP-124", action: "add"]]
         DocumentHistoryEntry historyEntry = new DocumentHistoryEntry(
@@ -475,4 +346,56 @@ class LeVADocumentUseCasePactSpec extends Specification {
             "Initial document version.")
         return [historyEntry]
     }
+
+    Closure defaultDocGenerationResponse(ProjectFixture projectFixture) {
+        return {
+            documentHistoryEntry eachLike() {
+                keyLike "components", { }
+                keyLike "requirements", {
+                    requirement eachLike() {
+                        "action" string("add")
+                        "key" string()
+                    }
+                }
+                keyLike "epics", {
+                    requirement eachLike() {
+                        "action" string("add")
+                        "key" string()
+                    }
+                }
+                keyLike "mitigations", {
+
+                }
+                entryId number(1)
+                keyLike "bugs", {
+
+                }
+                keyLike "risks", {
+
+                }
+                keyLike "tests", {
+
+                }
+                keyLike "docs", {
+                    doc eachLike() {
+                        "number" string("3.2")
+                        keyLike "documents", {
+                            document eachLike([])
+                        }
+                        "heading" string("Definitions")
+                        "action" string("add")
+                        "key" string("ordgp-69")
+                    }
+                }
+                previousProjectVersion string("")
+                keyLike "techSpecs", {
+                    techSpec eachLike([])
+                }
+                rational string("Initial document version.")
+                projectVersion string("1.0")
+            }
+
+        }
+    }
+
 }
