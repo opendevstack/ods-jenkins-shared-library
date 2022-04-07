@@ -32,8 +32,15 @@ class DocGenService {
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
         String url = "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
         Object response = doRequest(url, projectId, buildNumber, levaDocType, data)
-        Object parsedBody = new JsonSlurperClassic().parseText(response.getBody() as String)
-        return LEVADocResponseMapper.parse(parsedBody)
+        String responseBody = response.getBody() as String
+        Object parsedBody = new JsonSlurperClassic().parseText(responseBody)
+        List<DocumentHistoryEntry> result
+        try {
+            result = LEVADocResponseMapper.parse(parsedBody)
+        } catch(MissingPropertyException e) {
+            throw e
+        }
+        return result
     }
 
     @NonCPS

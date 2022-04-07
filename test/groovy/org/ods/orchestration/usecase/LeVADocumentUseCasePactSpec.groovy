@@ -360,7 +360,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
 
     Closure defaultDocGenerationResponse(ProjectFixture projectFixture) {
         return {
-            documentHistoryEntry eachLike() {
+            eachLike() {
                 keyLike "components", { }
                 keyLike "requirements", {
                     requirement eachLike() {
@@ -377,7 +377,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 keyLike "mitigations", {
 
                 }
-                entryId number(1)
+                entryId identifier()
                 keyLike "bugs", {
 
                 }
