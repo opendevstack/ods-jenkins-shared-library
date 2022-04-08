@@ -8,6 +8,7 @@ import org.junit.rules.TemporaryFolder
 import org.ods.core.test.LoggerStub
 import org.ods.core.test.jira.JiraServiceForWireMock
 import org.ods.core.test.service.BitbucketReleaseManagerService
+import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.usecase.levadoc.utils.DocGenServiceForWireMock
@@ -70,9 +71,13 @@ class LevaDocUseCaseFactory {
         this.loggerStub = new LoggerStub(log)
     }
 
-    LeVADocumentUseCase build(ProjectFixture projectFixture){
+    LeVADocumentUseCase build(ProjectFixture projectFixture, boolean useExpectedComponentDocs){
 
         this.project = buildProject(projectFixture)
+
+        if (useExpectedComponentDocs) {
+            updateProjectComponentDocs(projectFixture)
+        }
 
         return new LeVADocumentUseCase
             (
@@ -164,4 +169,15 @@ class LevaDocUseCaseFactory {
             tempFolder.absolutePath)
     }
 
+    void updateProjectComponentDocs(ProjectFixture projectFixture) {
+        project.repositories.each { repo ->
+            if (!repo.data.documents) {
+                repo.data.documents = [:]
+            }
+            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)) {
+                // see @org.ods.orchestration.usecase.DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
+                repo.data.documents[projectFixture.docType] = "/blablabla"
+            }
+        }
+    }
 }

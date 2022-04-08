@@ -74,16 +74,4 @@ class LevaDocDataFixture {
         ]
     }
 
-    void useExpectedComponentDocs(LeVADocumentUseCase useCase, ProjectFixture projectFixture) {
-        useCase.project.repositories.each { repo ->
-            if (!repo.data.documents) {
-                repo.data.documents = [:]
-            }
-            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)) {
-                // see @org.ods.orchestration.usecase.DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
-                repo.data.documents[projectFixture.docType] = "/blablabla"
-            }
-        }
-    }
-
 }
