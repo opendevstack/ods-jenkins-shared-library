@@ -21,7 +21,7 @@ class LeVADocumentParamsMapper {
         }
 
         return build()
-    }    
+    }
 
     Map build(Map data = [: ]) {
         return [
