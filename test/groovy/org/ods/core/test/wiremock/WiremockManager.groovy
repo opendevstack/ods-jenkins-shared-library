@@ -3,6 +3,7 @@ package org.ods.core.test.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult
 import groovy.json.JsonBuilder
@@ -46,6 +47,7 @@ class WiremockManager {
                 .usingFilesUnderDirectory(pathToFiles)
                 .dynamicPort()
                 .enableBrowserProxying(true)
+                .notifier(new Slf4jNotifier(true))
         )
         wireMockServer.start()
         log.info("WireMockServer: [{}:{}]", serverType, wireMockServer.baseUrl())

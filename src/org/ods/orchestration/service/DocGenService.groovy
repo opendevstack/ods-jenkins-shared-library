@@ -30,28 +30,41 @@ class DocGenService {
 
     @NonCPS
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
-        String url = "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
-        Object response = doRequest(url, projectId, buildNumber, levaDocType, data)
-        Object parsedBody = new JsonSlurperClassic().parseText(response.getBody() as String)
-        return LEVADocResponseMapper.parse(parsedBody)
+        Object response = doRequest(getCreateDocumentUrl(), projectId, buildNumber, levaDocType, data)
+        return processCreateDocumentResponseBody(response.getBody() as String)
     }
 
     @NonCPS
     void createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
-        String url = "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
-        doRequest(url, projectId, buildNumber, levaDocType, data)
+        doRequest(getCreateDocumentOverallUrl(), projectId, buildNumber, levaDocType, data)
     }
 
     @NonCPS
-    private Object doRequest(String url, String projectId, String buildNumber, String levaDocType, Map data) {
-        def response = Unirest.post(url)
+    protected String getCreateDocumentUrl() {
+        return "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
+    }
+
+    @NonCPS
+    protected String getCreateDocumentOverallUrl() {
+        return "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
+    }
+
+    @NonCPS
+    protected List<DocumentHistoryEntry> processCreateDocumentResponseBody(String responseBody) {
+        Object parsedBody = new JsonSlurperClassic().parseText(responseBody)
+        return LEVADocResponseMapper.parse(parsedBody)
+    }
+
+    @NonCPS
+    protected Object doRequest(String url, String projectId, String buildNumber, String levaDocType, Map data) {
+        def request = Unirest.post(url)
             .routeParam("projectId", projectId)
             .routeParam("build", buildNumber)
             .routeParam("levaDocType", levaDocType)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(data))
-            .asString()
+        def response = request.asString()
         response.ifFailure {
             checkError(levaDocType, response)
         }
@@ -59,7 +72,7 @@ class DocGenService {
     }
 
     @NonCPS
-    private void checkError(String levaDocType, HttpResponse<String> response) {
+    protected void checkError(String levaDocType, HttpResponse<String> response) {
         String message = "Error: unable to create document '${levaDocType}'. " +
             "DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
         if (response.getStatus() == 404) {
