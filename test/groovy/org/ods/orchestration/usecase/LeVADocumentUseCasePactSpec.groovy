@@ -15,6 +15,7 @@ import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.UnirestConfig
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
@@ -35,6 +36,7 @@ import java.nio.file.Paths
  *
  */
 
+@Ignore
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
 
