@@ -53,6 +53,10 @@ class LeVADocumentUseCase {
         boolean isOverallTIR() {
             this == DocumentType.OVERALL_TIR
         }
+
+        boolean isTIP() {
+            this == DocumentType.TIP
+        }
     }
 
     private static final String BUILD_FOLDER = 'build'
@@ -100,7 +104,7 @@ class LeVADocumentUseCase {
             project.data.jenkinLog = uploadJenkinsJobLogToNexus()
         }
 
-        Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
+        Map<String, Map<String, ?>> params = leVADocumentParamsMapper.getParams(documentType, repo, data)
 
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
@@ -127,14 +131,6 @@ class LeVADocumentUseCase {
                 project.setHistoryForDocument(docHistoryList, documentType.name())
             }
         }
-    }
-
-    private Map<String, Map<String, ?>> getParams(DocumentType documentType, Map repo, Map data) {
-        if (documentType.isDTR() || documentType.isTIR()) {
-            return leVADocumentParamsMapper.build([tests: data, repo: repo])
-        }
-
-        return leVADocumentParamsMapper.build()
     }
 
     private DocumentType getDocumentType(String docType) {

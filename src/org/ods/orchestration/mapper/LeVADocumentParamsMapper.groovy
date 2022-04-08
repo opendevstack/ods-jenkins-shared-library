@@ -1,5 +1,6 @@
 package org.ods.orchestration.mapper
 
+import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
 
 class LeVADocumentParamsMapper {
@@ -10,6 +11,18 @@ class LeVADocumentParamsMapper {
         this.project = project
     }
 
+    Map<String, Map<String, ?>> getParams(LeVADocumentUseCase.DocumentType documentType, Map repo, Map data) {
+        if (documentType.isDTR() || documentType.isTIR()) {
+            return build([tests: data, repo: repo])
+        }
+
+        if (documentType.isOverallTIR() || documentType.isTIP()) {
+            return buildWithRepositories()
+        }
+
+        return build()
+    }    
+
     Map build(Map data = [: ]) {
         return [
             build: mapBuildData(),
@@ -18,6 +31,38 @@ class LeVADocumentParamsMapper {
                 targetApiUrl: this.project.getOpenShiftApiUrl() //TODO is different?
             ],
         ] << data
+    }
+
+    Map buildWithRepositories() {
+        build() << mapGitRepositoriesData()
+    }
+
+    private Map mapGitRepositoriesData() {
+        return [
+            repositories: mapBuildRepositories()
+        ]
+    }
+
+    private Map mapBuildRepositories() {
+        def res = [:]
+        project.repositories.forEach{
+            res << ["repo" : mapBuildRepo(it)]
+        }
+        return res
+    }
+
+    private Map mapBuildRepo(Map repo) {
+        return [
+            "data" : [
+                "git" : [
+                    "branch" : repo.data.git.branch,
+                    "commit" : repo.data.git.commit,
+                    "createdExecutionCommit" : repo.data.git.createdExecutionCommit,
+                    "baseTag" : repo.data.git.baseTag,
+                    "targetTag" : repo.data.git.targetTag
+                ]
+            ]
+        ]
     }
 
     private Map<String, Object> mapGitData() {
@@ -52,5 +97,4 @@ class LeVADocumentParamsMapper {
             jenkinLog: this.project.data.jenkinLog,
         ]
     }
-
 }
