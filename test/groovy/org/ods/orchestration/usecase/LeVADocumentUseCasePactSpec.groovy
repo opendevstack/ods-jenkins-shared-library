@@ -19,6 +19,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
 
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -174,7 +175,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${projectDataMap.project}/${projectDataMap.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams(projectFixture))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody()
+                withBody({})
                 runTestAndVerify { context ->
                     String wiremockURL = context.url as String
                     levaDocUseCaseFactory.changeDocGenUrlForPactTesting(wiremockURL)
@@ -329,7 +330,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
         jenkins.unstashFilesIntoPath(_, _, _) >> true
         jenkins.storeCurrentBuildLogInFile(_, _, _) >> {
             String workspace, String buildFolder, String jenkinsLogFileName ->
-                Paths.get(workspace, buildFolder, jenkinsLogFileName).toFile() << "Jenkins log example file"
+                Path filePath = Paths.get(workspace, buildFolder, jenkinsLogFileName)
+                filePath.getParent().toFile().mkdirs()
+                filePath.toFile() << "Jenkins log example file"
         }
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
