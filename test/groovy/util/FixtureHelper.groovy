@@ -166,7 +166,8 @@ class FixtureHelper {
             configItem                   : "myItem",
             targetEnvironment            : "dev",
             targetEnvironmentToken       : "D",
-            version                      : "0.1"
+            version                      : "0.1",
+            testResultsURLs              : [:],
         ]
     }
 

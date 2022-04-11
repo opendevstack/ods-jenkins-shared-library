@@ -278,8 +278,7 @@ class Project {
 
         this.data.build = [
             hasFailingTests: false,
-            hasUnexecutedJiraTests: false,
-            testResultsURLs: [:],
+            hasUnexecutedJiraTests: false
         ]
 
         this.data.documentHistories = [:]
@@ -1066,6 +1065,7 @@ class Project {
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
             rePromote: rePromote,
+            testResultsURLs: [:],
         ]
     }
 
