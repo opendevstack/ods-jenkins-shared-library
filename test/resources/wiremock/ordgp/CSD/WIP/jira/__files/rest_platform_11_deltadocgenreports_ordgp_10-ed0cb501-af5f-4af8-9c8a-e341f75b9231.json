@@ -1,0 +1,673 @@
+{
+  "project" : {
+    "name" : "One Release DocGen Project",
+    "description" : "",
+    "key" : "ORDGP",
+    "jiraBaseUrl" : "https://jira-dev.biscrum.com/ORDGP",
+    "projectProperties" : {
+      "PROJECT.POO_CAT.LOW" : "Frequency of the usage of the related function is <10 times per year.",
+      "PROJECT.POO_CAT.HIGH" : "Frequency of the usage of the related function is >10 times per week.",
+      "WEBHOOK_PROXY.URL" : "https://webhook-proxy-ORDGP-cd.inh-odsapps.eu.boehringer.com/build?trigger_secret=f8055071-667e-4745-8d2e-deabf52f8a20",
+      "RM.REPOSITORY" : "ordgp-releasemanager",
+      "PROJECT.POO_CAT.MEDIUM" : "Frequency of the usage of the related function is <10 times per week.",
+      "PROJECT.NON-GXP_EVALUATION" : "Non-GxP risks are not being evaluated",
+      "PROJECT.USES_POO" : "true",
+      "PROJECT.IS_EDP_PROJECT" : "true",
+      "PROJECT.CONFIG_ITEM" : "BI-IT-DEVSTACK"
+    },
+    "gampTopics" : [ "operational requirements", "functional requirements", "data requirements", "technical requirements", "interface requirements", "environment requirements", "performance requirements", "availability requirements", "security requirements", "maintenance requirements", "regulatory requirements", "roles", "compatibility", "procedural constraints", "overarching requirements" ],
+    "enumDictionary" : {
+      "ProbabilityOfDetection" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Immediate",
+          "short" : "I"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Before Impact",
+          "short" : "B"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "After Impact",
+          "short" : "A"
+        }
+      },
+      "SeverityOfImpact" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Low",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Medium",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "High",
+          "short" : "H"
+        }
+      },
+      "ProbabilityOfOccurrence" : {
+        "1" : {
+          "value" : 1,
+          "text" : "LOW",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "HIGH",
+          "short" : "H"
+        }
+      },
+      "RiskPriority" : {
+        "0" : {
+          "value" : 0,
+          "text" : "N/A",
+          "short" : "N"
+        },
+        "1" : {
+          "value" : 1,
+          "text" : "HIGH",
+          "short" : "H"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "LOW",
+          "short" : "L"
+        }
+      },
+      "GxPRelevance" : {
+        "R2" : {
+          "value" : 2,
+          "text" : "Relevant",
+          "short" : "R2"
+        },
+        "N0" : {
+          "value" : 0,
+          "text" : "Not relevant/ZERO",
+          "short" : "N0"
+        },
+        "N1" : {
+          "value" : 1,
+          "text" : "Not relevant/LESS",
+          "short" : "N1"
+        },
+        "N2" : {
+          "value" : 2,
+          "text" : "Not relevant/EQUAL",
+          "short" : "N2"
+        }
+      }
+    },
+    "versions" : [ "1.0" ],
+    "id" : "30107"
+  },
+  "components" : {
+    "Technology-test" : {
+      "name" : "Technology-test",
+      "description" : "Technology component ordgp-test stored at https://bitbucket-dev.biscrum.com/projects/ORDGP/repos/ordgp-test/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-backend" : {
+      "name" : "Technology-backend",
+      "description" : "Technology component ordgp-backend stored at https://bitbucket-dev.biscrum.com/projects/ORDGP/repos/ordgp-backend/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ "ORDGP-137", "ORDGP-138", "ORDGP-139" ],
+      "mitigations" : [ ]
+    },
+    "Technology-frontend" : {
+      "name" : "Technology-frontend",
+      "description" : "Technology component ordgp-frontend stored at https://bitbucket-dev.biscrum.com/projects/ORDGP/repos/ordgp-frontend/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-releasemanager" : {
+      "name" : "Technology-releasemanager",
+      "description" : "Technology component ordgp-releasemanager stored at https://bitbucket-dev.biscrum.com/projects/ORDGP/repos/ordgp-releasemanager/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    }
+  },
+  "releaseState" : "Change Ready for Implementation",
+  "version" : "1.0",
+  "epics" : {
+    "ORDGP-124" : {
+      "key" : "ORDGP-124",
+      "description" : "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tristique ante, sit amet accumsan purus. Vivamus at consequat dolor, in accumsan nibh. Proin imperdiet neque id dui ullamcorper feugiat. Praesent tristique vestibulum porttitor. Quisque ornare congue odio quis viverra. Duis non porttitor arcu. Curabitur pellentesque magna ultricies, ornare ipsum vitae, dignissim ligula. Mauris sit amet interdum ante, quis maximus nibh. Mauris id hendrerit risus, non viverra augue. Nulla nec condimentum ex. Nullam sed est ut nisl suscipit eleifend et vel metus. Cras libero justo, malesuada a auctor ut, accumsan et lacus.</p>\n\n<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui. Aenean orci tortor, interdum at magna vitae, euismod lacinia odio. Nullam ac ante orci. Quisque in mattis purus. Maecenas volutpat bibendum felis, in porttitor dui imperdiet et. Mauris ac feugiat lacus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas feugiat, turpis nec finibus pellentesque, lectus arcu pellentesque ex, in tempus metus velit sit amet purus. Phasellus ut volutpat orci.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "epicName" : "Epic 1",
+      "predecessors" : [ ],
+      "title" : "Epic 1",
+      "requirements" : [ "ORDGP-126", "ORDGP-127", "ORDGP-125", "ORDGP-128", "ORDGP-129" ]
+    }
+  },
+  "requirements" : {
+    "ORDGP-125" : {
+      "key" : "ORDGP-125",
+      "name" : "Story 1",
+      "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.\r\n\r\n",
+      "configSpec" : {
+        "name" : "Story 1",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story 1",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+        "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis."
+      },
+      "components" : [ ],
+      "epics" : [ "ORDGP-124" ],
+      "risks" : [ "ORDGP-136" ],
+      "tests" : [ "ORDGP-144", "ORDGP-145", "ORDGP-143", "ORDGP-137", "ORDGP-138", "ORDGP-139" ],
+      "techSpecs" : [ "ORDGP-134", "ORDGP-135" ],
+      "bugs" : [ ],
+      "mitigations" : [ "ORDGP-140" ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-126" : {
+      "key" : "ORDGP-126",
+      "name" : "Story 2",
+      "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.\r\n\r\n",
+      "configSpec" : {
+        "name" : "Story 2",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story 2",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+        "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis."
+      },
+      "components" : [ ],
+      "epics" : [ "ORDGP-124" ],
+      "risks" : [ "ORDGP-141", "ORDGP-142" ],
+      "tests" : [ ],
+      "techSpecs" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-127" : {
+      "key" : "ORDGP-127",
+      "name" : "Story 3",
+      "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.\r\n\r\n",
+      "configSpec" : {
+        "name" : "Story 3",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story 3",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+        "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis."
+      },
+      "components" : [ ],
+      "epics" : [ "ORDGP-124" ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "techSpecs" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-128" : {
+      "key" : "ORDGP-128",
+      "name" : "Story 4",
+      "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.\r\n\r\n",
+      "configSpec" : {
+        "name" : "Story 4",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story 4",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+        "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis."
+      },
+      "components" : [ ],
+      "epics" : [ "ORDGP-124" ],
+      "risks" : [ ],
+      "tests" : [ "ORDGP-147" ],
+      "techSpecs" : [ "ORDGP-146" ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-129" : {
+      "key" : "ORDGP-129",
+      "name" : "Story 5",
+      "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.\r\n\r\n",
+      "configSpec" : {
+        "name" : "Story 5",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story 5",
+        "description" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+        "acceptanceCriteria" : "Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis."
+      },
+      "components" : [ ],
+      "epics" : [ "ORDGP-124" ],
+      "risks" : [ ],
+      "tests" : [ "ORDGP-130", "ORDGP-133", "ORDGP-131", "ORDGP-132" ],
+      "techSpecs" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "risks" : {
+    "ORDGP-136" : {
+      "key" : "ORDGP-136",
+      "name" : "RA 1",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : "N1",
+      "probabilityOfOccurrence" : 1,
+      "severityOfImpact" : 2,
+      "probabilityOfDetection" : 2,
+      "riskPriorityNumber" : 4,
+      "riskPriority" : 3,
+      "mitigations" : [ "ORDGP-140" ],
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ ],
+      "tests" : [ "ORDGP-137", "ORDGP-138", "ORDGP-139" ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    },
+    "ORDGP-141" : {
+      "key" : "ORDGP-141",
+      "name" : "RA 2",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. <br/>\nSed ligula ante, tempus non turpis eget, iaculis consequat dui. Aenean orci tortor, interdum at magna vitae, euismod lacinia odio. Nullam ac ante orci. Quisque in mattis purus. Maecenas volutpat bibendum felis, in porttitor dui imperdiet et. Mauris ac feugiat lacus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas feugiat, turpis nec finibus pellentesque, lectus arcu pellentesque ex, in tempus metus velit sit amet purus. Phasellus ut volutpat orci.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : "R2",
+      "probabilityOfOccurrence" : 3,
+      "severityOfImpact" : 3,
+      "probabilityOfDetection" : 1,
+      "riskPriorityNumber" : 18,
+      "riskPriority" : 1,
+      "mitigations" : [ ],
+      "requirements" : [ "ORDGP-126" ],
+      "techSpecs" : [ ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    },
+    "ORDGP-142" : {
+      "key" : "ORDGP-142",
+      "name" : "RA 3",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : "N0",
+      "probabilityOfOccurrence" : 1,
+      "severityOfImpact" : 1,
+      "probabilityOfDetection" : 3,
+      "riskPriorityNumber" : 0,
+      "riskPriority" : 0,
+      "mitigations" : [ ],
+      "requirements" : [ "ORDGP-126" ],
+      "techSpecs" : [ ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    }
+  },
+  "tests" : {
+    "ORDGP-130" : {
+      "id" : "896758",
+      "key" : "ORDGP-130",
+      "name" : "Acceptance Test 1",
+      "description" : "<p>Acceptance Test 1</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-129" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-131" : {
+      "id" : "896759",
+      "key" : "ORDGP-131",
+      "name" : "Acceptance Test 2",
+      "description" : "<p>Acceptance Test 1</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-129" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-132" : {
+      "id" : "896760",
+      "key" : "ORDGP-132",
+      "name" : "Acceptance Test 3",
+      "description" : "<p>Acceptance Test 1</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-129" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-133" : {
+      "id" : "896761",
+      "key" : "ORDGP-133",
+      "name" : "Acceptance Test 4",
+      "description" : "<p>Acceptance Test 1</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-129" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-137" : {
+      "id" : "896765",
+      "key" : "ORDGP-137",
+      "name" : "Unit Test 1",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ ],
+      "risks" : [ "ORDGP-136" ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-138" : {
+      "id" : "896766",
+      "key" : "ORDGP-138",
+      "name" : "Unit Test 2",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ ],
+      "risks" : [ "ORDGP-136" ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-139" : {
+      "id" : "896767",
+      "key" : "ORDGP-139",
+      "name" : "Unit Test 3",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ ],
+      "risks" : [ "ORDGP-136" ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-143" : {
+      "id" : "896771",
+      "key" : "ORDGP-143",
+      "name" : "Integration Test 1",
+      "description" : "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tristique ante, sit amet accumsan purus. Vivamus at consequat dolor, in accumsan nibh. Proin imperdiet neque id dui ullamcorper feugiat. Praesent tristique vestibulum porttitor. Quisque ornare congue odio quis viverra. Duis non porttitor arcu. Curabitur pellentesque magna ultricies, ornare ipsum vitae, dignissim ligula. Mauris sit amet interdum ante, quis maximus nibh. Mauris id hendrerit risus, non viverra augue. Nulla nec condimentum ex. Nullam sed est ut nisl suscipit eleifend et vel metus. Cras libero justo, malesuada a auctor ut, accumsan et lacus.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ "ORDGP-134", "ORDGP-135" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-144" : {
+      "id" : "896772",
+      "key" : "ORDGP-144",
+      "name" : "Integration Test 2",
+      "description" : "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tristique ante, sit amet accumsan purus. Vivamus at consequat dolor, in accumsan nibh. Proin imperdiet neque id dui ullamcorper feugiat. Praesent tristique vestibulum porttitor. Quisque ornare congue odio quis viverra. Duis non porttitor arcu. Curabitur pellentesque magna ultricies, ornare ipsum vitae, dignissim ligula. Mauris sit amet interdum ante, quis maximus nibh. Mauris id hendrerit risus, non viverra augue. Nulla nec condimentum ex. Nullam sed est ut nisl suscipit eleifend et vel metus. Cras libero justo, malesuada a auctor ut, accumsan et lacus.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ "ORDGP-134", "ORDGP-135" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-145" : {
+      "id" : "896773",
+      "key" : "ORDGP-145",
+      "name" : "Integration Test 3",
+      "description" : "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tristique ante, sit amet accumsan purus. Vivamus at consequat dolor, in accumsan nibh. Proin imperdiet neque id dui ullamcorper feugiat. Praesent tristique vestibulum porttitor. Quisque ornare congue odio quis viverra. Duis non porttitor arcu. Curabitur pellentesque magna ultricies, ornare ipsum vitae, dignissim ligula. Mauris sit amet interdum ante, quis maximus nibh. Mauris id hendrerit risus, non viverra augue. Nulla nec condimentum ex. Nullam sed est ut nisl suscipit eleifend et vel metus. Cras libero justo, malesuada a auctor ut, accumsan et lacus.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ "ORDGP-134", "ORDGP-135" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "ORDGP-147" : {
+      "id" : "896775",
+      "key" : "ORDGP-147",
+      "name" : "Installation Test 1",
+      "description" : "<p>Curabitur pellentesque magna ultricies, ornare ipsum vitae, dignissim ligula. Mauris sit amet interdum ante, quis maximus nibh. Mauris id hendrerit risus, non viverra augue. Nulla nec condimentum ex. Nullam sed est ut nisl suscipit eleifend et vel metus. Cras libero justo, malesuada a auctor ut, accumsan et lacus.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Installation",
+      "executionType" : "Automated",
+      "requirements" : [ "ORDGP-128" ],
+      "techSpecs" : [ "ORDGP-146" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    }
+  },
+  "mitigations" : {
+    "ORDGP-140" : {
+      "key" : "ORDGP-140",
+      "name" : "Mitigation 1",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui. Aenean orci tortor, interdum at magna vitae, euismod lacinia odio. Nullam ac ante orci. Quisque in mattis purus. Maecenas volutpat bibendum felis, in porttitor dui imperdiet et. Mauris ac feugiat lacus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas feugiat, turpis nec finibus pellentesque, lectus arcu pellentesque ex, in tempus metus velit sit amet purus. Phasellus ut volutpat orci.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ "ORDGP-136" ],
+      "components" : [ ],
+      "requirements" : [ "ORDGP-125" ],
+      "techSpecs" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "techSpecs" : {
+    "ORDGP-134" : {
+      "key" : "ORDGP-134",
+      "name" : "TST 1",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. </p>",
+      "softwareDesignSpec" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. </p>",
+      "components" : [ ],
+      "requirements" : [ "ORDGP-125" ],
+      "risks" : [ ],
+      "tests" : [ "ORDGP-144", "ORDGP-145", "ORDGP-143" ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-135" : {
+      "key" : "ORDGP-135",
+      "name" : "TST 2",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. </p>",
+      "softwareDesignSpec" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. </p>",
+      "components" : [ ],
+      "requirements" : [ "ORDGP-125" ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "ORDGP-146" : {
+      "key" : "ORDGP-146",
+      "name" : "TST 3",
+      "description" : "<p>Suspendisse potenti. Cras ante quam, hendrerit vel massa quis, ultricies pellentesque mauris. Pellentesque eu odio dictum, luctus massa vitae, dignissim enim. Morbi pretium massa quis nunc pharetra, id faucibus purus condimentum. Sed augue lacus, faucibus in erat non, rutrum rhoncus dolor. Proin ornare rutrum tristique. In dictum purus sit amet justo dignissim tristique. Sed ligula ante, tempus non turpis eget, iaculis consequat dui. Aenean orci tortor, interdum at magna vitae, euismod lacinia odio. Nullam ac ante orci. Quisque in mattis purus. Maecenas volutpat bibendum felis, in porttitor dui imperdiet et. Mauris ac feugiat lacus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas feugiat, turpis nec finibus pellentesque, lectus arcu pellentesque ex, in tempus metus velit sit amet purus. Phasellus ut volutpat orci.</p>\n\n<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>\n\n<p>Morbi aliquam viverra feugiat. Cras consequat pellentesque nisl quis gravida. Nullam tempus mattis justo, eget ultrices risus pretium non. Morbi maximus interdum condimentum. Sed non scelerisque felis, nec molestie massa. Nullam dui sem, consectetur eget consequat id, tempus lobortis tellus. Curabitur mollis malesuada est nec laoreet. Cras in porta mauris.</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-dev.biscrum.com/secure/attachment/552314/552314_image-2022-02-22-11-10-21-018.png\" height=\"123\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
+      "softwareDesignSpec" : "<p>Aliquam ipsum turpis, bibendum nec velit et, ultricies vulputate purus. Duis sit amet nibh vel elit volutpat varius ut sed erat. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed turpis felis, sollicitudin ut consectetur ut, porta eget libero. Integer non diam non lectus convallis varius sit amet nec quam. Fusce sed mattis ante. Sed ipsum lorem, ultrices vel lectus ac, egestas posuere tellus. Mauris posuere tellus sit amet tincidunt convallis.</p>",
+      "components" : [ ],
+      "requirements" : [ "ORDGP-128" ],
+      "risks" : [ ],
+      "tests" : [ "ORDGP-147" ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "bugs" : { },
+  "notesAndHints" : [ "Non-EDP linkType Cloners ignored: ORDGP-144 -> ORDGP-143" ],
+  "precedingVersions" : [ ],
+  "modifiedKeys" : { },
+  "discontinuedKeys" : [ ],
+  "continuedKeys" : [ ]
+}

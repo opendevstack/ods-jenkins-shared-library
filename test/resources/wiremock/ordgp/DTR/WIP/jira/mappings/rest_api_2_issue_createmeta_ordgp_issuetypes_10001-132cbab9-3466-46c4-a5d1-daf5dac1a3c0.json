@@ -1,0 +1,33 @@
+{
+  "id" : "132cbab9-3466-46c4-a5d1-daf5dac1a3c0",
+  "name" : "rest_api_2_issue_createmeta_ordgp_issuetypes_10001",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/ORDGP/issuetypes/10001",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_issue_createmeta_ordgp_issuetypes_10001-132cbab9-3466-46c4-a5d1-daf5dac1a3c0.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Mon, 11 Apr 2022 13:04:52 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "904x106007x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=01AF7BA1925CF162341FB92C83E79670; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_fc8ee4d71beae0d4a061bc731aba581eaacc85fb_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "17jo5az",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "132cbab9-3466-46c4-a5d1-daf5dac1a3c0",
+  "persistent" : true,
+  "insertionIndex" : 4
+}

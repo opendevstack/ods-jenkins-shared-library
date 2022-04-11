@@ -1,0 +1,38 @@
+{
+  "id" : "a0d6ee3c-ed29-4254-816e-d931f22fcd58",
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"fields\":[\"key\",\"status\",\"summary\",\"labels\",\"issuelinks\",\"customfield_19902\",\"customfield_19901\"],\"jql\":\"project = ordgp AND issuetype = 'Documentation Chapter' AND fixVersion = '1.0'\",\"expand\":[\"renderedFields\"],\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_search-a0d6ee3c-ed29-4254-816e-d931f22fcd58.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Mon, 11 Apr 2022 13:08:04 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "908x106103x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=A99DB35A0030D625BFFD7E87F586048B; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_af28115435e7e1d1e13dcb6f8abfcc69d0813bc8_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "1ba3vsl",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "a0d6ee3c-ed29-4254-816e-d931f22fcd58",
+  "persistent" : true,
+  "insertionIndex" : 15
+}

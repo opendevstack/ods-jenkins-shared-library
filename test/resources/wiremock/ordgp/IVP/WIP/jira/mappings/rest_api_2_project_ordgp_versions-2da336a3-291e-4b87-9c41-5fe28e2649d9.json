@@ -1,0 +1,35 @@
+{
+  "id" : "2da336a3-291e-4b87-9c41-5fe28e2649d9",
+  "name" : "rest_api_2_project_ordgp_versions",
+  "request" : {
+    "url" : "/rest/api/2/project/ORDGP/versions",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/version/26013\",\"id\":\"26013\",\"name\":\"1.0\",\"archived\":false,\"released\":false,\"projectId\":30107}]",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Mon, 11 Apr 2022 12:58:01 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "898x105834x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=33AD09671C83656FCC18B36FC650C0CA; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_5678265f8017e1620ee6d02925ff2b6ffdaea6e1_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "16eeygx",
+      "X-AUSERNAME" : "victor.pablos_ceruelo.ext%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "2da336a3-291e-4b87-9c41-5fe28e2649d9",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-rest-api-2-project-ORDGP-versions",
+  "requiredScenarioState" : "scenario-1-rest-api-2-project-ORDGP-versions-2",
+  "insertionIndex" : 17
+}
