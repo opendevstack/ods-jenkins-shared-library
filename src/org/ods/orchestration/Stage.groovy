@@ -147,7 +147,7 @@ class Stage {
             steps.env.BUILD_NUMBER
         )
 
-        project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
+        project.data.buildParams.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
             testReportsUnstashPath,
             workspacePath,
