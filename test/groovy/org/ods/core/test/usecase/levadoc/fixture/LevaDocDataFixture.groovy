@@ -4,58 +4,59 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
+import org.ods.util.IPipelineSteps
 
 @Slf4j
 class LevaDocDataFixture {
 
-    private final File tempFolder
+    static final String JENKINS_URLS_BASE = "https://jenkinsHost.org/"
+    static final String JENKINS_URL_RUN_DISPLAY = JENKINS_URLS_BASE + "display"
+    static final String JENKINS_URL_JOB_BUILD = JENKINS_URLS_BASE + "buildJob"
 
-    LevaDocDataFixture(File tempFolder){
-        this.tempFolder = tempFolder
+    LevaDocDataFixture(){
     }
 
-    File getTempFolder() {
-        return tempFolder
+    void configStepsEnvFromFixture(ProjectFixture projectFixture, IPipelineSteps steps, File tmpWorkspace) {
+        steps.env = [
+            BUILD_ID             : "2022-01-22_23-59-59",
+            WORKSPACE            : tmpWorkspace.absolutePath,
+            RUN_DISPLAY_URL      : JENKINS_URL_RUN_DISPLAY,
+            version              : "${projectFixture.version}",
+            configItem           : "Functional-Test",
+            RELEASE_PARAM_VERSION: "3.0",
+            BUILD_NUMBER         : "${projectFixture.buildNumber}",
+            BUILD_URL            : JENKINS_URL_JOB_BUILD,
+            JOB_NAME             : "${projectFixture.getJobName()}"
+        ]
     }
 
-    void buildFixtureData(ProjectFixture projectFixture, Project project){
-        project.data.build = buildJobParams(projectFixture)
+    void setupProjectFromFixture(ProjectFixture projectFixture, Project project) {
+        project.data.buildParams = buildJobParams(projectFixture)
         project.data.git =  buildGitData(projectFixture)
-        project.data.openshift = [targetApiUrl:"https://openshift-sample"]
+
+        String newMetadataId = "${projectFixture.project}"
+        log.warn("Changing project.data.metadata.id: " +
+            "${project.data.metadata?.id} -> ${newMetadataId}")
+        project.data.metadata.id = newMetadataId
+    }
+
+    void fixOpenshiftData(ProjectFixture projectFixture, Project project) {
+        project.data.openshift = projectFixture.getOpenshiftData()
     }
 
     private Map<String, String> buildJobParams(ProjectFixture projectFixture){
-        String projectWithBuild = "${projectFixture.project}/${projectFixture.buildNumber}"
+
         return  [
                 targetEnvironment: "dev",
                 targetEnvironmentToken: "D",
                 version: "${projectFixture.version}",
                 configItem: "BI-IT-DEVSTACK",
-                changeDescription: "UNDEFINED",
+                changeDescription: "${projectFixture.getChangeDescription()}",
                 changeId: "1.0",
                 rePromote: "false",
                 releaseStatusJiraIssueKey: projectFixture.releaseKey,
-                runDisplayUrl : "",
-                releaseParamVersion : "3.0",
-                buildId : "2022-01-22_23-59-59",
-                buildURL : "https://jenkins-sample",
-                jobName : "${projectFixture.project}-cd/${projectFixture.project}-releasemanager",
-                testResultsURLs: buildTestResultsUrls(projectWithBuild),
-                jenkinLog: getJenkinsLogUrl(projectWithBuild)
-        ]
-    }
-
-    private String getJenkinsLogUrl(String projectWithBuild) {
-        "repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
-    }
-
-    private Map<String, String> buildTestResultsUrls(String projectWithBuild) {
-        return [
-                "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
-                "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
-                "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
-                'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
-                'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
+                testResultsURLs: projectFixture.getTestResultsUrls(),
+                jenkinsLog: projectFixture.getJenkinsLogUrl()
         ]
     }
 
@@ -73,36 +74,4 @@ class LevaDocDataFixture {
         ]
     }
 
-    private String copyPdfToTemp(ProjectFixture projectFixture, Map data) {
-        def destPath = "${tempFolder}/reports/${projectFixture.component}"
-        new File(destPath).mkdirs()
-        File expected = testValidator.expectedDoc(projectFixture, data.build.buildId as String)
-        FileUtils.copyFile(expected, new File("${destPath}/${expected.name}"))
-        return expected.name.replaceFirst("pdf", "zip")
-    }
-
-    void useExpectedComponentDocs(LeVADocumentUseCase useCase, ProjectFixture projectFixture) {
-        useCase.project.repositories.each { repo ->
-            if (!repo.data.documents) {
-                repo.data.documents = [:]
-            }
-            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)) {
-                // see @org.ods.orchestration.usecase.DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
-                repo.data.documents[projectFixture.docType] = "/blablabla"
-            }
-        }
-    }
-
-    /*
-    void updateExpectedComponentDocs(ProjectData projectData, Map data, ProjectFixture projectFixture) {
-        projectData.repositories.each {repo ->
-            projectFixture.component = repo.id
-            repo.data.documents = (repo.data.documents)?: [:]
-
-            // see @DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
-            repo.data.documents[projectFixture.docType] =  copyPdfToTemp(projectFixture, data)
-        }
-        projectFixture.component = null
-    }
-    */
 }

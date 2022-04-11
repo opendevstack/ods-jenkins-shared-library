@@ -3,11 +3,6 @@ package org.ods.core.test.usecase
 class RepoDataBuilder {
     static Map getRepoForComponent(component) {
         Map data = [
-            tests: [
-                unit: [
-
-                ],
-            ],
             openshift: [
                 builds:                    [
                     "${component}": [

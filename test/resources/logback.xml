@@ -29,7 +29,13 @@
     </logger>
     <logger name="com.athaydes" level="info" additivity="false">
         <appender-ref ref="STDOUT"/>
-    </logger>    <logger name="de.redsix.pdfcompare" level="info" additivity="false">
+    </logger>
+
+    <logger name="de.redsix.pdfcompare" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <logger name="org.ods.core.test.wiremock" level="info" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 </configuration>
