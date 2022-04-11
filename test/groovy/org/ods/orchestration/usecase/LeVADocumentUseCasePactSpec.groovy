@@ -9,13 +9,13 @@ import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.orchestration.util.DocumentHistoryEntry
-import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.UnirestConfig
 import spock.lang.Ignore
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
@@ -45,9 +45,13 @@ class LeVADocumentUseCasePactSpec extends Specification {
 
     LevaDocWiremock levaDocWiremock
 
+    @Shared
+    private DocTypeProjectFixtureBase docTypeProjectFixtureBase = new DocTypeProjectFixtureBase()
+
     def setup() {
         UnirestConfig.init()
     }
+
     def cleanup() {
         levaDocWiremock?.tearDownWiremock()
     }
@@ -82,7 +86,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
 
         where:
-        projectFixture << new DocTypeProjectFixture().getProjects()
+        projectFixture << docTypeProjectFixtureBase.getProjects(DocTypeProjectFixtureBase.DOC_TYPES_BASIC)
     }
 
     @Unroll
@@ -118,7 +122,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
 
         where:
-        projectFixture << new DocTypeProjectFixtureWithTestData().getProjects()
+        projectFixture << docTypeProjectFixtureBase.getProjects(DocTypeProjectFixtureBase.DOC_TYPES_WITH_TEST_DATA)
     }
 
     @Unroll
@@ -154,7 +158,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
 
         where:
-        projectFixture << new DocTypeProjectFixtureWithComponent().getProjects()
+        projectFixture << docTypeProjectFixtureBase.getProjects(DocTypeProjectFixtureBase.DOC_TYPES_WITH_COMPONENT)
     }
 
     @Unroll
@@ -186,7 +190,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
 
         where:
-        projectFixture << new DocTypeProjectFixturesOverall().getProjects()
+        projectFixture << docTypeProjectFixtureBase.getProjects(DocTypeProjectFixtureBase.DOC_TYPES_OVERALL)
     }
 
     private void executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {

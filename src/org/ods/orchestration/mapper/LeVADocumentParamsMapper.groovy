@@ -23,7 +23,7 @@ class LeVADocumentParamsMapper {
         return build()
     }
 
-    Map build(Map data = [: ]) {
+    Map build(Map data = [:]) {
         return [
             build: mapBuildData(),
             git: mapGitData(),
@@ -37,13 +37,13 @@ class LeVADocumentParamsMapper {
         build() << mapGitRepositoriesData()
     }
 
-    private Map mapGitRepositoriesData() {
+    protected Map mapGitRepositoriesData() {
         return [
             repositories: mapBuildRepositories()
         ]
     }
 
-    private Map mapBuildRepositories() {
+    protected Map mapBuildRepositories() {
         def res = [:]
         project.repositories.forEach{
             res << ["repo" : mapBuildRepo(it)]
@@ -51,7 +51,7 @@ class LeVADocumentParamsMapper {
         return res
     }
 
-    private Map mapBuildRepo(Map repo) {
+    protected Map mapBuildRepo(Map repo) {
         return [
             "data" : [
                 "git" : [

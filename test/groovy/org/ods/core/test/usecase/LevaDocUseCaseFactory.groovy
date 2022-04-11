@@ -8,7 +8,7 @@ import org.junit.rules.TemporaryFolder
 import org.ods.core.test.LoggerStub
 import org.ods.core.test.jira.JiraServiceForWireMock
 import org.ods.core.test.service.BitbucketReleaseManagerService
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
+import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureBase
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.usecase.levadoc.utils.DocGenServiceForWireMock
@@ -174,7 +174,7 @@ class LevaDocUseCaseFactory {
             if (!repo.data.documents) {
                 repo.data.documents = [:]
             }
-            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)) {
+            if (DocTypeProjectFixtureBase.notIsReleaseModule(repo)) {
                 // see @org.ods.orchestration.usecase.DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
                 repo.data.documents[projectFixture.docType] = "/blablabla"
             }
