@@ -20,6 +20,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
 
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.stream.Collectors
 
 /**
@@ -69,7 +71,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create #projectFixture.docType for project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, false)
 
         when: "the user creates a LeVA document"
         useCase.createDocument(projectFixture.getDocType())
@@ -90,7 +92,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create #projectFixture.docType for component #projectFixture.component and project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, false)
         Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
 
         when: "the user creates a LeVA document"
@@ -110,8 +112,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create Overall #projectFixture.docType for project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
-        new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, true)
 
         when: "the user creates a LeVA document"
         useCase.createDocument("OVERALL_${projectFixture.docType}")
@@ -129,9 +130,8 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
-        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, "upload xunit and jenkins log")
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture, true, "upload xunit and jenkins log")
 
-        new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
         def projectKey = "${projectFixture.project}"
         String buildNumber = "${projectFixture.buildNumber}"
 
@@ -172,13 +172,22 @@ class LevaDocUseCaseFunctTest extends Specification {
             .get(0)
     }
 
-    private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture, String subScenarioId = "") {
+    private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture,
+                                                  boolean useExpectedComponentDocs,
+                                                  String subScenarioId = "") {
         levaDocWiremock = new LevaDocWiremock()
         levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root, subScenarioId)
 
         // Mocks generation (spock don't let you add this outside a Spec)
         JenkinsService jenkins = Mock(JenkinsService)
         jenkins.unstashFilesIntoPath(_, _, _) >> true
+        jenkins.storeCurrentBuildLogInFile(_, _, _) >> {
+            String workspace, String buildFolder, String jenkinsLogFileName ->
+                Path filePath = Paths.get(workspace, buildFolder, jenkinsLogFileName)
+                filePath.getParent().toFile().mkdirs()
+                filePath.toFile() << "Jenkins log example file"
+        }
+
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
         BitbucketService bitbucketService = Mock(BitbucketService)
@@ -193,9 +202,10 @@ class LevaDocUseCaseFunctTest extends Specification {
             jenkins,
             openShiftService,
             bbT,
-            bitbucketService)
+            bitbucketService
+        )
 
-        return levaDocUseCaseFactory.build(projectFixture)
+        return levaDocUseCaseFactory.build(projectFixture, useExpectedComponentDocs)
 
     }
 

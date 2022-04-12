@@ -38,7 +38,8 @@ class StageSpec extends Specification {
         Project project = new ProjectForMocks(steps, new LoggerStub(log))
         project.data = [:]
         project.data.build = [:]
-        project.data.build.testResultsURLs = [:]
+        project.data.buildParams = [:]
+        project.data.buildParams.testResultsURLs = [:]
 
         Stage stage = Spy(new Stage(null, project, null, ''))
 
@@ -60,8 +61,8 @@ class StageSpec extends Specification {
             testReportsUnstashPath)
 
         then:
-        project.data.build.testResultsURLs[testResultsKey] != null
-        project.data.build.testResultsURLs[testResultsKey] == testResultsUrl
+        project.data.buildParams.testResultsURLs[testResultsKey] != null
+        project.data.buildParams.testResultsURLs[testResultsKey] == testResultsUrl
 
         where:
         typeAndRepo << [
