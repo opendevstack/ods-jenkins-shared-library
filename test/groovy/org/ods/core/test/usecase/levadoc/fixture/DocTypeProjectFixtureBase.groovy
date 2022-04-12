@@ -74,6 +74,9 @@ class DocTypeProjectFixtureBase {
                 if (docType.needsComponents) {
                     addModules(project, docType.name, projects)
                 }
+                if (docType.needsAllComponents) {
+
+                }
             }
         }
     }
