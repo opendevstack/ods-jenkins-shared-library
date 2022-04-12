@@ -77,6 +77,7 @@
 - Removes NonCPS to CPS methods call in DocGenScheduler and LeVADocumentScheduler.
 - Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed.
 
+
 ## [3.0] - 2020-08-11
 
 ### Added
