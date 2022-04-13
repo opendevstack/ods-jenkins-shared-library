@@ -3,11 +3,12 @@ package org.ods.orchestration.usecase
 import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.core.test.service.BitbucketServiceForWiremock
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureBase
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeDetails
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.core.test.wiremock.WiremockServers
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -195,7 +196,8 @@ class LevaDocUseCaseFunctTest extends Specification {
 
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
-        BitbucketService bitbucketService = Mock(BitbucketService)
+        BitbucketServiceForWiremock bitbucketService = Spy(new BitbucketServiceForWiremock(WiremockServers.BITBUCKET.getBaseUrl(),
+            WiremockServers.BITBUCKET.getUser(), WiremockServers.BITBUCKET.getPassword()))
         BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(bitbucketService, null, null))
         bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
             .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()

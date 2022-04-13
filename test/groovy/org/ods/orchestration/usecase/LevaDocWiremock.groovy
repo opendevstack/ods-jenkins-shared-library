@@ -49,7 +49,7 @@ class LevaDocWiremock {
         docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(true)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
-        bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(RECORD)
+        bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(true)
     }
 
     private String removeSpecialChars(String pathRoute) {

@@ -4,16 +4,16 @@ class DocTypeDetails {
 
     final String name
     final boolean needsTestData
-    boolean needsComponents
+    boolean needsComponentInfo
     boolean isOverAll
-    boolean needsAllComponents
+    boolean needsRepositoriesInfo
 
     DocTypeDetails(String name,
-            boolean needsTestData, boolean needsComponents, boolean isOverAll, boolean needsAllComponents) {
+            boolean needsTestData, boolean needsComponentInfo, boolean isOverAll, boolean needsRepositoriesInfo) {
             this.name = name
             this.needsTestData = needsTestData
-            this.needsComponents = needsComponents
+            this.needsComponentInfo = needsComponentInfo
             this.isOverAll = isOverAll
-            this.needsAllComponents = needsAllComponents
+            this.needsRepositoriesInfo = needsRepositoriesInfo
         }
 }

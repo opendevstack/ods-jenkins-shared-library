@@ -6,11 +6,13 @@ import org.apache.commons.io.FileUtils
 import org.apache.http.client.utils.URIBuilder
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.LoggerStub
-import org.ods.core.test.jira.JiraServiceForWireMock
+import org.ods.core.test.service.BitbucketServiceForWiremock
+import org.ods.core.test.service.JiraServiceForWireMock
 import org.ods.core.test.service.BitbucketReleaseManagerService
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureBase
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.core.test.usecase.levadoc.fixture.ProjectRepositoryFixture
 import org.ods.core.test.usecase.levadoc.utils.DocGenServiceForWireMock
 import org.ods.core.test.usecase.levadoc.utils.LeVADocumentParamsMapperWithLogging
 import org.ods.core.test.wiremock.WiremockServers
@@ -41,7 +43,7 @@ class LevaDocUseCaseFactory {
     private GitService gitService
     private BitbucketTraceabilityUseCase bbt
     private IPipelineSteps steps
-    private BitbucketService bitbucketService
+    private BitbucketServiceForWiremock bitbucketService
     private JiraServiceForWireMock jiraService
     private NexusService nexusService
     private DocGenService docGenService
@@ -54,7 +56,7 @@ class LevaDocUseCaseFactory {
                           JenkinsService jenkins,
                           OpenShiftService os,
                           BitbucketTraceabilityUseCase bbt,
-                          BitbucketService bitbucketService){
+                          BitbucketServiceForWiremock bitbucketService){
 
         this.levaDocWiremock = levaDocWiremock
         this.gitService = gitService
@@ -112,13 +114,17 @@ class LevaDocUseCaseFactory {
             project.load(gitService, jiraUseCase)
             levaDocDataFixture.fixOpenshiftData(projectFixture, project)
 
-            project.repositories.each { repo -> repo.metadata = loadMetadataFromDataFixture(repo) }
+            project.repositories.each { Map repo -> repo << loadExtraRepoDetails(repo, project) }
 
         } catch(RuntimeException e){
             loggerStub.error("setup error:${e.getMessage()}", e)
             throw e
         }
         return project
+    }
+
+    private Map loadExtraRepoDetails(Map repo, Project project) {
+        new ProjectRepositoryFixture(repo, project, bitbucketService, tempFolder, loggerStub).load()
     }
 
     private JiraServiceForWireMock buildJiraServiceForWireMock() {
@@ -134,17 +140,6 @@ class LevaDocUseCaseFactory {
     private NexusService buildNexusServiceForWireMock() {
         String nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
         return new NexusService(nexusUrl, WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
-    }
-
-    private def loadMetadataFromDataFixture(repo) {
-        return  [
-            id: repo.id,
-            name: repo.name,
-            description: "myDescription-A",
-            supplier: "mySupplier-A",
-            version: "myVersion-A",
-            references: "myReferences-A"
-        ]
     }
 
     private File setTemporalWorkspace(ProjectFixture projectFixture) {

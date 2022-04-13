@@ -1,4 +1,4 @@
-package org.ods.core.test.jira
+package org.ods.core.test.service
 
 import groovy.util.logging.Slf4j
 import org.ods.orchestration.service.JiraService
