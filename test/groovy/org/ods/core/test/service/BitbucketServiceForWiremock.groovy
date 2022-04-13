@@ -28,8 +28,8 @@ class BitbucketServiceForWiremock extends BitbucketService {
         return this.baseURL
     }
 
-    def getBranchCommits(String project, String repo, int limit = 1, int start=0) {
-        String url = "${this.baseURL}/rest/api/latest/projects/${project}/repos/${repo}/commits?limit=${limit}&start=${start}"
+    def getBranchCommits(String project, String repo, String branch, int limit = 1, int start=0) {
+        String url = "${this.baseURL}/rest/api/latest/projects/${project}/repos/${repo}/commits/${branch}?limit=${limit}&start=${start}"
         def response = Unirest.get(url)
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")

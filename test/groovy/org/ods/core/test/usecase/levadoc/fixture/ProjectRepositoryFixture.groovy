@@ -3,13 +3,10 @@ package org.ods.core.test.usecase.levadoc.fixture
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.LoggerStub
 import org.ods.core.test.service.BitbucketServiceForWiremock
-import org.ods.core.test.usecase.RepoDataBuilder
-import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.BitbucketService
-import org.yaml.snakeyaml.Yaml
 
-import javax.inject.Inject
+import static groovy.json.JsonOutput.prettyPrint
+import static groovy.json.JsonOutput.toJson
 
 class ProjectRepositoryFixture {
 
@@ -31,38 +28,31 @@ class ProjectRepositoryFixture {
     }
 
     Map load() {
-        // Taken from mroPipelineUtil.prepareCheckoutRepoNamedJob
 
         String projectName = project.key
         String repoName = "${projectName}-${repo.id}"
         String bitbucketUrl = bitbucketService.url
-        String bitbucketUrlWithCreds = bitbucketUrlWithUserWithCredentials()
         String bitbucketUrlTail = "/scm/${projectName}/${repoName}.git"
 
         URI repoUri = new URI("${bitbucketUrl}${bitbucketUrlTail}").normalize()
-        URI repoUriWithCreds = new URI("${bitbucketUrlWithCreds}${bitbucketUrlTail}").normalize()
-        String repoUrlWithCreds = repoUriWithCreds.toString()
-
         String releaseBranchName = this.project.gitReleaseBranch
-        String targetFolder = tempFolder.root.getAbsolutePath() + "/" + repoName
 
-        String retVal = runCommand("git clone -b ${releaseBranchName} ${repoUrlWithCreds} ${targetFolder}")
-        if (retVal == null) {
+        def commitsInfo
+        try {
+            commitsInfo = bitbucketService.getBranchCommits(projectName, repoName, releaseBranchName, 2)
+        } catch (RuntimeException e) {
             releaseBranchName = "master"
-            retVal = runCommand("git clone -b master ${repoUriWithCreds} ${targetFolder}")
+            commitsInfo = bitbucketService.getBranchCommits(projectName, repoName, releaseBranchName, 2)
         }
-        if (retVal == null) {
-            throw new RuntimeException("Could not clone repository.")
-        }
+        loggerStub.info(prettyPrint(toJson(commitsInfo)))
+
 
         // in case of a re-checkout, scm.GIT_COMMIT  still points
         // to the old commit.
-        def commit = runCommand("git rev-parse HEAD")
-        def prevCommit = runCommand("git rev-parse HEAD^1")
+        def commit = commitsInfo.id
+        def prevCommit = commitsInfo.parents[0].id
         def lastSuccessCommit = prevCommit
 
-        String test = bitbucketService.getBranchCommits(projectName, repoName)
-        loggerStub.info(test)
 
         repo.data.git = [
             branch: releaseBranchName,
