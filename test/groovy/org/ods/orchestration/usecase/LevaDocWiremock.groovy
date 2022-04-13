@@ -46,7 +46,7 @@ class LevaDocWiremock {
         String subScenario = (subScenarioId) ? ("/subScenario-" + removeSpecialChars(subScenarioId)) : ""
         String scenarioPath = "${projectKey}${component}${subScenario}/${doctype}${overall}/${projectFixture.version}"
 
-        docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(true)
+        docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
         bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(RECORD)

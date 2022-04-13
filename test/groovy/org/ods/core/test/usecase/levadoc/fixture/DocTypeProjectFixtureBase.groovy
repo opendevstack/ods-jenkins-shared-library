@@ -31,9 +31,10 @@ class DocTypeProjectFixtureBase {
         getDoc("TIR", false, false, true)]
 
     private static DocTypeDetails getDoc(String name,
-                                             boolean needsTestData = false, boolean needsComponents = false,
-                                             boolean isOverAll = false, boolean needsAllComponents = false) {
-        return new DocTypeDetails(name, needsTestData, needsComponents, isOverAll, needsAllComponents)
+                                         boolean needsTestData = false,
+                                         boolean needsComponentInfo = false,
+                                         boolean isOverAll = false) {
+        return new DocTypeDetails(name, needsTestData, needsComponentInfo, isOverAll)
     }
 
     List<ProjectFixture> getProjects(DocTypeDetails[] docTypes){
@@ -71,7 +72,7 @@ class DocTypeProjectFixtureBase {
                 } else {
                     projects.add(ProjectFixture.getProjectFixtureBuilder(project, docType.name).build())
                 }
-                if (docType.needsComponents) {
+                if (docType.needsComponentInfo) {
                     addModules(project, docType.name, projects)
                 }
                 if (docType.needsAllComponents) {
