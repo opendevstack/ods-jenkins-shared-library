@@ -196,8 +196,7 @@ class LevaDocUseCaseFunctTest extends Specification {
 
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
-        BitbucketServiceForWiremock bitbucketService = Spy(new BitbucketServiceForWiremock(WiremockServers.BITBUCKET.getBaseUrl(),
-            WiremockServers.BITBUCKET.getUser(), WiremockServers.BITBUCKET.getPassword()))
+        BitbucketServiceForWiremock bitbucketService = getBitBucketService()
         BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(bitbucketService, null, null))
         bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
             .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
@@ -214,6 +213,12 @@ class LevaDocUseCaseFunctTest extends Specification {
 
         return levaDocUseCaseFactory.build(projectFixture, useExpectedComponentDocs)
 
+    }
+
+    BitbucketServiceForWiremock getBitBucketService() {
+        String bitbucketUrl = levaDocWiremock.bitbucketServer.server().baseUrl()
+        return Spy(new BitbucketServiceForWiremock(bitbucketUrl,
+            WiremockServers.BITBUCKET.getUser(), WiremockServers.BITBUCKET.getPassword()))
     }
 
 }
