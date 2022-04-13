@@ -31,9 +31,10 @@ class DocTypeProjectFixtureBase {
         getDoc("TIR", false, false, true)]
 
     private static DocTypeDetails getDoc(String name,
-                                             boolean needsTestData = false, boolean needsComponentInfo = false,
-                                             boolean isOverAll = false, boolean needsRepositoriesInfo = false) {
-        return new DocTypeDetails(name, needsTestData, needsComponentInfo, isOverAll, needsRepositoriesInfo)
+                                         boolean needsTestData = false,
+                                         boolean needsComponentInfo = false,
+                                         boolean isOverAll = false) {
+        return new DocTypeDetails(name, needsTestData, needsComponentInfo, isOverAll)
     }
 
     List<ProjectFixture> getProjects(DocTypeDetails[] docTypes){
