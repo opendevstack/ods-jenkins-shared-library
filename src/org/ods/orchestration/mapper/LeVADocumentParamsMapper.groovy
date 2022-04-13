@@ -39,23 +39,23 @@ class LeVADocumentParamsMapper {
 
     protected List buildRepositoriesData() {
         List result = []
-        for (Map repo : project.repositories) {
+        for (Map repo: project.repositories) {
             result << [ buildRepoData(repo) ]
         }
         return result
     }
 
     protected Map buildRepoData(Map repo) {
-        Map gitMap = repo.data.git ? repo.data.git : [:]
+        Map gitMap = repo.data.git ? repo.data.git: [:]
         return [
             "id": "${repo.id}",
-            "data" : [
-                "git" : [
-                    "branch" : gitMap.branch,
-                    "commit" : gitMap.commit,
-                    "createdExecutionCommit" : gitMap.createdExecutionCommit,
-                    "baseTag" : gitMap.baseTag,
-                    "targetTag" : gitMap.targetTag,
+            "data": [
+                "git": [
+                    "branch": gitMap.branch,
+                    "commit": gitMap.commit,
+                    "createdExecutionCommit": gitMap.createdExecutionCommit,
+                    "baseTag": gitMap.baseTag,
+                    "targetTag": gitMap.targetTag,
                 ]
             ]
         ]
