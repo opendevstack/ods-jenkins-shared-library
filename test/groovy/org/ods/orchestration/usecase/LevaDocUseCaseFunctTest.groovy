@@ -9,7 +9,6 @@ import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureBase
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockServers
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
