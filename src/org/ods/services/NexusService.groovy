@@ -109,7 +109,7 @@ class NexusService {
                 repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
                 new ByteArrayInputStream(artifact), contentType)
         }
-        
+
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
