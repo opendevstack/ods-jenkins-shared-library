@@ -17,7 +17,7 @@ class LeVADocumentParamsMapper {
         }
 
         if (documentType.isOverallTIR() || documentType.isTIP()) {
-            return buildWithRepositories()
+            return build([ repositories: buildRepositoriesData() ])
         }
 
         return build()
@@ -33,36 +33,36 @@ class LeVADocumentParamsMapper {
         ] << data
     }
 
-    Map buildWithRepositories() {
-        build() << mapGitRepositoriesData()
-    }
 
-    protected Map mapGitRepositoriesData() {
-        return [
-            repositories: mapBuildRepositories()
-        ]
-    }
-
-    protected Map mapBuildRepositories() {
-        def res = [:]
-        project.repositories.forEach{
-            res << ["repo" : mapBuildRepo(it)]
+    protected List buildRepositoriesData() {
+        List result = []
+        for (Map repo: project.repositories) {
+            result << [ buildRepoData(repo) ]
         }
-        return res
+        return result
     }
 
-    protected Map mapBuildRepo(Map repo) {
-        return [
-            "data" : [
-                "git" : [
-                    "branch" : repo.data.git.branch,
-                    "commit" : repo.data.git.commit,
-                    "createdExecutionCommit" : repo.data.git.createdExecutionCommit,
-                    "baseTag" : repo.data.git.baseTag,
-                    "targetTag" : repo.data.git.targetTag
+    protected Map buildRepoData(Map repo) {
+        Map gitMap = repo.data.git ? repo.data.git: [:]
+        Map repoData = [
+            "id": "${repo.id}",
+            "type": "${repo.type}",
+            "data": [
+                "git": [
+                    "branch": gitMap.branch,
+                    "commit": gitMap.commit,
+                    "baseTag": gitMap.baseTag,
+                    "targetTag": gitMap.targetTag,
                 ]
             ]
         ]
+
+        // Is null until finalize stage.
+        if (gitMap.createdExecutionCommit) {
+            repoData.data.git["createdExecutionCommit"] = gitMap.createdExecutionCommit
+        }
+
+        return repoData
     }
 
     private Map<String, Object> mapGitData() {
