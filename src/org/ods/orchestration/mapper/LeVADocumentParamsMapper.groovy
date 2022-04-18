@@ -57,7 +57,6 @@ class LeVADocumentParamsMapper {
                     "createdExecutionCommit": gitMap.createdExecutionCommit,
                     "baseTag": gitMap.baseTag,
                     "targetTag": gitMap.targetTag,
-                    "url": gitMap.url,
                 ]
             ]
         ]
