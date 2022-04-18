@@ -75,7 +75,7 @@
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 - Integrate with new DocGen service, which implements all functionality previously in LevaDocUseCase.
 - Removes NonCPS to CPS methods call in DocGenScheduler and LeVADocumentScheduler.
-- Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed.
+- Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed. Payload adaptions for TIP and overall TIR (repositories data).
 
 ## [3.0] - 2020-08-11
 

@@ -1,0 +1,25 @@
+{
+  "id" : "f285f233-14bd-4e7b-ad85-c1afbeef3f3c",
+  "name" : "levadoc_ordgp_13_csd",
+  "request" : {
+    "url" : "/levaDoc/ordgp/13/CSD",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"build\":{\"targetEnvironment\":\"dev\",\"targetEnvironmentToken\":\"D\",\"version\":\"WIP\",\"configItem\":\"BI-IT-DEVSTACK\",\"changeDescription\":\"changeDescriptionForTests\",\"changeId\":\"1.0\",\"rePromote\":\"false\",\"releaseStatusJiraIssueKey\":\"ORDGP-123\",\"runDisplayUrl\":\"https://jenkinsHost.org/display\",\"releaseParamVersion\":\"3.0\",\"buildId\":\"2022-01-22_23-59-59\",\"buildURL\":\"https://jenkinsHost.org/buildJob\",\"jobName\":\"ordgp-cd/ordgp-releasemanager\",\"testResultsURLs\":{\"unit-backend\":\"repository/leva-documentation/ordgp/13/unit-backend.zip\",\"unit-frontend\":\"repository/leva-documentation/ordgp/13/unit-frontend.zip\",\"acceptance\":\"repository/leva-documentation/ordgp/13/acceptance.zip\",\"installation\":\"repository/leva-documentation/ordgp/13/installation.zip\",\"integration\":\"repository/leva-documentation/ordgp/13/integration.zip\"},\"jenkinsLog\":\"repository/leva-documentation/ordgp/13/jenkins-job-log.zip\"},\"git\":{\"commit\":\"1e84b5100e09d9b6c5ea1b6c2ccee8957391beec\",\"releaseManagerRepo\":\"ordgp-releasemanager\",\"releaseManagerBranch\":\"refs/heads/master\",\"baseTag\":\"ods-generated-v3.0-3.0-0b11-D\",\"targetTag\":\"ods-generated-v3.0-3.0-0b11-D\",\"author\":\"ODS Jenkins Shared Library System User (undefined)\",\"message\":\"Swingin' The Bottle\",\"time\":\"2021-04-20T14:58:31.042152\"},\"openshift\":{\"targetApiUrl\":\"https://openshiftTargetUrl.local\"}}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"bugs\":[],\"components\":[],\"epics\":[{\"key\":\"ORDGP-124\",\"action\":\"add\"}],\"mitigations\":[],\"requirements\":[{\"key\":\"ORDGP-126\",\"action\":\"add\"},{\"key\":\"ORDGP-127\",\"action\":\"add\"},{\"key\":\"ORDGP-125\",\"action\":\"add\"},{\"key\":\"ORDGP-128\",\"action\":\"add\"},{\"key\":\"ORDGP-129\",\"action\":\"add\"}],\"risks\":[],\"techSpecs\":[],\"tests\":[],\"docs\":[{\"key\":\"ORDGP-45\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"3.2\",\"heading\":\"Operational Requirements\"},{\"key\":\"ORDGP-44\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"6\",\"heading\":\"Reference Documents\"},{\"key\":\"ORDGP-43\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"1\",\"heading\":\"Introduction and Purpose\"},{\"key\":\"ORDGP-42\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"2\",\"heading\":\"Overview\"},{\"key\":\"ORDGP-41\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"3.1\",\"heading\":\"Related Business / GxP Process\"},{\"key\":\"ORDGP-40\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"5.1\",\"heading\":\"Definitions\"},{\"key\":\"ORDGP-39\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"5.2\",\"heading\":\"Abbreviations\"},{\"key\":\"ORDGP-38\",\"action\":\"add\",\"documents\":[\"CSD\"],\"number\":\"7\",\"heading\":\"Document History\"}],\"entryId\":1,\"projectVersion\":\"1.0\",\"previousProjectVersion\":\"\",\"rational\":\"Initial document version.\"}]",
+    "headers" : {
+      "Content-Type" : "application/json",
+      "Date" : "Wed, 13 Apr 2022 12:39:42 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "f285f233-14bd-4e7b-ad85-c1afbeef3f3c",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
