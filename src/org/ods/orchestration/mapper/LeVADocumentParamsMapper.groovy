@@ -49,6 +49,7 @@ class LeVADocumentParamsMapper {
         Map gitMap = repo.data.git ? repo.data.git: [:]
         return [
             "id": "${repo.id}",
+            "type": "${repo.type}",
             "data": [
                 "git": [
                     "branch": gitMap.branch,
@@ -56,6 +57,7 @@ class LeVADocumentParamsMapper {
                     "createdExecutionCommit": gitMap.createdExecutionCommit,
                     "baseTag": gitMap.baseTag,
                     "targetTag": gitMap.targetTag,
+                    "url": gitMap.url,
                 ]
             ]
         ]
