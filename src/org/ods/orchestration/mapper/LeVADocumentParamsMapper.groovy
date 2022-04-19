@@ -1,5 +1,6 @@
 package org.ods.orchestration.mapper
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
 
@@ -23,7 +24,7 @@ class LeVADocumentParamsMapper {
         return build()
     }
 
-    Map build(Map data = [:]) {
+    private Map build(Map data = [:]) {
         return [
             build: mapBuildData(),
             git: mapGitData(),
@@ -33,8 +34,8 @@ class LeVADocumentParamsMapper {
         ] << data
     }
 
-
-    protected List buildRepositoriesData() {
+    @NonCPS
+    private List buildRepositoriesData() {
         List result = []
         for (Map repo: project.repositories) {
             result << [ buildRepoData(repo) ]
@@ -42,7 +43,8 @@ class LeVADocumentParamsMapper {
         return result
     }
 
-    protected Map buildRepoData(Map repo) {
+    @NonCPS
+    private Map buildRepoData(Map repo) {
         Map gitMap = repo.data.git ? repo.data.git: [:]
         Map repoData = [
             "id": "${repo.id}",
@@ -57,7 +59,7 @@ class LeVADocumentParamsMapper {
             ]
         ]
 
-        // Is null until finalize stage.
+        // Is null until finalize stage, method FinalizeStage.run()
         repoData.data.git["createdExecutionCommit"] = gitMap.createdExecutionCommit ?: ""
 
         return repoData
