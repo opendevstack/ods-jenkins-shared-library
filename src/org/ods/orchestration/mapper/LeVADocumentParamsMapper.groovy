@@ -58,9 +58,7 @@ class LeVADocumentParamsMapper {
         ]
 
         // Is null until finalize stage.
-        if (gitMap.createdExecutionCommit) {
-            repoData.data.git["createdExecutionCommit"] = gitMap.createdExecutionCommit
-        }
+        repoData.data.git["createdExecutionCommit"] = gitMap.createdExecutionCommit ?: ""
 
         return repoData
     }
