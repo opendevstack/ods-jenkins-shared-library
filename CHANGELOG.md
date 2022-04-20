@@ -80,7 +80,7 @@
 - JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#850](https://github.com/opendevstack/ods-jenkins-shared-library/pull/850))
 - Fix resolveJiraDataItemReferences create list with null  ([#865](https://github.com/opendevstack/ods-jenkins-shared-library/pull/865))
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
-
+- Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 
 ## [3.0] - 2020-08-11
 

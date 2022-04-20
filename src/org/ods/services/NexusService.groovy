@@ -5,6 +5,7 @@ package org.ods.services
 import com.cloudbees.groovy.cps.NonCPS
 import com.google.common.base.Strings
 import kong.unirest.Unirest
+import kong.unirest.ContentType
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
@@ -140,9 +141,17 @@ class NexusService {
             restCall = restCall.field(key, value)
         }
 
-        String fieldName = (repositoryType == 'raw' || repositoryType == 'maven2') ?
-                            "${repositoryType}.asset1" : "${repositoryType}.asset"
-        restCall = restCall.field(fieldName, artifact, contentType)
+        if (repositoryType == 'pypi') {
+            restCall = restCall.field("pypi.asset",
+                artifact,
+                ContentType.create(contentType),
+                nexusParams['pypi.asset'].substring(nexusParams['pypi.asset'].lastIndexOf("/") + 1 ))
+        }
+        else {
+            String fieldName = (repositoryType == 'raw' || repositoryType == 'maven2') ?
+                "${repositoryType}.asset1" : "${repositoryType}.asset"
+            restCall = restCall.field(fieldName, artifact, contentType)
+        }
 
         def response = restCall.asString()
         response.ifSuccess {
