@@ -1,6 +1,7 @@
 package org.ods.services
 
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
+@Grab('net.lingala.zip4j:zip4j:2.1.1')
 
 import com.cloudbees.groovy.cps.NonCPS
 import com.google.common.base.Strings
