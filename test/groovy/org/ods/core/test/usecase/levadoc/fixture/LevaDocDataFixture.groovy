@@ -69,7 +69,7 @@ class LevaDocDataFixture {
         String bitbucketUrl = System.properties["bitbucket.url"]?: "https://bitbucket-dev.biscrum.com"
         return  [
                 commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-                baseTag: GitTag.readLatestBaseTag(),
+                baseTag: "ods-generated-v3.0-3.0-0b11-D",
                 targetTag: "ods-generated-v3.0-3.0-0b11-D",
                 author: "ODS Jenkins Shared Library System User (undefined)",
                 message: "Swingin' The Bottle",
