@@ -22,6 +22,7 @@ class ProjectFixture {
     String validation
     String releaseManagerRepo
     String releaseManagerBranch
+    Map<String, String> stepsEnv
 
     static getProjectFixtureBuilder(Map project, String docType) {
         List<String> docsToTest = project.docsToTest?.split("\\s*,\\s*")
@@ -30,7 +31,6 @@ class ProjectFixture {
             .project(project.id as String)
             .description(project.description as String)
             .buildNumber(project.buildNumber as String)
-            .releaseKey(project.releaseId as String)
             .version(project.version as String)
             .docsToTest(docsToTest)
             .templatesVersion(project.templatesVersion as String)
@@ -39,14 +39,11 @@ class ProjectFixture {
             .releaseManagerBranch(project.releaseManagerBranch as String)
             .components(components)
             .docType(docType)
+            .stepsEnv(project.stepsEnvironment)
     }
 
     String getJobName() {
         return "${project}-cd/${project}-releasemanager"
-    }
-
-    String getChangeDescription() {
-        return "changeDescriptionForTests"
     }
 
     String getProjectWithBuildNumber() {

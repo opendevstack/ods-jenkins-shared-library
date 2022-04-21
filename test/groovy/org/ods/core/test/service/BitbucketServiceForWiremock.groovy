@@ -1,14 +1,26 @@
 package org.ods.core.test.service
 
 import groovy.json.JsonSlurperClassic
+import groovy.util.logging.Slf4j
 import kong.unirest.Unirest
+import org.apache.http.client.utils.URIBuilder
 import org.ods.services.BitbucketService
+import org.ods.util.ZipFacade
 
+import javax.inject.Inject
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
+@Slf4j
 class BitbucketServiceForWiremock extends BitbucketService {
 
     String baseURL
     String username
     String password
+
+    @Inject
+    ZipFacade zipFacade
 
     BitbucketServiceForWiremock(String baseURL, String username, String password) {
         super(null, null, null, null, null)
@@ -48,5 +60,28 @@ class BitbucketServiceForWiremock extends BitbucketService {
         }
 
         return new JsonSlurperClassic().parseText(response.body)
+    }
+
+    void downloadRepoMetadata(String project, String repo, String branch, String defaultBranch, String tmpFolder) {
+        log.info("downloadRepo: project:${project}, repo:${repo} and branch:${branch}")
+        Path zipArchive = Files.createTempFile("archive-${repo}", ".zip")
+        String filePath="metadata.yml"
+        try {
+            try {
+                String url = "${this.baseURL}/rest/api/latest/projects/${project}/repos/${repo}/archive?at=${branch}&format=zip&path=${filePath}"
+                Unirest.get(url).asFile(zipArchive.toFile().getAbsolutePath())
+
+            } catch (e) {
+                log.warn("Branch [${branch}] doesn't exist, using branch: [${defaultBranch}]")
+                String url = "${this.baseURL}/rest/api/latest/projects/${project}/repos/${repo}/archive?at=${defaultBranch}&format=zip&path=${filePath}"
+                Unirest.get(url).asFile(zipArchive.toFile().getAbsolutePath())
+            }
+
+            zipFacade.extractZipArchive(zipArchive, Paths.get(tmpFolder))
+        } catch (e) {
+            log.error(e.getMessage(), e)
+        } finally {
+            Files.delete(zipArchive)
+        }
     }
 }

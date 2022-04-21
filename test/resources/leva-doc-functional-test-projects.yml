@@ -25,7 +25,6 @@ projects:
   - id: ordgp
     description: One release DocGen
     buildNumber: 13
-    releaseId: ORDGP-123
     version: WIP
     releaseManagerRepo: ordgp-releasemanager
     releaseManagerBranch: refs/heads/master
@@ -42,7 +41,16 @@ projects:
       *	All Test Levels documented
       *	Test Steps documented
       * Epics Documented
-
+    stepsEnvironment:
+      environment: dev
+      configItem: BI-IT-DEVSTACK
+      changeId: 1.0
+      changeDescription: here goes the change description
+      jenkinsBuildJobUrl: https://jenkinsHost.org/buildJob
+      jenkinsRunDisplayUrl: https://jenkinsHost.org/display
+      jenkinsBuildId: 2022-01-22_23-59-59
+      rePromote: false
+      releaseStatusJiraIssueKey: ORDGP-123
 
   #  - id: OFI2004
   #    releaseId: OFI2004-207

@@ -223,7 +223,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 changeDescription string("${projectFixture.getChangeDescription()}")
                 changeId string("1.0")
                 rePromote string("false")
-                releaseStatusJiraIssueKey string("${projectFixture.releaseKey}")
+                releaseStatusJiraIssueKey string("${projectFixture.stepsEnv.releaseStatusJiraIssueKey}")
                 runDisplayUrl string(LevaDocDataFixture.getJENKINS_URL_RUN_DISPLAY())
                 releaseParamVersion string("3.0")
                 buildId string("2022-01-22_23-59-59")
