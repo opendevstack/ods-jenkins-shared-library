@@ -37,24 +37,15 @@ class LevaDocDataFixture {
         ]
     }
 
-    void reconfigureStepsEnvFromProject(Project project, IPipelineSteps steps) {
-        List<String> buildEnv = project.getBuildEnvironment(steps, true)
-        log.debug("steps.env:")
-        log.debug(prettyPrint(toJson(steps.env)))
-        log.debug("buildEnv:")
-        log.debug(prettyPrint(toJson(buildEnv)))
-        steps.env = steps.env << buildEnv
-        log.debug("steps.env:")
-        log.debug(prettyPrint(toJson(steps.env)))
-    }
     void setupProjectFromFixture(ProjectFixture projectFixture, Project project) {
         Map extraBuildParams = [
             testResultsURLs: projectFixture.getTestResultsUrls(),
             jenkinsLog: projectFixture.getJenkinsLogUrl()
         ]
         project.data.buildParams << extraBuildParams
-        project.data.git =  buildGitData(projectFixture)
+        project.data.git =  buildGitData(projectFixture) // TODO: load from git checkout
 
+        // TODO: is necessary assigning the following value?
         String newMetadataId = "${projectFixture.project}"
         log.warn("Changing project.data.metadata.id: " +
             "${project.data.metadata?.id} -> ${newMetadataId}")

@@ -89,7 +89,7 @@ class LeVADocumentParamsMapper {
             rePromote: this.project.buildParams.rePromote,
             releaseStatusJiraIssueKey: this.project.buildParams.releaseStatusJiraIssueKey,
             runDisplayUrl: this.project.steps.env.RUN_DISPLAY_URL,
-            releaseParamVersion: this.project.steps.env.RELEASE_PARAM_VERSION,
+            releaseParamVersion: this.project.buildParams.version, // TODO: is necessary?
             buildId: this.project.steps.env.BUILD_ID, // TODO is different?
             buildURL: this.project.steps.env.BUILD_URL, // TODO is different?
             jobName: this.project.steps.env.JOB_NAME,

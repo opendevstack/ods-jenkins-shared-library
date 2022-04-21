@@ -108,7 +108,6 @@ class LevaDocUseCaseFactory {
             Project.METADATA_FILE_NAME = 'metadata.yml'
             project = new Project(steps, loggerStub, [:]).init(projectFixture.releaseManagerBranch)
             levaDocDataFixture.setupProjectFromFixture(projectFixture, project)
-            levaDocDataFixture.reconfigureStepsEnvFromProject(project, steps)
 
             def util = new MROPipelineUtil(project, steps, gitService, loggerStub)
             def jiraUseCase = new JiraUseCase(project, steps, util, jiraService, loggerStub)
