@@ -24,7 +24,7 @@ class PipelineDebugInfo {
         List keysList = environmentVariables.keySet().toList()
         for (int i=0; i<keysList.size(); i++) {
             String key = keysList.get(i) as String
-            String value = steps.env.get(key) as String
+            String value = environmentVariables.get(key) as String
             result.put(key, value)
         }
     }
