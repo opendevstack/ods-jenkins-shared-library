@@ -1,5 +1,6 @@
 package org.ods.util
 
+import com.cloudbees.groovy.cps.NonCPS
 import hudson.EnvVars
 import org.ods.orchestration.util.Project
 
@@ -19,12 +20,19 @@ class PipelineDebugInfo {
     }
 
     private Map getStepsEnvDebugInfo(PipelineSteps steps) {
-        Map result = [:]
         EnvVars environmentVariables = steps.getEnv().getEnvironment()
-        List keysList = environmentVariables.keySet().toList()
-        for (int i=0; i<keysList.size(); i++) {
-            String key = keysList.get(i) as String
-            String value = environmentVariables.get(key) as String
+        Set<Map.Entry> entriesSet = environmentVariables.entrySet()
+        return getVarsMapFromEntriesSet(entriesSet)
+    }
+
+    @NonCPS
+    private Map getVarsMapFromEntriesSet(Set entriesSet) {
+        Map result = [:]
+        List entriesList = entriesSet.toList()
+        for (int i=0; i<entriesList.size(); i++) {
+            Map.Entry entry = entriesList.get(i)
+            String key = entry.getKey() as String
+            String value = entry.getValue() as String
             result.put(key, value)
         }
         return result
