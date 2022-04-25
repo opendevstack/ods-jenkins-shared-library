@@ -1,5 +1,6 @@
 package org.ods.util
 
+import hudson.EnvVars
 import org.ods.orchestration.util.Project
 
 class PipelineDebugInfo {
@@ -19,7 +20,8 @@ class PipelineDebugInfo {
 
     private getStepsEnvDebugInfo(PipelineSteps steps) {
         Map result = [:]
-        List keysList = steps.env.keySet().toList()
+        EnvVars environmentVariables = steps.getEnv().getEnvironment()
+        List keysList = environmentVariables.keySet().toList()
         for (int i=0; i<keysList.size(); i++) {
             String key = keysList.get(i) as String
             String value = steps.env.get(key) as String
