@@ -1,6 +1,7 @@
 package org.ods.util
 
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.json.JsonOutput
 import hudson.EnvVars
 import org.ods.orchestration.util.Project
 
@@ -15,7 +16,8 @@ class PipelineDebugInfo {
         steps.archiveArtifacts(PROJECT_DEBUG_INFO_FILENAME)
 
         Map environmentDebugInfo = getStepsEnvDebugInfo(steps)
-        steps.writeFile(ENVIRONMENT_DEBUG_INFO_FILENAME, "${environmentDebugInfo}")
+        String environmentDebugInfoTxt = JsonOutput.toJson(environmentDebugInfo)
+        steps.writeFile(ENVIRONMENT_DEBUG_INFO_FILENAME, "${environmentDebugInfoTxt}")
         steps.archiveArtifacts(ENVIRONMENT_DEBUG_INFO_FILENAME)
     }
 
