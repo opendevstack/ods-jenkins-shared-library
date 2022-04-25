@@ -1,20 +1,19 @@
 package org.ods.util
 
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.MROPipelineUtil
 
 class PipelineDebugInfo {
 
     public final String PROJECT_DEBUG_INFO_FILENAME = "project_debug_info.yml"
     public final String ENVIRONMENT_DEBUG_INFO_FILENAME = "environment_debug_info.yml"
 
-    void save(Project project, PipelineSteps steps, MROPipelineUtil util) {
+    void save(Project project, PipelineSteps steps) {
 
-        writeFile(PROJECT_DEBUG_INFO_FILENAME, text: "${project}")
+        steps.writeFile(PROJECT_DEBUG_INFO_FILENAME, "${project}")
         steps.archiveArtifacts(PROJECT_DEBUG_INFO_FILENAME)
 
         Map environmentDebugInfo = getStepsEnvDebugInfo(steps)
-        writeFile(ENVIRONMENT_DEBUG_INFO_FILENAME, text: "${environmentDebugInfo}")
+        steps.writeFile(ENVIRONMENT_DEBUG_INFO_FILENAME, "${environmentDebugInfo}")
         steps.archiveArtifacts(ENVIRONMENT_DEBUG_INFO_FILENAME)
     }
 
