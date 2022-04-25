@@ -18,7 +18,7 @@ class PipelineDebugInfo {
         steps.archiveArtifacts(ENVIRONMENT_DEBUG_INFO_FILENAME)
     }
 
-    private getStepsEnvDebugInfo(PipelineSteps steps) {
+    private Map getStepsEnvDebugInfo(PipelineSteps steps) {
         Map result = [:]
         EnvVars environmentVariables = steps.getEnv().getEnvironment()
         List keysList = environmentVariables.keySet().toList()
@@ -27,5 +27,6 @@ class PipelineDebugInfo {
             String value = environmentVariables.get(key) as String
             result.put(key, value)
         }
+        return result
     }
 }
