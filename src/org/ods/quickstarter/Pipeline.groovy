@@ -59,6 +59,13 @@ class Pipeline implements Serializable {
         if (!config.podVolumes) {
             config.podVolumes = []
         }
+        if (!config.annotations) {
+            config.annotations = [
+                script.podAnnotation(
+                    key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
+                    )
+                ]
+        }
 
         // vars from jenkins master
         script.node {
@@ -114,13 +121,6 @@ class Pipeline implements Serializable {
             }
             if (!config.image) {
                 config.image = "${config.dockerRegistry}/${config.imageStreamTag}"
-            }
-            if (!config.annotations) {
-                config.annotations = [
-                    script.podAnnotation(
-                        key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
-                        )
-                    ]
             }
             config.podContainers = [
                 script.containerTemplate(
