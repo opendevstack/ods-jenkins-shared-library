@@ -115,6 +115,13 @@ class Pipeline implements Serializable {
             if (!config.image) {
                 config.image = "${config.dockerRegistry}/${config.imageStreamTag}"
             }
+            if (!config.annotations) {
+                config.annotations = [
+                    script.podAnnotation(
+                        key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
+                        )
+                    ]
+            }
             config.podContainers = [
                 script.containerTemplate(
                     name: 'jnlp',
@@ -138,6 +145,7 @@ class Pipeline implements Serializable {
             containers: config.podContainers,
             volumes: config.podVolumes,
             serviceAccount: config.podServiceAccount,
+            annotations: config.annotations,
         ) {
             script.node(podLabel) {
                 IContext context = new Context(config)
