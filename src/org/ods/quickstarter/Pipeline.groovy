@@ -59,6 +59,13 @@ class Pipeline implements Serializable {
         if (!config.podVolumes) {
             config.podVolumes = []
         }
+        if (!config.annotations) {
+            config.annotations = [
+                script.podAnnotation(
+                    key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
+                    )
+                ]
+        }
 
         // vars from jenkins master
         script.node {
@@ -138,6 +145,7 @@ class Pipeline implements Serializable {
             containers: config.podContainers,
             volumes: config.podVolumes,
             serviceAccount: config.podServiceAccount,
+            annotations: config.annotations,
         ) {
             script.node(podLabel) {
                 IContext context = new Context(config)
