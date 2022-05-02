@@ -171,6 +171,11 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         ],
         volumes: [],
         serviceAccount: 'jenkins',
+        annotations: [
+            podAnnotation(
+                key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
+            )
+        ],
         idleMinutes: 10,
     ) {
         logger.startClocked('ods-mro-pipeline')
