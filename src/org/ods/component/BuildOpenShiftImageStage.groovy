@@ -56,8 +56,8 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-        this.options = new BuildOpenShiftImageOptions(config)
 
+        this.options = new BuildOpenShiftImageOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
@@ -185,4 +185,5 @@ class BuildOpenShiftImageStage extends Stage {
             text: "[\n${jsonImageLabels.join(',\n')}\n]"
         )
     }
+
 }
