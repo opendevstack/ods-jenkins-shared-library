@@ -2,6 +2,7 @@ package org.ods.services
 
 import java.util.concurrent.ConcurrentHashMap
 
+@SuppressWarnings('NonFinalPublicField')
 class ServiceRegistry {
 
     private Map registry = new ConcurrentHashMap()

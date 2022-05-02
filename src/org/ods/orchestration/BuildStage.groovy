@@ -41,7 +41,11 @@ class BuildStage extends Stage {
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data.openshift.resurrectedBuild
-                if (!resultsResurrected) {
+                if (resultsResurrected) {
+                    logger.info("[${repo.id}] Resurrected tests from run " +
+                        "${repo.data.openshift.resurrectedBuild} " +
+                        "- no unit tests results will be reported")
+                } else {
                     data << [tests: [unit: getTestResults(steps, repo) ]]
                     jira.reportTestResultsForComponent(
                         "Technology-${repo.id}",
@@ -52,10 +56,6 @@ class BuildStage extends Stage {
                     // return immediatly when no jira adapter is configured).
                     // this  will set failedTests if any xunit tests have failed
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
-                } else {
-                    logger.info("[${repo.id}] Resurrected tests from run " +
-                        "${repo.data.openshift.resurrectedBuild} " +
-                        "- no unit tests results will be reported")
                 }
 
                 logger.info("levaDocScheduler.run start")

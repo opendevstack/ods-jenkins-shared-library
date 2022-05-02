@@ -4,7 +4,7 @@ class Logger implements ILogger, Serializable {
 
     private final Object script
     private final boolean debugOn
-    private final Map clockStore = [ : ]
+    private final Map clockStore = [:]
 
     Logger(script, debug) {
         this.script = script
@@ -14,16 +14,16 @@ class Logger implements ILogger, Serializable {
     String debug(String message) {
         if (debugOn) {
             message = "DEBUG: ${message}"
-            info (message)
+            info(message)
         } else {
             return ''
         }
     }
 
-    String logWithThrow (String message) {
+    String logWithThrow(String message) {
         this.script.echo("About to throw: ${message}")
         this.script.currentBuild.result = 'FAILURE'
-        throw new IllegalStateException ('bla bla bla')
+        throw new IllegalStateException('bla bla bla')
     }
 
     String info(String message) {
@@ -33,7 +33,7 @@ class Logger implements ILogger, Serializable {
 
     String warn(String message) {
         message = "WARN: ${message}"
-        info (message)
+        info(message)
     }
 
     String debugClocked(String component, String message = null) {
@@ -48,26 +48,26 @@ class Logger implements ILogger, Serializable {
         warn(timedCall(component, message))
     }
 
-    boolean getDebugMode () {
+    boolean getDebugMode() {
         debugOn
     }
 
-    String getOcDebugFlag () {
+    String getOcDebugFlag() {
         return debugOn ? '--loglevel=5' : ''
     }
 
-    String getShellScriptDebugFlag () {
+    String getShellScriptDebugFlag() {
         return debugOn ? '' : 'set +x'
     }
 
     String startClocked(String component) {
-        timedCall (component)
+        timedCall(component)
     }
 
     @SuppressWarnings(['GStringAsMapKey', 'UnnecessaryElseStatement'])
-    private def timedCall (String component, String message = null) {
+    private def timedCall(String component, String message = null) {
         if (!component) {
-            throw new IllegalArgumentException ("Component can't be null!")
+            throw new IllegalArgumentException("Component can't be null!")
         }
         def startTime = clockStore.get("${component}")
         if (startTime) {
@@ -79,15 +79,15 @@ class Logger implements ILogger, Serializable {
             return "[${component}] ${message ?: ''}"
         }
     }
-  
-  	def dumpCurrentStopwatchSize() {
-      	debug("Stopwatch size: ${clockStore.size()}")
+
+    def dumpCurrentStopwatchSize() {
+        debug("Stopwatch size: ${clockStore.size()}")
     }
-  
-  	def resetStopwatch () {
-		dumpCurrentStopwatchSize()
-      	clockStore.clear()
-      	dumpCurrentStopwatchSize()
-  	}
+
+    def resetStopwatch() {
+        dumpCurrentStopwatchSize()
+        clockStore.clear()
+        dumpCurrentStopwatchSize()
+    }
 
 }

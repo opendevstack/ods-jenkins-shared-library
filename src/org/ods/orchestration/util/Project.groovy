@@ -1742,11 +1742,11 @@ class Project {
         (oldComponents - newComponents) as List
     }
 
-  	@NonCPS
-  	public void clear() {
-      	this.data = null
+    @NonCPS
+    void clear() {
+        this.data = null
   	}
-  
+
     @NonCPS
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version

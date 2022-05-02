@@ -1,16 +1,16 @@
 package org.ods.component
 
-import org.ods.services.GitService
+import groovy.json.JsonOutput
 import org.ods.services.BitbucketService
+import org.ods.services.GitService
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
-import org.ods.services.JenkinsService
-import org.ods.services.NexusService
-import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
@@ -98,7 +98,7 @@ class Pipeline implements Serializable {
                         if (config.image?.startsWith(wtfEnvBug)) {
                             config.image = config.image.
                                 replace(wtfEnvBug, "${defaultDockerRegistry}/")
-                            logger.warn ("Patched image via master env to: ${config.image}")
+                            logger.warn("Patched image via master env to: ${config.image}")
                         }
 
                         context.assemble()
@@ -245,7 +245,7 @@ class Pipeline implements Serializable {
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
-                                gitService.commit ([], "system-commit ods, [ci skip]", true)
+                                gitService.commit([], "system-commit ods, [ci skip]", true)
                                 gitService.pushRef(context.gitBranch)
                             }
                         }
@@ -284,28 +284,31 @@ class Pipeline implements Serializable {
                         }
                         logger.debugClocked("${config.componentId}",
                             "ODS Component Pipeline '${context.componentId}-${context.buildNumber}'\r" +
-                            "ODS Build Artifacts '${context.componentId}': " +
-                            "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
+                                "ODS Build Artifacts '${context.componentId}': " +
+                                "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
                         if (!!!script.env.MULTI_REPO_BUILD) {
-                          	// cleanup
-                            logger.debug('-- SHUTTING DOWN RM (..) --')
-                            logger.resetStopwatch()
-                            this.script = null
-                            this.steps = null
-                            this.logger = null
-
-                            this.gitService = null
-                            this.openShiftService = null
-                            this.jenkinsService = null
-                            this.bitbucketService = null
-
-                            ServiceRegistry.removeInstance()
+                            cleanUp()
                         }
                     }
                 }
             }
         }
+    }
+
+    private void cleanUp() {
+        logger.debug('-- SHUTTING DOWN RM (..) --')
+        logger.resetStopwatch()
+        this.script = null
+        this.steps = null
+        this.logger = null
+
+        this.gitService = null
+        this.openShiftService = null
+        this.jenkinsService = null
+        this.bitbucketService = null
+
+        ServiceRegistry.removeInstance()
     }
 
     def setupForMultiRepoBuild(def config) {
@@ -413,8 +416,8 @@ class Pipeline implements Serializable {
             config.annotations = [
                 script.podAnnotation(
                     key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
-                    )
-                ]
+                )
+            ]
         }
     }
 

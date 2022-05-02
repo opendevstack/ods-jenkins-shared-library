@@ -246,17 +246,19 @@ class FinalizeStage extends Stage {
         } else {
             // We don't need to merge, we simply commit the env file. That
             // avoids unnecessary merge conflicts.
-            git.switchToOriginTrackingBranch('master')
-            git.checkoutAndCommitFiles(
-                project.gitReleaseBranch,
-                filesToCommit,
-                "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
-            )
-            git.pushRef('master')
-            git.switchToExistingBranch(project.gitReleaseBranch)
+            git.with {
+                switchToOriginTrackingBranch('master')
+                checkoutAndCommitFiles(
+                    project.gitReleaseBranch,
+                    filesToCommit,
+                    "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
+                )
+                pushRef('master')
+                switchToExistingBranch(project.gitReleaseBranch)
 
-            git.createTag(project.targetTag)
-            git.pushBranchWithTags(project.gitReleaseBranch)
+                createTag(project.targetTag)
+                pushBranchWithTags(project.gitReleaseBranch)
+            }
         }
     }
 

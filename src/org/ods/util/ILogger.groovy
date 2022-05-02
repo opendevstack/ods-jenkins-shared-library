@@ -19,5 +19,5 @@ interface ILogger {
     String getShellScriptDebugFlag ()
 
     def dumpCurrentStopwatchSize()
-  	def resetStopwatch ()
+    def resetStopwatch()
 }

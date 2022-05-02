@@ -30,7 +30,7 @@ def call(Map config) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-  	logger.dumpCurrentStopwatchSize()
+    logger.dumpCurrentStopwatchSize()
     def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
@@ -42,82 +42,52 @@ def call(Map config) {
     boolean startAgentEarly = config.get('startOrchestrationAgentOnInit', true)
     def startAgentStage = startAgentEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
-    logger.debug ("Start agent stage: ${startAgentStage}")
+    logger.debug("Start agent stage: ${startAgentStage}")
     Project project = new Project(steps, logger)
     def repos = []
 
     logger.startClocked('orchestration-master-node')
+    try {
+        node('master') {
+            logger.debugClocked('orchestration-master-node')
+            cleanWorkspace(logger)
 
-  	try {
-      node ('master') {
-          logger.debugClocked('orchestration-master-node')
-          // Clean workspace from previous runs
-          [
-              PipelineUtil.ARTIFACTS_BASE_DIR,
-              PipelineUtil.SONARQUBE_BASE_DIR,
-              PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
-              MROPipelineUtil.REPOS_BASE_DIR,
-          ].each { name ->
-              logger.debug("Cleaning workspace directory '${name}' from previous runs")
-              Paths.get(env.WORKSPACE, name).toFile().deleteDir()
-          }
+            logger.startClocked('pipeline-git-releasemanager')
+            checkOutLocalBranch(git, scm, logger)
 
-          logger.startClocked('pipeline-git-releasemanager')
-          def scmBranches = scm.branches
-          def branch = scmBranches[0]?.name
-          if (branch && !branch.startsWith('*/')) {
-              scmBranches = [[name: "*/${branch}"]]
-          }
-
-          // checkout local branch
-          git.checkout(
-              scmBranches,
-              [[$class: 'LocalBranch', localBranch: '**']],
-              scm.userRemoteConfigs,
-              scm.doGenerateSubmoduleConfigurations
-              )
-          logger.debugClocked('pipeline-git-releasemanager')
-
-          def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-
-          logger.startClocked('pod-template')
-          withPodTemplate(odsImageTag, steps, alwaysPullImage) {
-              logger.debugClocked('pod-template')
-              withEnv (envs) {
-                def result
-                def cannotContinueAsHasOpenIssuesInClosingRelease = false
-                try {
-                    result = new InitStage(this, project, repos, startAgentStage).execute()
-                } catch (OpenIssuesException ex) {
-                    cannotContinueAsHasOpenIssuesInClosingRelease = true
-                }
-                if (cannotContinueAsHasOpenIssuesInClosingRelease) {
-                    logger.warn('Cannot continue as it has open issues in the release.')
-                    return
-                }
-                if (result) {
-                    project = result.project
-                    repos = result.repos
-                    if (!startAgentStage) {
-                        startAgentStage = result.startAgent
+            logger.startClocked('pod-template')
+            def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
+            withPodTemplate(odsImageTag, steps, alwaysPullImage) {
+                logger.debugClocked('pod-template')
+                withEnv(envs) {
+                    def result
+                    def cannotContinueAsHasOpenIssuesInClosingRelease = false
+                    try {
+                        result = new InitStage(this, project, repos, startAgentStage).execute()
+                    } catch (OpenIssuesException ex) {
+                        cannotContinueAsHasOpenIssuesInClosingRelease = true
                     }
-                } else {
-                    logger.warn('Skip pipeline as no project/repos computed')
-                    return
+                    if (cannotContinueAsHasOpenIssuesInClosingRelease) {
+                        logger.warn('Cannot continue as it has open issues in the release.')
+                        return
+                    }
+                    if (result) {
+                        project = result.project
+                        repos = result.repos
+                        startAgentStage = getStartAgent(startAgentStage, result)
+                    } else {
+                        logger.warn('Skip pipeline as no project/repos computed')
+                        return
+                    }
+
+                    new BuildStage(this, project, repos, startAgentStage).execute()
+                    new DeployStage(this, project, repos, startAgentStage).execute()
+                    new TestStage(this, project, repos, startAgentStage).execute()
+                    new ReleaseStage(this, project, repos).execute()
+                    new FinalizeStage(this, project, repos).execute()
                 }
-
-                new BuildStage(this, project, repos, startAgentStage).execute()
-
-                new DeployStage(this, project, repos, startAgentStage).execute()
-
-                new TestStage(this, project, repos, startAgentStage).execute()
-
-                new ReleaseStage(this, project, repos).execute()
-
-                new FinalizeStage(this, project, repos).execute()
-              }
-          }
-      }
+            }
+        }
     } finally {
         logger.resetStopwatch()
         project.clear()
@@ -127,7 +97,7 @@ def call(Map config) {
         git = null
         repos = null
         steps = null
-        new ClassLoaderCleaner(logger).clean(processId)
+        GroovyClassLoader classloader = new ClassLoaderCleaner(logger).clean(processId)
         // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
         try {
             logger.debug("forceClean via jenkins internals....")
@@ -139,6 +109,41 @@ def call(Map config) {
         }
         classloader.close()
     }
+}
+
+private String getStartAgent(String startAgentStage, result) {
+    if (!startAgentStage) {
+        startAgentStage = result.startAgent
+    }
+    return startAgentStage
+}
+
+// Clean workspace from previous runs
+private Object cleanWorkspace(logger) {
+    return [
+        PipelineUtil.ARTIFACTS_BASE_DIR,
+        PipelineUtil.SONARQUBE_BASE_DIR,
+        PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
+        MROPipelineUtil.REPOS_BASE_DIR,
+    ].each { name ->
+        logger.debug("Cleaning workspace directory '${name}' from previous runs")
+        Paths.get(env.WORKSPACE, name).toFile().deleteDir()
+    }
+}
+
+private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
+    def scmBranches = scm.branches
+    def branch = scmBranches[0]?.name
+    if (branch && !branch.startsWith('*/')) {
+        scmBranches = [[name: "*/${branch}"]]
+    }
+    git.checkout(
+        scmBranches,
+        [[$class: 'LocalBranch', localBranch: '**']],
+        scm.userRemoteConfigs,
+        scm.doGenerateSubmoduleConfigurations
+    )
+    logger.debugClocked('pipeline-git-releasemanager')
 }
 
 @SuppressWarnings('GStringExpressionWithinString')

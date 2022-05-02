@@ -24,28 +24,6 @@ abstract class DocGenScheduler {
         this.usecase = usecase
     }
 
-    @NonCPS
-    protected String getMethodNameForDocumentType(String documentType) {
-        def name = documentType.replaceAll("OVERALL_", "Overall")
-        return "create${name}"
-    }
-
-    @NonCPS
-    protected int getMethodParamsSizeForDocumentType(String documentType) {
-        def name = this.getMethodNameForDocumentType(documentType)
-        def method = this.usecase.getMetaClass().getMethods().find { method ->
-            return method.isPublic() && method.getName() == name
-        }
-
-        return method ? method.getParameterTypes().size() : 0
-    }
-
-    protected abstract boolean isDocumentApplicable(
-        String documentType,
-        String phase,
-        PipelinePhaseLifecycleStage stage,
-        Map repo = null)
-
     void run(String phase, PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
         documents.each { documentType ->
@@ -71,4 +49,27 @@ abstract class DocGenScheduler {
             }
         }
     }
+
+    @NonCPS
+    protected String getMethodNameForDocumentType(String documentType) {
+        def name = documentType.replaceAll("OVERALL_", "Overall")
+        return "create${name}"
+    }
+
+    @NonCPS
+    protected int getMethodParamsSizeForDocumentType(String documentType) {
+        def name = this.getMethodNameForDocumentType(documentType)
+        def method = this.usecase.getMetaClass().getMethods().find { method ->
+            return method.isPublic() && method.getName() == name
+        }
+
+        return method ? method.getParameterTypes().size() : 0
+    }
+
+    protected abstract boolean isDocumentApplicable(
+        String documentType,
+        String phase,
+        PipelinePhaseLifecycleStage stage,
+        Map repo = null)
+
 }
