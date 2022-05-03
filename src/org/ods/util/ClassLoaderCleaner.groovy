@@ -7,95 +7,125 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
+@SuppressWarnings(['SystemOutPrint'])
 class ClassLoaderCleaner {
 
-    private final ILogger logger
+    void clean(ILogger logger, String processId){
+        logger.debug('-- Clean classloader --')
 
-    ClassLoaderCleaner(ILogger logger){
-        this.logger = logger
-    }
-
-    GroovyClassLoader clean(String processId){
-        logger.debug('-- SHUTTING DOWN RM (.. incl classloader HACK!!!!!) --')
-
-        // HACK!!!!!
         GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
         logger.debug("${classloader} - parent ${classloader.getParent()}")
-        logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
-        // set the classloader name == run name
-        try {
-            logger.debug("Rename classloader name to this run ...")
-            Field modifiersField = Field.class.getDeclaredField("modifiers")
-            modifiersField.setAccessible(true)
-            Field loaderName = ClassLoader.class.getDeclaredField("name")
-            loaderName.setAccessible(true)
-            modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL)
-            loaderName.set(classloader, processId)
-        } catch (Exception e) {
-            logger.debug("e: ${e}")
-        }
+        logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
 
-        unloadGrapes()
+        logger.debug("Rename classloader name to this run ...")
+        renameClassLoader(classloader, processId)
+
+        logger.debug("force grape unload")
+        unloadGrapes(classloader)
+
+        logger.debug("unloadCache")
         unloadCache(classloader)
-        cleanCache()
-        clearCacheMethod()
+
+        logger.debug("starting type-resolver (full) cleanup")
+        typeResolverCleanup(classloader)
+
+        logger.debug("starting ThreadGroupContext cleanup")
+        threadGroupContextCleanUp(classloader)
 
         logger.debug("Removing logger ...")
         removeLogger()
 
-        return classloader
+        classloader.close()
     }
 
-    private void clearCacheMethod() {
-        try {
-            logger.debug("starting ThreadGroupContext cleanup")
-            Class<?> threadGroupContextClass =
-                this.class.getClassLoader().loadClass('java.beans.ThreadGroupContext')
+    @NonCPS
+    private void renameClassLoader(GroovyClassLoader classloader, String processId) {
+        Field modifiersField = Field.class.getDeclaredField("modifiers")
+        modifiersField.setAccessible(true)
+        Field loaderName = ClassLoader.class.getDeclaredField("name")
+        loaderName.setAccessible(true)
+        modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL)
+        loaderName.set(classloader, processId)
+    }
 
-            if (threadGroupContextClass == null) {
-                logger.debug('could not find threadGroupContextClass class')
-                return
-            }
+    @NonCPS
+    private void unloadGrapes(GroovyClassLoader classloader) {
+        Class<?> grape = classloader.loadClass('groovy.grape.Grape')
+        Field instance = grape.getDeclaredField("instance")
+        instance.setAccessible(true)
+        def grapeInstance = instance.get()
+        Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
+        loadedDeps.setAccessible(true)
+        loadedDeps.get(grapeInstance).remove(this.class.getClassLoader())
+    }
 
-            Method contextMethod = threadGroupContextClass.getDeclaredMethod("getContext")
-            contextMethod.setAccessible(true)
-            Object context = contextMethod.invoke(null, null)
+    @NonCPS
+    private void unloadCache(GroovyClassLoader classloader) {
+        /*
+         * the remaining guys are:
+         * a) java.lang.invoke.MethodType -> type references, such as com.vladsch.flexmark.parser.InlineParserFactory
+         * b) (DONE) java.beans.ThreadGroupContext
+         * c) (DONE) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache
+         * d) (DONE) com.sun.beans.TypeResolver
+         */
+        // go thru this' class GroovyClassLoader -> URLClassLoader -> classes via reflection, and for each
+        // clear the above ...
+        // unload GRAPES
+        Field classes = ClassLoader.class.getDeclaredField("classes")
+        classes.setAccessible(true)
+        Iterator classV = ((List) classes.get(classloader)).iterator()
 
-            Method clearCacheMethod = context.getClass().getDeclaredMethod("clearBeanInfoCache")
-            clearCacheMethod.setAccessible(true)
-            clearCacheMethod.invoke(context, null)
-        } catch (Exception exception) {
-            logger.debug("could not clean ThreadGroupContext: ${exception}")
+        // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/
+        // blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/
+        // org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
+        Field classCacheF = this.class.getClassLoader()
+            .loadClass('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache')
+            .getDeclaredField("classCache")
+        classCacheF.setAccessible(true)
+        Object classCache = classCacheF.get(null)
+        while (classV.hasNext()) {
+            Class clazz = (Class) classV.next()
+            classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz)
         }
     }
 
-    private void cleanCache() {
-        try {
-            logger.debug("starting type-resolver (full) cleanup")
-            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
-            Class<?> typeResolverClass =
-                this.class.getClassLoader().loadClass('com.sun.beans.TypeResolver')
-
-            if (typeResolverClass == null) {
-                logger.debug('could not find typresolver class')
-                return
-            }
-
-            Field modifiersField2 = Field.class.getDeclaredField("modifiers")
-            modifiersField2.setAccessible(true)
-
-            Field localCaches = typeResolverClass.getDeclaredField("CACHE")
-            localCaches.setAccessible(true)
-            modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
-
-            WeakCache wCache = localCaches.get(null)
-            wCache.clear()
-        } catch (Exception e) {
-            logger.debug("could not clean type-resolver: ${e}")
+    @NonCPS
+    private void threadGroupContextCleanUp(GroovyClassLoader classloader) {
+        Class<?> threadGroupContextClass = classloader.loadClass('java.beans.ThreadGroupContext')
+        if (threadGroupContextClass == null) {
+            System.out.println("could not find threadGroupContextClass class")
+            return
         }
+
+        Method contextMethod = threadGroupContextClass.getDeclaredMethod("getContext")
+        contextMethod.setAccessible(true)
+        Object context = contextMethod.invoke(null, null)
+
+        Method clearCacheMethod = context.getClass().getDeclaredMethod("clearBeanInfoCache")
+        clearCacheMethod.setAccessible(true)
+        clearCacheMethod.invoke(context, null)
     }
 
-    @SuppressWarnings(['SystemOutPrint'])
+    @NonCPS
+    private void typeResolverCleanup(GroovyClassLoader classloader) {
+        // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
+        Class<?> typeResolverClass = classloader.loadClass('com.sun.beans.TypeResolver')
+        if (typeResolverClass == null) {
+            System.out.println("could not find com.sun.beans.TypeResolver class")
+            return
+        }
+
+        Field modifiersField2 = Field.class.getDeclaredField("modifiers")
+        modifiersField2.setAccessible(true)
+
+        Field localCaches = typeResolverClass.getDeclaredField("CACHE")
+        localCaches.setAccessible(true)
+        modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
+
+        WeakCache wCache = localCaches.get(null)
+        wCache.clear()
+    }
+
     @NonCPS
     void removeLogger () {
         java.util.logging.Logger lLogger =
@@ -110,63 +140,6 @@ class ClassLoaderCleaner {
         if (thisH) {
             System.out.println("-> removed: " + thisH)
             lLogger.removeHandler(thisH)
-        }
-    }
-
-    private void unloadCache(GroovyClassLoader classloader) {
-        /*
-         * the remaining guys are:
-         * a) java.lang.invoke.MethodType -> type references, such as com.vladsch.flexmark.parser.InlineParserFactory
-         * b) (DONE) java.beans.ThreadGroupContext
-         * c) (DONE) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache
-         * d) (DONE) com.sun.beans.TypeResolver
-         */
-        // go thru this' class GroovyClassLoader -> URLClassLoader -> classes via reflection, and for each
-        // clear the above ...
-        // unload GRAPES
-        try {
-            logger.debug("Unload other junk")
-            Field classes = ClassLoader.class.getDeclaredField("classes")
-            classes.setAccessible(true)
-            Iterator classV = ((List) classes.get(classloader)).iterator()
-
-            // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/
-            // blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/
-            // org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
-            Field classCacheF = this.class.getClassLoader()
-                .loadClass('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache')
-                .getDeclaredField("classCache")
-            classCacheF.setAccessible(true)
-            Object classCache = classCacheF.get(null)
-            logger.debug("UrlCL classes: ${classes.get(classloader)}")
-            while (classV.hasNext()) {
-                Class clazz = (Class) classV.next()
-                // remove from ClassHelper$ClassHelperCache
-                def removeCHC = classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz)
-                if (removeCHC) {
-                    logger.debug("removed class: ${clazz} from ${classCacheF}")
-                }
-            }
-        } catch (Exception exception) {
-            logger.debug("cleanupJunk err: ${exception}")
-        }
-    }
-
-    private void unloadGrapes() {
-        try {
-            logger.debug("force grape unload")
-            Class<?> grape = this.class.getClassLoader().loadClass('groovy.grape.Grape')
-            Field instance = grape.getDeclaredField("instance")
-            instance.setAccessible(true)
-
-            Object grapeInstance = instance.get()
-
-            Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
-            loadedDeps.setAccessible(true)
-            def result = ((Map) loadedDeps.get(grapeInstance)).remove(this.class.getClassLoader())
-            logger.debug("removed graps loader: ${result}")
-        } catch (Exception exception) {
-            logger.debug("cleanupGrapes err: ${exception}")
         }
     }
 

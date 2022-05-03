@@ -97,9 +97,9 @@ def call(Map config) {
         git = null
         repos = null
         steps = null
-        GroovyClassLoader classloader = new ClassLoaderCleaner(logger).clean(processId)
-        // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
         try {
+            new ClassLoaderCleaner().clean(logger, processId)
+            // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
@@ -107,7 +107,6 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
-        classloader.close()
     }
 }
 
