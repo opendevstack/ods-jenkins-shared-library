@@ -1,9 +1,21 @@
 package org.ods.services
 
-@Singleton
+import java.util.concurrent.ConcurrentHashMap
+
+@SuppressWarnings('NonFinalPublicField')
 class ServiceRegistry {
 
-    private final registry = [:]
+    private Map registry = new ConcurrentHashMap()
+
+    public static ServiceRegistry instance = new ServiceRegistry()
+
+    static def removeInstance() {
+        if (instance?.registry) {
+            instance.registry.clear()
+            instance.registry = null
+        }
+        instance = null
+    }
 
     void add(Class<?> type, def service) {
         registry[type.name] = service
@@ -15,6 +27,10 @@ class ServiceRegistry {
 
     def clear() {
         registry.clear()
+    }
+
+    def getAllServices() {
+        return registry
     }
 
 }

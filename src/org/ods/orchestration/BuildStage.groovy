@@ -3,6 +3,7 @@ package org.ods.orchestration
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.Project
 import org.ods.services.ServiceRegistry
 import org.ods.util.PipelineSteps
@@ -28,7 +29,7 @@ class BuildStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
         def preExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
@@ -40,7 +41,11 @@ class BuildStage extends Stage {
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data.openshift.resurrectedBuild
-                if (!resultsResurrected) {
+                if (resultsResurrected) {
+                    logger.info("[${repo.id}] Resurrected tests from run " +
+                        "${repo.data.openshift.resurrectedBuild} " +
+                        "- no unit tests results will be reported")
+                } else {
                     data << [tests: [unit: getTestResults(steps, repo) ]]
                     jira.reportTestResultsForComponent(
                         "Technology-${repo.id}",
@@ -51,16 +56,12 @@ class BuildStage extends Stage {
                     // return immediatly when no jira adapter is configured).
                     // this  will set failedTests if any xunit tests have failed
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
-                } else {
-                    logger.info("[${repo.id}] Resurrected tests from run " +
-                        "${repo.data.openshift.resurrectedBuild} " +
-                        "- no unit tests results will be reported")
                 }
 
                 logger.info("levaDocScheduler.run start")
                 levaDocScheduler.run(
                     phase,
-                    MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                    PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
                     data
                 )
@@ -69,7 +70,7 @@ class BuildStage extends Stage {
         }
 
         Closure generateDocuments = {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         }
 
         // Execute phase for each repository
@@ -81,7 +82,7 @@ class BuildStage extends Stage {
                 }
         }
         executeInParallel(executeRepos, generateDocuments)
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible

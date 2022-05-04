@@ -3,6 +3,7 @@ package org.ods.orchestration.scheduler
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.usecase.DocGenUseCase
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -23,29 +24,7 @@ abstract class DocGenScheduler {
         this.usecase = usecase
     }
 
-    @NonCPS
-    protected String getMethodNameForDocumentType(String documentType) {
-        def name = documentType.replaceAll("OVERALL_", "Overall")
-        return "create${name}"
-    }
-
-    @NonCPS
-    protected int getMethodParamsSizeForDocumentType(String documentType) {
-        def name = this.getMethodNameForDocumentType(documentType)
-        def method = this.usecase.getMetaClass().getMethods().find { method ->
-            return method.isPublic() && method.getName() == name
-        }
-
-        return method ? method.getParameterTypes().size() : 0
-    }
-
-    protected abstract boolean isDocumentApplicable(
-        String documentType,
-        String phase,
-        MROPipelineUtil.PipelinePhaseLifecycleStage stage,
-        Map repo = null)
-
-    void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
+    void run(String phase, PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
         documents.each { documentType ->
             def args = [repo, data]
@@ -70,4 +49,27 @@ abstract class DocGenScheduler {
             }
         }
     }
+
+    @NonCPS
+    protected String getMethodNameForDocumentType(String documentType) {
+        def name = documentType.replaceAll("OVERALL_", "Overall")
+        return "create${name}"
+    }
+
+    @NonCPS
+    protected int getMethodParamsSizeForDocumentType(String documentType) {
+        def name = this.getMethodNameForDocumentType(documentType)
+        def method = this.usecase.getMetaClass().getMethods().find { method ->
+            return method.isPublic() && method.getName() == name
+        }
+
+        return method ? method.getParameterTypes().size() : 0
+    }
+
+    protected abstract boolean isDocumentApplicable(
+        String documentType,
+        String phase,
+        PipelinePhaseLifecycleStage stage,
+        Map repo = null)
+
 }

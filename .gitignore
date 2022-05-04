@@ -11,6 +11,8 @@
 /.project
 /gradle.properties
 
+/lib/*.jar
+
 .idea
 *.iws
 *.iml

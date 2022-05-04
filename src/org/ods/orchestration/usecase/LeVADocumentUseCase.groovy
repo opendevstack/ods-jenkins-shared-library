@@ -50,29 +50,6 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    enum DocumentType {
-
-        CSD,
-        DIL,
-        DTP,
-        DTR,
-        RA,
-        CFTP,
-        CFTR,
-        IVP,
-        IVR,
-        SSDS,
-        TCP,
-        TCR,
-        TIP,
-        TIR,
-        TRC,
-        OVERALL_DTR,
-        OVERALL_IVR,
-        OVERALL_TIR
-
-    }
-
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
