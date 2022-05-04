@@ -131,7 +131,7 @@ class FinalizeOdsComponent {
             allComponentDeployments.remove(odsBuiltDeploymentName)
         }
 
-        if (allComponentDeployments && allComponentDeployments.size() > 0 ) {
+        if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
             def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
                 "'${allComponentDeployments}'!\r" +
                 "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
