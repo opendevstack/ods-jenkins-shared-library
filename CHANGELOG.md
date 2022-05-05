@@ -82,7 +82,7 @@
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
 - Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
-
+- Improve memory cleanUp  ([#902](https://github.com/opendevstack/ods-jenkins-shared-library/pull/902))
 
 ## [3.0] - 2020-08-11
 
