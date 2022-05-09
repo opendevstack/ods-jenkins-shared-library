@@ -1,7 +1,6 @@
 package org.ods.orchestration.parser
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonBuilder
 
 // JUnit XML 5 Schema:
@@ -10,6 +9,37 @@ import groovy.json.JsonBuilder
 // https://stackoverflow.com/questions/54364380/
 // same-script-work-well-at-the-jenkins-script-console-but-not-at-the-pipline
 class JUnitParser {
+
+    @NonCPS
+    // Parse a JUnit 4/5 XML document
+    static Map parseJUnitXML(String xml) {
+        if (!xml || xml.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
+                    " No XML or empty XML provided"
+            )
+        }
+
+        def root = new XmlSlurper().parseText(xml)
+        if (!["testsuites", "testsuite"].contains(root.name())) {
+            throw new IllegalArgumentException(
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
+                    " Required attribute 'testsuite(s)' is missing."
+            )
+        }
+
+        def result = [:]
+        if (root.name() == "testsuite") {
+            result = [
+                "testsuites": [parseJUnitXMLTestSuiteElement(root)]
+            ]
+        } else if (root.name() == "testsuites") {
+            result = parseJUnitXMLTestSuitesElement(root)
+        }
+
+        return result
+    }
+
     @NonCPS
     // Parse a JUnit XML <property> element
     private static def parseJUnitXMLPropertyElement(def property) {
@@ -45,10 +75,12 @@ class JUnitParser {
         // Parse <testcase>/(<error>|<failure>) elements
         result << testcase."*"
             .findAll { ["error", "failure"].contains(it.name()) }
-            .collectEntries {[
-                it.name(),
-                [:] << it.attributes() << [ "text": it.text() ]
-            ]}
+            .collectEntries {
+                [
+                    it.name(),
+                    [ :] << it.attributes() << ["text": it.text()],
+                ]
+            }
 
         // Parse <testcase>/<skipped> elements
         result << [
@@ -89,13 +121,13 @@ class JUnitParser {
         result << testsuite.attributes()
 
         // Parse <testsuite>/**/<property> elements
-        result << [ "properties": testsuite."**"
+        result << ["properties": testsuite."**"
             .findAll { it.name() == "property" }
             .collect { parseJUnitXMLPropertyElement(it) }
         ]
 
         // Parse <testsuite>/<testcase> elements
-        result << [ "testcases": testsuite."*"
+        result << ["testcases": testsuite."*"
             .findAll { it.name() == "testcase" }
             .collect {
                 def testcase = parseJUnitXMLTestCaseElement(it)
@@ -138,37 +170,22 @@ class JUnitParser {
         return result
     }
 
-    @NonCPS
-    // Parse a JUnit 4/5 XML document
-    static Map parseJUnitXML(String xml) {
-        if (!xml || xml.isEmpty()) {
-            throw new IllegalArgumentException(
-                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
-		" No XML or empty XML provided"
-            )
-        }
-
-        def root = new XmlSlurper().parseText(xml)
-        if (!["testsuites", "testsuite"].contains(root.name())) {
-            throw new IllegalArgumentException(
-                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
-		" Required attribute 'testsuite(s)' is missing."
-            )
-        }
-
-        def result = [:]
-        if (root.name() == "testsuite") {
-            result = [
-                "testsuites": [ parseJUnitXMLTestSuiteElement(root) ]
-            ]
-        } else if (root.name() == "testsuites") {
-            result = parseJUnitXMLTestSuitesElement(root)
-        }
-
-        return result
-    }
-
     class Helper {
+
+        static Set getErrors(Map testResults) {
+            return getIssues(testResults, "error")
+        }
+
+        static Set getFailures(Map testResults) {
+            return getIssues(testResults, "failure")
+        }
+
+        @NonCPS
+        // Transform the parser's result into a JSON string.
+        static String toJSONString(Map xml) {
+            new JsonBuilder(xml).toPrettyString()
+        }
+
         @NonCPS
         private static Set getIssues(Map testResults, String type) {
             // Compute a unique set of issues
@@ -197,7 +214,7 @@ class JUnitParser {
                             if (!issueTestsuite) {
                                 issueTestsuite = [
                                     name: testsuite.name,
-                                    testcases: []
+                                    testcases: [],
                                 ]
 
                                 issue.testsuites << issueTestsuite
@@ -215,18 +232,6 @@ class JUnitParser {
             return result
         }
 
-        static Set getErrors(Map testResults) {
-            return getIssues(testResults, "error")
-        }
-
-        static Set getFailures(Map testResults) {
-            return getIssues(testResults, "failure")
-        }
-
-        @NonCPS
-        // Transform the parser's result into a JSON string.
-        static String toJSONString(Map xml) {
-            new JsonBuilder(xml).toPrettyString()
-        }
     }
+
 }

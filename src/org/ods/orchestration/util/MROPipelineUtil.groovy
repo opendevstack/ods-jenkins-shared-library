@@ -63,13 +63,6 @@ class MROPipelineUtil extends PipelineUtil {
         static final List ALWAYS_PARALLEL = []
     }
 
-    enum PipelinePhaseLifecycleStage {
-        POST_START,
-        PRE_EXECUTE_REPO,
-        POST_EXECUTE_REPO,
-        PRE_END
-    }
-
     static final String COMPONENT_METADATA_FILE_NAME = 'metadata.yml'
     static final String REPOS_BASE_DIR = 'repositories'
     static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ['openshift']

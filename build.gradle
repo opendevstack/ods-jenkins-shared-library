@@ -6,7 +6,6 @@ plugins {
 
 group "org.ods"
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = 1.8
 
 ext {
     nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')

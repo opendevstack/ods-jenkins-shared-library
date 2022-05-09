@@ -367,11 +367,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         where:
         documentType                                        || template
-        LeVADocumentUseCase.DocumentType.CSD as String      || (LeVADocumentUseCase.DocumentType.CSD as String) + "-999"
-        LeVADocumentUseCase.DocumentType.SSDS as String     || (LeVADocumentUseCase.DocumentType.SSDS as String) + "-999"
-        LeVADocumentUseCase.DocumentType.CFTP as String     || (LeVADocumentUseCase.DocumentType.CFTP as String) + "-999"
-        LeVADocumentUseCase.DocumentType.CFTR as String     || (LeVADocumentUseCase.DocumentType.CFTR as String) + "-999"
-        LeVADocumentUseCase.DocumentType.RA as String       || (LeVADocumentUseCase.DocumentType.RA as String)
+        DocumentType.CSD as String      || (DocumentType.CSD as String) + "-999"
+        DocumentType.SSDS as String     || (DocumentType.SSDS as String) + "-999"
+        DocumentType.CFTP as String     || (DocumentType.CFTP as String) + "-999"
+        DocumentType.CFTR as String     || (DocumentType.CFTR as String) + "-999"
+        DocumentType.RA as String       || (DocumentType.RA as String)
     }
 
     def "create CSD"() {
@@ -380,7 +380,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.CSD as String
+        def documentType = DocumentType.CSD as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE", key:"DEMO-1"]]
@@ -456,7 +456,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TRC as String
+        def documentType = DocumentType.TRC as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE", key:"DEMO-1"]]
@@ -487,7 +487,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DIL as String
+        def documentType = DocumentType.DIL as String
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
@@ -516,7 +516,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def repo = project.repositories.first()
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DTP as String
+        def documentType = DocumentType.DTP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -549,7 +549,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def repo = project.repositories.first()
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DTP as String
+        def documentType = DocumentType.DTP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -596,7 +596,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DTR as String
+        def documentType = DocumentType.DTR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
@@ -647,7 +647,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DTR as String
+        def documentType = DocumentType.DTR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
@@ -678,7 +678,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.CFTP as String
+        def documentType = DocumentType.CFTP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -729,7 +729,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.CFTR as String
+        def documentType = DocumentType.CFTR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
 
         // Stubbed Method Responses
@@ -766,7 +766,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TCP as String
+        def documentType = DocumentType.TCP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -819,7 +819,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TCR as String
+        def documentType = DocumentType.TCR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
@@ -857,7 +857,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.IVP as String
+        def documentType = DocumentType.IVP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -905,7 +905,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.IVR as String
+        def documentType = DocumentType.IVR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
@@ -1002,7 +1002,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         FileUtils.copyDirectory(new FixtureHelper().getResource("Test-1.pdf").parentFile, tempFolder.getRoot());
         def pdfDoc = new FixtureHelper().getResource("Test-1.pdf").bytes
 
-        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
+        def documentType = DocumentType.SSDS as String
         def uri = new URI("http://nexus")
         def pdfUtil = new PDFUtil()
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
@@ -1103,7 +1103,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.RA as String
+        def documentType = DocumentType.RA as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -1134,7 +1134,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TIP as String
+        def documentType = DocumentType.TIP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -1163,7 +1163,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.services.jira = null
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TIP as String
+        def documentType = DocumentType.TIP as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -1206,7 +1206,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TIR as String
+        def documentType = DocumentType.TIR as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -1248,7 +1248,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def repo = project.repositories.first()
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TIR as String
+        def documentType = DocumentType.TIR as String
 
         // Stubbed Method Responses
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
@@ -1273,8 +1273,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create overall DTR"() {
         given:
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DTR as String
-        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_DTR as String
+        def documentType = DocumentType.DTR as String
+        def documentTypeName = DocumentType.OVERALL_DTR as String
 
         // Stubbed Method Responses
         def uri = "http://nexus"
@@ -1292,8 +1292,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create overall TIR"() {
         given:
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.TIR as String
-        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
+        def documentType = DocumentType.TIR as String
+        def documentTypeName = DocumentType.OVERALL_TIR as String
 
         // Stubbed Method Responses
         def uri = "http://nexus"

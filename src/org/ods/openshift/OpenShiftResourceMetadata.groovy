@@ -13,9 +13,9 @@ import org.ods.util.IPipelineSteps
  * @See <a href="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc" >
  *     Guidelines for Labels and Annotations for OpenShift applications</a>
  * @See <a href="https://helm.sh/docs/chart_best_practices/labels/" > Helm: Labels and Annotations</a>
- *
  */
 class OpenShiftResourceMetadata {
+
     // Standard roles recognized by OpenShift. Arbitrary roles are supported.
     static final ROLE_FRONTEND = 'frontend'
     static final ROLE_BACKEND = 'backend'
@@ -174,6 +174,71 @@ class OpenShiftResourceMetadata {
     }
 
     /**
+     * Sanitize all metadata values to make sure they are valid label values.
+     * Valid label values must be 63 characters or less and must be empty
+     * or begin and end with an alphanumeric character ([a-z0-9A-Z])
+     * with dashes (-), underscores (_), dots (.), and alphanumerics between.
+     * If an illegal value is found for an entry that allows modifications, the value will be sanitized as follows:
+     * 1. Any non-alphanumeric characters will be removed from the beginning of the value.
+     * 2. If it's longer than 63 characters, the trailing characters after the 63rd will be removed.
+     * 3. Any non-alphanumeric characters will be removed from the end of the value.
+     * 4. Every remaining illegal character will be replaced with an underscore.
+     *
+     * NOTE: If, after step 1, the value is empty, an exception will be risen
+     * instead of silently assigning an empty value. This situation should be rare, only for non-empty values
+     * consisting only of non-alphanumeric characters.
+     *
+     * If an illegal value is found for an entry that does not allow modifications,
+     * an exception with an informative message will be risen, thus ending the labelling process.
+     *
+     * All values are converted to strings using the <code>toString()</code> method.
+     *
+     * @param metadata a <Map> with the metadata entries to validate.
+     * @return the metadata with <code>String</code>, possibly sanitized, values.
+     * @throws IllegalArgumentException if an illegal value is found for an entry that does not allow modifications
+     * or a value is found that consists entirely in non-alphanumeric characters.
+     */
+    private static sanitizeValues(metadata) {
+        return (Map<String, String>) metadata.collectEntries { key, value ->
+            if (value == null) {
+                return [(key): null]
+            }
+            def stringValue = value.toString()
+            if (!stringValue) {
+                return [(key): stringValue]
+            }
+            def sanitizedValue = stringValue
+            def end = sanitizedValue.length()
+            def i = 0
+            while (i < end && !Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
+                i++
+            }
+            if (i == end) {
+                throw new IllegalArgumentException('Metadata entries must not entirely consist of ' +
+                    "non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
+            }
+            // Now the value is warranted to contain, at least, one alphanumeric character, at position i.
+            def j = Math.min(end, i + 63)
+            // No guard needed.
+            while (!Character.isLetterOrDigit(sanitizedValue.charAt(j - 1))) {
+                j--
+            }
+            if (i > 0 || j < end) {
+                sanitizedValue = sanitizedValue.subSequence(i, j)
+            }
+            def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
+            sanitizedValue = matcher.replaceAll('_')
+            if (sanitizedValue != stringValue && strictEntries.contains(key)) {
+                throw new IllegalArgumentException('Illegal value for metadata entry. ' +
+                    'Values must be 63 characters or less, begin and end with an alphanumeric character and ' +
+                    "contain only alphanumerics, '-', '_' and '.'. Please, check the metadata.yml file: " +
+                    "${key}=${value}")
+            }
+            return [(key): sanitizedValue]
+        }
+    }
+
+    /**
      * Retrieves metadata for the component.
      * All metadata values are warranted to be valid strings to be used as label values.
      * Any non-string value is converted to a string and illegal label values are
@@ -274,7 +339,7 @@ class OpenShiftResourceMetadata {
             metadata.putAll([
                 systemName:     steps.env?.BUILD_PARAM_CONFIGITEM,
                 projectVersion: steps.env?.BUILD_PARAM_CHANGEID,
-                workInProgress: steps.env?.BUILD_PARAM_VERSION == 'WIP'
+                workInProgress: steps.env?.BUILD_PARAM_VERSION == 'WIP',
             ])
         } else {
             // For the moment, we don't allow the users to customize these labels
@@ -286,71 +351,6 @@ class OpenShiftResourceMetadata {
         }
 
         return metadata
-    }
-
-    /**
-     * Sanitize all metadata values to make sure they are valid label values.
-     * Valid label values must be 63 characters or less and must be empty
-     * or begin and end with an alphanumeric character ([a-z0-9A-Z])
-     * with dashes (-), underscores (_), dots (.), and alphanumerics between.
-     * If an illegal value is found for an entry that allows modifications, the value will be sanitized as follows:
-     * 1. Any non-alphanumeric characters will be removed from the beginning of the value.
-     * 2. If it's longer than 63 characters, the trailing characters after the 63rd will be removed.
-     * 3. Any non-alphanumeric characters will be removed from the end of the value.
-     * 4. Every remaining illegal character will be replaced with an underscore.
-     *
-     * NOTE: If, after step 1, the value is empty, an exception will be risen
-     * instead of silently assigning an empty value. This situation should be rare, only for non-empty values
-     * consisting only of non-alphanumeric characters.
-     *
-     * If an illegal value is found for an entry that does not allow modifications,
-     * an exception with an informative message will be risen, thus ending the labelling process.
-     *
-     * All values are converted to strings using the <code>toString()</code> method.
-     *
-     * @param metadata a <Map> with the metadata entries to validate.
-     * @return the metadata with <code>String</code>, possibly sanitized, values.
-     * @throws IllegalArgumentException if an illegal value is found for an entry that does not allow modifications
-     * or a value is found that consists entirely in non-alphanumeric characters.
-     */
-    private static sanitizeValues(metadata) {
-        return (Map<String, String>) metadata.collectEntries { key, value ->
-            if (value == null) {
-                return [(key): null]
-            }
-            def stringValue = value.toString()
-            if (!stringValue) {
-                return [(key): stringValue]
-            }
-            def sanitizedValue = stringValue
-            def end = sanitizedValue.length()
-            def i = 0
-            while (i < end && !Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
-                i++
-            }
-            if (i == end) {
-                throw new IllegalArgumentException('Metadata entries must not entirely consist of ' +
-                    "non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
-            }
-            // Now the value is warranted to contain, at least, one alphanumeric character, at position i.
-            def j = Math.min(end, i + 63)
-            // No guard needed.
-            while (!Character.isLetterOrDigit(sanitizedValue.charAt(j - 1))) {
-                j--
-            }
-            if (i > 0 || j < end) {
-                sanitizedValue = sanitizedValue.subSequence(i, j)
-            }
-            def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
-            sanitizedValue = matcher.replaceAll('_')
-            if (sanitizedValue != stringValue && strictEntries.contains(key)) {
-                throw new IllegalArgumentException('Illegal value for metadata entry. ' +
-                    'Values must be 63 characters or less, begin and end with an alphanumeric character and ' +
-                    "contain only alphanumerics, '-', '_' and '.'. Please, check the metadata.yml file: " +
-                    "${key}=${value}")
-            }
-            return [(key): sanitizedValue]
-        }
     }
 
     /**
