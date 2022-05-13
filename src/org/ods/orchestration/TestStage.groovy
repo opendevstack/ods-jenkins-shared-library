@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
@@ -28,7 +29,7 @@ class TestStage extends Stage {
         def globalData = getTestDataStructure()
 
         def preExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
@@ -42,7 +43,7 @@ class TestStage extends Stage {
                     it.value.testResults = testResult.testResults
                 }
 
-                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
+                levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
                 // Add the test results of component to global data to maintain several e2e
                 globalData.tests.each {
@@ -54,7 +55,7 @@ class TestStage extends Stage {
         }
 
         Closure generateDocuments = {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         }
 
         // Execute phase for each repository
@@ -77,7 +78,7 @@ class TestStage extends Stage {
             it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }
 
     private Map getTestDataStructure() {

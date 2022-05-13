@@ -14,6 +14,7 @@ class ScanWithAquaStage extends Stage {
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
     static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
+    static final Integer AQUA_DEFAULT_TIMEOUT = 300
     private final AquaService aqua
     private final BitbucketService bitbucket
     private final OpenShiftService openShift
@@ -30,6 +31,9 @@ class ScanWithAquaStage extends Stage {
         super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
+        }
+        if (!config.scanTimeoutSeconds) {
+            config.scanTimeoutSeconds = AQUA_DEFAULT_TIMEOUT
         }
         this.options = new ScanWithAquaOptions(config)
         this.aqua = aqua
@@ -139,7 +143,8 @@ class ScanWithAquaStage extends Stage {
     private int scanViaCli(String aquaUrl, String registry, String imageRef,
                            String credentialsId, String reportFile, String jsonFile) {
         logger.startClocked(options.resourceName)
-        int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile, jsonFile)
+        int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile, jsonFile,
+            options.scanTimeoutSeconds)
         // see possible return codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
         switch (returnCode) {
             case AquaService.AQUA_SUCCESS:

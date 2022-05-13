@@ -9,6 +9,7 @@ import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import util.SpecHelper
@@ -67,9 +68,9 @@ class TestStageSpec extends SpecHelper {
         testStage.run()
 
         then:
-        1 * levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * util.prepareExecutePhaseForReposNamedJob(*_)
-        1 * levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], _)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, [:], _)
     }
 
     def "in TEST repo only one call per test types to report test results in Jira"() {

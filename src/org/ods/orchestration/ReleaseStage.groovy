@@ -2,6 +2,8 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
+
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
@@ -21,15 +23,15 @@ class ReleaseStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.RELEASE
 
         def preExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
         Closure generateDocuments = {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         }
 
         // Execute phase for each repository
@@ -42,7 +44,7 @@ class ReleaseStage extends Stage {
         }
         executeInParallel(executeRepos, generateDocuments)
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
     }
 
 }

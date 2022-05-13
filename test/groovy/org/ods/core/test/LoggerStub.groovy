@@ -48,6 +48,16 @@ class LoggerStub implements ILogger, Serializable {
         return "debugOn"
     }
 
+    @Override
+    def dumpCurrentStopwatchSize() {
+        return null
+    }
+
+    @Override
+    def resetStopwatch() {
+        return null
+    }
+
     String startClocked(String component) {
         timedCall (component)
     }

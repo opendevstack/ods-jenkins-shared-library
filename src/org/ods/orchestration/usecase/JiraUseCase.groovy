@@ -29,14 +29,6 @@ class JiraUseCase {
         static final String DOCUMENT = 'Doc:'
     }
 
-    enum TestIssueLabels {
-        Error,
-        Failed,
-        Missing,
-        Skipped,
-        Succeeded
-    }
-
     private Project project
     private JiraService jira
     private IPipelineSteps steps

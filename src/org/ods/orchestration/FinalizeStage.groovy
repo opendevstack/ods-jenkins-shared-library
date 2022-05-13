@@ -5,6 +5,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
@@ -18,6 +19,7 @@ import groovy.json.JsonOutput
 class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
+    private final String MASTER_BRANCH = "master"
 
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
@@ -36,11 +38,11 @@ class FinalizeStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
         def preExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
         if (project.isAssembleMode) {
@@ -94,7 +96,7 @@ class FinalizeStage extends Stage {
         // Dump a representation of the project
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
@@ -241,19 +243,18 @@ class FinalizeStage extends Stage {
         )
 
         if (project.isWorkInProgress) {
-            git.pushRef('master')
+            git.pushRef(MASTER_BRANCH)
         } else {
-            // We don't need to merge, we simply commit the env file. That
-            // avoids unnecessary merge conflicts.
-            git.switchToOriginTrackingBranch('master')
+            // We don't need to merge, we simply commit the env file.
+            // That avoids unnecessary merge conflicts.
+            git.switchToOriginTrackingBranch(MASTER_BRANCH)
             git.checkoutAndCommitFiles(
                 project.gitReleaseBranch,
                 filesToCommit,
                 "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
             )
-            git.pushRef('master')
+            git.pushRef(MASTER_BRANCH)
             git.switchToExistingBranch(project.gitReleaseBranch)
-
             git.createTag(project.targetTag)
             git.pushBranchWithTags(project.gitReleaseBranch)
         }

@@ -2,17 +2,14 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
+import org.ods.orchestration.util.DeploymentDescriptor
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
-import org.ods.orchestration.util.DeploymentDescriptor
-import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.MROPipelineUtil
-
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 // Finalize ODS comnponent (code or service) in 'dev'.
 @TypeChecked
 class FinalizeOdsComponent {
@@ -134,7 +131,7 @@ class FinalizeOdsComponent {
             allComponentDeployments.remove(odsBuiltDeploymentName)
         }
 
-        if (allComponentDeployments.size() > 0 ) {
+        if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
             def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
                 "'${allComponentDeployments}'!\r" +
                 "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"

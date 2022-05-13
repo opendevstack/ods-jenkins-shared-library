@@ -1743,6 +1743,11 @@ class Project {
     }
 
     @NonCPS
+    void clear() {
+        this.data = null
+  	}
+
+    @NonCPS
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
         (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
