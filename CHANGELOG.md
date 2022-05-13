@@ -8,7 +8,9 @@
 - JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
 - Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
-- Closes [https://github.com/opendevstack/ods-jenkins-shared-library/issues/857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857)
+- Closes ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+- Increase default timeout for rollout ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
+
 ## [4.0] - 2021-05-11
 
 ### Added
