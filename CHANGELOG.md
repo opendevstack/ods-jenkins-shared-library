@@ -83,6 +83,7 @@
 - Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 - Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
+- Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
 
 ## [3.0] - 2020-08-11
 

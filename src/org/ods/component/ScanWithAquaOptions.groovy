@@ -12,4 +12,7 @@ class ScanWithAquaOptions extends Options {
      * to be the same as in BuildOpenShiftImageStage. */
     String resourceName
 
+    /**
+     * Timeout of scan (defaults to 5 minutes - 300 seconds). */
+    Integer scanTimeoutSeconds
 }
