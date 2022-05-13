@@ -40,7 +40,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision('foo-dev', 'DeploymentConfig', 'bar') >> 123
-    openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 5) >> "bar-124"
+    openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 15) >> "bar-124"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [new PodData([ deploymentId: "bar-124" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'DeploymentConfig', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
@@ -72,7 +72,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
     openShiftService.getRevision('foo-dev', 'Deployment', 'bar') >> 123
-    openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 5) >> "bar-6f8db5fb69"
+    openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 15) >> "bar-6f8db5fb69"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'Deployment', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
