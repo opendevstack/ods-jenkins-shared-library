@@ -59,7 +59,7 @@ class DeployOdsComponent {
                     OpenShiftService.DEPLOYMENTCONFIG_KIND,
                     deploymentName,
                     originalDeploymentVersions[deploymentName],
-                    project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
+                    project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 20
                 )
 
                 def podData = os.getPodDataForDeployment(
