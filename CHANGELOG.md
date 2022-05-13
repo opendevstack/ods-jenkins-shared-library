@@ -115,6 +115,7 @@
 - Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
 - Fix image not shown in documents like TIR and DTR from Document Chapters ([#789](https://github.com/opendevstack/ods-jenkins-shared-library/pull/789))
 
+
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))
 - bitbucket status setting in MRO on fail ([#370](https://github.com/opendevstack/ods-jenkins-shared-library/pull/370))

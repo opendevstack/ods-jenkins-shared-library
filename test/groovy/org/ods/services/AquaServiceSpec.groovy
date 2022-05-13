@@ -37,7 +37,7 @@ class AquaServiceSpec extends PipelineSpockTestBase {
 
         when:
         def result = service.scanViaCli("http://aqua", "internal", "12345",
-            "cd-user", "report.html", "report.json")
+            "cd-user", "report.html", "report.json", 100)
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'PASSWORD': 'pass']
@@ -49,6 +49,7 @@ class AquaServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--dockerless')
             assert it.script.toString().contains('--register')
             assert it.script.toString().contains('--text')
+            assert it.script.toString().contains('--scan-timeout 100')
             assert it.script.toString().contains('--htmlfile \'report.html\'')
             assert it.script.toString().contains('--jsonfile \'report.json\'')
             assert it.script.toString().contains('-w /tmp')
