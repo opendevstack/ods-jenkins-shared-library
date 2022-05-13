@@ -898,7 +898,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli(null, null, "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json") >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail sent
         1 * stage.script.emailext(
             [
