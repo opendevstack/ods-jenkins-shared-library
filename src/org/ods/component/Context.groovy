@@ -129,7 +129,7 @@ class Context implements IContext {
             config.openshiftBuildTimeout = 15 // minutes
         }
         if (!config.containsKey('openshiftRolloutTimeout')) {
-            config.openshiftRolloutTimeout = 5 // minutes
+            config.openshiftRolloutTimeout = 15 // minutes
         }
         if (!config.containsKey('openshiftRolloutTimeoutRetries')) {
             config.openshiftRolloutTimeoutRetries = 5 // retries
