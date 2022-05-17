@@ -32,7 +32,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev', buildTimeoutRetries: 6]
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftBuildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
@@ -91,7 +91,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: 'dev',
       targetProject: 'foo-dev',
       globalExtensionImageLabels: [ "globalext": "extG" ],
-      buildTimeoutRetries: 6
+      openshiftBuildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
@@ -156,7 +156,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       targetProject: 'foo-dev',
       gitBranch: 'release/1',
       triggeredByOrchestrationPipeline: true,
-      buildTimeoutRetries: 6
+      openshiftBuildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
@@ -185,7 +185,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev', buildTimeoutRetries: 6]
+    def c = config + [environment: 'dev', openshiftBuildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
@@ -222,7 +222,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       gitBranch: gitBranch,
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
       branchToEnvironmentMapping: branchToEnvironmentMapping,
-      buildTimeoutRetries: 6
+      openshiftBuildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 
@@ -257,7 +257,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       gitBranch: 'master',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
       branchToEnvironmentMapping: [:],
-      buildTimeoutRetries: 6
+      openshiftBuildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 
