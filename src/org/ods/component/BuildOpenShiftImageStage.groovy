@@ -54,7 +54,7 @@ class BuildOpenShiftImageStage extends Stage {
             config.buildTimeoutMinutes = context.openshiftBuildTimeout
         }
         if (!config.buildTimeoutRetries) {
-            config.buildTimeoutRetries = context.buildTimeoutRetries
+            config.buildTimeoutRetries = context.openshiftBuildTimeoutRetries
         }
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
