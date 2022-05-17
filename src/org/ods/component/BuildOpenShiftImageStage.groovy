@@ -53,6 +53,9 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.buildTimeoutMinutes) {
             config.buildTimeoutMinutes = context.openshiftBuildTimeout
         }
+        if (!config.buildTimeoutRetries) {
+            config.buildTimeoutRetries = context.buildTimeoutRetries
+        }
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
@@ -134,7 +137,7 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     private String getBuildStatus(String build) {
-        openShift.getBuildStatus(context.cdProject, build)
+        openShift.getBuildStatus(context.cdProject, build, options.buildTimeoutRetries)
     }
 
     private String patchBuildConfig(Map imageLabels) {

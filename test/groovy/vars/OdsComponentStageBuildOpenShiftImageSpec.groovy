@@ -32,13 +32,13 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', buildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startBuild(*_) >> 123
     openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getBuildStatus(_,6) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
 
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -90,14 +90,15 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [
       environment: 'dev',
       targetProject: 'foo-dev',
-      globalExtensionImageLabels: [ "globalext": "extG" ]
+      globalExtensionImageLabels: [ "globalext": "extG" ],
+      buildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startBuild(*_) >> 123
     openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getBuildStatus(_,6) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -154,14 +155,15 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: 'dev',
       targetProject: 'foo-dev',
       gitBranch: 'release/1',
-      triggeredByOrchestrationPipeline: true
+      triggeredByOrchestrationPipeline: true,
+      buildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startBuild(*_) >> 123
     openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getBuildStatus(_,6) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -183,12 +185,12 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', buildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
     openShiftService.startBuild(*_) >> lastBuildVersion
-    openShiftService.getBuildStatus(*_) >> buildStatus
+    openShiftService.getBuildStatus(_,6) >> buildStatus
     openShiftService.getImageReference(*_) >> imageReference
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -219,7 +221,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: null,
       gitBranch: gitBranch,
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      branchToEnvironmentMapping: branchToEnvironmentMapping
+      branchToEnvironmentMapping: branchToEnvironmentMapping,
+      buildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 
@@ -253,7 +256,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: null,
       gitBranch: 'master',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      branchToEnvironmentMapping: [:]
+      branchToEnvironmentMapping: [:],
+      buildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 
