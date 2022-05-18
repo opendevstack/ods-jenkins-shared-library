@@ -31,6 +31,10 @@ class BuildOpenShiftImageOptions extends Options {
     Integer buildTimeoutMinutes
 
     /**
+     * Adjust retries to wait for the build pod status (defaults to 5). */
+    Integer buildTimeoutRetries
+
+    /**
      * Docker context directory (defaults to `docker`). */
     String dockerDir
 

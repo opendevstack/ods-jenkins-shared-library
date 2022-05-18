@@ -128,6 +128,9 @@ class Context implements IContext {
         if (!config.containsKey('openshiftBuildTimeout')) {
             config.openshiftBuildTimeout = 15 // minutes
         }
+        if (!config.containsKey('openshiftBuildTimeoutRetries')) {
+            config.openshiftBuildTimeoutRetries = 5 // retries
+        }
         if (!config.containsKey('openshiftRolloutTimeout')) {
             config.openshiftRolloutTimeout = 15 // minutes
         }
@@ -587,6 +590,17 @@ class Context implements IContext {
     @NonCPS
     int getOpenshiftRolloutTimeoutRetries () {
         config.openshiftRolloutTimeoutRetries
+    }
+
+    // set the build retry
+    void setOpenshiftBuildTimeoutRetries (int retries) {
+        config.openshiftBuildTimeoutRetries = retries
+    }
+
+    // get the build retry
+    @NonCPS
+    int getOpenshiftBuildTimeoutRetries () {
+        config.openshiftBuildTimeoutRetries
     }
 
     // set to commit the working tree after custom work
