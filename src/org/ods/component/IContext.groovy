@@ -195,6 +195,12 @@ interface IContext {
     // get the rollout retry
     int getOpenshiftRolloutTimeoutRetries ()
 
+    // set the build retry
+    void setOpenshiftBuildTimeoutRetries (int retries)
+
+    // get the build retry
+    int getOpenshiftBuildTimeoutRetries ()
+
     // get commit the working tree
     boolean getCommitGitWorkingTree ()
 
