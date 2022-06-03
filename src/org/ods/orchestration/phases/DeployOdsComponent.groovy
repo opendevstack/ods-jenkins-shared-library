@@ -5,7 +5,6 @@ import groovy.transform.TypeCheckingMode
 
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
-import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
@@ -36,7 +35,7 @@ class DeployOdsComponent {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
         steps.dir(baseDir) {
-            def openShiftDir = computeOpenShiftDir()
+            def openShiftDir = computeStartDir()
 
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
@@ -84,12 +83,18 @@ class DeployOdsComponent {
         }
     }
 
-    private String computeOpenShiftDir() {
-        def openShiftDir = 'openshift-exported'
-        if (steps.fileExists('openshift')) {
-            openShiftDir = 'openshift'
+    private String computeStartDir() {
+        if (steps.fileExists('chart')) {
+            return 'chart'
         }
-        openShiftDir
+        if (steps.fileExists('openshift')) {
+            return 'openshift'
+        }
+        if (steps.fileExists('openshift-exported')) {
+            return 'openshift-exported'
+        }
+        throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
+
     }
 
     private Map gatherOriginalDeploymentVersions(Map<String, Object> deployments) {
@@ -107,23 +112,45 @@ class DeployOdsComponent {
         }
     }
 
-    private void applyTemplates(String openShiftDir, String componentSelector) {
+    // TODO FIXE XXX
+    private void applyTemplates(String startDir, String componentSelector) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
-        steps.dir(openShiftDir) {
+        steps.dir(startDir) {
             logger.info(
                 "Applying desired OpenShift state defined in " +
-                "${openShiftDir}@${project.baseTag} to ${project.targetProject}."
+                    "${startDir}@${project.baseTag} to ${project.targetProject}."
             )
             def applyFunc = { String pkeyFile ->
                 os.tailorApply(
-                        project.targetProject,
-                        [selector: componentSelector, exclude: 'bc'],
-                        project.environmentParamsFile,
-                        [], // no params
-                        [], // no preserve flags
-                        pkeyFile,
-                        true // verify
-                    )
+                    project.targetProject,
+                    [selector: componentSelector, exclude: 'bc'],
+                    project.environmentParamsFile,
+                    [], // no params
+                    [], // no preserve flags
+                    pkeyFile,
+                    true // verify
+                )
+                def debug = true
+                if (debug) {
+                    final Map<String, Serializable> BUILD_PARAMS = project.loadBuildParams(steps)
+
+                    final String RELEASE = project.getVersionName()
+                    final List<String> VALUES_FILES = ["values.yml"]
+                    final Map<String, String> VALUES = [:]
+                    final List<String> DEFAULT_FLAGS = []
+                    final List<String> ADDITIONAL_FLAGS = []
+                    final boolean WITH_DIFF = true
+
+                    steps.echo("""os.helmUpgrade(
+                        project=${project.targetProject},
+                        release=${RELEASE},
+                        valuesFile=${VALUES_FILES},
+                        values=${VALUES},
+                        defaultFlags=${DEFAULT_FLAGS},
+                        additionalFlags=${ADDITIONAL_FLAGS},
+                        withDiff=${WITH_DIFF})
+                        }""")
+                }
             }
             jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->
                 applyFunc(pkeyFile)

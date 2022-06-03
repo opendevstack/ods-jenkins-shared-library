@@ -73,6 +73,8 @@ If you use this type ODS expects to find JUnit XML test results. If you do not h
 
 This type designates ODS components designed for _consuming on-prem or cloud services_ of arbitrary type using infrastructure as code. Such components are based on quickstarters whose names start with `infra-`.
 
+The `ods-infra` type is suitable to deploy helm charts as well. If you have a directory `charts` in your component the orchestration pipeline will recognize it and make sure the resources in the helm chart are deployed.
+
 ==== Repository Type: ods-saas-service
 
 This type designates ODS components designed for _documenting vendor-provided SaaS services_.
