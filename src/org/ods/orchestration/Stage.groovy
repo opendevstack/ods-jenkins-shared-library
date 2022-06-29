@@ -1,7 +1,7 @@
 package org.ods.orchestration
 
 import com.cloudbees.groovy.cps.NonCPS
-
+import groovy.json.JsonOutput
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelineUtil
@@ -124,7 +124,7 @@ class Stage {
 
         Map testResults = junit.parseTestReportFiles(testReportFiles)
         logger.info("getTestResults: testResults: ")
-        logger.info(testResults)
+        logger.info(JsonOutput.prettyPrint(JsonOutput.toJson(testResults)))
 
         return [
             // Load JUnit test report files from path
