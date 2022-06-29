@@ -3,10 +3,8 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.parser.JUnitParser
-import org.ods.services.ServiceRegistry
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
-import org.ods.util.Logger
 
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class JUnitTestReportsUseCase {
@@ -58,11 +56,7 @@ class JUnitTestReportsUseCase {
         for (def i = 0; i < files.size(); i++) {
             testResults.add(JUnitParser.parseJUnitXML(files[i].text))
         }
-        Map combinedResult = this.combineTestResults(testResults)
-        org.ods.util.ILogger logger = ServiceRegistry.instance.get(Logger)
-        logger.info("parseTestReportFiles: Combined result: ")
-        logger.info(combinedResult)
-        return combinedResult
+        return this.combineTestResults(testResults)
     }
 
     void reportTestReportsFromPathToJenkins(String path) {

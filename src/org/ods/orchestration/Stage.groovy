@@ -121,11 +121,16 @@ class Stage {
             testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
         }
 
+
+        Map testResults = junit.parseTestReportFiles(testReportFiles)
+        logger.info("getTestResults: testResults: ")
+        logger.info(testResults)
+
         return [
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles),
+            testResults: testResults,
         ]
     }
 
