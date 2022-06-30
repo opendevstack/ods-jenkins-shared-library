@@ -128,6 +128,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             // early returns instead
             def applyFunc = {
                 if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
+                    options.selector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
+
                     refreshResources = true
                     helmUpgrade(context.targetProject)
                     return
