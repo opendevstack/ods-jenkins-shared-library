@@ -37,7 +37,7 @@ class FinalizeOdsComponent {
         steps.dir(baseDir) {
             def openshiftDir = findOrCreateOpenShiftDir()
 
-            if (openShiftDir == 'chart'){
+            if (openshiftDir == 'chart'){
                 componentSelector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
             }
 
