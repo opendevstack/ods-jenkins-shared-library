@@ -147,15 +147,16 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 )
             }
 
-            def metadata = new OpenShiftResourceMetadata(
-                steps,
-                context.properties,
-                options.properties,
-                logger,
-                openShift
-            )
-            metadata.updateMetadata(true, deploymentResources)
-
+            if (steps.fileExists(options.openshiftDir)) {
+                def metadata = new OpenShiftResourceMetadata(
+                    steps,
+                    context.properties,
+                    options.properties,
+                    logger,
+                    openShift
+                )
+                metadata.updateMetadata(true, deploymentResources)
+            }
             def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
             paused = false
             return rolloutData
