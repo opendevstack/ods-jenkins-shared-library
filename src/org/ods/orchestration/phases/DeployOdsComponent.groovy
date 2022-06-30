@@ -47,35 +47,63 @@ class DeployOdsComponent {
 
             def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-            applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
-
-            deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-
-                importImages(deployment, deploymentName, project.sourceProject)
-
-                def replicationController = os.rollout(
-                    project.targetProject,
-                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                    deploymentName,
-                    originalDeploymentVersions[deploymentName],
-                    project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 20
-                )
-
-                def podData = os.getPodDataForDeployment(
-                    project.targetProject,
-                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                    replicationController,
-                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                )
-                // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                // update this to deal with multiple pods.
-                def pod = podData[0].toMap()
-
-                verifyImageShas(deployment, pod.containers)
-
-                repo.data.openshift.deployments << [(deploymentName): pod]
+            def componentSelector = "app=${project.key}-${repo.id}"
+            if (openShiftDir == 'chart'){
+                componentSelector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
             }
 
+
+            if (openShiftDir == 'chart'){
+                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                    importImages(deployment, deploymentName, project.sourceProject)
+                }
+
+                applyTemplates(openShiftDir, componentSelector)
+
+                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                    def podData = os.getPodDataForDeployment(
+                        project.targetProject,
+                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                        replicationController,
+                        project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                    )
+                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                    // update this to deal with multiple pods.
+                    def pod = podData[0].toMap()
+
+                    verifyImageShas(deployment, pod.containers)
+
+                    repo.data.openshift.deployments << [(deploymentName): pod]                }
+
+            } else {
+                applyTemplates(openShiftDir, componentSelector)
+                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+
+                    importImages(deployment, deploymentName, project.sourceProject)
+
+                    def replicationController = os.rollout(
+                        project.targetProject,
+                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                        deploymentName,
+                        originalDeploymentVersions[deploymentName],
+                        project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 20
+                    )
+
+                    def podData = os.getPodDataForDeployment(
+                        project.targetProject,
+                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                        replicationController,
+                        project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                    )
+                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                    // update this to deal with multiple pods.
+                    def pod = podData[0].toMap()
+
+                    verifyImageShas(deployment, pod.containers)
+
+                    repo.data.openshift.deployments << [(deploymentName): pod]
+                }
+            }
             if (deploymentDescriptor.createdByBuild) {
                 def createdByBuildKey = DeploymentDescriptor.CREATED_BY_BUILD_STR
                 repo.data.openshift[createdByBuildKey] = deploymentDescriptor.createdByBuild
@@ -120,19 +148,19 @@ class DeployOdsComponent {
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject}."
             )
-            // FIXME: condition!
             def applyFunc = { String pkeyFile ->
-                os.tailorApply(
-                    project.targetProject,
-                    [selector: componentSelector, exclude: 'bc'],
-                    project.environmentParamsFile,
-                    [], // no params
-                    [], // no preserve flags
-                    pkeyFile,
-                    true // verify
-                )
-                def debug = true
-                if (debug) {
+                // FIXME: condition!
+                if (startDir != 'chart'){
+                    os.tailorApply(
+                        project.targetProject,
+                        [selector: componentSelector, exclude: 'bc'],
+                        project.environmentParamsFile,
+                        [], // no params
+                        [], // no preserve flags
+                        pkeyFile,
+                        true // verify
+                    )
+                } else if (startDir == 'chart') {
                     final Map<String, Serializable> BUILD_PARAMS = project.loadBuildParams(steps)
 
                     final String RELEASE = project.getVersionName()
