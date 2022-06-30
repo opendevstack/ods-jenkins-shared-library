@@ -123,13 +123,22 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
-            if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
-                refreshResources = true
-                helmUpgrade(context.targetProject)
-            } else if (steps.fileExists(options.openshiftDir)) {
-                refreshResources = true
-                tailorApply(context.targetProject)
+            // We'll use a closure to simplify the logic.
+            // This removes the `else' tree and we can use
+            // early returns instead
+            def applyFunc = {
+                if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
+                    refreshResources = true
+                    helmUpgrade(context.targetProject)
+                    return
+                }
+                if (steps.fileExists(options.openshiftDir)) {
+                    refreshResources = true
+                    tailorApply(context.targetProject)
+                    return
+                }
             }
+            applyFunc()
             if (refreshResources) {
                 deploymentResources = openShift.getResourcesForComponent(
                     context.targetProject, DEPLOYMENT_KINDS, options.selector

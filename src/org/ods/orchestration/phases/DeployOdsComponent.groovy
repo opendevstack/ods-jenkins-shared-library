@@ -112,7 +112,7 @@ class DeployOdsComponent {
         }
     }
 
-    // TODO FIXE XXX
+    // TODO FIXME XXX
     private void applyTemplates(String startDir, String componentSelector) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
@@ -120,6 +120,7 @@ class DeployOdsComponent {
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject}."
             )
+            // FIXME: condition!
             def applyFunc = { String pkeyFile ->
                 os.tailorApply(
                     project.targetProject,
@@ -141,7 +142,7 @@ class DeployOdsComponent {
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
 
-                    steps.echo("""os.helmUpgrade(
+                    os.helmUpgrade(
                         project=${project.targetProject},
                         release=${RELEASE},
                         valuesFile=${VALUES_FILES},
@@ -149,7 +150,6 @@ class DeployOdsComponent {
                         defaultFlags=${DEFAULT_FLAGS},
                         additionalFlags=${ADDITIONAL_FLAGS},
                         withDiff=${WITH_DIFF})
-                        }""")
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->

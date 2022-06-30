@@ -31,13 +31,17 @@ class FinalizeOdsComponent {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
         def componentSelector = "app=${project.key}-${repo.id}"
 
-        verifyDeploymentsBuiltByODS(repo, componentSelector)
-
         def envParamsFile = project.environmentParamsFile
         def envParams = project.getEnvironmentParams(envParamsFile)
 
         steps.dir(baseDir) {
             def openshiftDir = findOrCreateOpenShiftDir()
+
+            if (openShiftDir == 'chart'){
+                componentSelector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
+            }
+
+            verifyDeploymentsBuiltByODS(repo, componentSelector)
             steps.dir(openshiftDir) {
                 def filesToStage = []
                 def commitMessage = ''
@@ -79,7 +83,11 @@ class FinalizeOdsComponent {
 
     private String findOrCreateOpenShiftDir() {
         def openshiftDir = 'openshift-exported'
-        if (steps.fileExists('openshift')) {
+        // FIXME: check for chart dir
+
+        if (steps.fileExists('chart')) {
+            openshiftDir = 'chart'
+        } else if (steps.fileExists('openshift')) {
             logger.info(
                 '''Found 'openshift' folder, current OpenShift state ''' +
                 '''will not be exported into 'openshift-exported'.'''
