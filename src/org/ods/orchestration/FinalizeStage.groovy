@@ -196,7 +196,9 @@ class FinalizeStage extends Stage {
                 repoIntegrateTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         def filesToCheckout = []
-                        if (steps.fileExists('openshift')) {
+                        if (steps.fileExists('chart')){
+                            filesToCheckout = ['chart/ods-deployments.json']
+                        } else if (steps.fileExists('openshift')) {
                             filesToCheckout = ['openshift/ods-deployments.json']
                         } else {
                             filesToCheckout = [
