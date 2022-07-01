@@ -38,7 +38,7 @@ class FinalizeOdsComponent {
             def openshiftDir = findOrCreateOpenShiftDir()
 
             if (openshiftDir == 'chart'){
-                componentSelector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
+                componentSelector = "app.kubernetes.io/instance=${repo.id}"
             }
 
             verifyDeploymentsBuiltByODS(repo, componentSelector)
