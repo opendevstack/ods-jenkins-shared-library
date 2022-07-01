@@ -58,22 +58,23 @@ class DeployOdsComponent {
                     importImages(deployment, deploymentName, project.sourceProject)
                 }
 
+                logger.debug("XXX -- deploymentDescriptor: ${deploymentDescriptor}")
                 applyTemplates(openShiftDir, componentSelector)
 
-                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    def podData = os.getPodDataForDeployment(
-                        project.targetProject,
-                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                        replicationController,
-                        project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    )
-                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                    // update this to deal with multiple pods.
-                    def pod = podData[0].toMap()
+                // deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                //     def podData = os.getPodDataForDeployment(
+                //         project.targetProject,
+                //         OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                //         replicationController,
+                //         project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                //     )
+                //     // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                //     // update this to deal with multiple pods.
+                //     def pod = podData[0].toMap()
 
-                    verifyImageShas(deployment, pod.containers)
+                //     verifyImageShas(deployment, pod.containers)
 
-                    repo.data.openshift.deployments << [(deploymentName): pod]                }
+                //     repo.data.openshift.deployments << [(deploymentName): pod]                }
 
             } else {
                 applyTemplates(openShiftDir, componentSelector)
@@ -163,9 +164,11 @@ class DeployOdsComponent {
                 } else if (startDir == 'chart') {
                     final Map<String, Serializable> BUILD_PARAMS = project.loadBuildParams(steps)
 
-                    final String RELEASE = project.getVersionName()
+                    // registry.svc:5000/foo/bar:a333333333333333333334
+                    //                               ^^^^^^^^^^^^^^
+                    final String RELEASE = project.baseTag
                     final List<String> VALUES_FILES = ["values.yml"]
-                    final Map<String, String> VALUES = [:]
+                    final Map<String, String> VALUES = ["imageTag":"latest"]
                     final List<String> DEFAULT_FLAGS = []
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
