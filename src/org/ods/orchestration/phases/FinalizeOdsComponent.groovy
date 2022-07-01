@@ -130,7 +130,8 @@ class FinalizeOdsComponent {
             project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND], componentSelector
         )
         def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
-        allComponentDeployments < allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]
+        logger.debug("allComponentDeploymentsByKind: ${allComponentDeploymentsByKind}")
+        allComponentDeployments.addAll(allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND])
         logger.debug(
             "ODS created deployments for ${repo.id}: " +
             "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
