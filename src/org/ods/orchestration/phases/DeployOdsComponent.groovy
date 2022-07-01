@@ -58,19 +58,11 @@ class DeployOdsComponent {
                     importImages(deployment, deploymentName, project.sourceProject)
                 }
 
-                logger.debug("XXX -- deploymentDescriptor: ${deploymentDescriptor}")
                 applyTemplates(openShiftDir, componentSelector, repo.id)
 
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                    podData = os.checkForPodData(context.targetProject, componentSelector)
 
-                    podData = openShift.checkForPodData(context.targetProject, componentSelector)
-
-                //     def podData = os.getPodDataForDeployment(
-                //         project.targetProject,
-                //         OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                //         replicationController,
-                //         project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                //     )
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
                     def pod = podData[0].toMap()
@@ -151,7 +143,8 @@ class DeployOdsComponent {
         steps.dir(startDir) {
             logger.info(
                 "Applying desired OpenShift state defined in " +
-                    "${startDir}@${project.baseTag} to ${project.targetProject}."
+                    "${startDir}@${project.baseTag} to ${project.targetProject} for component " +
+                    "${repo.id}"
             )
             def applyFunc = { String pkeyFile ->
                 // FIXME: condition!
@@ -172,7 +165,7 @@ class DeployOdsComponent {
                     //                               ^^^^^^^^^^^^^^
                     final String RELEASE = repoId
                     final List<String> VALUES_FILES = ["values.yaml"]
-                    final Map<String, String> VALUES = ["imageTag":"latest", "imageNamespace" : project.targetProject]
+                    final Map<String, String> VALUES = ["imageTag": project.targetTag, "imageNamespace" : project.targetProject]
                     final List<String> DEFAULT_FLAGS = ['--install', '--atomic']
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
