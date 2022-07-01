@@ -147,7 +147,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 )
             }
 
-            if (steps.fileExists(options.openshiftDir)) {
+
+            if (!steps.fileExists(options.chartDir)) {
                 def metadata = new OpenShiftResourceMetadata(
                     steps,
                     context.properties,
@@ -156,12 +157,17 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     openShift
                 )
                 metadata.updateMetadata(true, deploymentResources)
+                rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+                paused = false
+                return rolloutData
+            } else {
+                rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
+                paused = false
+                return rolloutData
+
             }
-            def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
-            paused = false
-            return rolloutData
         } finally {
-            if (paused) {
+            if ( paused && !steps.fileExists(options.chartDir) ) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
@@ -239,7 +245,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     // ]
     private Map<String, List<PodData>> rollout(
         Map<String, List<String>> deploymentResources,
-        Map<String, Map<String, Integer>> originalVersions) {
+        Map<String, Map<String, Integer>> originalVersions,
+        boolean isHelm = false) {
+
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
@@ -248,8 +256,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     originalVersion = originalVersions[resourceKind][resourceName] ?: 0
                 }
 
-                def podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
-
+                def podData = [:]
+                if (!isHelm){
+                    podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
+                }else {
+    // List<PodData> checkForPodData(String project, String label) {
+                    selector = "app.kubernetes.io/instance=${context.componentId}"
+                    podData = openShift.checkForPodData(context.targetProject, selector)
+                }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
