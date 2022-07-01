@@ -48,12 +48,9 @@ class DeployOdsComponent {
             def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
             def componentSelector = "app=${project.key}-${repo.id}"
+
             if (openShiftDir == 'chart'){
                 componentSelector = "app.kubernetes.io/instance=${repo.id}"
-            }
-
-
-            if (openShiftDir == 'chart'){
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     importImages(deployment, deploymentName, project.sourceProject)
                 }
@@ -61,7 +58,7 @@ class DeployOdsComponent {
                 applyTemplates(openShiftDir, componentSelector, repo.id)
 
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    podData = os.checkForPodData(context.targetProject, componentSelector)
+                    podData = os.checkForPodData(project.targetProject, componentSelector)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
