@@ -147,7 +147,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 )
             }
 
-
+            def rolloutData = [:]
             if (!steps.fileExists(options.chartDir)) {
                 def metadata = new OpenShiftResourceMetadata(
                     steps,
