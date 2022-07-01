@@ -261,7 +261,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
                 }else {
     // List<PodData> checkForPodData(String project, String label) {
-                    selector = "app.kubernetes.io/instance=${context.componentId}"
+                    def selector = "app.kubernetes.io/instance=${context.componentId}"
                     podData = openShift.checkForPodData(context.targetProject, selector)
                 }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
