@@ -58,14 +58,15 @@ class DeployOdsComponent {
                 applyTemplates(openShiftDir, componentSelector, repo.id)
 
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    podData = os.checkForPodData(project.targetProject, componentSelector)
+                    // fixme? or maybe not - because helm will wait or rollback, so we have to find
+                    // the pod on the first attempt
+                    def podData = os.checkForPodData(project.targetProject, componentSelector)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
                     def pod = podData[0].toMap()
 
                     verifyImageShas(deployment, pod.containers)
-
                     repo.data.openshift.deployments << [(deploymentName): pod]
                 }
 
