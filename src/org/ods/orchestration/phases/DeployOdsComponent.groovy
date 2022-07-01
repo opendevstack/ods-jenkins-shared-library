@@ -175,7 +175,7 @@ class DeployOdsComponent {
                     final Map<String, String> VALUES = ["imageTag":"latest"]
                     final List<String> DEFAULT_FLAGS = []
                     final List<String> ADDITIONAL_FLAGS = []
-                    final boolean WITH_DIFF = true
+                    final boolean WITH_DIFF = false
 
                     os.helmUpgrade(
                         project.targetProject,
