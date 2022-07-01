@@ -127,9 +127,10 @@ class FinalizeOdsComponent {
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
         def allComponentDeploymentsByKind = os.getResourcesForComponent(
-            project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND], componentSelector
+            project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND], componentSelector
         )
-        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND]
+        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
+        allComponentDeployments << allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]
         logger.debug(
             "ODS created deployments for ${repo.id}: " +
             "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
