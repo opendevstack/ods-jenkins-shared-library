@@ -49,7 +49,7 @@ class DeployOdsComponent {
 
             def componentSelector = "app=${project.key}-${repo.id}"
             if (openShiftDir == 'chart'){
-                componentSelector = "app.kubernetes.io/instance=${project.key}-${repo.id}"
+                componentSelector = "app.kubernetes.io/instance=${repo.id}"
             }
 
 
