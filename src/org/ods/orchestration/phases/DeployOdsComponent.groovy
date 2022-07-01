@@ -173,9 +173,9 @@ class DeployOdsComponent {
                     final String RELEASE = repoId
                     final List<String> VALUES_FILES = ["values.yaml"]
                     final Map<String, String> VALUES = ["imageTag":"latest"]
-                    final List<String> DEFAULT_FLAGS = []
+                    final List<String> DEFAULT_FLAGS = ['--install', '--atomic']
                     final List<String> ADDITIONAL_FLAGS = []
-                    final boolean WITH_DIFF = false
+                    final boolean WITH_DIFF = true
 
                     os.helmUpgrade(
                         project.targetProject,
