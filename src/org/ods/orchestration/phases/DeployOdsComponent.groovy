@@ -171,13 +171,13 @@ class DeployOdsComponent {
                     final boolean WITH_DIFF = true
 
                     os.helmUpgrade(
-                        project=${project.targetProject},
-                        release=${RELEASE},
-                        valuesFile=${VALUES_FILES},
-                        values=${VALUES},
-                        defaultFlags=${DEFAULT_FLAGS},
-                        additionalFlags=${ADDITIONAL_FLAGS},
-                        withDiff=${WITH_DIFF})
+                        project.targetProject,
+                        RELEASE,
+                        VALUES_FILES,
+                        VALUES,
+                        DEFAULT_FLAGS,
+                        ADDITIONAL_FLAGS,
+                        WITH_DIFF)
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->
