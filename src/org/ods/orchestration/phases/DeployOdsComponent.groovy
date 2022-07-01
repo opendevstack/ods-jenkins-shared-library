@@ -234,6 +234,7 @@ class DeployOdsComponent {
     }
 
     private void verifyImageShas(Map deployment, Map podContainers) {
+        logger.debug("ImageVerification -deployment: ${deployment} -podContainers: ${podContainers}")
         deployment.containers?.each { String containerName, String imageRaw ->
             if (!os.verifyImageSha(containerName, imageRaw, podContainers[containerName].toString())) {
                 throw new RuntimeException("Error: Image verification for container '${containerName}' failed.")
