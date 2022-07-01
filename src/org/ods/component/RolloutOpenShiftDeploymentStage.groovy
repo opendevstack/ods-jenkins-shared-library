@@ -208,6 +208,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
                 }
                 options.helmValues.imageNamespace = targetProject
+                options.helmValues.componentId = context.componentId
                 options.helmValues.imageTag = options.imageTag
                 openShift.helmUpgrade(
                     targetProject,
