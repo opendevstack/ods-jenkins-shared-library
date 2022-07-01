@@ -167,7 +167,7 @@ class DeployOdsComponent {
                     // registry.svc:5000/foo/bar:a333333333333333333334
                     //                               ^^^^^^^^^^^^^^
                     final String RELEASE = project.baseTag
-                    final List<String> VALUES_FILES = ["values.yml"]
+                    final List<String> VALUES_FILES = ["values.yaml"]
                     final Map<String, String> VALUES = ["imageTag":"latest"]
                     final List<String> DEFAULT_FLAGS = []
                     final List<String> ADDITIONAL_FLAGS = []
