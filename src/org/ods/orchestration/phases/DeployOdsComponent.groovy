@@ -59,22 +59,26 @@ class DeployOdsComponent {
                 }
 
                 logger.debug("XXX -- deploymentDescriptor: ${deploymentDescriptor}")
-                applyTemplates(openShiftDir, componentSelector)
+                applyTemplates(openShiftDir, componentSelector, repo.id)
 
-                // deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+
+                    podData = openShift.checkForPodData(context.targetProject, componentSelector)
+
                 //     def podData = os.getPodDataForDeployment(
                 //         project.targetProject,
                 //         OpenShiftService.DEPLOYMENTCONFIG_KIND,
                 //         replicationController,
                 //         project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
                 //     )
-                //     // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                //     // update this to deal with multiple pods.
-                //     def pod = podData[0].toMap()
+                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                    // update this to deal with multiple pods.
+                    def pod = podData[0].toMap()
 
-                //     verifyImageShas(deployment, pod.containers)
+                    verifyImageShas(deployment, pod.containers)
 
-                //     repo.data.openshift.deployments << [(deploymentName): pod]                }
+                    repo.data.openshift.deployments << [(deploymentName): pod]
+                }
 
             } else {
                 applyTemplates(openShiftDir, componentSelector)
@@ -142,7 +146,7 @@ class DeployOdsComponent {
     }
 
     // TODO FIXME XXX
-    private void applyTemplates(String startDir, String componentSelector) {
+    private void applyTemplates(String startDir, String componentSelector, String repoId = null) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
             logger.info(
@@ -166,7 +170,7 @@ class DeployOdsComponent {
 
                     // registry.svc:5000/foo/bar:a333333333333333333334
                     //                               ^^^^^^^^^^^^^^
-                    final String RELEASE = project.baseTag
+                    final String RELEASE = repoId
                     final List<String> VALUES_FILES = ["values.yaml"]
                     final Map<String, String> VALUES = ["imageTag":"latest"]
                     final List<String> DEFAULT_FLAGS = []
