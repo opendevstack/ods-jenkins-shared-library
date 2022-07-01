@@ -144,7 +144,7 @@ class DeployOdsComponent {
             logger.info(
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject} for component " +
-                    "${repo.id}"
+                    "${repoId}"
             )
             def applyFunc = { String pkeyFile ->
                 // FIXME: condition!
@@ -165,7 +165,11 @@ class DeployOdsComponent {
                     //                               ^^^^^^^^^^^^^^
                     final String RELEASE = repoId
                     final List<String> VALUES_FILES = ["values.yaml"]
-                    final Map<String, String> VALUES = ["imageTag": project.targetTag, "imageNamespace" : project.targetProject]
+                    final Map<String, String> VALUES = [
+                        "imageTag": project.targetTag, 
+                        "imageNamespace" : project.targetProject, 
+                        "componentId" : repoId
+                    ]
                     final List<String> DEFAULT_FLAGS = ['--install', '--atomic']
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
