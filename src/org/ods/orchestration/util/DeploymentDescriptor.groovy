@@ -19,23 +19,24 @@ class DeploymentDescriptor {
 
     static Map stripDeployments(Map deployments) {
         def strippedDownDeployments = [:]
-        Map rDeployments = deployments.findAll { !it.endsWith('-deploymentMean') }
-        Map rDeploymentMeans = deployments.findAll { it.endsWith('-deploymentMean') }
-        rDeployments.each { dn, d ->
+        def deploymentMeanPostfix = '-deploymentMean'
+        deployments.each { dn, d ->
             def strippedDownContainers = [:]
-            d.containers.each { cn, image ->
-                def imageParts = image.split('/')[-2..-1]
-                if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
-                    strippedDownContainers[cn] = imageParts.join('/')
-                } else {
-                    strippedDownContainers[cn] = imageParts.last()
+            if (!dn.endsWith(deploymentMeanPostfix)) {
+                d.containers.each { cn, image ->
+                    def imageParts = image.split('/')[-2..-1]
+                    if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
+                        strippedDownContainers[cn] = imageParts.join('/')
+                    } else {
+                        strippedDownContainers[cn] = imageParts.last()
+                    }
                 }
-            }
-            strippedDownDeployments[dn] = [containers: strippedDownContainers]
-            // get if exists the mean of deployment
-            Map deploymentMean = deployments.get("${dn}-deploymentMean")
-            if (deploymentMean) {
-                strippedDownDeployments[dn] << ["${dn}-deploymentMean" : deploymentMean]
+                strippedDownDeployments[dn] = [containers: strippedDownContainers]
+                // get if exists the mean of deployment
+                Map deploymentMean = deployments.get("${dn}${deploymentMeanPostfix}")
+                if (deploymentMean) {
+                    strippedDownDeployments[dn] << ["${dn}${deploymentMeanPostfix}" : deploymentMean]
+                }
             }
         }
         strippedDownDeployments
