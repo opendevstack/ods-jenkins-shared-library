@@ -162,7 +162,7 @@ class DeployOdsComponent {
                     final boolean WITH_DIFF = true
                     // these we need to overwrite
                     helmConfig.helmValues['imageNamespace'] = project.targetProject
-                    helmConfig.helmValues['imageTag'] = project.targetTag, 
+                    helmConfig.helmValues['imageTag'] = project.targetTag
 
                     os.helmUpgrade(
                         project.targetProject,
