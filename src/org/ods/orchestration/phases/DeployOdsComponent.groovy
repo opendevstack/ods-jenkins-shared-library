@@ -140,8 +140,8 @@ class DeployOdsComponent {
         steps.dir(startDir) {
             logger.info(
                 "Applying desired OpenShift state defined in " +
-                    "${startDir}@${project.baseTag} to ${project.targetProject} for component " +
-                    "${repoId}, helmconfig? ${helmConfig.size() > 0}"
+                    "${startDir}@${project.baseTag} to ${project.targetProject}, " +
+                    "helmconfig? ${helmConfig.size() > 0}"
             )
             def applyFunc = { String pkeyFile ->
                 if (startDir.startsWith('openshift')){
