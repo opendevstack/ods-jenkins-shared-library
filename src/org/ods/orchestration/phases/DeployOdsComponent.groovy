@@ -52,7 +52,7 @@ class DeployOdsComponent {
                     importImages(deployment, deploymentName, project.sourceProject)
 
                     // read from deploymentdescriptor
-                    Map helmConfig = deployment[deploymentMean]
+                    Map helmConfig = deployment.deploymentMean
                     logger.debug("Helm Config for ${deploymentName} ${helmConfig}")
 
                     componentSelector = helmConfig.selector
