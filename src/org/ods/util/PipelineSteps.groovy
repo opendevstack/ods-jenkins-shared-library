@@ -167,8 +167,4 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def emailext(Map args) {
         this.context.emailext(args)
     }
-
-    def findFiles (Map args) {
-        this.context.findFiles(args)
-    }
 }
