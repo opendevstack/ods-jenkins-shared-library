@@ -19,7 +19,9 @@ class DeploymentDescriptor {
 
     static Map stripDeployments(Map deployments) {
         def strippedDownDeployments = [:]
-        deployments.each { dn, d ->
+        Map rDeployments = deployments.findAll { !it.endsWith('-deploymentMean') }
+        Map rDeploymentMeans = deployments.findAll { it.endsWith('-deploymentMean') }
+        rDeployments.each { dn, d ->
             def strippedDownContainers = [:]
             d.containers.each { cn, image ->
                 def imageParts = image.split('/')[-2..-1]
@@ -30,6 +32,11 @@ class DeploymentDescriptor {
                 }
             }
             strippedDownDeployments[dn] = [containers: strippedDownContainers]
+            // get if exists the mean of deployment
+            Map deploymentMean = deployments.get("${dn}-deploymentMean")
+            if (deploymentMean) {
+                strippedDownDeployments[dn] << ["${dn}-deploymentMean" : deploymentMean]
+            }
         }
         strippedDownDeployments
     }
