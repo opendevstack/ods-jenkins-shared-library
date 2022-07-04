@@ -255,6 +255,15 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 def podData = [:]
                 if (!isHelm) {
                     podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
+                    context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
+                        [
+                            'type': 'tailor', 'selector': options.selector,
+                            'tailorSelectors': [selector: options.tailorSelector, exclude: options.tailorExclude],
+                            'tailorParamFile': options.tailorParamFile,
+                            'tailorParams': options.tailorParams,
+                            'tailorPreserve': options.tailorPreserve,
+                            'tailorVerify': options.tailorVerify
+                        ]
                 } else {
                     podData = openShift.checkForPodData(context.targetProject, options.selector)
                     context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
