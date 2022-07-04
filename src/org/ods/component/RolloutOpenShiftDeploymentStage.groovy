@@ -261,8 +261,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                         [
                             'type': 'helm', 'selector': options.selector,
                             'chartDir': options.chartDir,
-                            'helmReleaseName' : options.helmReleaseName,
-                            'helmValueFiles' : options.helmValuesFiles
+                            'helmReleaseName': options.helmReleaseName,
+                            'helmValueFiles': options.helmValuesFiles,
+                            'helmValues': options.helmValues,
+                            'helmDefaultFlags': options.helmDefaultFlags
                         ])
                 }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
