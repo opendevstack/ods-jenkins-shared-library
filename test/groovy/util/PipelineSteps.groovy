@@ -195,4 +195,8 @@ class PipelineSteps implements IPipelineSteps {
 
     }
 
+    def findFiles (Map args) {
+        return []
+    }
+
 }

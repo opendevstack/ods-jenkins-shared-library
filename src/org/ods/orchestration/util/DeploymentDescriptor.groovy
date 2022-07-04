@@ -19,7 +19,7 @@ class DeploymentDescriptor {
 
     static Map stripDeployments(Map deployments) {
         def strippedDownDeployments = [:]
-        def deploymentMeanPostfix = '-deploymentMean'
+        def deploymentMeanPostfix = 'deploymentMean'
         deployments.each { dn, d ->
             def strippedDownContainers = [:]
             if (!dn.endsWith(deploymentMeanPostfix)) {
@@ -32,8 +32,12 @@ class DeploymentDescriptor {
                     }
                 }
                 strippedDownDeployments[dn] = [containers: strippedDownContainers]
-            } else if (dn.endsWith(deploymentMeanPostfix)) {
-                strippedDownDeployments[dn] = d
+                // get if exists the mean of deployment - this is the gstring pain again
+                String dMKey = dn + '-'+ deploymentMeanPostfix
+                Map deploymentMean = deployments[dMKey]
+                if (deploymentMean) {
+                    strippedDownDeployments[dn] << [(deploymentMeanPostfix) : deploymentMean]
+                }
             }
         }
         strippedDownDeployments

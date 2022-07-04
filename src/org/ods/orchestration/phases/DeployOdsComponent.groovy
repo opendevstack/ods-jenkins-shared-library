@@ -45,16 +45,18 @@ class DeployOdsComponent {
                 repo.data.openshift.deployments = [:]
             }
 
-            def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
+            def originalDeploymentVersions =
+                gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
             def componentSelector = "app=${project.key}-${repo.id}"
 
-            if (openShiftDir == 'chart'){
-                componentSelector = "app.kubernetes.io/instance=${repo.id}"
+            if (openShiftDir == "chart") {
+                def deploymentMeanPostfix = '-deploymentMean'
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     importImages(deployment, deploymentName, project.sourceProject)
                 }
 
+                componentSelector = "app.kubernetes.io/instance=${repo.id}"
                 applyTemplates(openShiftDir, componentSelector, repo.id)
 
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
@@ -106,18 +108,20 @@ class DeployOdsComponent {
         }
     }
 
-    private String computeStartDir() {
-        if (steps.fileExists('chart')) {
-            return 'chart'
-        }
-        if (steps.fileExists('openshift')) {
-            return 'openshift'
-        }
-        if (steps.fileExists('openshift-exported')) {
-            return 'openshift-exported'
-        }
-        throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
+    private Map getHelmDeploymentDescriptor (DeploymentDescriptor deploymentDescriptor) {
+        def deploymentMeanPostfix = '-deploymentMean'
+        return  deploymentDescriptor.deployments.find { it -> it.key.endsWith (deploymentMeanPostfix) &&
+            it.value.type == 'helm'} 
+    }
 
+    private String computeStartDir() {
+        def files = steps.findFiles (glob:'**/ods-deployments.json')
+        if (!files || files.size() == 0) {
+            throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
+        } 
+        else {
+            return files[0].directory
+        } 
     }
 
     private Map gatherOriginalDeploymentVersions(Map<String, Object> deployments) {
