@@ -263,7 +263,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                             'tailorParams': options.tailorParams,
                             'tailorPreserve': options.tailorPreserve,
                             'tailorVerify': options.tailorVerify
-                        ]
+                        ])
                 } else {
                     podData = openShift.checkForPodData(context.targetProject, options.selector)
                     context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
