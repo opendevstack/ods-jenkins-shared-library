@@ -53,10 +53,11 @@ class DeployOdsComponent {
 
                     // read from deploymentdescriptor
                     Map helmConfig = deployment.deploymentMean
-                    logger.debug("Helm Config for ${deploymentName} ${helmConfig}")
+                    logger.debug("Helm Config for ${deploymentName} -> ${helmConfig}")
+                    helmConfig.repoId = repo.id
 
                     componentSelector = helmConfig.selector
-                    applyTemplates(openShiftDir, componentSelector, helmConfig.helmReleaseName)
+                    applyTemplates(openShiftDir, componentSelector, helmConfig)
 
                     // fixme? or maybe not - because helm will wait or rollback, so we have to find
                     // the pod on the first attempt
@@ -134,18 +135,16 @@ class DeployOdsComponent {
         }
     }
 
-    // TODO FIXME XXX
-    private void applyTemplates(String startDir, String componentSelector, String repoId = null) {
+    private void applyTemplates(String startDir, String componentSelector, Map helmConfig = [:]) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
             logger.info(
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject} for component " +
-                    "${repoId}"
+                    "${repoId}, helmconfig? ${helmConfig.size() > 0}"
             )
             def applyFunc = { String pkeyFile ->
-                // FIXME: condition!
-                if (startDir != 'chart'){
+                if (startDir.startsWith('openshift')){
                     os.tailorApply(
                         project.targetProject,
                         [selector: componentSelector, exclude: 'bc'],
@@ -155,17 +154,16 @@ class DeployOdsComponent {
                         pkeyFile,
                         true // verify
                     )
-                } else if (startDir == 'chart') {
+                } else {
                     final Map<String, Serializable> BUILD_PARAMS = project.loadBuildParams(steps)
 
-                    // registry.svc:5000/foo/bar:a333333333333333333334
-                    //                               ^^^^^^^^^^^^^^
-                    final String RELEASE = repoId
-                    final List<String> VALUES_FILES = ["values.yaml"]
+                    final String RELEASE = helmConfig.helmReleaseName
+                    def helmValueFiles = helmConfig.helmValueFiles
+                    final List<String> VALUES_FILES =  helmValueFiles.size() > 0 ? helmValueFiles : ["values.yaml"]
                     final Map<String, String> VALUES = [
                         "imageTag": project.targetTag, 
                         "imageNamespace" : project.targetProject, 
-                        "componentId" : repoId
+                        "componentId" : helmConfig.repoId
                     ]
                     final List<String> DEFAULT_FLAGS = ['--install', '--atomic']
                     final List<String> ADDITIONAL_FLAGS = []
