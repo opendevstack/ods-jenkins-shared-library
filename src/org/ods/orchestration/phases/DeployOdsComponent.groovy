@@ -160,8 +160,9 @@ class DeployOdsComponent {
                         helmValueFiles : ["values.yaml"]
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
-                    // this we need to overwrite
+                    // these we need to overwrite
                     helmconfig.helmValues['imageNamespace'] = project.targetProject
+                    helmconfig.helmValues['imageTag'] = project.targetTag, 
 
                     os.helmUpgrade(
                         project.targetProject,
