@@ -54,7 +54,7 @@ class DeployOdsComponent {
                     // read from deploymentdescriptor
                     Map helmConfig = deployment.deploymentMean
                     logger.debug("Helm Config for ${deploymentName} -> ${helmConfig}")
-                    helmConfig.repoId = repo.id
+                    helmConfig[repoId] = repo.id
 
                     componentSelector = helmConfig.selector
                     applyTemplates(openShiftDir, componentSelector, helmConfig)
