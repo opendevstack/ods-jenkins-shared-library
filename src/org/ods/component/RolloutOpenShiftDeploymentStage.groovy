@@ -115,6 +115,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
+        def isHelmDeployment = steps.fileExists(options.chartDir)
+
         def refreshResources = false
         def paused = true
         try {
@@ -123,24 +125,16 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
-            // We'll use a closure to simplify the logic.
-            // This removes the `else' tree and we can use
-            // early returns instead
-            def applyFunc = {
-                if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
-                    options.selector = "app.kubernetes.io/instance=${context.componentId}"
-
-                    refreshResources = true
-                    helmUpgrade(context.targetProject)
-                    return
-                }
-                if (steps.fileExists(options.openshiftDir)) {
-                    refreshResources = true
-                    tailorApply(context.targetProject)
-                    return
-                }
+            if (isHelmDeployment) {
+                options.selector = "app.kubernetes.io/instance=${context.componentId}"
+                refreshResources = true
+                helmUpgrade(context.targetProject)
             }
-            applyFunc()
+            if (steps.fileExists(options.openshiftDir)) {
+                refreshResources = true
+                tailorApply(context.targetProject)
+            }
+
             if (refreshResources) {
                 deploymentResources = openShift.getResourcesForComponent(
                     context.targetProject, DEPLOYMENT_KINDS, options.selector
@@ -148,7 +142,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             }
 
             def rolloutData = [:]
-            if (!steps.fileExists(options.chartDir)) {
+            if (!isHelmDeployment) {
                 def metadata = new OpenShiftResourceMetadata(
                     steps,
                     context.properties,
@@ -164,7 +158,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
                 paused = false
                 return rolloutData
-
             }
         } finally {
             if ( paused && !steps.fileExists(options.chartDir) ) {
@@ -259,12 +252,17 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 }
 
                 def podData = [:]
-                if (!isHelm){
+                if (!isHelm) {
                     podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
-                }else {
-    // List<PodData> checkForPodData(String project, String label) {
+                } else {
                     def selector = "app.kubernetes.io/instance=${context.componentId}"
                     podData = openShift.checkForPodData(context.targetProject, selector)
+                    context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
+                        [
+                            'type': 'helm', 'selector': selector, 'chartDir': options.chartDir,
+                            'helmReleaseName' : options.helmReleaseName,
+                            'helmValueFiles' : options.helmValuesFiles
+                        ]    
                 }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
