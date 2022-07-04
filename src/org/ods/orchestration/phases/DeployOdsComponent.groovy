@@ -111,11 +111,11 @@ class DeployOdsComponent {
 
     private String computeStartDir() {
         def files = steps.findFiles (glob:"**/${DeploymentDescriptor.FILE_NAME}")
+        logger.debug("DeploymentDescriptors: ${files}")
         if (!files || files.size() == 0) {
             throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
-        } 
-        else {
-            return files[0].directory
+        } else {
+            return files[0].directory.name
         } 
     }
 
