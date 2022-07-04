@@ -45,21 +45,19 @@ class DeployOdsComponent {
                 repo.data.openshift.deployments = [:]
             }
 
-            def originalDeploymentVersions =
-                gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
-
             def componentSelector = "app=${project.key}-${repo.id}"
 
-            if (openShiftDir == "chart") {
-                def deploymentMeanPostfix = '-deploymentMean'
+            if (!openShiftDir.startsWith('openshift')) {
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     importImages(deployment, deploymentName, project.sourceProject)
-                }
 
-                componentSelector = "app.kubernetes.io/instance=${repo.id}"
-                applyTemplates(openShiftDir, componentSelector, repo.id)
+                    // read from deploymentdescriptor
+                    Map helmConfig = deployment[deploymentMean]
+                    logger.debug("Helm Config for ${deploymentName} ${helmConfig}")
 
-                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                    componentSelector = helmConfig.selector
+                    applyTemplates(openShiftDir, componentSelector, helmConfig.helmReleaseName)
+
                     // fixme? or maybe not - because helm will wait or rollback, so we have to find
                     // the pod on the first attempt
                     def podData = os.checkForPodData(project.targetProject, componentSelector)
@@ -73,6 +71,9 @@ class DeployOdsComponent {
                 }
 
             } else {
+                def originalDeploymentVersions =
+                    gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
+
                 applyTemplates(openShiftDir, componentSelector)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
 
@@ -108,14 +109,8 @@ class DeployOdsComponent {
         }
     }
 
-    private Map getHelmDeploymentDescriptor (DeploymentDescriptor deploymentDescriptor) {
-        def deploymentMeanPostfix = '-deploymentMean'
-        return  deploymentDescriptor.deployments.find { it -> it.key.endsWith (deploymentMeanPostfix) &&
-            it.value.type == 'helm'} 
-    }
-
     private String computeStartDir() {
-        def files = steps.findFiles (glob:'**/ods-deployments.json')
+        def files = steps.findFiles (glob:"**/${DeploymentDescriptor.FILE_NAME}")
         if (!files || files.size() == 0) {
             throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
         } 
