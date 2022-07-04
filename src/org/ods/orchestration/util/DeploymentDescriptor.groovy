@@ -32,12 +32,8 @@ class DeploymentDescriptor {
                     }
                 }
                 strippedDownDeployments[dn] = [containers: strippedDownContainers]
-                // get if exists the mean of deployment - this is the gstring pain again
-                String dMKey = dn + deploymentMeanPostfix
-                Map deploymentMean = deployments[dMKey]
-                if (deploymentMean) {
-                    strippedDownDeployments[dn] << [dMKey : deploymentMean]
-                }
+            } else if (dn.endsWith(deploymentMeanPostfix)) {
+                strippedDownDeployments[dn] = d
             }
         }
         strippedDownDeployments
