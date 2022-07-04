@@ -86,6 +86,7 @@ class FinalizeOdsComponent {
         // FIXME: check for chart dir
 
         if (steps.fileExists('chart')) {
+            logger.info('''Found Helm 'chart' folder''')
             openshiftDir = 'chart'
         } else if (steps.fileExists('openshift')) {
             logger.info(

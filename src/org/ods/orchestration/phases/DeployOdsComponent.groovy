@@ -155,26 +155,18 @@ class DeployOdsComponent {
                         true // verify
                     )
                 } else {
-                    final Map<String, Serializable> BUILD_PARAMS = project.loadBuildParams(steps)
-
-                    final String RELEASE = helmConfig.helmReleaseName
-                    def helmValueFiles = helmConfig.helmValueFiles
-                    final List<String> VALUES_FILES =  helmValueFiles.size() > 0 ? helmValueFiles : ["values.yaml"]
-                    final Map<String, String> VALUES = [
-                        "imageTag": project.targetTag, 
-                        "imageNamespace" : project.targetProject, 
-                        "componentId" : helmConfig.repoId
-                    ]
-                    final List<String> DEFAULT_FLAGS = ['--install', '--atomic']
+                    def helmValueFiles = helmConfig.helmValueFiles ?: [:]
+                    final List<String> VALUES_FILES =  helmValueFiles.size() > 0 ? 
+                        helmValueFiles : ["values.yaml"]
                     final List<String> ADDITIONAL_FLAGS = []
                     final boolean WITH_DIFF = true
 
                     os.helmUpgrade(
                         project.targetProject,
-                        RELEASE,
+                        helmConfig.helmReleaseName,
                         VALUES_FILES,
-                        VALUES,
-                        DEFAULT_FLAGS,
+                        helmConfig.helmValues,
+                        helmConfig.helmDefaultFlags,
                         ADDITIONAL_FLAGS,
                         WITH_DIFF)
                 }
