@@ -115,7 +115,7 @@ class DeployOdsComponent {
         if (!files || files.size() == 0) {
             throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
         } else {
-            return files[0].path
+            return files[0].path.split('/')[0]
         } 
     }
 
