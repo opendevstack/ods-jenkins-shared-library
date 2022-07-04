@@ -126,6 +126,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             retagImages(context.targetProject, getBuiltImages())
 
             if (isHelmDeployment) {
+                logger.info "Rolling out ${context.componentId} with HELM .."
                 options.selector = "app.kubernetes.io/instance=${context.componentId}"
                 refreshResources = true
                 helmUpgrade(context.targetProject)
@@ -255,14 +256,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 if (!isHelm) {
                     podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
                 } else {
-                    def selector = "app.kubernetes.io/instance=${context.componentId}"
-                    podData = openShift.checkForPodData(context.targetProject, selector)
+                    podData = openShift.checkForPodData(context.targetProject, options.selector)
                     context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                         [
-                            'type': 'helm', 'selector': selector, 'chartDir': options.chartDir,
+                            'type': 'helm', 'selector': options.selector,
+                            'chartDir': options.chartDir,
                             'helmReleaseName' : options.helmReleaseName,
                             'helmValueFiles' : options.helmValuesFiles
-                        ]    
+                        ])
                 }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
