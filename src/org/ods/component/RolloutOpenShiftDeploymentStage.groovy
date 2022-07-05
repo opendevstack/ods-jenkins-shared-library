@@ -204,11 +204,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
                 }
 
+                // we add two things persistent - as these NEVER change (and are env independent)
+                options.helmValues['registry'] = context.clusterRegistryAddress
+                options.helmValues['componentId'] = context.componentId
+
                 // we persist the original ones set from outside - here we just add ours
                 Map mergedHelmValues = [:]
                     mergedHelmValues << options.helmValues
                     mergedHelmValues['imageNamespace'] = targetProject
-                    mergedHelmValues['componentId'] = context.componentId
                     mergedHelmValues['imageTag'] = options.imageTag
 
                 openShift.helmUpgrade(
