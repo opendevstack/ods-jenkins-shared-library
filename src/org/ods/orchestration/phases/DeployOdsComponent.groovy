@@ -73,9 +73,9 @@ class DeployOdsComponent {
 
                 Map deploymentMean = [:]
                 
-                deploymentDescriptor.deployments.each { deployment ->
-                    if (deployment.value.containsKey('deploymentMean')) {
-                        deploymentMean = deployment.value
+                deploymentDescriptor.deployments.each { key, value ->
+                    if (value.deploymentMean) {
+                        deploymentMean = value.deploymentMean
                     }
                 } 
 
@@ -152,7 +152,7 @@ class DeployOdsComponent {
             logger.info(
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject}, " +
-                    "deploymentMean? ${deploymentMean.size() > 0}"
+                    "deploymentMean? ${deploymentMean}"
             )
             def applyFunc = { String pkeyFile ->
                 // @ FIXME - which params should we take from the deploymentMean?
