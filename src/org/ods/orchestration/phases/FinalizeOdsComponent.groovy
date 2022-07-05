@@ -46,8 +46,8 @@ class FinalizeOdsComponent {
             logger.debug("Found Deploymentmean for ${repo.id}: \n${deploymentMeans}")
 
             if (deploymentMeans.size != 1) {
-                throw new RuntimeException ("Deploymentmeans for repo ${repo.id} are either not found," + 
-                    " or more than one. These means are automatically generated!")
+                throw new RuntimeException ("Deploymentmeans ${deploymentMeans.size} for repo ${repo.id}" +
+                    " are either not found, or more than one. These means are automatically generated!")
             }
             steps.dir(openshiftDir) {
                 def filesToStage = []
