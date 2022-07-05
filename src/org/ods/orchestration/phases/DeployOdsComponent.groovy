@@ -52,12 +52,12 @@ class DeployOdsComponent {
                     importImages(deployment, deploymentName, project.sourceProject)
 
                     // read from deploymentdescriptor
-                    Map helmConfig = deployment.deploymentMean
-                    logger.debug("Helm Config for ${deploymentName} -> ${helmConfig}")
-                    helmConfig['repoId'] = repo.id
+                    Map deploymentMean = deployment.deploymentMean
+                    logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
+                    deploymentMean['repoId'] = repo.id
 
-                    componentSelector = helmConfig.selector
-                    applyTemplates(openShiftDir, componentSelector, helmConfig)
+                    componentSelector = deploymentMean.selector
+                    applyTemplates(openShiftDir, componentSelector, deploymentMean)
 
                     // fixme? or maybe not - because helm will wait or rollback, so we have to find
                     // the pod on the first attempt
@@ -135,13 +135,13 @@ class DeployOdsComponent {
         }
     }
 
-    private void applyTemplates(String startDir, String componentSelector, Map helmConfig = [:]) {
+    private void applyTemplates(String startDir, String componentSelector, Map deploymentMean = [:]) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
             logger.info(
                 "Applying desired OpenShift state defined in " +
                     "${startDir}@${project.baseTag} to ${project.targetProject}, " +
-                    "helmconfig? ${helmConfig.size() > 0}"
+                    "deploymentMean? ${deploymentMean.size() > 0}"
             )
             def applyFunc = { String pkeyFile ->
                 if (startDir.startsWith('openshift')){
@@ -155,24 +155,25 @@ class DeployOdsComponent {
                         true // verify
                     )
                 } else {
-                    def helmValueFiles = helmConfig.helmValueFiles ?: [:]
+                    def helmValueFiles = deploymentMean.helmValueFiles ?: [:]
                     final List<String> VALUES_FILES =  helmValueFiles.size() > 0 ? 
                         helmValueFiles : ["values.yaml"]
                     final List<String> ADDITIONAL_FLAGS = []
-                    final boolean WITH_DIFF = true
-                    final Map<String, String> VALUES = [
+                    Map<String, String> helmSystemValues = [
                         "imageTag": project.targetTag, 
                         "imageNamespace" : project.targetProject, 
-                        "componentId" : helmConfig.repoId
+                        "componentId" : deploymentMean.repoId
                     ]
+                    // take the persisted ones.
+                    helmSystemValues << deploymentMean.helmValues
                     os.helmUpgrade(
                         project.targetProject,
-                        helmConfig.helmReleaseName,
+                        deploymentMean.helmReleaseName,
                         VALUES_FILES,
-                        VALUES,
-                        helmConfig.helmDefaultFlags,
+                        helmSystemValues,
+                        deploymentMean.helmDefaultFlags,
                         ADDITIONAL_FLAGS,
-                        WITH_DIFF)
+                        true)
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->

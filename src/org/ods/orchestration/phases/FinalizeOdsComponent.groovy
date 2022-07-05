@@ -27,9 +27,9 @@ class FinalizeOdsComponent {
         this.logger = logger
     }
 
+    // @ FIXME - this is all hardcoded - and should come off the deployments!!!
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
-        def componentSelector = "app=${project.key}-${repo.id}"
 
         def envParamsFile = project.environmentParamsFile
         def envParams = project.getEnvironmentParams(envParamsFile)
@@ -37,7 +37,8 @@ class FinalizeOdsComponent {
         steps.dir(baseDir) {
             def openshiftDir = findOrCreateOpenShiftDir()
 
-            if (openshiftDir == 'chart'){
+            def componentSelector = "app=${project.key}-${repo.id}"
+            if (openshiftDir == 'chart') {
                 componentSelector = "app.kubernetes.io/instance=${repo.id}"
             }
 
