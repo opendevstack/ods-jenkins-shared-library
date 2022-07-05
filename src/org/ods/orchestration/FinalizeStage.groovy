@@ -197,7 +197,6 @@ class FinalizeStage extends Stage {
                 repoIntegrateTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         def files = steps.findFiles (glob:"**/${DeploymentDescriptor.FILE_NAME}")
-                        logger.debug("DeploymentDescriptors: ${files}")
                         if (!files || files.size() == 0) {
                             throw new RuntimeException("Error: Could not determine descriptor directory. Neither of [chart, openshift, openshift-exported] found.")
                         } else {
