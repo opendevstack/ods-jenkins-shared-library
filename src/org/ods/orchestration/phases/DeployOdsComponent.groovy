@@ -56,7 +56,7 @@ class DeployOdsComponent {
 
                     applyTemplates(openShiftDir, deploymentMean)
 
-                    def podData = os.checkForPodData(project.targetProject, componentSelector)
+                    def podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
