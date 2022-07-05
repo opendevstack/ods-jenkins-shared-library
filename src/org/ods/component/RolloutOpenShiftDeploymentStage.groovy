@@ -108,20 +108,23 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def deploymentResources = openShift.getResourcesForComponent(
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
+        def isHelmDeployment = steps.fileExists(options.chartDir)
+
         if (context.triggeredByOrchestrationPipeline
-            && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)) {
+            && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
+            && !isHelmDeployment) {
             steps.error "Deployment resources cannot be used in the orchestration pipeline yet."
             return
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
-        def isHelmDeployment = steps.fileExists(options.chartDir)
-
         def refreshResources = false
         def paused = true
         try {
-            openShift.bulkPause(context.targetProject, deploymentResources)
-
+            if (!isHelmDeployment) {
+                openShift.bulkPause(context.targetProject, deploymentResources)
+            }
+            
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
@@ -161,7 +164,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 return rolloutData
             }
         } finally {
-            if ( paused && !steps.fileExists(options.chartDir) ) {
+            if ( paused && !isHelmDeployment) ) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
