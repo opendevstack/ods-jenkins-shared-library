@@ -45,8 +45,6 @@ class DeployOdsComponent {
                 repo.data.openshift.deployments = [:]
             }
 
-            def componentSelector = "app=${project.key}-${repo.id}"
-
             if (!openShiftDir.startsWith('openshift')) {
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     importImages(deployment, deploymentName, project.sourceProject)
@@ -56,11 +54,8 @@ class DeployOdsComponent {
                     logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
                     deploymentMean['repoId'] = repo.id
 
-                    componentSelector = deploymentMean.selector
-                    applyTemplates(openShiftDir, componentSelector, deploymentMean)
+                    applyTemplates(openShiftDir, deploymentMean)
 
-                    // fixme? or maybe not - because helm will wait or rollback, so we have to find
-                    // the pod on the first attempt
                     def podData = os.checkForPodData(project.targetProject, componentSelector)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
@@ -76,7 +71,13 @@ class DeployOdsComponent {
                 def originalDeploymentVersions =
                     gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-                applyTemplates(openShiftDir, componentSelector)
+                Map deploymentMeans = deploymentDescriptor.deployments.findAll {it.key.endsWith('-deploymentMean') }
+
+                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMeans}") 
+                Map deploymentMean = deploymentMeans.values().get(0)
+
+                def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
+                applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean = deployment.deploymentMean
                     logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean}")
@@ -140,7 +141,7 @@ class DeployOdsComponent {
         }
     }
 
-    private void applyTemplates(String startDir, String componentSelector, Map deploymentMean = [:]) {
+    private void applyTemplates(String startDir, Map deploymentMean = [:]) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
             logger.info(
@@ -149,10 +150,11 @@ class DeployOdsComponent {
                     "deploymentMean? ${deploymentMean.size() > 0}"
             )
             def applyFunc = { String pkeyFile ->
-                if (startDir.startsWith('openshift')){
+                // @ FIXME - which params should we take from the deploymentMean?
+                if (startDir.startsWith('openshift')) {
                     os.tailorApply(
                         project.targetProject,
-                        [selector: componentSelector, exclude: 'bc'],
+                        [selector: deploymentMean.selector, exclude: 'bc'],
                         project.environmentParamsFile,
                         [], // no params
                         [], // no preserve flags
@@ -160,24 +162,23 @@ class DeployOdsComponent {
                         true // verify
                     )
                 } else {
-                    def helmValueFiles = deploymentMean.helmValueFiles ?: [:]
-                    final List<String> VALUES_FILES =  helmValueFiles.size() > 0 ? 
-                        helmValueFiles : ["values.yaml"]
-                    final List<String> ADDITIONAL_FLAGS = []
-                    Map<String, String> helmSystemValues = [
+                    def helmValueFiles = 
+                        (deploymentMean.helmValueFiles && helmValueFiles.size() > 0) ?: ["values.yaml"]
+                    // system values
+                    Map<String, String> helmMergedValues = [
                         "imageTag": project.targetTag, 
                         "imageNamespace" : project.targetProject, 
                         "componentId" : deploymentMean.repoId
                     ]
                     // take the persisted ones.
-                    helmSystemValues << deploymentMean.helmValues
+                    helmMergedValues << deploymentMean.helmValues
                     os.helmUpgrade(
                         project.targetProject,
                         deploymentMean.helmReleaseName,
-                        VALUES_FILES,
-                        helmSystemValues,
+                        helmValueFiles,
+                        helmMergedValues,
                         deploymentMean.helmDefaultFlags,
-                        ADDITIONAL_FLAGS,
+                        deploymentMean.helmAdditionalFlags,
                         true)
                 }
             }

@@ -113,7 +113,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (context.triggeredByOrchestrationPipeline
             && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
             && !isHelmDeployment) {
-            steps.error "Deployment resources cannot be used in the orchestration pipeline yet."
+            steps.error "Deployment resources cannot be used in the a NON HELM orchestration pipeline."
             return
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
@@ -280,7 +280,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                             'helmReleaseName': options.helmReleaseName,
                             'helmValueFiles': options.helmValuesFiles,
                             'helmValues': options.helmValues,
-                            'helmDefaultFlags': options.helmDefaultFlags
+                            'helmDefaultFlags': options.helmDefaultFlags,
+                            'helmAdditionalFlags': options.helmAdditionalFlags
                         ])
                 }
                 rolloutData["${resourceKind}/${resourceName}"] = podData
