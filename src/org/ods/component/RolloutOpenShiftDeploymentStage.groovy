@@ -164,7 +164,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 return rolloutData
             }
         } finally {
-            if ( paused && !isHelmDeployment) ) {
+            if ( paused && !isHelmDeployment) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
