@@ -73,9 +73,9 @@ class DeployOdsComponent {
 
                 Map deploymentMean = [:]
                 
-                deploymentDescriptor.deployments.each { it ->
-                    if (it.value.containsKey('deploymentMean')) {
-                        deploymentMean = it.value
+                deploymentDescriptor.deployments.each { deployment ->
+                    if (deployment.value.containsKey('deploymentMean')) {
+                        deploymentMean = deployment.value
                     }
                 } 
 
