@@ -130,7 +130,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
             if (isHelmDeployment) {
                 logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
-                options.selector = "app.kubernetes.io/instance=${context.componentId}"
                 refreshResources = true
                 helmUpgrade(context.targetProject)
             }
