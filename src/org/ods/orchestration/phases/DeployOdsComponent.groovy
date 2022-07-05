@@ -69,14 +69,17 @@ class DeployOdsComponent {
 
                     verifyImageShas(deployment, pod.containers)
                     repo.data.openshift.deployments << [(deploymentName): pod]
+                    def deploymentMeanKey = deploymentName + '-deploymentMean'
+                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
                 }
-
             } else {
                 def originalDeploymentVersions =
                     gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
                 applyTemplates(openShiftDir, componentSelector)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                    Map deploymentMean = deployment.deploymentMean
+                    logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean}")
 
                     importImages(deployment, deploymentName, project.sourceProject)
 
@@ -101,6 +104,8 @@ class DeployOdsComponent {
                     verifyImageShas(deployment, pod.containers)
 
                     repo.data.openshift.deployments << [(deploymentName): pod]
+                    def deploymentMeanKey = deploymentName + '-deploymentMean'
+                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
                 }
             }
             if (deploymentDescriptor.createdByBuild) {
