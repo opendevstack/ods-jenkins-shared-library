@@ -126,7 +126,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             retagImages(context.targetProject, getBuiltImages())
 
             if (isHelmDeployment) {
-                logger.info "Rolling out ${context.componentId} with HELM .."
+                logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
                 options.selector = "app.kubernetes.io/instance=${context.componentId}"
                 refreshResources = true
                 helmUpgrade(context.targetProject)
@@ -201,14 +201,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 if (pkeyFile) {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
                 }
-                options.helmValues.imageNamespace = targetProject
-                options.helmValues.componentId = context.componentId
-                options.helmValues.imageTag = options.imageTag
+
+                // we persist the original ones set from outside - here we just add ours
+                Map mergedHelmValues = options.helmValues
+                mergedHelmValues['imageNamespace'] = targetProject
+                mergedHelmValues['componentId'] = context.componentId
+                mergedHelmValues['imageTag'] = options.imageTag
+
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
                     options.helmValuesFiles,
-                    options.helmValues,
+                    mergedHelmValues,
                     options.helmDefaultFlags,
                     options.helmAdditionalFlags,
                     options.helmDiff
