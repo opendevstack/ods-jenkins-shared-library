@@ -205,10 +205,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 }
 
                 // we persist the original ones set from outside - here we just add ours
-                Map mergedHelmValues = options.helmValues
-                mergedHelmValues['imageNamespace'] = targetProject
-                mergedHelmValues['componentId'] = context.componentId
-                mergedHelmValues['imageTag'] = options.imageTag
+                Map mergedHelmValues [:]
+                    mergedHelmValues << options.helmValues
+                    mergedHelmValues['imageNamespace'] = targetProject
+                    mergedHelmValues['componentId'] = context.componentId
+                    mergedHelmValues['imageTag'] = options.imageTag
 
                 openShift.helmUpgrade(
                     targetProject,
