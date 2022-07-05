@@ -6,6 +6,7 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
+import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
@@ -195,16 +196,16 @@ class FinalizeStage extends Stage {
                 repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE ) {
                 repoIntegrateTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        def filesToCheckout = []
-                        if (steps.fileExists('chart')){
-                            filesToCheckout = ['chart/ods-deployments.json']
-                        } else if (steps.fileExists('openshift')) {
-                            filesToCheckout = ['openshift/ods-deployments.json']
+                        def files = steps.findFiles (glob:"**/${DeploymentDescriptor.FILE_NAME}")
+                        logger.debug("DeploymentDescriptors: ${files}")
+                        if (!files || files.size() == 0) {
+                            throw new RuntimeException("Error: Could not determine descriptor directory. Neither of [chart, openshift, openshift-exported] found.")
                         } else {
-                            filesToCheckout = [
-                                'openshift-exported/ods-deployments.json',
-                                'openshift-exported/template.yml'
-                            ]
+                            String deploymentDescDir = files[0].path.split('/')[0]
+                            def filesToCheckout = ["${deploymentDescDir}/${DeploymentDescriptor.FILE_NAME}"]
+                            if (steps.fileExists('openshift-exported/template.yml')) {
+                                filesToCheckout << 'openshift-exported/template.yml'
+                            }
                         }
                         git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
