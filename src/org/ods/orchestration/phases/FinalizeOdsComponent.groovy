@@ -42,7 +42,13 @@ class FinalizeOdsComponent {
                 componentSelector = "app.kubernetes.io/instance=${repo.id}"
             }
 
-            verifyDeploymentsBuiltByODS(repo, componentSelector)
+            Map deploymentMeans = verifyDeploymentsBuiltByODS(repo, componentSelector)
+            logger.debug("Found Deploymentmean for ${repo.id}: \n${deploymentMeans}")
+
+            if (deploymentMeans.size != 1) {
+                throw new RuntimeException ("Deploymentmeans for repo ${repo.id} are either not found," + 
+                    " or more than one. These means are automatically generated!")
+            }
             steps.dir(openshiftDir) {
                 def filesToStage = []
                 def commitMessage = ''
@@ -121,13 +127,16 @@ class FinalizeOdsComponent {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void verifyDeploymentsBuiltByODS(Map repo, String componentSelector) {
+    private Map verifyDeploymentsBuiltByODS(Map repo, String componentSelector) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
         // Verify that all DCs are managed by ODS
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
+
+        Map deploymentMean = odsBuiltDeploymentInformation.findAll {it.key.endsWith('-deploymentMean') }
+
         def allComponentDeploymentsByKind = os.getResourcesForComponent(
             project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND], componentSelector
         )
@@ -181,5 +190,6 @@ class FinalizeOdsComponent {
             }
         }
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
+        return deploymentMean
     }
 }
