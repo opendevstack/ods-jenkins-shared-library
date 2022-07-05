@@ -71,11 +71,17 @@ class DeployOdsComponent {
                 def originalDeploymentVersions =
                     gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-                Map deploymentMeans = deploymentDescriptor.deployments.findAll {it.key.endsWith('-deploymentMean') }
+                Map deploymentMean = [:]
+                
+                deploymentDescriptor.deployments.each { it ->
+                    if (it.value.containsKey('deploymentMean')) {
+                        deploymentMean = it.value
+                    }
+                } 
 
-                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMeans}") 
+                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}") 
 
-                def componentSelector = deploymentMeans.values().get(0).selector //"app=${project.key}-${repo.id}"
+                def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean = deployment.deploymentMean
