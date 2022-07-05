@@ -85,7 +85,7 @@ class DeployOdsComponent {
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean4Deployment = deployment.deploymentMean
-                    logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean}")
+                    logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean4Deployment}")
 
                     importImages(deployment, deploymentName, project.sourceProject)
 
@@ -159,10 +159,10 @@ class DeployOdsComponent {
                 if (startDir.startsWith('openshift')) {
                     os.tailorApply(
                         project.targetProject,
-                        [selector: deploymentMean.selector, exclude: 'bc'],
+                        deploymentMean.tailorSelectors,
                         project.environmentParamsFile,
-                        [], // no params
-                        [], // no preserve flags
+                        deploymentMean.tailorParams, 
+                        deploymentMean.tailorPreserve,
                         pkeyFile,
                         true // verify
                     )
