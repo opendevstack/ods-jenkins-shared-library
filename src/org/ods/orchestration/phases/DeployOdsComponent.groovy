@@ -84,7 +84,7 @@ class DeployOdsComponent {
                 def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    Map deploymentMean = deployment.deploymentMean
+                    Map deploymentMean4Deployment = deployment.deploymentMean
                     logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean}")
 
                     importImages(deployment, deploymentName, project.sourceProject)
@@ -111,7 +111,7 @@ class DeployOdsComponent {
 
                     repo.data.openshift.deployments << [(deploymentName): pod]
                     def deploymentMeanKey = deploymentName + '-deploymentMean'
-                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
+                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean4Deployment]
                 }
             }
             if (deploymentDescriptor.createdByBuild) {
