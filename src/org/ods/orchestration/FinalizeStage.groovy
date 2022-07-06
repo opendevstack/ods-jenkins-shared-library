@@ -204,8 +204,8 @@ class FinalizeStage extends Stage {
                             if (steps.fileExists('openshift-exported/template.yml')) {
                                 filesToCheckout << 'openshift-exported/template.yml'
                             }
+                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                         }
-                        git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
                 }
                 ]
