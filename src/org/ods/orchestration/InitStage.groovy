@@ -435,18 +435,24 @@ class InitStage extends Stage {
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        logger.info("Using branch ${gitReleaseBranch}")
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                checkOutRepoInPromotionMode(git, buildParams, logger, gitReleaseBranch)
+                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
             } else {
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, logger)
+                checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, logger)
             }
+        } else {
+            checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
     }
 
-    private void checkOutRepoInNotPromotionMode(GitService git, String gitReleaseBranch, Logger logger) {
+    private void checkOutRepoInNotPromotionMode(GitService git,
+                                                Map buildParams,
+                                                String gitReleaseBranch,
+                                                Logger logger) {
         if (git.remoteBranchExists(gitReleaseBranch)) {
             logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
             git.checkout(
@@ -455,14 +461,18 @@ class InitStage extends Stage {
                 script.scm.userRemoteConfigs
             )
         } else {
-            git.checkoutNewLocalBranch(gitReleaseBranch)
+            // If we are still in WIP and there is no branch for current release,
+            // do not create it. We use if only if it exists. We use master if it does not exist.
+            if (! Project.isWorkInProgress(buildParams.version)) {
+                git.checkoutNewLocalBranch(gitReleaseBranch)
+            }
         }
     }
 
     private void checkOutRepoInPromotionMode(GitService git,
                                              Map buildParams,
-                                             Logger logger,
-                                             String gitReleaseBranch) {
+                                             String gitReleaseBranch,
+                                             Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,
