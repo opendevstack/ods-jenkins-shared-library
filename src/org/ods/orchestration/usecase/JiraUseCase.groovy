@@ -352,7 +352,10 @@ class JiraUseCase {
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
-        if (!this.jira) return
+        if (!this.jira) {
+            logger.warn("JiraUseCase: jira has an invalid value.")
+            return
+        }
 
         def status = isError ? 'Failed' : 'Successful'
 

@@ -1416,7 +1416,10 @@ class Project {
     }
 
     void reportPipelineStatus(String message = '', boolean isError = false) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("Project: jiraUseCase has an invalid value.")
+            return
+        }
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
