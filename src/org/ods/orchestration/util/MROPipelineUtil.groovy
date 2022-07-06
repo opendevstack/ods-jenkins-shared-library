@@ -225,83 +225,87 @@ class MROPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                this.logger.startClocked("${repo.id}-scm-checkout")
-                def scm = null
-                def scmBranch = repo.branch
-                if (this.project.isPromotionMode) {
-                    scm = checkoutTagInRepoDir(repo, this.project.baseTag)
-                    scmBranch = this.project.gitReleaseBranch
-                } else {
-                    if (this.project.isWorkInProgress) {
-                        scm = checkoutBranchInRepoDir(repo, repo.branch)
-                    } else {
-                        // check if release manager repo already has a release branch
-                        if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
-                            try {
-                                scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
-                            } catch (ex) {
-                                this.logger.warn """
+                checkoutNotReleaseManagerRepo(repo, recheckout)
+            }
+        ]
+    }
+
+    void checkoutNotReleaseManagerRepo(Map repo, boolean recheckout = false) {
+        this.logger.startClocked("${repo.id}-scm-checkout")
+        def scm = null
+        def scmBranch = repo.branch
+        if (this.project.isPromotionMode) {
+            scm = checkoutTagInRepoDir(repo, this.project.baseTag)
+            scmBranch = this.project.gitReleaseBranch
+        } else {
+            if (this.project.isWorkInProgress) {
+                scm = checkoutBranchInRepoDir(repo, repo.branch)
+            } else {
+                // check if release manager repo already has a release branch
+                if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
+                    try {
+                        scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
+                    } catch (ex) {
+                        this.logger.warn """
                                 Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
                                 Attempting to checkout '${repo.branch}' and create the release branch from it.
                                 """
-                                // Possible reasons why this might happen:
-                                // * Release branch manually created in RM repo
-                                // * Repo is added to metadata.yml file on a release branch
-                                // * Release branch has been deleted in repo
-                                scm = checkoutBranchInRepoDir(repo, repo.branch)
-                                steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                                    git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
-                                }
-                            }
-                        } else {
-                            scm = checkoutBranchInRepoDir(repo, repo.branch)
-                            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                                git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
-                            }
+                        // Possible reasons why this might happen:
+                        // * Release branch manually created in RM repo
+                        // * Repo is added to metadata.yml file on a release branch
+                        // * Release branch has been deleted in repo
+                        scm = checkoutBranchInRepoDir(repo, repo.branch)
+                        steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                            git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
                         }
-                        scmBranch = this.project.gitReleaseBranch
                     }
-                }
-                this.logger.debugClocked("${repo.id}-scm-checkout")
-
-                // in case of a re-checkout, scm.GIT_COMMIT  still points
-                // to the old commit.
-                def commit = scm.GIT_COMMIT
-                def prevCommit = scm.GIT_PREVIOUS_COMMIT
-                def lastSuccessCommit =  scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT
-                if (recheckout) {
+                } else {
+                    scm = checkoutBranchInRepoDir(repo, repo.branch)
                     steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                        commit = git.getCommitSha()
-                        prevCommit = scm.GIT_COMMIT
-                        lastSuccessCommit = scm.GIT_COMMIT
+                        git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
                     }
                 }
+                scmBranch = this.project.gitReleaseBranch
+            }
+        }
+        this.logger.debugClocked("${repo.id}-scm-checkout")
 
-                repo.data.git = [
-                    branch: scmBranch,
-                    commit: commit,
-                    previousCommit: prevCommit,
-                    previousSucessfulCommit: lastSuccessCommit,
-                    url: scm.GIT_URL,
-                    baseTag: this.project.baseTag,
-                    targetTag: this.project.targetTag
-                ]
-                def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
-                loadPipelineConfig(repoPath, repo)
-                if (this.project.isAssembleMode) {
-                    if (this.project.forceGlobalRebuild) {
-                        this.logger.debug('Project forces global rebuild ...')
-                    } else {
-                        this.steps.dir(repoPath) {
-                            this.logger.startClocked("${repo.id}-resurrect-data")
-                            this.logger.debug('Checking if repo can be resurrected from previous build ...')
-                            amendRepoForResurrectionIfEligible(repo)
-                            this.logger.debugClocked("${repo.id}-resurrect-data")
-                        }
-                    }
+        // in case of a re-checkout, scm.GIT_COMMIT  still points
+        // to the old commit.
+        def commit = scm.GIT_COMMIT
+        def prevCommit = scm.GIT_PREVIOUS_COMMIT
+        def lastSuccessCommit =  scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+        if (recheckout) {
+            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                commit = git.getCommitSha()
+                prevCommit = scm.GIT_COMMIT
+                lastSuccessCommit = scm.GIT_COMMIT
+            }
+        }
+
+        repo.data.git = [
+            branch: scmBranch,
+            commit: commit,
+            previousCommit: prevCommit,
+            previousSucessfulCommit: lastSuccessCommit,
+            url: scm.GIT_URL,
+            baseTag: this.project.baseTag,
+            targetTag: this.project.targetTag
+        ]
+        def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+        loadPipelineConfig(repoPath, repo)
+        if (this.project.isAssembleMode) {
+            if (this.project.forceGlobalRebuild) {
+                this.logger.debug('Project forces global rebuild ...')
+            } else {
+                this.steps.dir(repoPath) {
+                    this.logger.startClocked("${repo.id}-resurrect-data")
+                    this.logger.debug('Checking if repo can be resurrected from previous build ...')
+                    amendRepoForResurrectionIfEligible(repo)
+                    this.logger.debugClocked("${repo.id}-resurrect-data")
                 }
             }
-        ]
+        }
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {

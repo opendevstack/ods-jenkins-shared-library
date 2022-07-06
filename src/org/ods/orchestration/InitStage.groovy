@@ -53,17 +53,7 @@ class InitStage extends Stage {
         // to concurrent releases).
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
-        logger.startClocked("git-releasemanager-${STAGE_NAME}")
-        // git checkout
-        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        if (!Project.isWorkInProgress(buildParams.version)) {
-            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                checkOutRepoInPromotionMode(git, buildParams, logger, gitReleaseBranch)
-            } else {
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, logger)
-            }
-        }
-        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+        checkOutReleaseManagerRepository(buildParams, git, logger)
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -145,7 +135,7 @@ class InitStage extends Stage {
         return stageToStartAgent
     }
 
-    private Closure buildCheckOutClousure(repos, logger, envState, util) {
+    private Closure buildCheckOutClousure(repos, logger, envState, MROPipelineUtil util) {
         @SuppressWarnings('Indentation')
         Closure checkoutClosure =
             {
@@ -438,6 +428,22 @@ class InitStage extends Stage {
                 )
             }
         }
+    }
+
+    private void checkOutReleaseManagerRepository(def buildParams, def git,
+                                                  ILogger logger) {
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
+        // git checkout
+        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        if (!Project.isWorkInProgress(buildParams.version)) {
+            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
+                checkOutRepoInPromotionMode(git, buildParams, logger, gitReleaseBranch)
+            } else {
+                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, logger)
+            }
+        }
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git, String gitReleaseBranch, Logger logger) {
