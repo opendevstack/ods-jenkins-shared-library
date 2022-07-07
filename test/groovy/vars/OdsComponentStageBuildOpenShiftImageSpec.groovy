@@ -32,7 +32,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftBuildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
@@ -90,7 +90,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [
       environment: 'dev',
       targetProject: 'foo-dev',
-      globalExtensionImageLabels: [ "globalext": "extG" ]
+      globalExtensionImageLabels: [ "globalext": "extG" ],
+      openshiftBuildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
@@ -154,7 +155,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: 'dev',
       targetProject: 'foo-dev',
       gitBranch: 'release/1',
-      triggeredByOrchestrationPipeline: true
+      triggeredByOrchestrationPipeline: true,
+      openshiftBuildTimeoutRetries: 6
     ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
@@ -183,12 +185,12 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', openshiftBuildTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
     openShiftService.startBuild(*_) >> lastBuildVersion
-    openShiftService.getBuildStatus(*_) >> buildStatus
+    openShiftService.getBuildStatus(_,6) >> buildStatus
     openShiftService.getImageReference(*_) >> imageReference
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -219,7 +221,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: null,
       gitBranch: gitBranch,
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      branchToEnvironmentMapping: branchToEnvironmentMapping
+      branchToEnvironmentMapping: branchToEnvironmentMapping,
+      openshiftBuildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 
@@ -253,7 +256,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       environment: null,
       gitBranch: 'master',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      branchToEnvironmentMapping: [:]
+      branchToEnvironmentMapping: [:],
+      openshiftBuildTimeoutRetries: 6
     ]
     def context = new Context(null, config, logger)
 

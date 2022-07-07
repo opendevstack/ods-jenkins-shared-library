@@ -36,6 +36,11 @@ _Integer_
 |Timeout of build (defaults to 15 minutes).
 
 
+| *buildTimeoutRetries* +
+_Integer_
+|Adjust retries to wait for the build pod status (defaults to 5).
+
+
 | *dockerDir* +
 _String_
 |Docker context directory (defaults to `docker`).
