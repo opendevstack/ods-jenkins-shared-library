@@ -433,28 +433,31 @@ class InitStage extends Stage {
     private void checkOutReleaseManagerRepository(def buildParams, def git,
                                                   ILogger logger) {
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
-        // git checkout
-        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        logger.info("Using branch ${gitReleaseBranch}")
         if (!Project.isWorkInProgress(buildParams.version)) {
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+            logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
             } else {
-                checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, logger)
+                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
             }
         } else {
-            checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, logger)
+            // Here is the difference with respect to deploy-to-D:
+            // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
+            logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
+            checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
-                                                Map buildParams,
                                                 String gitReleaseBranch,
+                                                boolean isWorkInProgress,
                                                 Logger logger) {
         if (git.remoteBranchExists(gitReleaseBranch)) {
-            logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
+            logger.info("Checkout release manager repository branch ${gitReleaseBranch}")
             git.checkout(
                 "*/${gitReleaseBranch}",
                 [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
@@ -463,8 +466,12 @@ class InitStage extends Stage {
         } else {
             // If we are still in WIP and there is no branch for current release,
             // do not create it. We use if only if it exists. We use master if it does not exist.
-            if (! Project.isWorkInProgress(buildParams.version)) {
+            if (! isWorkInProgress) {
+                logger.info("Creating release manager repository branch: ${gitReleaseBranch}")
                 git.checkoutNewLocalBranch(gitReleaseBranch)
+            } else {
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                    "using master branch for developer preview.")
             }
         }
     }
