@@ -53,17 +53,7 @@ class InitStage extends Stage {
         // to concurrent releases).
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
-        logger.startClocked("git-releasemanager-${STAGE_NAME}")
-        // git checkout
-        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        if (!Project.isWorkInProgress(buildParams.version)) {
-            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                checkOutRepoInPromotionMode(git, buildParams, logger, gitReleaseBranch)
-            } else {
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, logger)
-            }
-        }
-        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+        checkOutReleaseManagerRepository(buildParams, git, logger)
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -145,7 +135,7 @@ class InitStage extends Stage {
         return stageToStartAgent
     }
 
-    private Closure buildCheckOutClousure(repos, logger, envState, util) {
+    private Closure buildCheckOutClousure(repos, logger, envState, MROPipelineUtil util) {
         @SuppressWarnings('Indentation')
         Closure checkoutClosure =
             {
@@ -440,23 +430,56 @@ class InitStage extends Stage {
         }
     }
 
-    private void checkOutRepoInNotPromotionMode(GitService git, String gitReleaseBranch, Logger logger) {
+    private void checkOutReleaseManagerRepository(def buildParams, def git,
+                                                  ILogger logger) {
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
+        if (!Project.isWorkInProgress(buildParams.version)) {
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+            logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
+            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
+                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
+            } else {
+                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
+            }
+        } else {
+            // Here is the difference with respect to deploy-to-D:
+            // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
+            logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
+            checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
+        }
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+
+    }
+
+    private void checkOutRepoInNotPromotionMode(GitService git,
+                                                String gitReleaseBranch,
+                                                boolean isWorkInProgress,
+                                                Logger logger) {
         if (git.remoteBranchExists(gitReleaseBranch)) {
-            logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
+            logger.info("Checkout release manager repository branch ${gitReleaseBranch}")
             git.checkout(
                 "*/${gitReleaseBranch}",
                 [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
                 script.scm.userRemoteConfigs
             )
         } else {
-            git.checkoutNewLocalBranch(gitReleaseBranch)
+            // If we are still in WIP and there is no branch for current release,
+            // do not create it. We use if only if it exists. We use master if it does not exist.
+            if (! isWorkInProgress) {
+                logger.info("Creating release manager repository branch: ${gitReleaseBranch}")
+                git.checkoutNewLocalBranch(gitReleaseBranch)
+            } else {
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                    "using master branch for developer preview.")
+            }
         }
     }
 
     private void checkOutRepoInPromotionMode(GitService git,
                                              Map buildParams,
-                                             Logger logger,
-                                             String gitReleaseBranch) {
+                                             String gitReleaseBranch,
+                                             Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,
