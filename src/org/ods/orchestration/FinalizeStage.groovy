@@ -145,7 +145,7 @@ class FinalizeStage extends Stage {
             repoPushTasks << [ (repo.id): {
                 steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                     if (project.isWorkInProgress) {
-                        String branchName = repo.data.git ?: repo.branch
+                        String branchName = repo.data.git.branch ?: repo.branch
                         git.pushRef(branchName)
                     } else if (project.isAssembleMode) {
                         git.createTag(project.targetTag)
