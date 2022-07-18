@@ -270,6 +270,7 @@ class Project {
     protected Map config
     protected String targetProject
     protected Boolean isVersioningEnabled = false
+    private String _gitReleaseBranch
 
     protected Map data = [:]
 
@@ -999,7 +1000,14 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        return GitService.getReleaseBranch(buildParams.version)
+        if (null == _gitReleaseBranch) {
+            _gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        }
+        return _gitReleaseBranch
+    }
+
+    void setGitReleaseBranch(String gitReleaseBranch) {
+        _gitReleaseBranch = gitReleaseBranch
     }
 
     String getTargetProject() {

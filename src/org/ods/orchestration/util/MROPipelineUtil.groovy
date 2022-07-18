@@ -318,7 +318,7 @@ class MROPipelineUtil extends PipelineUtil {
             if (! isWorkInProgress) {
                 scm = createBranchFromDefaultBranch()
             } else {
-                this.logger.info("Since in WIP and no release branch exists, checkout branch ${repo.branch} for repo ${repo.id}")
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.branch} for repo ${repo.id}")
                 scm = checkoutBranchInRepoDir(repo, repo.branch)
             }
         }
