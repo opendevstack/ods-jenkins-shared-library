@@ -283,8 +283,8 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private def checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
-        Map scmResult
+    private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
+        Map scmResult = [ : ]
         String gitReleaseBranch = this.project.gitReleaseBranch
         if ("master" == gitReleaseBranch) {
             gitReleaseBranch = repo.branch
