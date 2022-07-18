@@ -365,6 +365,9 @@ class Project {
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
+        this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
+        this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
+
         if (this.hasWipJiraIssues()) {
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
