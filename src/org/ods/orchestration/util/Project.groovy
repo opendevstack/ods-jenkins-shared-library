@@ -374,6 +374,8 @@ class Project {
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
+
+            this.logger.debug "addCommentInJiraReleaseStatus: ${message}"
             this.addCommentInReleaseStatus(message)
         }
 
