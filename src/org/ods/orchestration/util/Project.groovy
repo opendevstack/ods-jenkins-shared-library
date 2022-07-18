@@ -1386,6 +1386,7 @@ class Project {
                         "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
+            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
         }
 
         if (result.capabilities == null) {

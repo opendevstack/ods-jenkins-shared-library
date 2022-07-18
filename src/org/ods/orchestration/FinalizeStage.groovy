@@ -127,7 +127,7 @@ class FinalizeStage extends Stage {
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
-            logger.debug("Reporting pipeline status to Jenkins...")
+            logger.debug("Reporting pipeline status to Jira...")
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
