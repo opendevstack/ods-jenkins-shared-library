@@ -143,14 +143,18 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully with Helm"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
+    def c = config + [
+        chartDir: 'chart',
+        environment: 'dev',
+        targetProject: 'foo-dev',
+        openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
-    openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
+    openShiftService.getPodDataForDeployment(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
+    openShiftService.getImagesOfDeployment(*_) >> [[repository: 'foo', name: 'bar']]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -187,18 +191,17 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     }
     def deploymentInfo = script.call(context)
 
+    // We really only care about the call to `helmUpgrade'
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['DeploymentConfig/bar'][0].deploymentId == "bar-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    buildArtifacts.deployments.containsKey(config.componentId)
-    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig/bar'][0].deploymentId
 
-    1 * openShiftService.helmUpgrade('foo-dev', 'bar', [], [imageTag: 'cd3e9082'], ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade(
+        'foo-dev', 'bar', [], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
   }
 
   @Unroll

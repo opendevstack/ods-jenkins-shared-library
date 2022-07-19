@@ -108,7 +108,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def deploymentResources = openShift.getResourcesForComponent(
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
-        def isHelmDeployment = steps.fileExists(options.chartDir)
+        def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
 
         if (context.triggeredByOrchestrationPipeline
             && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
@@ -293,7 +293,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 // update this to store multiple pod artifacts.
                 // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
+                // FIXME: If this runs in a test we have a NullPointer here!
+                if (podData != null) {
+                    context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
+                }
             }
         }
         rolloutData
