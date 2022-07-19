@@ -194,25 +194,30 @@ class FinalizeStage extends Stage {
                 repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
                 repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE ) {
                 repoIntegrateTasks << [ (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        def files = steps.findFiles (glob:"**/${DeploymentDescriptor.FILE_NAME}")
-                        if (!files || files.size() == 0) {
-                            throw new RuntimeException("Error: Could not determine descriptor directory. Neither of [chart, openshift, openshift-exported] found.")
-                        } else {
-                            String deploymentDescDir = files[0].path.split('/')[0]
-                            def filesToCheckout = ["${deploymentDescDir}/${DeploymentDescriptor.FILE_NAME}"]
-                            if (steps.fileExists('openshift-exported/template.yml')) {
-                                filesToCheckout << 'openshift-exported/template.yml'
-                            }
-                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
-                        }
-                    }
+                    doIntegrateIntoMainBranches(steps, repo, git)
                 }
                 ]
             }
         }
         repoIntegrateTasks.failFast = true
         script.parallel(repoIntegrateTasks)
+    }
+
+    private List doIntegrateIntoMainBranches(IPipelineSteps steps, repo, git) {
+        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+            def files = steps.findFiles(glob: "**/${DeploymentDescriptor.FILE_NAME}")
+            if (!files || files.size() == 0) {
+                throw new RuntimeException("Error: Could not determine descriptor directory. " +
+                    "Neither of [chart, openshift, openshift-exported] found.")
+            } else {
+                String deploymentDescDir = files[0].path.split('/')[0]
+                def filesToCheckout = ["${deploymentDescDir}/${DeploymentDescriptor.FILE_NAME}"]
+                if (steps.fileExists('openshift-exported/template.yml')) {
+                    filesToCheckout << 'openshift-exported/template.yml'
+                }
+                git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
+            }
+        }
     }
 
     private void recordAndPushEnvStateForReleaseManager(IPipelineSteps steps, ILogger logger, GitService git) {
