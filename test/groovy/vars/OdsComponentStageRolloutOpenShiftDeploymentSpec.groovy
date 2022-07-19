@@ -253,7 +253,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     then:
     printCallStack()
-    assertCallStackContains("Deployment resources cannot be used in the orchestration pipeline yet")
+    assertCallStackContains("Deployment resources cannot be used in a NON HELM orchestration pipeline.")
     assertJobStatusFailure()
   }
 

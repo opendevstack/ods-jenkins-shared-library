@@ -113,7 +113,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (context.triggeredByOrchestrationPipeline
             && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
             && !isHelmDeployment) {
-            steps.error "Deployment resources cannot be used in the a NON HELM orchestration pipeline."
+            steps.error "Deployment resources cannot be used in a NON HELM orchestration pipeline."
             return
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
