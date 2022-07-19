@@ -36,7 +36,7 @@ class DeploymentDescriptor {
                 String dMKey = dn + '-'+ deploymentMeanPostfix
                 Map deploymentMean = deployments[dMKey]
                 if (deploymentMean) {
-                    strippedDownDeployments[dn] << [(deploymentMeanPostfix) : deploymentMean]
+                    strippedDownDeployments[dn] << [(deploymentMeanPostfix): deploymentMean]
                 }
             }
         }

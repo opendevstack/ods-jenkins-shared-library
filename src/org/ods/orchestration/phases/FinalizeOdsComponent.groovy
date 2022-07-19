@@ -28,11 +28,12 @@ class FinalizeOdsComponent {
     }
 
     // @ FIXME - this is all hardcoded - and should come off the deployments!!!
+    @TypeChecked(TypeCheckingMode.SKIP)
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
         steps.dir(baseDir) {
-            Map deploymentMean = verifyDeploymentsBuiltByODS(repo).values().get(0)
+            Map deploymentMean = verifyDeploymentsBuiltByODS(repo).values().get(0) as Map
             logger.debug("DeploymentMean: ${deploymentMean}")
 
             def openshiftDir
@@ -44,7 +45,7 @@ class FinalizeOdsComponent {
 
             def componentSelector = deploymentMean.selector
 
-            steps.dir(openshiftDir) {                
+            steps.dir(openshiftDir) {
                 def filesToStage = []
                 def commitMessage = ''
                 if (openshiftDir == 'openshift-exported') {
@@ -58,8 +59,8 @@ class FinalizeOdsComponent {
                     )
                     os.tailorExport(
                         project.targetProject,
-                        componentSelector,
-                        envParams,
+                        componentSelector as String,
+                        envParams as Map<String, String>,
                         OpenShiftService.EXPORTED_TEMPLATE_FILE
                     )
                     filesToStage << OpenShiftService.EXPORTED_TEMPLATE_FILE
@@ -119,6 +120,7 @@ class FinalizeOdsComponent {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
+    @SuppressWarnings(['AbcMetric'])
     private Map verifyDeploymentsBuiltByODS(Map repo) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -136,8 +138,8 @@ class FinalizeOdsComponent {
                 " are not found. These means are automatically generated!\n" +
                 " Likely you upgraded and tried to deploy to Q instead of rebuilding on dev")
         } else if (deploymentMeans.size() > 1) {
-            throw new RuntimeException ("Found more than 1 Deploymentmeans ${deploymentMeans.size()} for repo ${repo.id}." +
-                " This is not supported!")
+            throw new RuntimeException ("Found more than 1 Deploymentmeans ${deploymentMeans.size()} " +
+                "for repo ${repo.id}. This is not supported!")
         }
 
         Map deploymentMean = deploymentMeans.values().get(0)
@@ -145,7 +147,9 @@ class FinalizeOdsComponent {
         String componentSelector = deploymentMean.selector
 
         def allComponentDeploymentsByKind = os.getResourcesForComponent(
-            project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND], componentSelector
+            project.targetProject,
+            [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND],
+            componentSelector
         )
         def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
         if (allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]) {

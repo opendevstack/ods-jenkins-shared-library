@@ -2,7 +2,6 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.OpenShiftService
@@ -31,6 +30,7 @@ class DeployOdsComponent {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
+    @SuppressWarnings(['AbcMetric'])
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
@@ -72,16 +72,16 @@ class DeployOdsComponent {
                     gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
                 Map deploymentMean = [:]
-                
+
                 deploymentDescriptor.deployments.each { key, value ->
                     if (value.deploymentMean) {
                         deploymentMean = value.deploymentMean
                     }
-                } 
+                }
 
-                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}") 
+                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
 
-                def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
+//                def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean4Deployment = deployment.deploymentMean
@@ -120,15 +120,16 @@ class DeployOdsComponent {
             }
         }
     }
-
+    @TypeChecked(TypeCheckingMode.SKIP)
     private String computeStartDir() {
-        def files = steps.findFiles(glob: "**/${DeploymentDescriptor.FILE_NAME}")
+        List<File> files = steps.findFiles(glob: "**/${DeploymentDescriptor.FILE_NAME}")
         logger.debug("DeploymentDescriptors: ${files}")
         if (!files || files.size() == 0) {
-            throw new RuntimeException("Error: Could not determine starting directory. Neither of [chart, openshift, openshift-exported] found.")
+            throw new RuntimeException("Error: Could not determine starting directory. " +
+                "Neither of [chart, openshift, openshift-exported] found.")
         } else {
             return files[0].path.split('/')[0]
-        } 
+        }
     }
 
     private Map gatherOriginalDeploymentVersions(Map<String, Object> deployments) {
@@ -146,6 +147,7 @@ class DeployOdsComponent {
         }
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void applyTemplates(String startDir, Map deploymentMean = [:]) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(startDir) {
@@ -159,21 +161,21 @@ class DeployOdsComponent {
                 if (startDir.startsWith('openshift')) {
                     os.tailorApply(
                         project.targetProject,
-                        deploymentMean.tailorSelectors,
+                        deploymentMean.tailorSelectors as Map<String, String>,
                         project.environmentParamsFile,
-                        deploymentMean.tailorParams, 
-                        deploymentMean.tailorPreserve,
+                        deploymentMean.tailorParams as List<String>,
+                        deploymentMean.tailorPreserve as List<String>,
                         pkeyFile,
                         true // verify
                     )
                 } else {
-                    def helmValueFiles = 
+                    def helmValueFiles =
                         (deploymentMean.helmValueFiles && helmValueFiles.size() > 0) ?: ["values.yaml"]
                     // system values
                     Map<String, String> helmMergedValues = [
-                        "imageTag": project.targetTag, 
-                        "imageNamespace" : project.targetProject, 
-                        "componentId" : deploymentMean.repoId
+                        "imageTag": project.targetTag,
+                        "imageNamespace": project.targetProject,
+                        "componentId": deploymentMean.repoId
                     ]
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues

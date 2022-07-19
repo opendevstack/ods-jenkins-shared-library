@@ -124,7 +124,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             if (!isHelmDeployment) {
                 openShift.bulkPause(context.targetProject, deploymentResources)
             }
-            
+
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
@@ -163,7 +163,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 return rolloutData
             }
         } finally {
-            if ( paused && !isHelmDeployment) {
+            if (paused && !isHelmDeployment) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
@@ -210,9 +210,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
                 // we persist the original ones set from outside - here we just add ours
                 Map mergedHelmValues = [:]
-                    mergedHelmValues << options.helmValues
-                    mergedHelmValues['imageNamespace'] = targetProject
-                    mergedHelmValues['imageTag'] = options.imageTag
+                mergedHelmValues << options.helmValues
+                mergedHelmValues['imageNamespace'] = targetProject
+                mergedHelmValues['imageTag'] = options.imageTag
 
                 openShift.helmUpgrade(
                     targetProject,
@@ -249,6 +249,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     //    'DeploymentConfig/foo': [[podName: 'foo-a', ...], [podName: 'foo-b', ...]],
     //    'Deployment/bar': [[podName: 'bar-a', ...]]
     // ]
+    @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> rollout(
         Map<String, List<String>> deploymentResources,
         Map<String, Map<String, Integer>> originalVersions,
