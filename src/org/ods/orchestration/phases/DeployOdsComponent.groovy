@@ -81,7 +81,6 @@ class DeployOdsComponent {
 
                 logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
 
-//                def componentSelector = deploymentMean.selector //"app=${project.key}-${repo.id}"
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean4Deployment = deployment.deploymentMean
