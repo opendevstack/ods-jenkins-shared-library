@@ -60,10 +60,7 @@ class CopyImageStage extends Stage {
         //     config.dockerDir = context.dockerDir
         // }
 
-        logger.debug("XXX Config: ${config}")
-
         this.options = new CopyImageOptions(config)
-        logger.debug("XXX CopyImageOptions: ${this.options}")
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
