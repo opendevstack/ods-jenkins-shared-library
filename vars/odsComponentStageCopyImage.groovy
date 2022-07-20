@@ -1,4 +1,4 @@
-import org.ods.component.BuildOpenShiftImageStage
+import org.ods.component.CopyImageStage
 import org.ods.component.IContext
 
 import org.ods.services.OpenShiftService
