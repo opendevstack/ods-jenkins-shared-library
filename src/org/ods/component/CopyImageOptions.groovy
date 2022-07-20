@@ -5,9 +5,9 @@ import groovy.transform.TypeChecked
 @TypeChecked
 class CopyImageOptions extends Options {
 
-    // /**
-    //  * Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`). */
-    // String resourceName
+    /**
+     * Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`). */
+    String resourceName
 
     // /**
     //  * Image tag to apply (defaults to `context.shortGitCommit`). */
