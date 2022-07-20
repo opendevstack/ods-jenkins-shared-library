@@ -28,6 +28,7 @@ class CopyImageStage extends Stage {
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
         logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
         String STR_DOCKER_PROTOCOL = 'docker://'
