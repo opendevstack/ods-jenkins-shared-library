@@ -66,7 +66,7 @@ class CopyImageStage extends Stage {
         // read the target registry auth (for this project's -cd project ..)
         def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
 
-        def sourcetoken = sourceCredential ? "--src-creds ${sourceCredential}" : ''
+        def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
         try {
             steps.sh """
