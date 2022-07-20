@@ -35,30 +35,30 @@ class CopyImageStage extends Stage {
                 config.branches = context.branchToEnvironmentMapping.keySet().toList()
             }
         }
-        if (!config.resourceName) {
-            config.resourceName = context.componentId
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.imageLabels) {
-            config.imageLabels = [:]
-        }
-        if (context.extensionImageLabels) {
-            config.imageLabels << context.extensionImageLabels
-        }
-        if (!config.buildArgs) {
-            config.buildArgs = [:]
-        }
-        if (!config.buildTimeoutMinutes) {
-            config.buildTimeoutMinutes = context.openshiftBuildTimeout
-        }
-        if (!config.buildTimeoutRetries) {
-            config.buildTimeoutRetries = context.openshiftBuildTimeoutRetries
-        }
-        if (!config.dockerDir) {
-            config.dockerDir = context.dockerDir
-        }
+        // if (!config.resourceName) {
+        //     config.resourceName = context.componentId
+        // }
+        // if (!config.imageTag) {
+        //     config.imageTag = context.shortGitCommit
+        // }
+        // if (!config.imageLabels) {
+        //     config.imageLabels = [:]
+        // }
+        // if (context.extensionImageLabels) {
+        //     config.imageLabels << context.extensionImageLabels
+        // }
+        // if (!config.buildArgs) {
+        //     config.buildArgs = [:]
+        // }
+        // if (!config.buildTimeoutMinutes) {
+        //     config.buildTimeoutMinutes = context.openshiftBuildTimeout
+        // }
+        // if (!config.buildTimeoutRetries) {
+        //     config.buildTimeoutRetries = context.openshiftBuildTimeoutRetries
+        // }
+        // if (!config.dockerDir) {
+        //     config.dockerDir = context.dockerDir
+        // }
 
         this.options = new CopyImageOptions(config)
         this.openShift = openShift
