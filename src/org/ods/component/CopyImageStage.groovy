@@ -107,12 +107,12 @@ class CopyImageStage extends Stage {
         openShift.findOrCreateImageStream("${context.cdProject}", "${sourceImageInfo.image.split(':').first()}")
 
         // read the target registry auth (for this project's -cd project ..)
-        def targetInternalRegistryToken = readFile '/run/secrets/kubernetes.io/serviceaccount/token'
+        def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
 
         def sourcetoken = sourceCredential ? "--src-creds ${sourceCredential}" : ''
 
         try {
-            sh """
+            steps.sh """
             set +x
             skopeo copy --src-tls-verify=false ${sourcetoken} \
             ${sourceImageInfo.registry}/${sourceImageInfo.repo}/${sourceImageInfo.image} \
