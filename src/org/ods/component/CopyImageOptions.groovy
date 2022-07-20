@@ -12,11 +12,6 @@ class CopyImageOptions extends Options {
      */
     String sourceImageUrlIncludingRegistry
 
-    String registry
-    String repo
-    String image
-    String imageTag
-
     /**
      * tagIntoTargetEnv decides whether or not to create an ImageStream
      */
@@ -27,5 +22,17 @@ class CopyImageOptions extends Options {
      */
     String sourceCredential
 
-
+    // INTERNAL!!
+    /**
+     * registry is an INTERNAL value, do not use it */
+    String registry
+    /**
+     * repo is an INTERNAL value, do not use it */
+    String repo
+    /**
+     * image is an INTERNAL value, do not use it */
+    String image
+    /**
+     * imageTag is an INTERNAL value, do not use it */
+    String imageTag
 }
