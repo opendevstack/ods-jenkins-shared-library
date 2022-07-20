@@ -60,7 +60,10 @@ class CopyImageStage extends Stage {
         //     config.dockerDir = context.dockerDir
         // }
 
+        logger.debug("XXX Config: ${config}")
+
         this.options = new CopyImageOptions(config)
+        logger.debug("XXX CopyImageOptions: ${this.options}")
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
@@ -68,7 +71,7 @@ class CopyImageStage extends Stage {
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-        logger.info("Copy the image ${config.sourceImageUrlIncludingRegistry}!")
+        logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
     }
 
     protected String stageLabel() {
