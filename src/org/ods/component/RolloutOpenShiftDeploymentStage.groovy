@@ -178,7 +178,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private Set<String> getBuiltImages() {
-        context.buildArtifactURIs.builds.keySet()
+        context.buildArtifactURIs.builds.keySet().findAll { it ->
+            !it.startsWith("imported-")
+        }
     }
 
     private void tailorApply(String targetProject) {
