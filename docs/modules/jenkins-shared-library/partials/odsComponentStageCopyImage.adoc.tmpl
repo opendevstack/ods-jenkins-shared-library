@@ -1,0 +1,18 @@
+Copies a source image into the project.
+
+This is useful to get images into the OpenShift registry so that release manager will accept all images.
+
+The primary intention is for helm charts so that external images can be imported.
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===
