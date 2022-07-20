@@ -29,22 +29,22 @@ _List<String>_
 
 | *image* +
 _String_
-|
+|image is an INTERNAL value, do not use it
 
 
 | *imageTag* +
 _String_
-|
+|imageTag is an INTERNAL value, do not use it
 
 
 | *registry* +
 _String_
-|
+|registry is an INTERNAL value, do not use it
 
 
 | *repo* +
 _String_
-|
+|repo is an INTERNAL value, do not use it
 
 
 | *sourceCredential* +
