@@ -104,7 +104,6 @@ class CopyImageStage extends Stage {
             "importing into: ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${sourceImageInfo.image}")
 
         // to make this work, we need a target image stream first
-        def openShiftService = ServiceRegistry.instance.get(OpenShiftService)
         openShiftService.findOrCreateImageStream("${context.cdProject}", "${sourceImageInfo.image.split(':').first()}")
 
         // read the target registry auth (for this project's -cd project ..)
