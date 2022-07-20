@@ -110,9 +110,7 @@ class CopyImageStage extends Stage {
     }
 
     protected String stageLabel() {
-        if (options.resourceName != context.componentId) {
-            return "${STAGE_NAME} (${options.resourceName})"
-        }
+        return "${STAGE_NAME} (${context.componentId})"
         STAGE_NAME
     }
 }
