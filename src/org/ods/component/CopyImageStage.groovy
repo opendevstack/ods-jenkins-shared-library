@@ -35,9 +35,9 @@ class CopyImageStage extends Stage {
                 config.branches = context.branchToEnvironmentMapping.keySet().toList()
             }
         }
-        // if (!config.resourceName) {
-        //     config.resourceName = context.componentId
-        // }
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
+        }
         // if (!config.imageTag) {
         //     config.imageTag = context.shortGitCommit
         // }
