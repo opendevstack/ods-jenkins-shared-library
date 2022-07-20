@@ -92,7 +92,7 @@ class CopyImageStage extends Stage {
         def buildResourceName = "imported-${imageName}"
 
         context.addBuildToArtifactURIs("${buildResourceName}",
-            [image: internalImageRef, source: sourceImageUrlIncludingRegistry])
+            [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
         if (tagIntoTargetEnv) {
 
@@ -103,10 +103,6 @@ class CopyImageStage extends Stage {
             )
             logger.info("!!! Image ${this.options.image} tagged into ${context.targetProject}")
         }
-        logger.warn("NOT SCANNING IMAGES -- odsComponentStageScanWithAqua(context, [resourceName: \"${buildResourceName}\", imageLabels : context.extensionImageLabels])")
-        // this needs to go into the new stage ...  (similar to the odsBuild...stage)
-        // odsComponentStageScanWithAqua(context, [resourceName: "${buildResourceName}", imageLabels : context.extensionImageLabels])
-
     }
 
     protected String stageLabel() {
