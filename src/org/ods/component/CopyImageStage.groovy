@@ -94,7 +94,7 @@ class CopyImageStage extends Stage {
         context.addBuildToArtifactURIs("${buildResourceName}",
             [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
-        if (tagIntoTargetEnv) {
+        if (options.tagIntoTargetEnv) {
 
             openShift.findOrCreateImageStream(context.targetProject, imageName)
             openShift.importImageTagFromProject(
