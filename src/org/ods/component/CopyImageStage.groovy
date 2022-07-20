@@ -31,31 +31,6 @@ class CopyImageStage extends Stage {
     protected run() {
         logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
         String STR_DOCKER_PROTOCOL = 'docker://'
-        // def sourceImageData = sourceImageUrlIncludingRegistry?.minus(STR_DOCKER_PROTOCOL)?.split('/')
-        // def sourceImageDataSplitLength = sourceImageData?.size()
-
-        // // [REGISTRY/]REPO/IMAGE[:TAG]
-        // def sourceImageInfo = [ : ]
-        // if (sourceImageDataSplitLength >= 2) {
-        //     sourceImageInfo.image = sourceImageData[sourceImageDataSplitLength-1]
-        //     sourceImageInfo.repo = sourceImageData[sourceImageDataSplitLength-2]
-        //     // no registry info, use internal cluster registry
-        //     if (sourceImageDataSplitLength == 2) {
-        //         sourceImageInfo.registry = context.clusterRegistryAddress
-        //     } else {
-        //         sourceImageInfo.registry = sourceImageData[0..sourceImageDataSplitLength-3].join('/')
-        //     }
-        //     sourceImageInfo.registry = STR_DOCKER_PROTOCOL + sourceImageInfo.registry
-        // } else {
-        //     error ("Incoming ${sourceImageUrlIncludingRegistry} is wrong. It must contain AT minimum the repo and image.\n" +
-        //                                 'Desired format: [REGISTRY/]REPO/IMAGE[:TAG]')
-        // }
-
-        // // amend the image info with the 'latest' tag if not passed
-        // if (!sourceImageInfo.image.contains(':')) {
-        //     sourceImageInfo.image += ':latest'
-        //     logger.info("No image-tag found, amended to ${sourceImageInfo.image}")
-        // }
 
         logger.info("Resolved source Image data: ${this.options.sourceImageUrlIncludingRegistry} into ${this.options},\n" +
             "importing into: ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}")
