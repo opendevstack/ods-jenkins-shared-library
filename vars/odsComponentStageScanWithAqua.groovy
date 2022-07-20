@@ -81,7 +81,7 @@ def call(IContext context, Map config = [:]) {
         if (enabledInCluster && enabledInProject) {
             new ScanWithAquaStage(this,
                 context,
-                [:],
+                config,
                 aquaService,
                 bitbucketService,
                 openShiftService,
