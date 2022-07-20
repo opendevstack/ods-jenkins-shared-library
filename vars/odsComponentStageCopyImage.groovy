@@ -13,7 +13,7 @@ def call(IContext context, Map config = [:]) {
         logger = new Logger (this, !!env.DEBUG)
     }
 
-    String STR_DOCKER_PROTOCOL = 'docker://'
+    final String STR_DOCKER_PROTOCOL = 'docker://'
     def sourceImageData = config.sourceImageUrlIncludingRegistry?.minus(STR_DOCKER_PROTOCOL)?.split('/')
     def sourceImageDataSplitLength = sourceImageData?.size()
 
@@ -29,8 +29,9 @@ def call(IContext context, Map config = [:]) {
         }
         config.registry = STR_DOCKER_PROTOCOL + config.registry
     } else {
-        error ("Incoming ${sourceImageUrlIncludingRegistry} is wrong. It must contain AT minimum the repo and image.\n" +
-                                    'Desired format: [REGISTRY/]REPO/IMAGE[:TAG]')
+        error ("Incoming ${sourceImageUrlIncludingRegistry} is wrong. " +
+            "It must contain AT minimum the repo and image.\n" +
+            'Desired format: [REGISTRY/]REPO/IMAGE[:TAG]')
     }
 
     // amend the image info with the 'latest' tag if not passed
@@ -51,7 +52,8 @@ def call(IContext context, Map config = [:]) {
     // // Call to aqua stage always after the image creation
     def imageName = config.image.split(':').first()
     def buildResourceName = "imported-${imageName}"
-    odsComponentStageScanWithAqua(context, [resourceName: "${buildResourceName}", imageLabels : context.extensionImageLabels])
+    odsComponentStageScanWithAqua(context,
+        [resourceName: "${buildResourceName}", imageLabels: context.extensionImageLabels])
 
 }
 return this

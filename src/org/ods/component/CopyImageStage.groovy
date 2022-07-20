@@ -31,10 +31,12 @@ class CopyImageStage extends Stage {
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
         logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
-        String STR_DOCKER_PROTOCOL = 'docker://'
+        final String STR_DOCKER_PROTOCOL = 'docker://'
 
-        logger.info("Resolved source Image data: ${this.options.sourceImageUrlIncludingRegistry} into ${this.options},\n" +
-            "importing into: ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}")
+        logger.info("Resolved source Image data: " +
+            "${this.options.sourceImageUrlIncludingRegistry} into ${this.options},\n" +
+            "importing into: " +
+            "${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}")
 
         // to make this work, we need a target image stream first
         openShift.findOrCreateImageStream("${context.cdProject}", "${this.options.image.split(':').first()}")
@@ -62,7 +64,8 @@ class CopyImageStage extends Stage {
 
         def internalImageRef = openShift.getImageReference(context.cdProject, imageName, imageTag)
 
-        logger.info("!!! Image successfully imported into ${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image},\n" +
+        logger.info("!!! Image successfully imported into " +
+            "${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image},\n" +
             "details: ${internalImageRef}")
 
         def buildResourceName = "imported-${imageName}"
@@ -83,6 +86,5 @@ class CopyImageStage extends Stage {
 
     protected String stageLabel() {
         return "${STAGE_NAME} (${context.componentId})"
-        STAGE_NAME
     }
 }
