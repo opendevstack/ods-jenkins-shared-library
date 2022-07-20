@@ -104,7 +104,7 @@ class CopyImageStage extends Stage {
             "importing into: ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${sourceImageInfo.image}")
 
         // to make this work, we need a target image stream first
-        openShiftService.findOrCreateImageStream("${context.cdProject}", "${sourceImageInfo.image.split(':').first()}")
+        openShift.findOrCreateImageStream("${context.cdProject}", "${sourceImageInfo.image.split(':').first()}")
 
         // read the target registry auth (for this project's -cd project ..)
         def targetInternalRegistryToken = readFile '/run/secrets/kubernetes.io/serviceaccount/token'
@@ -127,7 +127,7 @@ class CopyImageStage extends Stage {
         def imageName = sourceImageInfo.image.split(':').first()
         def imageTag = sourceImageInfo.image.split(':').last()
 
-        def internalImageRef = openShiftService.getImageReference(context.cdProject, imageName, imageTag)
+        def internalImageRef = openShift.getImageReference(context.cdProject, imageName, imageTag)
 
         logger.info("!!! Image successfully imported into ${context.clusterRegistryAddress}/${context.cdProject}/${sourceImageInfo.image},\n" +
             "details: ${internalImageRef}")
@@ -139,8 +139,8 @@ class CopyImageStage extends Stage {
 
         if (tagIntoTargetEnv) {
 
-            openShiftService.findOrCreateImageStream(context.targetProject, imageName)
-            openShiftService.importImageTagFromProject(
+            openShift.findOrCreateImageStream(context.targetProject, imageName)
+            openShift.importImageTagFromProject(
                 context.targetProject, imageName, context.cdProject,
                 imageTag, imageTag
             )
