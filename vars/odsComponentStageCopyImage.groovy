@@ -49,7 +49,6 @@ def call(IContext context, Map config = [:]) {
     stage.execute()
 
     // // Call to aqua stage always after the image creation
-    // odsComponentStageScanWithAqua(context, config)
     def imageName = config.image.split(':').first()
     def buildResourceName = "imported-${imageName}"
     odsComponentStageScanWithAqua(context, [resourceName: "${buildResourceName}", imageLabels : context.extensionImageLabels])
