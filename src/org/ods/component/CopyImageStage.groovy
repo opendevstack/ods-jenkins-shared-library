@@ -14,7 +14,7 @@ class CopyImageStage extends Stage {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
-    private final BuildOpenShiftImageOptions options
+    private final CopyImageOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
     CopyImageStage(
@@ -60,7 +60,7 @@ class CopyImageStage extends Stage {
             config.dockerDir = context.dockerDir
         }
 
-        this.options = new BuildOpenShiftImageOptions(config)
+        this.options = new CopyImageOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
