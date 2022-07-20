@@ -463,15 +463,18 @@ class InitStage extends Stage {
                 [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
                 script.scm.userRemoteConfigs
             )
+            project.setGitReleaseBranch(gitReleaseBranch)
         } else {
             // If we are still in WIP and there is no branch for current release,
             // do not create it. We use if only if it exists. We use master if it does not exist.
             if (! isWorkInProgress) {
                 logger.info("Creating release manager repository branch: ${gitReleaseBranch}")
                 git.checkoutNewLocalBranch(gitReleaseBranch)
+                project.setGitReleaseBranch(gitReleaseBranch)
             } else {
                 logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
                     "using master branch for developer preview.")
+                project.setGitReleaseBranch("master")
             }
         }
     }

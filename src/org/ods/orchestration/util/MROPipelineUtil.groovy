@@ -235,38 +235,13 @@ class MROPipelineUtil extends PipelineUtil {
         def scm = null
         def scmBranch = repo.branch
         if (this.project.isPromotionMode) {
+            this.logger.info("Since in promotion mode, checking out tag ${this.project.baseTag}")
             scm = checkoutTagInRepoDir(repo, this.project.baseTag)
             scmBranch = this.project.gitReleaseBranch
         } else {
-            if (this.project.isWorkInProgress) {
-                scm = checkoutBranchInRepoDir(repo, repo.branch)
-            } else {
-                // check if release manager repo already has a release branch
-                if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
-                    try {
-                        scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
-                    } catch (ex) {
-                        this.logger.warn """
-                                Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
-                                Attempting to checkout '${repo.branch}' and create the release branch from it.
-                                """
-                        // Possible reasons why this might happen:
-                        // * Release branch manually created in RM repo
-                        // * Repo is added to metadata.yml file on a release branch
-                        // * Release branch has been deleted in repo
-                        scm = checkoutBranchInRepoDir(repo, repo.branch)
-                        steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                            git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
-                        }
-                    }
-                } else {
-                    scm = checkoutBranchInRepoDir(repo, repo.branch)
-                    steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                        git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
-                    }
-                }
-                scmBranch = this.project.gitReleaseBranch
-            }
+            Map scmResult = checkOutNotReleaseManagerRepoInNotPromotionMode(repo, this.project.isWorkInProgress)
+            scm = scmResult.scm
+            scmBranch = scmResult.scmBranch
         }
         this.logger.debugClocked("${repo.id}-scm-checkout")
 
@@ -306,6 +281,66 @@ class MROPipelineUtil extends PipelineUtil {
                 }
             }
         }
+    }
+
+    private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
+        Map scmResult = [ : ]
+        String gitReleaseBranch = this.project.gitReleaseBranch
+        if ("master" == gitReleaseBranch) {
+            gitReleaseBranch = repo.branch
+        }
+
+        // check if release manager repo already has a release branch
+        if (git.remoteBranchExists(gitReleaseBranch)) {
+            try {
+                scmResult.scm = checkoutBranchInRepoDir(repo, gitReleaseBranch)
+                scmResult.scmBranch = gitReleaseBranch
+            } catch (ex) {
+                if (! isWorkInProgress) {
+                    this.logger.warn """
+                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Attempting to checkout '${repo.branch}' and create the release branch from it.
+                                """
+                    // Possible reasons why this might happen:
+                    // * Release branch manually created in RM repo
+                    // * Repo is added to metadata.yml file on a release branch
+                    // * Release branch has been deleted in repo
+
+                    scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
+                    scmResult.scmBranch = gitReleaseBranch
+                } else {
+                    this.logger.warn """
+                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Attempting to checkout branch '${repo.branch}'.
+                                """
+                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
+                    scmResult.scmBranch = repo.branch
+                }
+            }
+        } else {
+            if (! isWorkInProgress) {
+                scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
+                scmResult.scmBranch = gitReleaseBranch
+            } else {
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.branch} for repo ${repo.id}")
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
+                scmResult.scmBranch = repo.branch
+            }
+        }
+        return scmResult
+    }
+
+    private def createBranchFromDefaultBranch(Map repo, String branchName) {
+        this.logger.info("Creating branch ${branchName} from branch ${repo.branch} for repo ${repo.id} ")
+        def scm = checkoutBranchInRepoDir(repo, repo.branch)
+        if (repo.branch != branchName) {
+            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                git.checkoutNewLocalBranch(branchName)
+            }
+        } else {
+            this.logger.info("No need to create branch ${branchName} for repo ${repo.id} ")
+        }
+        return scm
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {

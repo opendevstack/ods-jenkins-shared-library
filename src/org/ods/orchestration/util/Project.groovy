@@ -270,6 +270,7 @@ class Project {
     protected Map config
     protected String targetProject
     protected Boolean isVersioningEnabled = false
+    private String _gitReleaseBranch
 
     protected Map data = [:]
 
@@ -365,12 +366,17 @@ class Project {
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
+        this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
+        this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
+
         if (this.hasWipJiraIssues()) {
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
+
+            this.logger.debug "addCommentInJiraReleaseStatus: ${message}"
             this.addCommentInReleaseStatus(message)
         }
 
@@ -994,7 +1000,14 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        return GitService.getReleaseBranch(buildParams.version)
+        if (null == _gitReleaseBranch) {
+            _gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        }
+        return _gitReleaseBranch
+    }
+
+    void setGitReleaseBranch(String gitReleaseBranch) {
+        _gitReleaseBranch = gitReleaseBranch
     }
 
     String getTargetProject() {
@@ -1381,6 +1394,7 @@ class Project {
                         "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
+            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
         }
 
         if (result.capabilities == null) {

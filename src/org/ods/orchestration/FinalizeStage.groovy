@@ -127,7 +127,7 @@ class FinalizeStage extends Stage {
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
-            logger.debug("Reporting pipeline status to Jenkins...")
+            logger.debug("Reporting pipeline status to Jira...")
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
@@ -145,7 +145,8 @@ class FinalizeStage extends Stage {
             repoPushTasks << [ (repo.id): {
                 steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                     if (project.isWorkInProgress) {
-                        git.pushRef(repo.branch)
+                        String branchName = repo.data.git.branch ?: repo.branch
+                        git.pushRef(branchName)
                     } else if (project.isAssembleMode) {
                         git.createTag(project.targetTag)
                         git.pushBranchWithTags(project.gitReleaseBranch)
