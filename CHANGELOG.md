@@ -87,6 +87,7 @@
 - Increase default timeout for rollout  ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
 - Add retry for Openshift image build status ([#901](https://github.com/opendevstack/ods-jenkins-shared-library/issues/901))
 - Removes DIL from the set of docs generated for enviroment P ([914](https://github.com/opendevstack/ods-jenkins-shared-library/pull/914))
+- Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
 
 ## [3.0] - 2020-08-11
 
