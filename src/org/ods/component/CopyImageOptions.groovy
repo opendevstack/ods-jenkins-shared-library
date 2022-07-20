@@ -13,7 +13,7 @@ class CopyImageOptions extends Options {
     String sourceImageUrlIncludingRegistry
 
     /**
-     * tagIntoTargetEnv decides whether or not to create an ImageStream
+     * true will tag the image from the -cd namespace into the targetEnvironment that the pipeline is running for
      */
     Boolean tagIntoTargetEnv
 
