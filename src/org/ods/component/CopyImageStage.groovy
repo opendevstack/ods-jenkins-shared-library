@@ -68,7 +68,8 @@ class CopyImageStage extends Stage {
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-        logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
+        logger.debug("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
+        logger.debug("options: ${options}")
     }
 
     protected String stageLabel() {
