@@ -2845,54 +2845,22 @@ class ProjectSpec extends SpecHelper {
 
     def "load build param - rePromote field"() {
         when:
-        steps.env.rePromote = null
+        steps.env.rePromote = rePromoteInput
         def result = Project.loadBuildParams(steps)
 
         then:
-        result.rePromote == true
+        result.rePromote == rePromoteOutput
 
-        when:
-        steps.env.rePromote = ""
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == true
-
-        when:
-        steps.env.rePromote = "true"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == true
-
-        when:
-        steps.env.rePromote = "True"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == true
-
-        when:
-        steps.env.rePromote = "false"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == false
-
-        when:
-        steps.env.rePromote = "False"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == false
-
-        when:
-        steps.env.rePromote = "FALSE"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.rePromote == false
-
+        where:
+        rePromoteInput  || rePromoteOutput
+        null            || true
+        ""              || true
+        "true"          || true
+        "True"          || true
+        "TRUE"          || true
+        "false"         || false
+        "False"         || false
+        "FALSE"         || false
     }
 
 }
