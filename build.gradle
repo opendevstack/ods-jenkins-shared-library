@@ -18,7 +18,7 @@ repositories {
     if (no_nexus) {
         println("using repositories 'jcenter' and 'mavenCentral'")
         mavenLocal()
-        jcenter()
+        // deprecated: jcenter()
         mavenCentral()
         maven {
             url "https://repo1.maven.org/maven2/"
@@ -46,7 +46,7 @@ repositories {
                 url repoUrl
             }
         }
-        nexusMaven("${nexus_url}/repository/jcenter/")
+        // deprecated: nexusMaven("${nexus_url}/repository/jcenter/")
         nexusMaven("${nexus_url}/repository/maven-public/")
         nexusMaven("${nexus_url}/repository/atlassian_public/")
         nexusMaven("${nexus_url}/repository/jenkins-ci-releases/")
@@ -82,7 +82,7 @@ dependencies {
     testImplementation ("com.athaydes:spock-reports:1.6.3") { transitive = false }
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.21.0'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
-    testImplementation "com.lesfurets:jenkins-pipeline-unit:1.9"
+    testImplementation group: 'com.lesfurets', name: 'jenkins-pipeline-unit', version: '1.9' // "com.lesfurets:jenkins-pipeline-unit:1.9"
     testImplementation "net.bytebuddy:byte-buddy:1.10.8"
     testImplementation "org.objenesis:objenesis:3.1"
     testImplementation "cglib:cglib-nodep:3.3.0"                      // for mocking classes
