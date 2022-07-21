@@ -73,7 +73,7 @@ class FinalizeStage extends Stage {
             logger.debug("Gathering commits")
             gatherCreatedExecutionCommits(steps, git)
 
-            if (!project.buildParams.rePromote) {
+            if ((!project.buildParams.rePromote) || (!git.remoteTagExists(project.targetTag))) {
                 pushRepos(steps, git)
                 recordAndPushEnvStateForReleaseManager(steps, logger, git)
             }
