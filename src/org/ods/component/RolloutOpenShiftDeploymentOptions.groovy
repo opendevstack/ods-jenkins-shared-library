@@ -48,6 +48,14 @@ class RolloutOpenShiftDeploymentOptions extends Options {
     List<String> helmValuesFiles
 
     /**
+     * List of paths to values files (empty by default). Only relevant if the
+     * directory referenced by `chartDir` exists. 
+     * These must contain a suffix called '.env.yml' - which will be replaced
+     * during rollout and deployment, and then added to helmValueFiles
+     */
+    List<String> helmEnvBasedValuesFiles
+
+    /**
      * List of default flags to be passed verbatim to to `helm upgrade`
      * (defaults to `['--install', '--atomic']`). Typically these should not be
      * modified - if you want to pass more flags, use `helmAdditionalFlags`

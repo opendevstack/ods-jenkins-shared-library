@@ -55,6 +55,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('helmValuesFiles')) {
             config.helmValuesFiles = []
         }
+        if (!config.containsKey('helmEnvBasedValuesFiles')) {
+            config.helmEnvBasedValuesFiles = []
+        }
         if (!config.containsKey('helmDefaultFlags')) {
             config.helmDefaultFlags = ['--install', '--atomic']
         }
@@ -216,10 +219,19 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 mergedHelmValues['imageNamespace'] = targetProject
                 mergedHelmValues['imageTag'] = options.imageTag
 
+                // deal with dynamic value files - which are env dependent 
+                def mergedHelmValueFiles = []
+                mergedHelmValueFiles << helmValueFiles
+
+                helmEnvBasedValuesFiles.each { envValueFile ->
+                    mergedHelmValueFiles << envValueFile.replace('.env',
+                        context.environment)
+                }
+
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
-                    options.helmValuesFiles,
+                    mergedHelmValueFiles,
                     mergedHelmValues,
                     options.helmDefaultFlags,
                     options.helmAdditionalFlags,
