@@ -201,7 +201,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     buildArtifacts.size() > 0
 
     1 * openShiftService.helmUpgrade(
-        'foo-dev', 'bar', [], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
+        'foo-dev', 'bar', ['values.yaml'], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
   }
 
   @Unroll
