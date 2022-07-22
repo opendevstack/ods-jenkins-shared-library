@@ -552,6 +552,10 @@ class Project {
         isPromotionMode(buildParams.targetEnvironmentToken)
     }
 
+    String getTargetEnvironmentToken() {
+        buildParams.targetEnvironmentToken
+    }
+
     boolean getIsAssembleMode() {
         !getIsPromotionMode()
     }
