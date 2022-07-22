@@ -168,8 +168,8 @@ class DeployOdsComponent {
                         true // verify
                     )
                 } else {
-                    def helmValueFiles =
-                        (deploymentMean.helmValueFiles) ?: ["values.yaml"]
+                    def helmValuesFiles =
+                        (deploymentMean.helmValuesFiles) ?: ["values.yaml"]
                     // system values
                     Map<String, String> helmMergedValues = [
                         "imageTag": project.targetTag,
@@ -181,14 +181,14 @@ class DeployOdsComponent {
 
                     // deal with dynamic value files - which are env dependent 
                     deploymentMean.helmEnvBasedValuesFiles.each { envValueFile ->
-                        helmValueFiles << envValueFile.replace('.env',
+                        helmValuesFiles << envValueFile.replace('.env',
                             ".${project.targetProject.split('-').last()}")
                     }
 
                     os.helmUpgrade(
                         project.targetProject,
                         deploymentMean.helmReleaseName,
-                        helmValueFiles,
+                        helmValuesFiles,
                         helmMergedValues,
                         deploymentMean.helmDefaultFlags,
                         deploymentMean.helmAdditionalFlags,
