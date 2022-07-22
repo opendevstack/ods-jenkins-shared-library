@@ -53,7 +53,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.helmValues = [:]
         }
         if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = []
+            config.helmValuesFiles = [ 'values.yaml' ]
         }
         if (!config.containsKey('helmEnvBasedValuesFiles')) {
             config.helmEnvBasedValuesFiles = []
@@ -220,8 +220,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 mergedHelmValues['imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent 
-                def mergedHelmValuesFiles = []
-                mergedHelmValuesFiles << options.helmValuesFiles
+                def mergedHelmValuesFiles = options.helmValuesFiles
 
                 options.helmEnvBasedValuesFiles.each { envValueFile ->
                     mergedHelmValuesFiles << envValueFile.replace('.env',
