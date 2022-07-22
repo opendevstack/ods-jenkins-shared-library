@@ -67,6 +67,14 @@ _boolean_
  referenced by `chartDir` exists.
 
 
+| *helmEnvBasedValuesFiles* +
+_List<String>_
+|List of paths to values files (empty by default). Only relevant if the
+ directory referenced by `chartDir` exists.
+ These must contain a suffix called '.env.yml' - which will be replaced
+ during rollout and deployment, and then added to helmValueFiles
+
+
 | *helmPrivateKeyCredentialsId* +
 _String_
 |Credentials name of the private key used by helm-secrets (defaults to
