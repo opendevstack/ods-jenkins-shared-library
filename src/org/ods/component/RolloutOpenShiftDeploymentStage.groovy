@@ -221,9 +221,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
                 // deal with dynamic value files - which are env dependent 
                 def mergedHelmValuesFiles = []
-                mergedHelmValuesFiles << helmValuesFiles
+                mergedHelmValuesFiles << options.helmValuesFiles
 
-                helmEnvBasedValuesFiles.each { envValueFile ->
+                options.helmEnvBasedValuesFiles.each { envValueFile ->
                     mergedHelmValuesFiles << envValueFile.replace('.env',
                         ".${context.environment}")
                 }
