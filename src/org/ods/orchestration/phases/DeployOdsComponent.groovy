@@ -179,7 +179,7 @@ class DeployOdsComponent {
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues
 
-                    // deal with dynamic value files - which are env dependent 
+                    // deal with dynamic value files - which are env dependent
                     deploymentMean.helmEnvBasedValuesFiles.each { envValueFile ->
                         helmValuesFiles << envValueFile.replace('.env',
                             ".${project.targetProject.split('-').last()}")
