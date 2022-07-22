@@ -182,7 +182,7 @@ class DeployOdsComponent {
                     // deal with dynamic value files - which are env dependent 
                     deploymentMean.helmEnvBasedValuesFiles.each { envValueFile ->
                         helmValueFiles << envValueFile.replace('.env',
-                            project.targetProject.split('-').last())
+                            ".${project.targetProject.split('-').last()}")
                     }
 
                     os.helmUpgrade(

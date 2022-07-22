@@ -225,7 +225,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
                 helmEnvBasedValuesFiles.each { envValueFile ->
                     mergedHelmValueFiles << envValueFile.replace('.env',
-                        context.environment)
+                        ".${context.environment}")
                 }
 
                 openShift.helmUpgrade(
