@@ -220,7 +220,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 mergedHelmValues['imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent 
-                def mergedHelmValuesFiles = options.helmValuesFiles
+                def mergedHelmValuesFiles = []
+                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
 
                 options.helmEnvBasedValuesFiles.each { envValueFile ->
                     mergedHelmValuesFiles << envValueFile.replace('.env',
