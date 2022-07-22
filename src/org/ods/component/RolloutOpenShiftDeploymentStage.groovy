@@ -220,18 +220,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 mergedHelmValues['imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent 
-                def mergedHelmValueFiles = []
-                mergedHelmValueFiles << helmValueFiles
+                def mergedHelmValuesFiles = []
+                mergedHelmValuesFiles << helmValuesFiles
 
                 helmEnvBasedValuesFiles.each { envValueFile ->
-                    mergedHelmValueFiles << envValueFile.replace('.env',
+                    mergedHelmValuesFiles << envValueFile.replace('.env',
                         ".${context.environment}")
                 }
 
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
-                    mergedHelmValueFiles,
+                    mergedHelmValuesFiles,
                     mergedHelmValues,
                     options.helmDefaultFlags,
                     options.helmAdditionalFlags,
@@ -296,7 +296,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                             'type': 'helm', 'selector': options.selector,
                             'chartDir': options.chartDir,
                             'helmReleaseName': options.helmReleaseName,
-                            'helmValueFiles': options.helmValuesFiles,
+                            'helmEnvBasedValuesFiles' : options.helmEnvBasedValuesFiles, 
+                            'helmValuesFiles': options.helmValuesFiles,
                             'helmValues': options.helmValues,
                             'helmDefaultFlags': options.helmDefaultFlags,
                             'helmAdditionalFlags': options.helmAdditionalFlags
