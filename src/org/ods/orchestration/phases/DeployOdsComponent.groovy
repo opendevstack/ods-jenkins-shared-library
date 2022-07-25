@@ -155,6 +155,11 @@ class DeployOdsComponent {
                     "${startDir}@${project.baseTag} to ${project.targetProject}, " +
                     "deploymentMean? ${deploymentMean}"
             )
+
+            def secretName = startDir.startsWith('openshift') ?
+                project.tailorPrivateKeyCredentialsId :
+                project.helmPrivateKeyCredentialsId
+
             def applyFunc = { String pkeyFile ->
                 // @ FIXME - which params should we take from the deploymentMean?
                 if (startDir.startsWith('openshift')) {
@@ -185,6 +190,9 @@ class DeployOdsComponent {
                             ".${project.targetProject.split('-').last()}")
                     }
 
+                    if (pkeyFile) {
+                        steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
+                    }
                     os.helmUpgrade(
                         project.targetProject,
                         deploymentMean.helmReleaseName,
@@ -195,7 +203,7 @@ class DeployOdsComponent {
                         true)
                 }
             }
-            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->
+            jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->
                 applyFunc(pkeyFile)
             }
         }

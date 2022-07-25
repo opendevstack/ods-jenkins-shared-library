@@ -1548,6 +1548,11 @@ class Project {
         "${getKey()}-cd-${secretName}"
     }
 
+    String getHelmPrivateKeyCredentialsId() {
+        def secretName = steps.env.HELM_PRIVATE_KEY_SECRET ?: 'helm-private-key'
+        "${getKey()}-cd-${secretName}"
+    }
+
     String getSourceRegistrySecretName() {
         'mro-image-pull'
     }
