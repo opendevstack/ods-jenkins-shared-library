@@ -137,11 +137,9 @@ class OpenShiftService {
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
         if (withDiff) {
-            def diffFlags = []
+            def diffFlags = upgradeFlags.findAll { it  }
             diffFlags << '--no-color'
-            if (!diffFlags.contains('--three-way-merge')){
-                diffFlags << '--three-way-merge'
-            }
+            diffFlags << '--three-way-merge'
             steps.sh(
                 script: "HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
                 label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
