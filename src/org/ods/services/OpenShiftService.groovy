@@ -139,7 +139,7 @@ class OpenShiftService {
         if (withDiff) {
             def diffFlags = upgradeFlags.findAll { it != '--atomic' || it != '--three-way-merge'}
             diffFlags << '--no-color'
-            if !diffFlags.contains('--three-way-merge'){
+            if (!diffFlags.contains('--three-way-merge')){
                 diffFlags << '--three-way-merge'
             }
             steps.sh(
