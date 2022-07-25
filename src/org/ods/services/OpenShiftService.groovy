@@ -137,7 +137,7 @@ class OpenShiftService {
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
         if (withDiff) {
-            def diffFlags = upgradeFlags.findAll { it != '--atomic' || it != '--three-way-merge'}
+            def diffFlags = upgradeFlags.findAll { it != '--atomic' }
             diffFlags << '--no-color'
             if (!diffFlags.contains('--three-way-merge')){
                 diffFlags << '--three-way-merge'
