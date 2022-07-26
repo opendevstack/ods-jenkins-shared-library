@@ -56,9 +56,10 @@ class CopyImageStage extends Stage {
                 --dest-tls-verify=false
             """,
             returnStatus: true,
-            label: "Copy image " +
-                    "to `${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}' " +
-                    "from `${this.options.sourceImageUrlIncludingRegistry}'"
+            label: "Copy image" +
+                    "\ndetails: " +
+                    "\nto '${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}' " +
+                    "\nfrom '${this.options.sourceImageUrlIncludingRegistry}'"
         )
         if (status != 0) {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
