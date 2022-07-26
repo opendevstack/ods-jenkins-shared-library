@@ -34,7 +34,7 @@ class CopyImageStage extends Stage {
         final String STR_DOCKER_PROTOCOL = 'docker://'
 
         logger.info("Resolved source Image data: " +
-            "${this.options.sourceImageUrlIncludingRegistry} into ${this.options},\n" +
+            "${this.options.sourceImageUrlIncludingRegistry},\n" +
             "importing into: " +
             "${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}")
 
