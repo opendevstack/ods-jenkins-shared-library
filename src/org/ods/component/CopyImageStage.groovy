@@ -46,17 +46,22 @@ class CopyImageStage extends Stage {
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        try {
-            steps.sh """
-            set +x
-            skopeo copy --src-tls-verify=false ${sourcetoken} \
-            ${this.options.registry}/${this.options.repo}/${this.options.image} \
-            --dest-creds openshift:${targetInternalRegistryToken} \
-            ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
-            --dest-tls-verify=false
-            """
-        } catch (err) {
-            throw err
+        final int status = steps.sh (
+            script: """
+                set +x
+                skopeo copy --src-tls-verify=false ${sourcetoken} \
+                ${this.options.registry}/${this.options.repo}/${this.options.image} \
+                --dest-creds openshift:${targetInternalRegistryToken} \
+                ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                --dest-tls-verify=false
+            """,
+            returnStatus: true,
+            label: "Copy image " +
+                    "to `${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}' " +
+                    "from `${this.options.registry}/${this.options.repo}/${this.options.image}'"
+        )
+        if (status != 0) {
+            script.error("Could not copy `${this.options.registry}/${this.options.repo}/${this.options.image}', status ${status}")
         }
 
         def imageName = this.options.image.split(':').first()
