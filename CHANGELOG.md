@@ -1,7 +1,6 @@
 # Changelog
 
 ## Unreleased
-- Remove orchestration pipeline restriction ([#867](https://github.com/opendevstack/ods-jenkins-shared-library/pull/867))
 - Prevent Jenkins nonCPS error after reporting bug  ([#776](https://github.com/opendevstack/ods-jenkins-shared-library/pull/776))
 - Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
