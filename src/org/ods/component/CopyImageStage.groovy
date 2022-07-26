@@ -49,11 +49,10 @@ class CopyImageStage extends Stage {
         final int status = steps.sh (
             script: """
                 set +x
-                skopeo copy --src-tls-verify=false ${sourcetoken} \
+                skopeo copy ${sourcetoken} \
                 ${this.options.registry}/${this.options.repo}/${this.options.image} \
                 --dest-creds openshift:${targetInternalRegistryToken} \
-                ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
-                --dest-tls-verify=false
+                ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}
             """,
             returnStatus: true,
             label: "Copy image" +
