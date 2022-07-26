@@ -58,10 +58,10 @@ class CopyImageStage extends Stage {
             returnStatus: true,
             label: "Copy image " +
                     "to `${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image}' " +
-                    "from `${this.options.registry}/${this.options.repo}/${this.options.image}'"
+                    "from `${this.options.sourceImageUrlIncludingRegistry}'"
         )
         if (status != 0) {
-            script.error("Could not copy `${this.options.registry}/${this.options.repo}/${this.options.image}', status ${status}")
+            script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
 
         def imageName = this.options.image.split(':').first()
@@ -91,7 +91,7 @@ class CopyImageStage extends Stage {
 
     protected String stageLabel() {
         return "${STAGE_NAME} " +
-            "Image: ${this.options.registry}/${this.options.repo}/${this.options.image}' " +
-            "(${context.componentId})"
+            "(${context.componentId}) " +
+            "${this.options.registry}/${this.options.repo}/${this.options.image}'"
     }
 }
