@@ -63,4 +63,11 @@ _String_
 _Boolean_
 |true will tag the image from the -cd namespace into the targetEnvironment that the pipeline is running for
 
+
+| *verifyTLS* +
+_Boolean_
+|verifyTLS allows the stage to ignore certificate validation errors.
+
+ The default is to verify certificate paths
+
 |===
