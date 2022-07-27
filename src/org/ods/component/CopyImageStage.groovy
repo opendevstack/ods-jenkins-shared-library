@@ -23,7 +23,7 @@ class CopyImageStage extends Stage {
         ILogger logger) {
         super(script, context, logger)
 
-        if (!config.verifyTLS) {
+        if (config.verifyTLS == null) {
             config.verifyTLS = true
         }
 
