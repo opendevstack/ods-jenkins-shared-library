@@ -22,6 +22,11 @@ class CopyImageStage extends Stage {
         OpenShiftService openShift,
         ILogger logger) {
         super(script, context, logger)
+
+        if (!config.verifyTLS) {
+            config.verifyTLS = true
+        }
+
         this.options = new CopyImageOptions(config)
         this.openShift = openShift
         this.logger = logger
@@ -50,11 +55,11 @@ class CopyImageStage extends Stage {
         def status = steps.sh (
             script: """
                 set +x
-                skopeo copy --src-tls-verify=false ${sourcetoken} \
+                skopeo copy --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${this.options.registry}/${this.options.repo}/${this.options.image} \
                 --dest-creds openshift:${targetInternalRegistryToken} \
                 ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
-                --dest-tls-verify=false
+                --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,
             label: "Copy image"

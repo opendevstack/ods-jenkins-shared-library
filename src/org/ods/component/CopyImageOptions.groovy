@@ -22,6 +22,13 @@ class CopyImageOptions extends Options {
      */
     String sourceCredential
 
+    /**
+     * verifyTLS allows the stage to ignore certificate validation errors.
+     *
+     * The default is to verify certificate paths
+     */
+    Boolean verifyTLS
+
     // INTERNAL!!
     /**
      * registry is an INTERNAL value, do not use it */
