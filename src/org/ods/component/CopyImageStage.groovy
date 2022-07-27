@@ -47,7 +47,7 @@ class CopyImageStage extends Stage {
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        final int status = steps.sh (
+        def status = steps.sh (
             script: """
                 set +x
                 skopeo copy --src-tls-verify=false ${sourcetoken} \
