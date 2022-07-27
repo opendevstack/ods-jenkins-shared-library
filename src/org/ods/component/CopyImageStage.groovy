@@ -52,9 +52,8 @@ class CopyImageStage extends Stage {
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        def status = steps.sh (
+        def status = steps.sh(
             script: """
-                set +x
                 skopeo copy --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${this.options.registry}/${this.options.repo}/${this.options.image} \
                 --dest-creds openshift:${targetInternalRegistryToken} \
