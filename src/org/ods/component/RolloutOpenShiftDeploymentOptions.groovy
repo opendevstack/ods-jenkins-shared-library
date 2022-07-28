@@ -51,7 +51,13 @@ class RolloutOpenShiftDeploymentOptions extends Options {
      * List of paths to values files (empty by default). Only relevant if the
      * directory referenced by `chartDir` exists.
      * These must contain a suffix called '.env.yml' - which will be replaced
-     * during rollout and deployment, and then added to helmValueFiles */
+     * during rollout and deployment, and then added to helmValueFiles
+     *
+     * Passing a string literal of 'values.env.yaml' will be expanded to their respective environments.
+     *
+     * For example: 'values.env.yaml' will become 'values.dev.yaml', 'values.test.yaml' or 'values.prod.yaml'.
+     * That means creating the usual files that are named after their respective environment are parsed as usual.
+     */
     List<String> helmEnvBasedValuesFiles
 
     /**
