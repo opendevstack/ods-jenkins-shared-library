@@ -52,17 +52,7 @@ class CopyImageStage extends Stage {
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        def status = steps.sh(
-            script: """
-                skopeo copy --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
-                ${this.options.registry}/${this.options.repo}/${this.options.image} \
-                --dest-creds openshift:${targetInternalRegistryToken} \
-                ${STR_DOCKER_PROTOCOL}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
-                --dest-tls-verify=${this.options.verifyTLS}
-            """,
-            returnStatus: true,
-            label: "Copy image"
-        )
+        int status = copyImage(sourcetoken, targetInternalRegistryToken, STR_DOCKER_PROTOCOL)
         if (status != 0) {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
@@ -90,6 +80,21 @@ class CopyImageStage extends Stage {
             )
             logger.info("!!! Image ${this.options.image} tagged into ${context.targetProject}")
         }
+    }
+
+    private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol) {
+        int status = steps.sh(
+            script: """
+                skopeo copy --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
+                ${this.options.registry}/${this.options.repo}/${this.options.image} \
+                --dest-creds openshift:${targetInternalRegistryToken} \
+                ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                --dest-tls-verify=${this.options.verifyTLS}
+            """,
+            returnStatus: true,
+            label: "Copy image ${this.options.repo}/${this.options.image}"
+        ) as int
+        return status
     }
 
     protected String stageLabel() {
