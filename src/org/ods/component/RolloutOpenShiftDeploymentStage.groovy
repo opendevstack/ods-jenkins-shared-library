@@ -293,7 +293,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     podData = openShift.checkForPodData(context.targetProject, options.selector)
                     context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                         [
-                            'type': 'helm', 'selector': options.selector,
+                            'type': 'helm',
+                            'selector': options.selector,
                             'chartDir': options.chartDir,
                             'helmReleaseName': options.helmReleaseName,
                             'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
