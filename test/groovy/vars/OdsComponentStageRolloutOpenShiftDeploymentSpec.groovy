@@ -150,10 +150,10 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
         openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
+    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
     openShiftService.getRevision(*_) >> 123
+    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.getImagesOfDeployment(*_) >> [[repository: 'foo', name: 'bar']]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -195,10 +195,12 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
+    deploymentInfo['Deployment/bar'][0].deploymentId == "bar-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
+    buildArtifacts['deployments']['bar-deploymentMean']['type'] == 'helm'
 
     1 * openShiftService.helmUpgrade(
         'foo-dev', 'bar', ['values.yaml'], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
