@@ -309,10 +309,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 // update this to store multiple pod artifacts.
                 // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                // FIXME: If this runs in a test we have a NullPointer here!
-                if (podData != null) {
-                    context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
-                }
+                context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
             }
         }
         rolloutData
