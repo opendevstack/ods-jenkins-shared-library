@@ -242,6 +242,13 @@ class GitService {
         )
     }
 
+    def pushForceBranchWithTags(String name) {
+        script.sh(
+            script: "git push -f --tags origin ${name}",
+            label: "Push branch ${name} with tags and force"
+        )
+    }
+
     boolean remoteTagExists(String name) {
         def tagStatus = script.sh(
             script: "git ls-remote --exit-code --tags origin ${name} &>/dev/null",

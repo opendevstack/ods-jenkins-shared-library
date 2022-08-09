@@ -265,7 +265,8 @@ class FinalizeStage extends Stage {
             if (!git.remoteTagExists(project.targetTag)) {
                 git.createTag(project.targetTag)
             }
-            git.pushBranchWithTags(project.gitReleaseBranch)
+            // To overwrite the existing tag (if redeploy)
+            git.pushForceBranchWithTags(project.gitReleaseBranch)
         }
     }
 
