@@ -86,6 +86,7 @@
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 - Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
 - Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
+- fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
 
 ## [3.0] - 2020-08-11
 
