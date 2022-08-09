@@ -109,8 +109,8 @@ class ScanWithAquaStage extends Stage {
                 // returnCode is 0 --> Success or 4 --> Error policies
                 // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
                 def errorCodes = [returnCode,
-                                  vulnerabilities.critical,
-                                  vulnerabilities.malware]
+                                  vulnerabilities.critical ?: 0,
+                                  vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
                 createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
