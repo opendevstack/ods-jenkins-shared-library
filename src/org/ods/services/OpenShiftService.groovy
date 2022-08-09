@@ -311,17 +311,13 @@ class OpenShiftService {
         versionNumber as int
     }
 
-    String getBuildStatus(String project, String buildId) {
+    String getBuildStatus(String project, String buildId, int retries) {
         def buildStatus = 'unknown'
-        def retries = 5
         for (def i = 0; i < retries; i++) {
             buildStatus = checkForBuildStatus(project, buildId)
             logger.debug ("Build: '${buildId}' - status: '${buildStatus}'")
             if (buildStatus == 'complete') {
                 return buildStatus
-            } else if (buildStatus == 'running') {
-                // reset retries
-                retries = 5
             }
             // Wait 12 seconds before asking again. Sometimes the build finishes but the
             // status is not set to "complete" immediately ...

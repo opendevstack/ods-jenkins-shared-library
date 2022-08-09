@@ -9,6 +9,9 @@
 - Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
 - Closes ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+- Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
+- Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
+- Add retry for Openshift image build status ([#901](https://github.com/opendevstack/ods-jenkins-shared-library/issues/901))
 - Increase default timeout for rollout ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
 
 ## [4.0] - 2021-05-11
@@ -87,6 +90,7 @@
 - Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
 - Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
+- Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
 
 ## [3.0] - 2020-08-11
 
