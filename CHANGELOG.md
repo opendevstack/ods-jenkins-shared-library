@@ -87,6 +87,7 @@
 - Increase default timeout for rollout  ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
 - Add retry for Openshift image build status ([#901](https://github.com/opendevstack/ods-jenkins-shared-library/issues/901))
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
+- fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
 
 ## [3.0] - 2020-08-11
 
