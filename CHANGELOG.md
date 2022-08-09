@@ -91,6 +91,7 @@
 - Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
 - Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
+- fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
 
 ## [3.0] - 2020-08-11
 
