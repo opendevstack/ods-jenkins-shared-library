@@ -29,17 +29,12 @@ class CopyImageOptions extends Options {
      */
     Boolean verifyTLS
 
-    // INTERNAL!!
-    /**
-     * registry is an INTERNAL value, do not use it */
-    String registry
-    /**
-     * repo is an INTERNAL value, do not use it */
-    String repo
-    /**
-     * image is an INTERNAL value, do not use it */
-    String image
-    /**
-     * imageTag is an INTERNAL value, do not use it */
-    String imageTag
+    @SuppressWarnings('UnusedPrivateField')
+    private String registry
+    @SuppressWarnings('UnusedPrivateField')
+    private String repo
+    @SuppressWarnings('UnusedPrivateField')
+    private String image
+    @SuppressWarnings('UnusedPrivateField')
+    private String imageTag
 }
