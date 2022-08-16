@@ -27,26 +27,6 @@ _List<String>_
  Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`).
 
 
-| *image* +
-_String_
-|image is an INTERNAL value, do not use it
-
-
-| *imageTag* +
-_String_
-|imageTag is an INTERNAL value, do not use it
-
-
-| *registry* +
-_String_
-|registry is an INTERNAL value, do not use it
-
-
-| *repo* +
-_String_
-|repo is an INTERNAL value, do not use it
-
-
 | *sourceCredential* +
 _String_
 |sourceCredential is the token to use, if any, to access the source registry
