@@ -202,8 +202,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (DocumentType.TIR as String)    : ["${DocumentType.TIR}_P"],
             (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_P"],
             (DocumentType.IVR as String)    : ["${DocumentType.IVR}_P"],
-            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"],
-            (DocumentType.DIL as String)    : ["${DocumentType.DIL}_P"]
+            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"]
         ]
     ]
 

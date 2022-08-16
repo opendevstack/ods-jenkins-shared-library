@@ -17,7 +17,7 @@ class PipelineScript {
             "getEnvironment" : { [ : ] }
     ]
 
-    def scm
+    def scm = [ "userRemoteConfigs" : "none" ]
 
     def currentBuild = [:]
 
