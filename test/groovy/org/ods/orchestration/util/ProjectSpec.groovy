@@ -2695,8 +2695,9 @@ class ProjectSpec extends SpecHelper {
             [(key): [ documents: docs, status: status, key: key ]]
         }
 
-        def data = [(Project.JiraDataItem.TYPE_DOCS):
-            issue('done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
+        def data = [
+            (Project.JiraDataItem.TYPE_DOCS): issue(
+                      'done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
                 issue('done2', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('canceled', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('undone1', 'WORK IN PROGress', ['CSD', 'SSDS']) +
@@ -2841,4 +2842,25 @@ class ProjectSpec extends SpecHelper {
         RuntimeException ex = thrown()
         ex.message == 'Error with testIssue key: NET-137, no component assigned or it is wrong.'
     }
+
+    def "load build param - rePromote field"() {
+        when:
+        steps.env.rePromote = rePromoteInput
+        def result = Project.loadBuildParams(steps)
+
+        then:
+        result.rePromote == rePromoteOutput
+
+        where:
+        rePromoteInput  || rePromoteOutput
+        null            || true
+        ""              || true
+        "true"          || true
+        "True"          || true
+        "TRUE"          || true
+        "false"         || false
+        "False"         || false
+        "FALSE"         || false
+    }
+
 }

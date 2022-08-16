@@ -270,6 +270,7 @@ class Project {
     protected Map config
     protected String targetProject
     protected Boolean isVersioningEnabled = false
+    private String _gitReleaseBranch
 
     protected Map data = [:]
 
@@ -365,12 +366,17 @@ class Project {
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
+        this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
+        this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
+
         if (this.hasWipJiraIssues()) {
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
+
+            this.logger.debug "addCommentInJiraReleaseStatus: ${message}"
             this.addCommentInReleaseStatus(message)
         }
 
@@ -994,7 +1000,14 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        return GitService.getReleaseBranch(buildParams.version)
+        if (null == _gitReleaseBranch) {
+            _gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        }
+        return _gitReleaseBranch
+    }
+
+    void setGitReleaseBranch(String gitReleaseBranch) {
+        _gitReleaseBranch = gitReleaseBranch
     }
 
     String getTargetProject() {
@@ -1050,7 +1063,10 @@ class Project {
         def configItem = steps.env.configItem?.trim() ?: 'UNDEFINED'
         def changeDescription = steps.env.changeDescription?.trim() ?: 'UNDEFINED'
         // Set rePromote=true if an existing tag should be deployed again
-        def rePromote = steps.env.rePromote?.trim() == 'true'
+        def rePromote = true
+        if (steps.env.rePromote && 'false'.equalsIgnoreCase(steps.env.rePromote.trim())) {
+            rePromote = false
+        }
 
         return [
             changeDescription: changeDescription,
@@ -1381,6 +1397,7 @@ class Project {
                         "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
+            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
         }
 
         if (result.capabilities == null) {
@@ -1416,7 +1433,10 @@ class Project {
     }
 
     void reportPipelineStatus(String message = '', boolean isError = false) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("Project: jiraUseCase has an invalid value.")
+            return
+        }
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
