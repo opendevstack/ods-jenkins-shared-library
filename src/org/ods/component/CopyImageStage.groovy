@@ -57,6 +57,7 @@ class CopyImageStage extends Stage {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
 
+        // Extract image name and tag for use in compliance later
         def imageName = this.options.image.split(':').first()
         def imageTag = this.options.image.split(':').last()
 
@@ -66,13 +67,13 @@ class CopyImageStage extends Stage {
             "${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image},\n" +
             "details: ${internalImageRef}")
 
+        // Add the imported image to the artifacts so they can show up in compliance docs
         def buildResourceName = "imported-${imageName}"
-
         context.addBuildToArtifactURIs("${buildResourceName}",
             [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
+        // If this option is set will additionally tag the image in the target namespace, not just the cd namespace
         if (options.tagIntoTargetEnv) {
-
             openShift.findOrCreateImageStream(context.targetProject, imageName)
             openShift.importImageTagFromProject(
                 context.targetProject, imageName, context.cdProject,
