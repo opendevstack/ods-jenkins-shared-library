@@ -109,6 +109,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             logger.warn 'Skipping because of empty (target) environment ...'
             return
         }
+
+        // We have to move everything here,
+        // otherwise Jenkins will complain
+        // about: "hudson.remoting.ProxyException: CpsCallableInvocation{methodName=fileExists, ..."
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
 
