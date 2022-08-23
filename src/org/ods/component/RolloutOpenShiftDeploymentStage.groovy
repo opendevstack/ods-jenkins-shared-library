@@ -110,6 +110,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
 
+        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        logger.debug("XXX config: ${prettyConfig}")
+
         // We have to move everything here,
         // otherwise Jenkins will complain
         // about: "hudson.remoting.ProxyException: CpsCallableInvocation{methodName=fileExists, ..."
