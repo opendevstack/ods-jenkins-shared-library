@@ -5,37 +5,16 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.util.IPipelineSteps
 
-class AbstractDeploymentStrategy {
-    protected IContext context
-    protected OpenShiftService openShift
-    protected RolloutOpenShiftDeploymentOptions options
-    protected IPipelineSteps steps
+abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
+//    protected final IContext context
+//    protected final OpenShiftService openShift
+//    protected final IPipelineSteps steps
+//
+//    abstract protected final RolloutOpenShiftDeploymentOptions options
 
-    protected AbstractDeploymentStrategy(){};
-
-    protected void retagImages(String targetProject, Set<String> images) {
-        images.each { image ->
-            findOrCreateImageStream(targetProject, image)
-            openShift.importImageTagFromProject(
-                targetProject, image, context.cdProject, options.imageTag, options.imageTag
-            )
-        }
-    }
-
-    private findOrCreateImageStream(String targetProject, String image) {
-        try {
-            openShift.findOrCreateImageStream(targetProject, image)
-        } catch (Exception ex) {
-            steps.error "Could not find/create ImageStream ${image} in ${targetProject}. Error was: ${ex}"
-        }
-    }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
-    protected Set<String> getBuiltImages() {
-        context.buildArtifactURIs.builds.keySet().findAll { it ->
-            !it.startsWith("imported-")
-        }
-    }
+    protected final List<String> DEPLOYMENT_KINDS = [
+        OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+    ]
 
     protected Map<String, Map<String, Integer>> fetchOriginalVersions(Map<String, List<String>> deploymentResources) {
         def originalVersions = [:]
@@ -51,4 +30,29 @@ class AbstractDeploymentStrategy {
         }
         originalVersions
     }
+
+    protected findOrCreateImageStream(String targetProject, String image) {
+        try {
+            openShift.findOrCreateImageStream(targetProject, image)
+        } catch (Exception ex) {
+            steps.error "Could not find/create ImageStream ${image} in ${targetProject}. Error was: ${ex}"
+        }
+    }
+
+    protected void retagImages(String targetProject, Set<String> images) {
+        images.each { image ->
+            findOrCreateImageStream(targetProject, image)
+            openShift.importImageTagFromProject(
+                targetProject, image, context.cdProject, options.imageTag, options.imageTag
+            )
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    protected Set<String> getBuiltImages() {
+        context.buildArtifactURIs.builds.keySet().findAll { it ->
+            !it.startsWith("imported-")
+        }
+    }
+
 }
