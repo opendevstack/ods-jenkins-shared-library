@@ -21,6 +21,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final RolloutOpenShiftDeploymentOptions options
     private IDeploymentStrategy deploymentStrategy
 
+    // FIXME -- delete
+    private String prettyConfig
+
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
     RolloutOpenShiftDeploymentStage(
@@ -31,7 +34,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, logger)
-        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
         logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         if (!config.selector) {
@@ -99,7 +102,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorParams')) {
             config.tailorParams = []
         }
-        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
         logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         this.options = new RolloutOpenShiftDeploymentOptions(config)
@@ -115,7 +118,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
 
-        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
         logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         // We have to move everything here,

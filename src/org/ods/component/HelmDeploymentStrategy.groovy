@@ -24,6 +24,9 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //    private final IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
+    // FIXME -- delete
+    private String prettyConfig
+
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     HelmDeploymentStrategy(
         def script,
@@ -33,7 +36,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         JenkinsService jenkins,
         ILogger logger
     ) {
-        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
         logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         if (!config.selector) {
