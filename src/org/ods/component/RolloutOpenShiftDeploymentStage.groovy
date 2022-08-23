@@ -20,6 +20,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final JenkinsService jenkins
     private final RolloutOpenShiftDeploymentOptions options
     private IDeploymentStrategy deploymentStrategy
+    private Map<String, Object> config
 
     // FIXME -- delete
     private String prettyConfig
@@ -34,8 +35,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, logger)
-        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
-        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         if (!config.selector) {
             config.selector = context.selector
@@ -102,9 +101,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorParams')) {
             config.tailorParams = []
         }
-        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
-        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
+        this.config = config
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins

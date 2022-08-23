@@ -13,7 +13,6 @@ import org.ods.util.PodData
 class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 
     // Constructor arguments
-    private def steps
     private final Script script
     private final IContext context
     private final OpenShiftService openShift
@@ -21,11 +20,8 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
     private final ILogger logger
 
     // assigned in constructor
-//    private final IPipelineSteps steps
+    private def steps
     private final RolloutOpenShiftDeploymentOptions options
-
-    // FIXME -- delete
-    private String prettyConfig
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     HelmDeploymentStrategy(
@@ -36,8 +32,6 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         JenkinsService jenkins,
         ILogger logger
     ) {
-        prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
-        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         if (!config.selector) {
             config.selector = context.selector
