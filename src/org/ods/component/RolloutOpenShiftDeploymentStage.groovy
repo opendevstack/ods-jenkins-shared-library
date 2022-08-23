@@ -31,6 +31,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, logger)
+        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
+
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -96,6 +99,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorParams')) {
             config.tailorParams = []
         }
+        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
