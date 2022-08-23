@@ -35,7 +35,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         ILogger logger
     ) {
         String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
-        logger.info("XXX config: ${prettyConfig}")
+        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         if (!config.selector) {
             config.selector = context.selector

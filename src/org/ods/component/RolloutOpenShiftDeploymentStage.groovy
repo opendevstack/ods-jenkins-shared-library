@@ -111,7 +111,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
-        logger.info("XXX config: ${prettyConfig}")
+        logger.info("XXX config(${this.class.name}): ${prettyConfig}")
 
         // We have to move everything here,
         // otherwise Jenkins will complain
