@@ -123,7 +123,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             throw new IllegalStateException("Must be either a Tailor based deployment or a Helm based deployment")
         }
 
-        deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+        // Use tailorDeployment in the following cases:
+        // (1) We have an openshiftDir
+        // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
+        if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
+            deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+        }
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
         }
