@@ -142,6 +142,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 )
                 metadata.updateMetadata(true, deploymentResources)
                 rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+                logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
                 paused = false
                 return rolloutData
             } // else {

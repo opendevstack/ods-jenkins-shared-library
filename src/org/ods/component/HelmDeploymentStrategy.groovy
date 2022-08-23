@@ -148,7 +148,8 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //                return rolloutData
 //            } else {
         rolloutData = rollout(deploymentResources) //, originalDeploymentVersions, true)
-        paused = false
+        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
+//        paused = false
         return rolloutData
 //            }
 //        } finally {
