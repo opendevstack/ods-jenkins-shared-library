@@ -101,6 +101,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         this.openShift = openShift
         this.jenkins = jenkins
 
+    }
+
+    // This is called from Stage#execute if the branch being built is eligible.
+    protected run() {
+        if (!context.environment) {
+            logger.warn 'Skipping because of empty (target) environment ...'
+            return
+        }
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
 
@@ -112,14 +120,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
-        }
-    }
-
-    // This is called from Stage#execute if the branch being built is eligible.
-    protected run() {
-        if (!context.environment) {
-            logger.warn 'Skipping because of empty (target) environment ...'
-            return
         }
         return deploymentStrategy.deploy()
     }

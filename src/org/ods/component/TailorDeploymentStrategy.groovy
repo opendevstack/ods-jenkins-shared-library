@@ -26,7 +26,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     TailorDeploymentStrategy(
-        Script script,
+        def script,
         IContext context,
         Map<String, Object> config,
         OpenShiftService openShift,
