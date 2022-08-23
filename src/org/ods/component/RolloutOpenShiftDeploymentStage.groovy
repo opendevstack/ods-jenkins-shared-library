@@ -114,7 +114,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // otherwise Jenkins will complain
         // about: "hudson.remoting.ProxyException: CpsCallableInvocation{methodName=fileExists, ..."
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
+        logger.info("isHelmDeployment: ${isHelmDeployment}")
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
+        logger.info("isTailorDeployment: ${isTailorDeployment}")
 
         if (isTailorDeployment && isHelmDeployment){
             steps.error("Must be either a Tailor based deployment or a Helm based deployment")
@@ -125,6 +127,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
         }
+        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()
     }
 

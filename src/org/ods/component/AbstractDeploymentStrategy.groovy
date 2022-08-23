@@ -7,11 +7,6 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
-//    protected final IContext context
-//    protected final OpenShiftService openShift
-//    protected final IPipelineSteps steps
-//
-//    abstract protected final RolloutOpenShiftDeploymentOptions options
 
     protected final List<String> DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
