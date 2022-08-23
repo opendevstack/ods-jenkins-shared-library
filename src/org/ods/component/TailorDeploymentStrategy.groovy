@@ -13,6 +13,7 @@ import org.ods.util.PodData
 class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // Constructor arguments
+    private def steps
     private final Script script
     private final IContext context
     private final OpenShiftService openShift
@@ -33,6 +34,9 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         JenkinsService jenkins,
         ILogger logger
     ) {
+        String prettyConfig = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))
+        logger.info("XXX config: ${prettyConfig}")
+
         if (!config.selector) {
             config.selector = context.selector
         }

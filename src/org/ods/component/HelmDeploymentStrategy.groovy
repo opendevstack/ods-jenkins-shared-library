@@ -13,6 +13,7 @@ import org.ods.util.PodData
 class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 
     // Constructor arguments
+    private def steps
     private final Script script
     private final IContext context
     private final OpenShiftService openShift
