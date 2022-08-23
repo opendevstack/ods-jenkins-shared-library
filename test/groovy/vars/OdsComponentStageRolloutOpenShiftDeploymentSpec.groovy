@@ -43,8 +43,12 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 15) >> "bar-124"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [new PodData([ deploymentId: "bar-124" ])]
+//    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([ deploymentId: "bar-124" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'DeploymentConfig', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
@@ -75,8 +79,12 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 15) >> "bar-6f8db5fb69"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
+//    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'Deployment', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
@@ -106,6 +114,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
     openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
+//    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -143,18 +152,15 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully with Helm"() {
     given:
-    def c = config + [
-        chartDir: 'chart',
-        environment: 'dev',
-        targetProject: 'foo-dev',
-        openshiftRolloutTimeoutRetries: 5]
+    def c = config + [environment: 'dev',targetProject: 'foo-dev',openshiftRolloutTimeoutRetries: 5,chartDir: 'chart']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
     openShiftService.getRevision(*_) >> 123
-    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getImagesOfDeployment(*_) >> [[repository: 'foo', name: 'bar']]
+    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
+    openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
+    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -191,7 +197,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     }
     def deploymentInfo = script.call(context)
 
-    // We really only care about the call to `helmUpgrade'
     then:
     printCallStack()
     assertJobStatusSuccess()
@@ -200,10 +205,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    buildArtifacts['deployments']['bar-deploymentMean']['type'] == 'helm'
+    buildArtifacts.deployments['bar-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade(
-        'foo-dev', 'bar', ['values.yaml'], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('foo-dev', 'bar', ['values.yaml'], ['registry':null, 'componentId':'bar', 'imageNamespace':'foo-dev', 'imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll
@@ -213,6 +217,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     IContext context = new Context(null, cfg, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getResourcesForComponent(_, { it == ['Deployment', 'DeploymentConfig'] }, _) >> [DeploymentConfig: ['bar']]
+//    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.resourceExists(_, { it == 'ImageStream' }, _) >> isExists
     openShiftService.getImagesOfDeployment(*_) >> images
     openShiftService.getRevision(*_) >> latestVersion
@@ -220,6 +225,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
             throw new RuntimeException('Boom!')
         }
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
@@ -254,6 +262,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+        args == 'openshift'
+    }
     script.call(context)
 
     then:
