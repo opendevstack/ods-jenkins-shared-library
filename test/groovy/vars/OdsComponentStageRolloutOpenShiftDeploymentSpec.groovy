@@ -45,11 +45,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [new PodData([ deploymentId: "bar-124" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'DeploymentConfig', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      false
+        args == 'openshift'
     }
     def deploymentInfo = script.call(context)
 
@@ -77,11 +80,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'Deployment', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      false
+        args == 'openshift'
     }
     def deploymentInfo = script.call(context)
 
@@ -220,11 +226,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
             throw new RuntimeException('Boom!')
         }
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      false
+        args == 'openshift'
     }
     script.call(context)
 
@@ -254,6 +263,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+        args == 'openshift'
+    }
     script.call(context)
 
     then:
