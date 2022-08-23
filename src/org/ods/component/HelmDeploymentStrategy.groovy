@@ -90,7 +90,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
     Map<String, List<PodData>> deploy() {
         if (!context.environment) {
             logger.warn 'Skipping because of empty (target) environment ...'
-            return
+            return [:]
         }
 
         def deploymentResources = openShift.getResourcesForComponent(
@@ -107,32 +107,32 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
         def refreshResources = false
-        def paused = true
-        try {
+//        def paused = true
+//        try {
 //            if (!isHelmDeployment) {
 //                openShift.bulkPause(context.targetProject, deploymentResources)
 //            }
 
-            // Tag images which have been built in this pipeline from cd project into target project
-            retagImages(context.targetProject, getBuiltImages())
+        // Tag images which have been built in this pipeline from cd project into target project
+        retagImages(context.targetProject, getBuiltImages())
 
-            if (isHelmDeployment) {
-                logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
-                refreshResources = true
-                helmUpgrade(context.targetProject)
-            }
+        if (isHelmDeployment) {
+            logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
+            refreshResources = true
+            helmUpgrade(context.targetProject)
+        }
 //            if (steps.fileExists(options.openshiftDir) && !isHelmDeployment) {
 //                refreshResources = true
 //                tailorApply(context.targetProject)
 //            }
 
-            if (refreshResources) {
-                deploymentResources = openShift.getResourcesForComponent(
-                    context.targetProject, DEPLOYMENT_KINDS, options.selector
-                )
-            }
+        if (refreshResources) {
+            deploymentResources = openShift.getResourcesForComponent(
+                context.targetProject, DEPLOYMENT_KINDS, options.selector
+            )
+        }
 
-            def rolloutData = [:]
+        def rolloutData = [:]
 //            if (!isHelmDeployment) {
 //                def metadata = new OpenShiftResourceMetadata(
 //                    steps,
@@ -146,15 +146,15 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //                paused = false
 //                return rolloutData
 //            } else {
-                rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
-                paused = false
-                return rolloutData
+        rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
+        paused = false
+        return rolloutData
 //            }
-        } finally {
+//        } finally {
 //            if (paused && !isHelmDeployment) {
 //                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
 //            }
-        }
+//        }
     }
 
 //    protected String stageLabel() {
@@ -227,17 +227,17 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> rollout(
-        Map<String, List<String>> deploymentResources,
-        Map<String, Map<String, Integer>> originalVersions,
-        boolean isHelm = false) {
+        Map<String, List<String>> deploymentResources//,
+        //Map<String, Map<String, Integer>> originalVersions,
+    ){ //boolean isHelm = false) {
 
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
-                def originalVersion = 0
-                if (originalVersions.containsKey(resourceKind)) {
-                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
-                }
+//                def originalVersion = 0
+//                if (originalVersions.containsKey(resourceKind)) {
+//                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
+//                }
 
                 def podData = [:]
 //                if (!isHelm) {
@@ -252,8 +252,8 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //                            'tailorVerify': options.tailorVerify
 //                        ])
 //                } else {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector)
-                    context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
+                podData = openShift.checkForPodData(context.targetProject, options.selector)
+                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                         [
                             'type': 'helm',
                             'selector': options.selector,

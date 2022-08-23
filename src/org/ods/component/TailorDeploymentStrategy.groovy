@@ -90,19 +90,19 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     Map<String, List<PodData>> deploy() {
         if (!context.environment) {
             logger.warn 'Skipping because of empty (target) environment ...'
-            return
+            return [:]
         }
 
         def deploymentResources = openShift.getResourcesForComponent(
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
-        def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
+        def isHelmDeployment = false //steps.fileExists(options.chartDir + '/Chart.yaml')
 
         if (context.triggeredByOrchestrationPipeline
             && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
             && !isHelmDeployment) {
             steps.error "Deployment resources cannot be used in a NON HELM orchestration pipeline."
-            return
+            return [:]
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 

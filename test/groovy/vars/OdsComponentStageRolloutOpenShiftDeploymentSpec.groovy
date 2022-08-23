@@ -53,7 +53,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-        false
+      false
     }
     def deploymentInfo = script.call(context)
 
@@ -89,7 +89,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-        false
+      false
     }
     def deploymentInfo = script.call(context)
 
@@ -122,7 +122,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
-    Script script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       args == 'openshift'
     }
@@ -152,19 +152,15 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully with Helm"() {
     given:
-    def c = config + [
-        chartDir: 'chart',
-        environment: 'dev',
-        targetProject: 'foo-dev',
-        openshiftRolloutTimeoutRetries: 5]
+    def c = config + [environment: 'dev',targetProject: 'foo-dev',openshiftRolloutTimeoutRetries: 5,chartDir: 'chart']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
     openShiftService.getRevision(*_) >> 123
-//    openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
-    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getImagesOfDeployment(*_) >> [[repository: 'foo', name: 'bar']]
+    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
+    openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
+    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -201,7 +197,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     }
     def deploymentInfo = script.call(context)
 
-    // We really only care about the call to `helmUpgrade'
     then:
     printCallStack()
     assertJobStatusSuccess()
@@ -210,10 +205,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    buildArtifacts['deployments']['bar-deploymentMean']['type'] == 'helm'
+    buildArtifacts.deployments['bar-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade(
-        'foo-dev', 'bar', ['values.yaml'], { it.containsKey('imageTag') }, ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('foo-dev', 'bar', ['values.yaml'], [imageTag: 'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll
@@ -238,7 +232,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-        false
+      false
     }
     script.call(context)
 
