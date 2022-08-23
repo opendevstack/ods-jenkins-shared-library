@@ -147,7 +147,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //                paused = false
 //                return rolloutData
 //            } else {
-        rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
+        rolloutData = rollout(deploymentResources) //, originalDeploymentVersions, true)
         paused = false
         return rolloutData
 //            }
