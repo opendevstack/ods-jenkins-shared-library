@@ -79,12 +79,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         this.jenkins = jenkins
     }
 
-
-
-
-
-
-
     @Override
     Map<String, List<PodData>> deploy() {
         if (!context.environment) {
@@ -115,11 +109,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
-//            if (isHelmDeployment) {
-//                logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
-//                refreshResources = true
-//                helmUpgrade(context.targetProject)
-//            }
             if (steps.fileExists(options.openshiftDir)) {
                 refreshResources = true
                 tailorApply(context.targetProject)
@@ -145,25 +134,13 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
                 paused = false
                 return rolloutData
-            } // else {
-//                rolloutData = rollout(deploymentResources, originalDeploymentVersions, true)
-//                paused = false
-//                return rolloutData
-//            }
+            }
         } finally {
             if (paused && !isHelmDeployment) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
     }
-
-//    protected String stageLabel() {
-//        if (options.selector != context.selector) {
-//            return "${STAGE_NAME} (${options.selector})"
-//        }
-//        STAGE_NAME
-//    }
-
 
     private void tailorApply(String targetProject) {
         steps.dir(options.openshiftDir) {
@@ -181,45 +158,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         }
     }
 
-//    private void helmUpgrade(String targetProject) {
-//        steps.dir(options.chartDir) {
-//            jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->
-//                if (pkeyFile) {
-//                    steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
-//                }
-//
-//                // we add two things persistent - as these NEVER change (and are env independent)
-//                options.helmValues['registry'] = context.clusterRegistryAddress
-//                options.helmValues['componentId'] = context.componentId
-//
-//                // we persist the original ones set from outside - here we just add ours
-//                Map mergedHelmValues = [:]
-//                mergedHelmValues << options.helmValues
-//                mergedHelmValues['imageNamespace'] = targetProject
-//                mergedHelmValues['imageTag'] = options.imageTag
-//
-//                // deal with dynamic value files - which are env dependent
-//                def mergedHelmValuesFiles = []
-//                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
-//
-//                options.helmEnvBasedValuesFiles.each { envValueFile ->
-//                    mergedHelmValuesFiles << envValueFile.replace('.env',
-//                        ".${context.environment}")
-//                }
-//
-//                openShift.helmUpgrade(
-//                    targetProject,
-//                    options.helmReleaseName,
-//                    mergedHelmValuesFiles,
-//                    mergedHelmValues,
-//                    options.helmDefaultFlags,
-//                    options.helmAdditionalFlags,
-//                    options.helmDiff
-//                )
-//            }
-//        }
-//    }
-
     // rollout returns a map like this:
     // [
     //    'DeploymentConfig/foo': [[podName: 'foo-a', ...], [podName: 'foo-b', ...]],
@@ -228,8 +166,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> rollout(
         Map<String, List<String>> deploymentResources,
-        Map<String, Map<String, Integer>> originalVersions,
-        boolean isHelm = false) {
+        Map<String, Map<String, Integer>> originalVersions) {
 
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
@@ -240,32 +177,16 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 }
 
                 def podData = [:]
-                if (!isHelm) {
-                    podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
-                    context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-                        [
-                            'type': 'tailor', 'selector': options.selector,
-                            'tailorSelectors': [selector: options.tailorSelector, exclude: options.tailorExclude],
-                            'tailorParamFile': options.tailorParamFile,
-                            'tailorParams': options.tailorParams,
-                            'tailorPreserve': options.tailorPreserve,
-                            'tailorVerify': options.tailorVerify
-                        ])
-//                } else {
-//                    podData = openShift.checkForPodData(context.targetProject, options.selector)
-//                    context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-//                        [
-//                            'type': 'helm',
-//                            'selector': options.selector,
-//                            'chartDir': options.chartDir,
-//                            'helmReleaseName': options.helmReleaseName,
-//                            'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-//                            'helmValuesFiles': options.helmValuesFiles,
-//                            'helmValues': options.helmValues,
-//                            'helmDefaultFlags': options.helmDefaultFlags,
-//                            'helmAdditionalFlags': options.helmAdditionalFlags
-//                        ])
-                }
+                podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
+                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
+                    [
+                        'type': 'tailor', 'selector': options.selector,
+                        'tailorSelectors': [selector: options.tailorSelector, exclude: options.tailorExclude],
+                        'tailorParamFile': options.tailorParamFile,
+                        'tailorParams': options.tailorParams,
+                        'tailorPreserve': options.tailorPreserve,
+                        'tailorVerify': options.tailorVerify
+                    ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
@@ -314,7 +235,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
             options.deployTimeoutRetries
         )
     }
-
 
     private List<Map<String, String>> missingImageStreams(List<Map<String, String>> imageStreams) {
         imageStreams.findAll { !openShift.resourceExists(context.targetProject, 'ImageStream', it.name) }
