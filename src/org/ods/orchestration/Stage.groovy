@@ -37,7 +37,9 @@ class Stage {
         script.stage(STAGE_NAME) {
             logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
+                logger.debug("BEGIN Calling ${this.class.name}.run()")
                 return this.run()
+                logger.debug("END Calling ${this.class.name}.run()")
             } catch (e) {
                 def eThrow = e
                 // Check for random null references which occur after a Jenkins restart
@@ -48,7 +50,7 @@ class Stage {
                     ).initCause(e)
                 }
 
-                logger.warn("Error occured within the orchestration pipeline: ${e.message}")
+                logger.warn("Error occured within the orchestration pipeline (${this.class.name}): ${e.message}")
 
                 try {
                     project.reportPipelineStatus(eThrow.message, true)
