@@ -108,18 +108,19 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         }
 
         def rolloutData = [:]
-        def metadata = new OpenShiftResourceMetadata(
-            steps,
-            context.properties,
-            options.properties,
-            logger,
-            openShift
-        )
-
-        // FIXME: pauseRollouts is non trivial to determine!
-        // we assume that Helm does "Deployment" that should work for most
-        // cases since they don't have triggers.
-        metadata.updateMetadata(false, deploymentResources)
+//        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks because it, unconditionally, tries to reset some fields
+//        def metadata = new OpenShiftResourceMetadata(
+//            steps,
+//            context.properties,
+//            options.properties,
+//            logger,
+//            openShift
+//        )
+//
+//        // FIXME: pauseRollouts is non trivial to determine!
+//        // we assume that Helm does "Deployment" that should work for most
+//        // cases since they don't have triggers.
+//        metadata.updateMetadata(false, deploymentResources)
         rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
         return rolloutData
     }
