@@ -22,8 +22,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private IDeploymentStrategy deploymentStrategy
     private Map<String, Object> config
 
-    // FIXME -- delete
-    private String prettyConfig
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
