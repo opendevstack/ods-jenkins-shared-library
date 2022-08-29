@@ -88,22 +88,19 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def deploymentResources = openShift.getResourcesForComponent(
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
-        def isHelmDeployment = false //steps.fileExists(options.chartDir + '/Chart.yaml')
 
         if (context.triggeredByOrchestrationPipeline
-            && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)
-            && !isHelmDeployment) {
+            && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)) {
             steps.error "Deployment resources cannot be used in a NON HELM orchestration pipeline."
             return [:]
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
         def refreshResources = false
-        def paused = true
+        def paused = false
         try {
-            if (!isHelmDeployment) {
-                openShift.bulkPause(context.targetProject, deploymentResources)
-            }
+            openShift.bulkPause(context.targetProject, deploymentResources)
+            paused = true
 
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
@@ -119,23 +116,22 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 )
             }
 
-            def rolloutData = [:]
-            if (!isHelmDeployment) {
-                def metadata = new OpenShiftResourceMetadata(
-                    steps,
-                    context.properties,
-                    options.properties,
-                    logger,
-                    openShift
-                )
-                metadata.updateMetadata(true, deploymentResources)
-                rolloutData = rollout(deploymentResources, originalDeploymentVersions)
-                logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
-                paused = false
-                return rolloutData
-            }
+            def metadata = new OpenShiftResourceMetadata(
+                steps,
+                context.properties,
+                options.properties,
+                logger,
+                openShift
+            )
+            metadata.updateMetadata(true, deploymentResources)
+            openShift.bulkResume(context.targetProject, deploymentResources)
+            paused = false
+
+            def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+            return rolloutData
+
         } finally {
-            if (paused && !isHelmDeployment) {
+            if (paused) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
