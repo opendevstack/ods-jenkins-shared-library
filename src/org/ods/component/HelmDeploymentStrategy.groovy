@@ -92,7 +92,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
-        def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
+//        def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
         def refreshResources = false
 
         // Tag images which have been built in this pipeline from cd project into target project
@@ -111,7 +111,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         }
 
         def rolloutData = [:]
-        rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+        rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
         return rolloutData
     }
@@ -162,16 +162,16 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> rollout(
-        Map<String, List<String>> deploymentResources,
-        Map<String, Map<String, Integer>> originalVersions) {
+        Map<String, List<String>> deploymentResources) {//,
+        //Map<String, Map<String, Integer>> originalVersions) {
 
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
-                def originalVersion = 0
-                if (originalVersions.containsKey(resourceKind)) {
-                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
-                }
+//                def originalVersion = 0
+//                if (originalVersions.containsKey(resourceKind)) {
+//                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
+//                }
 
                 def podData = [:]
                 podData = openShift.checkForPodData(context.targetProject, options.selector)

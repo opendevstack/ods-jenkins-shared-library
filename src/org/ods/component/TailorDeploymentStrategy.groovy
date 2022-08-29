@@ -6,7 +6,6 @@ import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.util.PodData
 

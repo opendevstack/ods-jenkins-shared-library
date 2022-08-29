@@ -3,7 +3,6 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
-import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
