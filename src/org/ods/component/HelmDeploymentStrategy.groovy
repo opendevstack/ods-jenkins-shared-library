@@ -2,6 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -111,8 +112,19 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         }
 
         def rolloutData = [:]
+        def metadata = new OpenShiftResourceMetadata(
+            steps,
+            context.properties,
+            options.properties,
+            logger,
+            openShift
+        )
+
+        // FIXME: pauseRollouts is non trivial to determine!
+        // we assume that Helm does "Deployment" that should work for most
+        // cases since they don't have triggers.
+        metadata.updateMetadata(false, deploymentResources)
         rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
-        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))// delete
         return rolloutData
     }
 
