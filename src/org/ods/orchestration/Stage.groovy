@@ -48,7 +48,7 @@ class Stage {
                     ).initCause(e)
                 }
 
-                logger.warn("Error occured within the orchestration pipeline: ${e.message}")
+                logger.warn("Error occured within the orchestration pipeline (${this.class.name}): ${e.message}")
 
                 try {
                     project.reportPipelineStatus(eThrow.message, true)
