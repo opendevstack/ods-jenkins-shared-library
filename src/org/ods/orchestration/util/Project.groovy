@@ -1416,12 +1416,18 @@ class Project {
     }
 
     void reportPipelineStatus(String message = '', boolean isError = false) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
+            return
+        }
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
     void addCommentInReleaseStatus(String message) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("addCommentInReleaseStatus: Could *NOT* add comment because jiraUseCase has invalid value.")
+            return
+        }
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 

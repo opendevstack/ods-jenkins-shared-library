@@ -121,6 +121,7 @@ class FinalizeStage extends Stage {
                     'FAILED', "Release Manager for commit: ${project.gitData.commit}")
             }
 
+            logger.debug(message)
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {

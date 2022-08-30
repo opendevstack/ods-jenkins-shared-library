@@ -352,9 +352,14 @@ class JiraUseCase {
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
-        if (!this.jira) return
+        if (!this.jira) {
+            logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
+            return
+        }
 
         def status = isError ? 'Failed' : 'Successful'
+
+        logger.info("Updating Jira release status with result ${status} and comment ${message}")
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
@@ -370,7 +375,12 @@ class JiraUseCase {
     void addCommentInReleaseStatus(String message) {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         if (message) {
-            this.jira.appendCommentToIssue(releaseStatusIssueKey, "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}")
+            String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
+            logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+            this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
+            logger.info("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+        } else {
+            logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
 
     }
