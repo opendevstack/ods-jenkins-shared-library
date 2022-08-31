@@ -73,10 +73,8 @@ class FinalizeStage extends Stage {
             logger.debug("Gathering commits")
             gatherCreatedExecutionCommits(steps, git)
 
-            if (!project.buildParams.rePromote) {
-                pushRepos(steps, git)
-                recordAndPushEnvStateForReleaseManager(steps, logger, git)
-            }
+            pushRepos(steps, git)
+            recordAndPushEnvStateForReleaseManager(steps, logger, git)
 
             // add the tag commit that was created for traceability ..
             logger.debug "Current release manager commit: ${project.gitData.commit}"
@@ -149,10 +147,14 @@ class FinalizeStage extends Stage {
                         String branchName = repo.data.git.branch ?: repo.branch
                         git.pushRef(branchName)
                     } else if (project.isAssembleMode) {
-                        git.createTag(project.targetTag)
+                        if (!git.remoteTagExists(project.targetTag)) {
+                            git.createTag(project.targetTag)
+                        }
                         git.pushBranchWithTags(project.gitReleaseBranch)
                     } else {
-                        git.createTag(project.targetTag)
+                        if (!git.remoteTagExists(project.targetTag)) {
+                            git.createTag(project.targetTag)
+                        }
                         git.pushRef(project.targetTag)
                     }
                 }
@@ -261,8 +263,11 @@ class FinalizeStage extends Stage {
             )
             git.pushRef(MASTER_BRANCH)
             git.switchToExistingBranch(project.gitReleaseBranch)
-            git.createTag(project.targetTag)
-            git.pushBranchWithTags(project.gitReleaseBranch)
+            if (!git.remoteTagExists(project.targetTag)) {
+                git.createTag(project.targetTag)
+            }
+            // To overwrite the existing tag (if redeploy)
+            git.pushForceBranchWithTags(project.gitReleaseBranch)
         }
     }
 

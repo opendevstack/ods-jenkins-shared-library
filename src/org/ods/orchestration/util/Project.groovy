@@ -1063,7 +1063,10 @@ class Project {
         def configItem = steps.env.configItem?.trim() ?: 'UNDEFINED'
         def changeDescription = steps.env.changeDescription?.trim() ?: 'UNDEFINED'
         // Set rePromote=true if an existing tag should be deployed again
-        def rePromote = steps.env.rePromote?.trim() == 'true'
+        def rePromote = true
+        if (steps.env.rePromote && 'false'.equalsIgnoreCase(steps.env.rePromote.trim())) {
+            rePromote = false
+        }
 
         return [
             changeDescription: changeDescription,
