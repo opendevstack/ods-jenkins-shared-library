@@ -370,6 +370,7 @@ class Project {
         this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
 
         if (this.hasWipJiraIssues()) {
+            this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
@@ -1124,6 +1125,16 @@ class Project {
                 logger.info("Versioning not supported for this release")
                 result = this.loadFullJiraData(projectKey)
             }
+        } else {
+            logger.warn("WARNING: Could *not* retrieve data from Jira.")
+            if (! this.jiraUseCase) {
+                logger.warn("WARNING: Reason: this.jiraUseCase has no value")
+            } else {
+                if (! this.jiraUseCase.jira) {
+                    logger.warn("WARNING: Reason: this.jiraUseCase.jira has no value")
+                }
+            }
+            logger.warn("WARNING: Without Jira data, we might not work as expected.")
         }
 
         return result
@@ -1181,13 +1192,13 @@ class Project {
         }
 
         if (previousVersionId) {
-            logger.info("Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
+            logger.info("loadJiraData: Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
             result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
-            logger.info("No predecessor project version found. Loading only data from Jira.")
+            logger.info("loadJiraData: No predecessor project version found. Loading only data from Jira.")
             result << this.addKeyAndVersionToComponentsWithout(newData)
         }
 
@@ -1434,14 +1445,17 @@ class Project {
 
     void reportPipelineStatus(String message = '', boolean isError = false) {
         if (!this.jiraUseCase) {
-            logger.warn("Project: jiraUseCase has an invalid value.")
+            logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
             return
         }
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
     void addCommentInReleaseStatus(String message) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("addCommentInReleaseStatus: Could *NOT* add comment because jiraUseCase has invalid value.")
+            return
+        }
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 
