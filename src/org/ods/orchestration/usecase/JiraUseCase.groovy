@@ -232,7 +232,10 @@ class JiraUseCase {
     }
 
     String getVersionFromReleaseStatusIssue() {
-        if (!this.jira) return ""
+        if (!this.jira) {
+            logger.warn("WARNING: this.jira has an invalid value.")
+            return ""
+        }
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
