@@ -90,6 +90,8 @@
 - Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
 - Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
+- fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
+- Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
 
 ## [3.0] - 2020-08-11
 
