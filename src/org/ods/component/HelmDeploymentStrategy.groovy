@@ -120,7 +120,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 //        // FIXME: pauseRollouts is non trivial to determine!
 //        // we assume that Helm does "Deployment" that should work for most
 //        // cases since they don't have triggers.
-//        metadata.updateMetadata(false, deploymentResources)
+        metadata.updateMetadata(false, deploymentResources)
         rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
