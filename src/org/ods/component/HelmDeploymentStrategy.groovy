@@ -101,24 +101,27 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         refreshResources = true
         helmUpgrade(context.targetProject)
 
-        def metadataService = new OpenShiftResourceMetadata(
-            steps,
-            context.properties,
-            options.properties,
-            logger,
-            openShift
-        )
-        def metadata = metadataService.getMetadata()
-        def labels = metadataService.getLabels(metadata)
-        openShift.labelResources(context.targetProject, 'all', labels, options.selector)
-
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(
                 context.targetProject, DEPLOYMENT_KINDS, options.selector
             )
         }
 
-        def rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
+        def rolloutData = [:]
+        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks because it, unconditionally, tries to reset some fields
+        def metadata = new OpenShiftResourceMetadata(
+            steps,
+            context.properties,
+            options.properties,
+            logger,
+            openShift
+        )
+
+        // FIXME: pauseRollouts is non trivial to determine!
+        // we assume that Helm does "Deployment" that should work for most
+        // cases since they don't have triggers.
+        metadata.updateMetadata(false, deploymentResources)
+        rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
     }

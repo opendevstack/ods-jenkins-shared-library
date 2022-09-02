@@ -249,7 +249,7 @@ class OpenShiftResourceMetadata {
      * or it is not a valid label value and the entry does not allow modifications
      * or some other invalid metadata was found.
      */
-    def getMetadata() {
+    private getMetadata() {
         def metadata = getDefaultMetadata()
         metadata.putAll(getComponentMetadata())
         metadata.putAll(getMandatoryMetadata())
@@ -361,7 +361,7 @@ class OpenShiftResourceMetadata {
      * @param metadata a map with the metadata to generate labels for.
      * @return a map with the labels to be set or removed.
      */
-    def getLabels(metadata) {
+    private getLabels(metadata) {
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
         def labels = labelKeys.findAll { key, value ->
             removableKeys.contains(key) || metadata[labelToMetadataMapping[key]] != null
