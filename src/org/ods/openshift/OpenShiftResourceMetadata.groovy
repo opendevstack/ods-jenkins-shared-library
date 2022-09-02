@@ -330,7 +330,7 @@ class OpenShiftResourceMetadata {
         // Find out whether this component is managed by helm
         def chart = getChartNameAndVersion()
         if (chart) {
-            metadata.managedBy = 'helm'
+            metadata.managedBy = 'Helm'
             metadata.chartNameAndVersion = chart
         }
 
