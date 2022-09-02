@@ -39,7 +39,6 @@ class Stage {
             try {
                 logger.debug("BEGIN Calling ${this.class.name}.run()")
                 return this.run()
-                logger.debug("END Calling ${this.class.name}.run()")
             } catch (e) {
                 def eThrow = e
                 // Check for random null references which occur after a Jenkins restart
@@ -62,6 +61,7 @@ class Stage {
 
                 throw eThrow
             } finally {
+                logger.debug("END Calling ${this.class.name}.run()")
                 logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
         }
