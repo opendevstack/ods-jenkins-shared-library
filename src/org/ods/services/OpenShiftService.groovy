@@ -145,10 +145,17 @@ class OpenShiftService {
                 label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
             )
         }
-        steps.sh(
+        def failed = steps.sh(
             script: "helm -n ${project} secrets upgrade ${upgradeFlags.join(' ')} ${release} ./",
-            label: "Upgrade Helm release ${release} in ${project}"
+            label: "Upgrade Helm release ${release} in ${project}",
+            returnStatus: true
         )
+        if (failed){
+            throw new RuntimeException(
+                'Rollout Failed!. ' +
+                    "Helm could not install the ${release} in ${project}"
+            )
+        }
     }
 
     @SuppressWarnings(['LineLength', 'ParameterCount'])
