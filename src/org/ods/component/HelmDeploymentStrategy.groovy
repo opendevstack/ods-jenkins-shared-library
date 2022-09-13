@@ -10,7 +10,7 @@ import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 import org.ods.util.PodData
 
-class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
+class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // Constructor arguments
     private final Script script
@@ -56,7 +56,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
             config.helmValues = [:]
         }
         if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = [ 'values.yaml' ]
+            config.helmValuesFiles = ['values.yaml']
         }
         if (!config.containsKey('helmEnvBasedValuesFiles')) {
             config.helmEnvBasedValuesFiles = []
@@ -107,15 +107,17 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
                 context.targetProject, DEPLOYMENT_KINDS, options.selector
             )
         }
+        logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
         logger.info(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(deploymentResources)))
 
 
         def labels = showMandatoryLabels()
-        List<String> resourcesToLabel = deploymentResources.collectEntries[{ key, value ->
+        def resourcesToLabel = deploymentResources.collectEntries[{ key, value ->
             "${key}/${value}"
         }]
+        logger.info("${this.class.name} -- RESOURCE TO LABEL")
         logger.info(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(resourcesToLabel)))
@@ -205,17 +207,17 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
                 def podData = [:]
                 podData = openShift.checkForPodData(context.targetProject, options.selector)
                 context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-                        [
-                            'type': 'helm',
-                            'selector': options.selector,
-                            'chartDir': options.chartDir,
-                            'helmReleaseName': options.helmReleaseName,
-                            'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-                            'helmValuesFiles': options.helmValuesFiles,
-                            'helmValues': options.helmValues,
-                            'helmDefaultFlags': options.helmDefaultFlags,
-                            'helmAdditionalFlags': options.helmAdditionalFlags
-                        ])
+                    [
+                        'type'                   : 'helm',
+                        'selector'               : options.selector,
+                        'chartDir'               : options.chartDir,
+                        'helmReleaseName'        : options.helmReleaseName,
+                        'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
+                        'helmValuesFiles'        : options.helmValuesFiles,
+                        'helmValues'             : options.helmValues,
+                        'helmDefaultFlags'       : options.helmDefaultFlags,
+                        'helmAdditionalFlags'    : options.helmAdditionalFlags
+                    ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
