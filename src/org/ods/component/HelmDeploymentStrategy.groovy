@@ -114,9 +114,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
 
         def labels = showMandatoryLabels()
-        def resourcesToLabel = deploymentResources.collectEntries[{ key, value ->
-            "${key}/${value}"
-        }]
+        logger.info("${this.class.name} -- MANDATORY LABELS")
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(labels)))
+        def resourcesToLabel = deploymentResources.collect { entry ->
+            entry.value.collect {
+                "${entry.key}/${it}"
+            }
+        }.flatten()
         logger.info("${this.class.name} -- RESOURCE TO LABEL")
         logger.info(
             JsonOutput.prettyPrint(
@@ -208,15 +214,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 podData = openShift.checkForPodData(context.targetProject, options.selector)
                 context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                     [
-                        'type'                   : 'helm',
-                        'selector'               : options.selector,
-                        'chartDir'               : options.chartDir,
-                        'helmReleaseName'        : options.helmReleaseName,
+                        'type': 'helm',
+                        'selector': options.selector,
+                        'chartDir': options.chartDir,
+                        'helmReleaseName': options.helmReleaseName,
                         'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-                        'helmValuesFiles'        : options.helmValuesFiles,
-                        'helmValues'             : options.helmValues,
-                        'helmDefaultFlags'       : options.helmDefaultFlags,
-                        'helmAdditionalFlags'    : options.helmAdditionalFlags
+                        'helmValuesFiles': options.helmValuesFiles,
+                        'helmValues': options.helmValues,
+                        'helmDefaultFlags': options.helmDefaultFlags,
+                        'helmAdditionalFlags': options.helmAdditionalFlags
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
