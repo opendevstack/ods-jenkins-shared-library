@@ -87,6 +87,8 @@ class Context implements IContext {
         config.globalExtensionImageLabels = getExtensionBuildParams()
         config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
             'JENKINS_MASTER_'))
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('BUILD_',
+            ''))
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
