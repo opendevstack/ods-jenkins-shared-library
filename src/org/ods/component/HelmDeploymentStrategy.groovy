@@ -113,11 +113,16 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 JsonOutput.toJson(deploymentResources)))
 
 
-        def labels = showMandatoryLabels()
+        Map<String,String> labels = showMandatoryLabels()
         logger.info("${this.class.name} -- MANDATORY LABELS")
         logger.info(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(labels)))
+        logger.info("${this.class.name} -- MANDATORY LABELS (cleaned)")
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(labels)))
+        labels.remove { it -> it.value == null}
         def resourcesToLabel = deploymentResources.collect { entry ->
             entry.value.collect {
                 "${entry.key}/${it}"
@@ -127,8 +132,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(resourcesToLabel)))
-        openShift.labelResources(context.targetProject, resourcesToLabel, labels, options.selector)
-
+        resourcesToLabel.each {resourceToLabel
+            openShift.labelResources(context.targetProject, resourceToLabel, labels, options.selector)
+        }
 
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
