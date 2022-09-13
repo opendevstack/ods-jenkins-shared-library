@@ -114,27 +114,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
 
         Map<String,String> labels = showMandatoryLabels()
-        logger.info("${this.class.name} -- MANDATORY LABELS")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        logger.info("${this.class.name} -- MANDATORY LABELS (cleaned)")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        labels.remove { it -> it.value == null}
-        def resourcesToLabel = deploymentResources.collect { entry ->
-            entry.value.collect {
-                "${entry.key}/${it}"
-            }
-        }.flatten()
-        logger.info("${this.class.name} -- RESOURCE TO LABEL")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(resourcesToLabel)))
-        resourcesToLabel.each {resourceToLabel
-            openShift.labelResources(context.targetProject, resourceToLabel, labels, options.selector)
-        }
+        applyMandatoryLabels(labels, deploymentResources)
 
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
@@ -143,6 +123,30 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def rolloutData = rollout(deploymentResources) ?: [:]
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
+    }
+
+    private void applyMandatoryLabels(Map<String, String> labels, Map<String, List<String>> deploymentResources) {
+        logger.info("${this.class.name} -- MANDATORY LABELS")
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(labels)))
+        logger.info("${this.class.name} -- MANDATORY LABELS (cleaned)")
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(labels)))
+        labels.remove { it -> it.value == null }
+        def resourcesToLabel = deploymentResources.collectMany { entry ->
+            entry.value.collect {
+                "${entry.key}/${it}"
+            }
+        }
+        logger.info("${this.class.name} -- RESOURCE TO LABEL")
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(resourcesToLabel)))
+        resourcesToLabel.each { resourceToLabel ->
+            openShift.labelResources(context.targetProject, resourceToLabel, labels, options.selector)
+        }
     }
 
     private def showMandatoryLabels() {
