@@ -1,5 +1,6 @@
 package org.ods.component
 
+import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.openshift.OpenShiftResourceMetadata
@@ -106,9 +107,33 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
                 context.targetProject, DEPLOYMENT_KINDS, options.selector
             )
         }
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(deploymentResources)))
 
-        def rolloutData = [:]
-        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks because it, unconditionally, tries to reset some fields
+
+        def labels = showMandatoryLabels()
+        def resourcesToLabel = deploymentResources.collectEntries [ key, { value ->
+            "${key}/${value}"
+        }]
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(resourcesToLabel)))
+        openShift.labelResources(context.targetProject, resourcesToLabel, labels, options.selector)
+
+
+        // // FIXME: pauseRollouts is non trivial to determine!
+        // // we assume that Helm does "Deployment" that should work for most
+        // // cases since they don't have triggers.
+        // metadataSvc.updateMetadata(false, deploymentResources)
+        def rolloutData = rollout(deploymentResources) ?: [:]
+        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
+        return rolloutData
+    }
+
+    private def showMandatoryLabels() {
+        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks
+        //  This happens because it, unconditionally, tries to reset some fields
         def metadataSvc = new OpenShiftResourceMetadata(
             steps,
             context.properties,
@@ -119,16 +144,10 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 
         // DEBUG what we consider "mandatory"
         def metadata = metadataSvc.getMandatoryMetadata()
-        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata)))
-
-
-        // // FIXME: pauseRollouts is non trivial to determine!
-        // // we assume that Helm does "Deployment" that should work for most
-        // // cases since they don't have triggers.
-        // metadataSvc.updateMetadata(false, deploymentResources)
-        rolloutData = rollout(deploymentResources)
-        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
-        return rolloutData
+        logger.info(
+            JsonOutput.prettyPrint(
+                JsonOutput.toJson(metadata)))
+        return metadata
     }
 
     private void helmUpgrade(String targetProject) {
