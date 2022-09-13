@@ -113,7 +113,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
 
 
         def labels = showMandatoryLabels()
-        def resourcesToLabel = deploymentResources.collectEntries [ key, { value ->
+        List<String> resourcesToLabel = deploymentResources.collectEntries[{ key, value ->
             "${key}/${value}"
         }]
         logger.info(
