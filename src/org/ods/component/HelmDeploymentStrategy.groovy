@@ -107,7 +107,25 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         }
 
         def rolloutData = [:]
-        rolloutData = rollout(deploymentResources) //, originalDeploymentVersions)
+        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks because it, unconditionally, tries to reset some fields
+        def metadataSvc = new OpenShiftResourceMetadata(
+            steps,
+            context.properties,
+            options.properties,
+            logger,
+            openShift
+        )
+
+        // DEBUG what we consider "mandatory"
+        metadata = metadataSvc.getMandatoryMetadata()
+        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata)))
+
+
+        // // FIXME: pauseRollouts is non trivial to determine!
+        // // we assume that Helm does "Deployment" that should work for most
+        // // cases since they don't have triggers.
+        // metadataSvc.updateMetadata(false, deploymentResources)
+        rolloutData = rollout(deploymentResources)
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
     }
@@ -158,16 +176,11 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> rollout(
-        Map<String, List<String>> deploymentResources) {//,
-        //Map<String, Map<String, Integer>> originalVersions) {
+        Map<String, List<String>> deploymentResources) {
 
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
-//                def originalVersion = 0
-//                if (originalVersions.containsKey(resourceKind)) {
-//                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
-//                }
 
                 def podData = [:]
                 podData = openShift.checkForPodData(context.targetProject, options.selector)
