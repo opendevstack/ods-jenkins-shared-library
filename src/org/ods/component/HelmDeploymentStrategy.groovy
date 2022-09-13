@@ -2,6 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -117,7 +118,7 @@ class HelmDeploymentStrategy  extends AbstractDeploymentStrategy  {
         )
 
         // DEBUG what we consider "mandatory"
-        metadata = metadataSvc.getMandatoryMetadata()
+        def metadata = metadataSvc.getMandatoryMetadata()
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata)))
 
 
