@@ -145,7 +145,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(resourcesToLabel)))
         resourcesToLabel.each { resourceToLabel ->
-            openShift.labelResources(context.targetProject, resourceToLabel, labels, options.selector)
+            openShift.labelResources(context.targetProject, resourceToLabel, labels, null)
         }
     }
 
