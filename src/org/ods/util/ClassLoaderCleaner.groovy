@@ -35,6 +35,14 @@ class ClassLoaderCleaner {
         logger.debug("Removing logger ...")
         removeLogger()
 
+        // Can be interesting knowing how much loaded classes are still there...
+        logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
+        // Warning: run this only when in debug mode.
+        if (logger.getDebugMode()) {
+            classloader.getLoadedClasses().each {
+                Class it -> logger.debug("Still loaded class: ${it.getCanonicalName()}")
+            }
+        }
         classloader.close()
     }
 
