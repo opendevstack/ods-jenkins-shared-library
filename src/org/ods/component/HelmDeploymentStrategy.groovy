@@ -151,8 +151,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // Add OpenShiftResouceMetadata.strictEntries here to be sure we have them
         if (context.triggeredByOrchestrationPipeline) {
             def additionalLabels = [
-                'app.opendevstack.org/system-name'     : steps.env?.BUILD_PARAM_CONFIGITEM ?: null,
-                'app.opendevstack.org/project-version' : steps.env?.BUILD_PARAM_CHANGEID ?: null,
+                'app.opendevstack.org/system-name': steps.env?.BUILD_PARAM_CONFIGITEM ?: null,
+                'app.opendevstack.org/project-version': steps.env?.BUILD_PARAM_CHANGEID ?: null,
                 'app.opendevstack.org/work-in-progress': steps.env?.BUILD_PARAM_VERSION == 'WIP' ?: null,
             ]
             resourcesToLabel.each { resourceToLabel ->

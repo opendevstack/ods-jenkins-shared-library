@@ -31,27 +31,29 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         given:
 
         def expectedDeploymentMeans = [
-            "builds":[:],
-            "deployments":[
-                "bar-deploymentMean":[
-                    "type":"helm",
-                    "selector":"app=foo-bar",
-                    "chartDir":"chart",
-                    "helmReleaseName":"bar",
-                    "helmEnvBasedValuesFiles":[],
-                    "helmValuesFiles":["values.yaml"],
-                    "helmValues":[:],
-                    "helmDefaultFlags":["--install", "--atomic"],
-                    "helmAdditionalFlags":[]
+            "builds": [:],
+            "deployments": [
+                "bar-deploymentMean": [
+                    "type": "helm",
+                    "selector": "app=foo-bar",
+                    "chartDir": "chart",
+                    "helmReleaseName": "bar",
+                    "helmEnvBasedValuesFiles": [],
+                    "helmValuesFiles": ["values.yaml"],
+                    "helmValues": [:],
+                    "helmDefaultFlags": ["--install", "--atomic"],
+                    "helmAdditionalFlags": []
                 ],
                 "bar":[
-                    "podName":null,
-                    "podNamespace":null,
-                    "podMetaDataCreationTimestamp":null,
-                    "deploymentId":"bar-124", "podNode": null,
-                    "podIp":null,
-                    "podStatus":null,
-                    "podStartupTimeStamp":null, "containers":null
+                    "podName": null,
+                    "podNamespace": null,
+                    "podMetaDataCreationTimestamp": null,
+                    "deploymentId": "bar-124",
+                    "podNode": null,
+                    "podIp": null,
+                    "podStatus": null,
+                    "podStartupTimeStamp": null,
+                    "containers": null,
                 ]
             ]
         ]
