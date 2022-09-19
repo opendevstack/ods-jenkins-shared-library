@@ -126,12 +126,12 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     private void applyMandatoryLabels(Map<String, String> labels, Map<String, List<String>> deploymentResources) {
-        logger.info("${this.class.name} -- MANDATORY LABELS")
-        logger.info(
+        logger.debug("${this.class.name} -- MANDATORY LABELS")
+        logger.debug(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(labels)))
-        logger.info("${this.class.name} -- MANDATORY LABELS (cleaned)")
-        logger.info(
+        logger.debug("${this.class.name} -- MANDATORY LABELS (cleaned)")
+        logger.debug(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(labels)))
         labels.remove { it -> it.value == null }
@@ -140,8 +140,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 "${entry.key}/${it}"
             }
         }
-        logger.info("${this.class.name} -- RESOURCE TO LABEL")
-        logger.info(
+        logger.debug("${this.class.name} -- RESOURCE TO LABEL")
+        logger.debug(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(resourcesToLabel)))
         resourcesToLabel.each { resourceToLabel ->
@@ -162,7 +162,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
         // DEBUG what we consider "mandatory"
         def metadata = metadataSvc.getMandatoryMetadata()
-        logger.info(
+        logger.debug(
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(metadata)))
         return metadata
