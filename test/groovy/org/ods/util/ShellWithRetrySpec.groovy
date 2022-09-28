@@ -63,4 +63,5 @@ class ShellWithRetrySpec extends Specification {
 
         thrown java.util.concurrent.ExecutionException
     }
+
 }
