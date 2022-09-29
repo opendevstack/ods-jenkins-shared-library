@@ -1729,12 +1729,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.TIP,
         ]
 
-        referencedDcocs.collectEntries { DocumentType dt ->
-            def doc = dt as String
-            def version = getVersion(this.project, doc)
+        HashMap<String, String> result = new HashMap()
+        result.put(DocumentType.CSD as String, getVersionString(DocumentType.CSD))
+        result.put(DocumentType.SSDS as String, getVersionString(DocumentType.SSDS))
+        result.put(DocumentType.RA as String, getVersionString(DocumentType.RA))
+        result.put(DocumentType.TRC as String, getVersionString(DocumentType.TRC))
+        result.put(DocumentType.DTP as String, getVersionString(DocumentType.DTP))
+        result.put(DocumentType.DTR as String, getVersionString(DocumentType.DTR))
+        result.put(DocumentType.CFTP as String, getVersionString(DocumentType.CFTP))
+        result.put(DocumentType.CFTR as String, getVersionString(DocumentType.CFTR))
+        result.put(DocumentType.TIR as String, getVersionString(DocumentType.TIR))
+        result.put(DocumentType.TIP as String, getVersionString(DocumentType.TIP))
+        return result
+    }
 
-            return [(doc): "${this.project.buildParams.configItem} / ${version}"]
-        }
+    private String getVersionString(def doc) {
+        def version = getVersion(this.project, doc as String)
+        return "${this.project.buildParams.configItem} / ${version}"
     }
 
     protected String getVersion(Project project, String doc) {
