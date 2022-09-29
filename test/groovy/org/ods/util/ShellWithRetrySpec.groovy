@@ -2,10 +2,12 @@ package org.ods.util
 
 import org.ods.PipelineScript
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ShellWithRetrySpec extends Specification {
 
-    def "execute"() {
+    @Unroll
+    def "execute with shell result:#resultShell"() {
         given:
         Map params = [ returnStdout: true,
                        script: "env | grep || true",
@@ -23,8 +25,13 @@ class ShellWithRetrySpec extends Specification {
         1 * script.sh( params ) >> { throw new NotSerializableException("error")}
         1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
 
-        1 * script.sh( params ) >> { return "ok"}
-        shellReturn == "ok"
+        1 * script.sh( params ) >> { return resultShell}
+        shellReturn == resultMethod
+
+        where:
+        resultShell |   resultMethod
+        "ok"        |   "ok"
+        null        |   ""
     }
 
     def "execute with exception thrown"() {
