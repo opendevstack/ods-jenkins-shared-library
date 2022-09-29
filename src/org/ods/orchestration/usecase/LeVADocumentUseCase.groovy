@@ -1809,6 +1809,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             case "createIVP":
                 return createIVP(repo, data)
                 ;;
+            case "createIVR":
+                return createIVR(repo, data)
+                ;;
             case "createOverallDTR":
                 return createOverallDTR(repo, data)
                 ;;
