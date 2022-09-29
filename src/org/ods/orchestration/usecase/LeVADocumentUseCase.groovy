@@ -1776,4 +1776,72 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return theString?.replaceAll('-', '&#x2011;')
     }
 
+    @Override
+    String invokeCreateDocMethod(String methodName, Object [] args) {
+        Map repo = null
+        Map data = null
+        if (args.length > 0) {
+            repo = args[0]
+            if (args.length > 1) {
+                data = args[1]
+            }
+        }
+
+        switch(methodName) {
+            case "createCFTP":
+                return createCFTP(repo, data)
+                ;;
+            case "createCFTR":
+                return createCFTR(repo, data)
+                ;;
+            case "createCSD":
+                return createCSD(repo, data)
+                ;;
+            case "createDIL":
+                return createDIL(repo, data)
+                ;;
+            case "createDTP":
+                return createDTP(repo, data)
+                ;;
+            case "createDTR":
+                return createDTR(repo, data)
+                ;;
+            case "createIVP":
+                return createIVP(repo, data)
+                ;;
+            case "createOverallDTR":
+                return createOverallDTR(repo, data)
+                ;;
+            case "createOverallTIR":
+                return createOverallTIR(repo, data)
+                ;;
+            case "createRA":
+                return createRA(repo, data)
+                ;;
+            case "createSSDS":
+                return createSSDS(repo, data)
+                ;;
+            case "createTCP":
+                return createTCP(repo, data)
+                ;;
+            case "createTCR":
+                return createTCR(repo, data)
+                ;;
+            case "createTIP":
+                return createTIP(repo, data)
+                ;;
+            case "createTIR":
+                return createTIR(repo, data)
+                ;;
+            case "createTRC":
+                return createTRC(repo, data)
+                ;;
+
+            default:
+                String errorMessage = "Method not defined to create document: ${methodName}"
+                logger.warn(errorMessage)
+                throw new Exception(errorMessage)
+                ;;
+        }
+    }
 }

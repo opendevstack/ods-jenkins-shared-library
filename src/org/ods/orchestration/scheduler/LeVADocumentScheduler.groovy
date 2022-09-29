@@ -393,7 +393,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
                         try {
                             // Apply args according to the method's parameters length
                             def method = this.getMethodNameForDocumentType(documentType)
-                            this.usecase.invokeMethod(method, args as Object[])
+                            this.usecase.invokeCreateDocMethod(method, args as Object[])
                         } catch (e) {
                             throw new IllegalStateException("Error: ${message} has failed: ${e.message}.", e)
                         }

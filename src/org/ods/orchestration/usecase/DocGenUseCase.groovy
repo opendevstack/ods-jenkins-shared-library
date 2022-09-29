@@ -246,4 +246,29 @@ abstract class DocGenUseCase {
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
+    String invokeCreateDocMethod(String methodName, Object [] args) {
+        Map repo = null
+        Map data = null
+        if (args.length > 0) {
+            repo = args[0]
+            if (args.length > 1) {
+                data = args[1]
+            }
+        }
+
+        switch (methodName) {
+            case "createDocument":
+                return createDocument(repo, data)
+                ; ;
+            case "createOverallDocument":
+                return createOverallDocument(repo, data)
+                ; ;
+            default:
+                String errorMessage = "Method not defined to create document: ${methodName}"
+                // logger.warn(errorMessage)
+                throw new Exception(errorMessage)
+                ; ;
+
+        }
+    }
 }
