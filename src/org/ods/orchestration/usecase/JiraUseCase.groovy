@@ -92,6 +92,7 @@ class JiraUseCase {
             testCase.name.startsWith("${issueKeyClean}_")
     }
 
+    @NonCPS
     String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
 
