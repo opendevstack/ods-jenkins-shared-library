@@ -266,7 +266,7 @@ abstract class DocGenUseCase {
             default:
                 String errorMessage = "Method not defined to create document: ${methodName}"
                 // logger.warn(errorMessage)
-                throw new Exception(errorMessage)
+                throw new RuntimeException(errorMessage)
                 ; ;
 
         }

@@ -45,7 +45,8 @@ abstract class DocGenScheduler {
                 this.steps.echo(message)
 
                 // Apply args according to the method's parameters length
-                this.usecase.invokeCreateDocMethod(this.getMethodNameForDocumentType(documentType), paramsToApply as Object[])
+                String methodName = this.getMethodNameForDocumentType(documentType)
+                this.usecase.invokeCreateDocMethod(methodName, paramsToApply as Object[])
             }
         }
     }

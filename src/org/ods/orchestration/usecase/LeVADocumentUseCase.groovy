@@ -1729,7 +1729,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.TIP,
         ]
 
-        HashMap<String, String> result = new HashMap()
+        Map<String, String> result = [:]
         result.put(DocumentType.CSD as String, getVersionString(DocumentType.CSD))
         result.put(DocumentType.SSDS as String, getVersionString(DocumentType.SSDS))
         result.put(DocumentType.RA as String, getVersionString(DocumentType.RA))
@@ -1854,7 +1854,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             default:
                 String errorMessage = "Method not defined to create document: ${methodName}"
                 logger.warn(errorMessage)
-                throw new Exception(errorMessage)
+                throw new RuntimeException(errorMessage)
                 ;;
         }
     }
