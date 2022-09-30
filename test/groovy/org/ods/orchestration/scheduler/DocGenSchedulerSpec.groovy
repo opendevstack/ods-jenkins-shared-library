@@ -39,6 +39,35 @@ class DocGenSchedulerSpec extends SpecHelper {
         boolean shouldCreateArtifact (String documentType, Map repo) {
             return true
         }
+
+        String invokeCreateDocMethod(String methodName, Object [] args) {
+            Map repo = null
+            Map data = null
+            if (args.length > 0) {
+                repo = args[0]
+                if (args.length > 1) {
+                    data = args[1]
+                }
+            }
+
+            switch (methodName) {
+                case "createA":
+                    return createA()
+                    ; ;
+                case "createB":
+                    return createB(repo)
+                    ; ;
+                case "createC":
+                    return createC(repo, data)
+                    ; ;
+                default:
+                    String errorMessage = "Method not defined to create document: ${methodName}"
+                    // logger.warn(errorMessage)
+                    throw new RuntimeException(errorMessage)
+                    ; ;
+
+            }
+        }
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {
