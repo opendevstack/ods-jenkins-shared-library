@@ -93,6 +93,7 @@
 - fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
 - Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
 - Fixed errors in library (Null pointers and Serialization) ([#941](https://github.com/opendevstack/ods-jenkins-shared-library/pull/941))
+- Remove reflection in docs creation and serializable problem in arraylist iterator (used in collectentries method) ([942](https://github.com/opendevstack/ods-jenkins-shared-library/pull/942/files))
 
 ## [3.0] - 2020-08-11
 
