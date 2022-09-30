@@ -1510,6 +1510,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
 
+        logger.debug("getDocumentMetadata: Obtained metadata for doc type ${documentTypeName}")
         return metadata
     }
 
@@ -1776,6 +1777,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             version = "${version}-WIP"
         }
 
+        this.logger.debug("getVersion: obtained version: ${version as String}")
         return version as String
     }
 

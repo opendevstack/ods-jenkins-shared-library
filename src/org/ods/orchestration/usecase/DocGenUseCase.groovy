@@ -38,6 +38,7 @@ abstract class DocGenUseCase {
     }
 
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
+        this.steps.echo "Calling docgen to create document of type ${documentType}..."
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 
