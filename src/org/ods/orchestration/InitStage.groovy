@@ -53,7 +53,12 @@ class InitStage extends Stage {
         // to concurrent releases).
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
-        Exception checkOutException = checkOutReleaseManagerRepository(buildParams, git, logger)
+        def hasErrorsDuringCheckout = false
+        try {
+            checkOutReleaseManagerRepository(buildParams, git, logger)
+        } catch (Exception) {
+            hasErrorsDuringCheckout = true
+        }
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -62,8 +67,9 @@ class InitStage extends Stage {
         def registry = ServiceRegistry.instance
         addServicesToRegistry(registry, git, steps, logger)
 
-        if (checkOutException) {
-            throw new RuntimeException(checkOutException.message, checkOutException);
+        if (hasErrorsDuringCheckout) {
+            //throw an exception after project init
+            throw new RuntimeException(checkOutException.message, checkOutException)
         }
 
         logger.debug 'Checkout repositories into the workspace'
@@ -434,30 +440,26 @@ class InitStage extends Stage {
         }
     }
 
-    private Exception checkOutReleaseManagerRepository(def buildParams, def git,
+    private void checkOutReleaseManagerRepository(def buildParams, def git,
                                                   ILogger logger) {
-        try {
-            logger.startClocked("git-releasemanager-${STAGE_NAME}")
-            if (!Project.isWorkInProgress(buildParams.version)) {
-                def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-                logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
-                if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                    checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
-                } else {
-                    checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
-                }
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
+        if (!Project.isWorkInProgress(buildParams.version)) {
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+            logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
+            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
+                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
             } else {
-                // Here is the difference with respect to deploy-to-D:
-                // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
-                def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
-                logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
+                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
             }
-            logger.debugClocked("git-releasemanager-${STAGE_NAME}")
-        } catch (Exception e) {
-            return e
+        } else {
+            // Here is the difference with respect to deploy-to-D:
+            // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
+            logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
+            checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
         }
-        return null
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
