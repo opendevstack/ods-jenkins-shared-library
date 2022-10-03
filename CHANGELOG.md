@@ -92,6 +92,7 @@
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
 - fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
 - Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
+- Fixed errors in library (Null pointers and Serialization) ([#941](https://github.com/opendevstack/ods-jenkins-shared-library/pull/941))
 - Fix when the git checkout raise an Exception, the RM is not informed because the Registry is not initialized. ([#938]https://github.com/opendevstack/ods-jenkins-shared-library/issues/938)
 
 ## [3.0] - 2020-08-11
