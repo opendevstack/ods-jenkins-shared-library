@@ -53,7 +53,12 @@ class InitStage extends Stage {
         // to concurrent releases).
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
-        checkOutReleaseManagerRepository(buildParams, git, logger)
+        def hasErrorsDuringCheckout = false
+        try {
+            checkOutReleaseManagerRepository(buildParams, git, logger)
+        } catch (Exception) {
+            hasErrorsDuringCheckout = true
+        }
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -61,6 +66,11 @@ class InitStage extends Stage {
         logger.debug'Register global services'
         def registry = ServiceRegistry.instance
         addServicesToRegistry(registry, git, steps, logger)
+
+        if (hasErrorsDuringCheckout) {
+            //throw an exception after project init
+            throw new RuntimeException(checkOutException.message, checkOutException)
+        }
 
         logger.debug 'Checkout repositories into the workspace'
         BitbucketService bitbucket = registry.get(BitbucketService)
@@ -479,7 +489,7 @@ class InitStage extends Stage {
         }
     }
 
-    private void checkOutRepoInPromotionMode(GitService git,
+    private Exception checkOutRepoInPromotionMode(GitService git,
                                              Map buildParams,
                                              String gitReleaseBranch,
                                              Logger logger) {
