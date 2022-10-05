@@ -17,6 +17,7 @@
 - Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
 - Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
 - Fixed errors in library (Null pointers and Serialization) ([#941](https://github.com/opendevstack/ods-jenkins-shared-library/pull/941))
+- Fixed document history path in IVP and IVR ([#944](https://github.com/opendevstack/ods-jenkins-shared-library/pull/944))
 
 ## [4.0] - 2021-05-11
 
