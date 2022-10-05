@@ -98,7 +98,7 @@
                                 "sec9": {
                                     "number": "9",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -116,7 +116,7 @@
                                 "sec8s2": {
                                     "number": "8.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -134,7 +134,7 @@
                                 "sec8s1": {
                                     "number": "8.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -152,7 +152,7 @@
                                 "sec2": {
                                     "number": "2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Scope",
                                     "documents": [
@@ -170,7 +170,7 @@
                                 "sec10": {
                                     "number": "10",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -188,7 +188,7 @@
                                 "sec12s2": {
                                     "number": "12.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Configuration database CMDB",
                                     "documents": [
@@ -206,7 +206,7 @@
                                 "sec12s1": {
                                     "number": "12.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Operational documents on system level",
                                     "documents": [
@@ -230,90 +230,90 @@
                                 }
                             ],
                             "testsOdsService": [
-                                
+
                             ],
                             "testsOdsCode": [
-                                
+
+                            ],
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                }
                             ]
-                        },
-                        "documentHistory": [
-                            {
-                                "entryId": 1,
-                                "rational": "Initial document version."
-                            },
-                            {
-                                "entryId": 2,
-                                "rational": "Modifications for project version '2.0'.",
-                                "issueType": [
-                                    {
-                                        "type": "documentation chapters",
-                                        "added": [
-                                            
-                                        ],
-                                        "changed": [
-                                            
-                                        ],
-                                        "discontinued": [
-                                            
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "entryId": 3,
-                                "rational": "Modifications for project version '3.0'.",
-                                "issueType": [
-                                    {
-                                        "type": "documentation chapters",
-                                        "added": [
-                                            
-                                        ],
-                                        "changed": [
-                                            
-                                        ],
-                                        "discontinued": [
-                                            
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "entryId": 4,
-                                "rational": "Modifications for project version '4.0'.",
-                                "issueType": [
-                                    {
-                                        "type": "documentation chapters",
-                                        "added": [
-                                            
-                                        ],
-                                        "changed": [
-                                            
-                                        ],
-                                        "discontinued": [
-                                            
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "entryId": 5,
-                                "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
-                                "issueType": [
-                                    {
-                                        "type": "documentation chapters",
-                                        "added": [
-                                            
-                                        ],
-                                        "changed": [
-                                            
-                                        ],
-                                        "discontinued": [
-                                            
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
+                        }
                     }
                 },
                 "ignoreArrayOrder": true,

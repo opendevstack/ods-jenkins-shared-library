@@ -685,9 +685,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
-                testsOdsCode   : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode   : testsOfRepoTypeOdsCode,
+                documentHistory: docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
@@ -760,9 +760,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode      : testsOfRepoTypeOdsCode,
+                documentHistory   : docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
