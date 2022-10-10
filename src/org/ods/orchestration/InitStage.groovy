@@ -285,18 +285,15 @@ class InitStage extends Stage {
             }
 
             if (project.isPromotionMode && git.remoteTagExists(project.targetTag)) {
-                if (project.buildParams.targetEnvironmentToken == 'Q' && project.buildParams.rePromote) {
-                    logger.warn("Deploying tag '${project.targetTag}' to Q again!")
-                } else if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
-                    )
-                } else {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It cannot be deployed again to 'P'."
-                    )
+                ['Q', 'P'].each {
+                    if (project.buildParams.targetEnvironmentToken == it && project.buildParams.rePromote) {
+                        logger.warn("Deploying tag '${project.targetTag}' to ${it} again!")
+                    } else if (project.buildParams.targetEnvironmentToken == it) {
+                        throw new RuntimeException(
+                            "Git Tag '${project.targetTag}' already exists. " +
+                                "It can only be deployed again to '${it}' if build param 'rePromote' is set to 'true'."
+                        )
+                    }
                 }
             }
             if (!project.isWorkInProgress) {
