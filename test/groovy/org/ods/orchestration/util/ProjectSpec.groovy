@@ -15,8 +15,6 @@ import util.SpecHelper
 
 import java.nio.file.Files
 
-import static util.FixtureHelper.*
-
 class ProjectSpec extends SpecHelper {
 
     GitService git
@@ -38,25 +36,25 @@ class ProjectSpec extends SpecHelper {
         if (mixins.containsKey("loadJiraData")) {
             project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
         } else {
-            project.loadJiraData(*_) >> { return createProjectJiraData() }
+            project.loadJiraData(*_) >> { return FixtureHelper.createProjectJiraData() }
         }
 
         if (mixins.containsKey("loadJiraDataBugs")) {
             project.loadJiraDataBugs(*_) >> { mixins["loadJiraDataBugs"]() }
         } else {
-            project.loadJiraDataBugs(*_) >> { return createProjectJiraDataBugs() }
+            project.loadJiraDataBugs(*_) >> { return FixtureHelper.createProjectJiraDataBugs() }
         }
 
         if (mixins.containsKey("loadJiraDataDocs")) {
             project.loadJiraDataTrackingDocs(*_) >> { mixins["loadJiraDataDocs"]() }
         } else {
-            project.loadJiraDataTrackingDocs(*_) >> { return createProjectJiraDataDocs() }
+            project.loadJiraDataTrackingDocs(*_) >> { return FixtureHelper.createProjectJiraDataDocs() }
         }
 
         if (mixins.containsKey("loadJiraDataIssueTypes")) {
             project.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
         } else {
-            project.loadJiraDataIssueTypes(*_) >> { return createProjectJiraDataIssueTypes() }
+            project.loadJiraDataIssueTypes(*_) >> { return FixtureHelper.createProjectJiraDataIssueTypes() }
         }
 
         if (mixins.containsKey("loadJiraData")) {
@@ -971,9 +969,9 @@ class ProjectSpec extends SpecHelper {
 
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
-        1 * project.loadJiraDataBugs(*_) >> createProjectJiraDataBugs()
-        2 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
-        1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
+        1 * project.loadJiraDataBugs(*_) >> FixtureHelper.createProjectJiraDataBugs()
+        2 * project.loadJiraDataTrackingDocs(*_) >> FixtureHelper.createProjectJiraDataDocs()
+        1 * project.loadJiraDataIssueTypes() >> FixtureHelper.createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
         then:
@@ -1188,7 +1186,7 @@ class ProjectSpec extends SpecHelper {
         def docGenData
 
         // Stubbed Method Responses limitation of not being able to spy/mock JiraUseCase for projectObj
-        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
+        def jiraIssue1 = FixtureHelper.createJiraIssue("1", null, null, null, "DONE")
         jiraIssue1.fields["0"] = "1.0"
         jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
         jiraIssue1.renderedFields = [:]
@@ -1207,7 +1205,7 @@ class ProjectSpec extends SpecHelper {
         def projectObj = new Project(steps, logger)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
-        projectObj.data.buildParams = createProjectBuildParams()
+        projectObj.data.buildParams = FixtureHelper.createProjectBuildParams()
         projectObj.data.jira = [issueTypes: [
             (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER): [ fields: [
                 (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
@@ -2626,7 +2624,7 @@ class ProjectSpec extends SpecHelper {
         JiraUseCase jiraUseCase = Spy(JiraUseCase, constructorArgs: [projectObj, steps, Mock(MROPipelineUtil), jira, logger])
         jiraUseCase.updateJiraReleaseStatusBuildNumber(*_) >> null
         projectObj.jiraUseCase = jiraUseCase
-        projectObj.data.buildParams = createProjectBuildParams()
+        projectObj.data.buildParams = FixtureHelper.createProjectBuildParams()
         def projectKey = "DEMO"
 
         Project spied =  Spy(projectObj)
