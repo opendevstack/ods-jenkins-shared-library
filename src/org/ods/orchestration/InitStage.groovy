@@ -285,18 +285,15 @@ class InitStage extends Stage {
             }
 
             if (project.isPromotionMode && git.remoteTagExists(project.targetTag)) {
-                if (project.buildParams.targetEnvironmentToken == 'Q' && project.buildParams.rePromote) {
-                    logger.warn("Deploying tag '${project.targetTag}' to Q again!")
-                } else if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
-                    )
-                } else {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It cannot be deployed again to 'P'."
-                    )
+                ['Q', 'P'].each {
+                    if (project.buildParams.targetEnvironmentToken == it && project.buildParams.rePromote) {
+                        logger.warn("Deploying tag '${project.targetTag}' to ${it} again!")
+                    } else if (project.buildParams.targetEnvironmentToken == it) {
+                        throw new RuntimeException(
+                            "Git Tag '${project.targetTag}' already exists. " +
+                                "It can only be deployed again to '${it}' if build param 'rePromote' is set to 'true'."
+                        )
+                    }
                 }
             }
             if (!project.isWorkInProgress) {
@@ -306,7 +303,7 @@ class InitStage extends Stage {
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
             logger.debug 'Configure current build description'
-            script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
+            script.currentBuild.description = "Build ${jobMode} #${script.env.BUILD_NUMBER} - " +
                 "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
                 "Project: ${project.key}, " +
                 "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
