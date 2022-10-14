@@ -15,12 +15,19 @@ import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
 class FakeGitUtil extends GitService {
+    @Override
     String getCommitSha() {
         return "my-commit"
     }
 
+    @Override
     String getOriginUrl() {
         return "https://github.com/my-org/my-repo-A.git"
+    }
+
+    @Override
+    boolean remoteTagExists(String name) {
+        return true
     }
 }
 
@@ -140,13 +147,16 @@ class FakeProject extends Project {
 }
 
 class FixtureHelper {
-    static Project createProject() {
+    static Project createProject(Map buildParams = null) {
         def steps = new PipelineSteps()
         steps.env.WORKSPACE = ""
 
-        return new FakeProject(steps, new Logger(steps, true))
+        Project project = new FakeProject(steps, new Logger(steps, true))
             .init()
-            .load(new FakeGitUtil(steps, null), null)
+        if (buildParams) {
+            project.data.buildParams = buildParams
+        }
+        return project.load(new FakeGitUtil(steps, null), null)
     }
 
     static Map createProjectBuildEnvironment(def env) {
