@@ -19,7 +19,6 @@ import groovy.json.JsonOutput
 class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
-    private final String MASTER_BRANCH = "master"
 
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
