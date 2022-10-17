@@ -251,18 +251,8 @@ class FinalizeStage extends Stage {
         )
 
         if (project.isWorkInProgress) {
-            git.pushRef(MASTER_BRANCH)
+            git.pushRef(project.gitReleaseBranch)
         } else {
-            // We don't need to merge, we simply commit the env file.
-            // That avoids unnecessary merge conflicts.
-            git.switchToOriginTrackingBranch(MASTER_BRANCH)
-            git.checkoutAndCommitFiles(
-                project.gitReleaseBranch,
-                filesToCommit,
-                "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
-            )
-            git.pushRef(MASTER_BRANCH)
-            git.switchToExistingBranch(project.gitReleaseBranch)
             if (!git.remoteTagExists(project.targetTag)) {
                 git.createTag(project.targetTag)
             }
