@@ -80,12 +80,30 @@ class FinalizeStageSpec extends SpecHelper {
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
         project.gitData.targetTag = "1.0.0"
+        gitService.remoteTagExists(project.targetTag) >> false
 
         when:
         finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
 
         then:
         1 * gitService.createTag(project.targetTag)
+        1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
+    }
+
+    def "pushToReleaseWithExistingTag"(){
+        given:
+        Map buildParams = [ : ]
+        buildParams.version = "1.0.0"
+        buildParams.changeId = "1.0.0"
+        buildParams.targetEnvironmentToken = "D"
+        project.gitData.targetTag = "1.0.0"
+        gitService.remoteTagExists(project.targetTag) >> true
+
+        when:
+        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+
+        then:
+        0 * gitService.createTag(project.targetTag)
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 }
