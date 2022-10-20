@@ -9,6 +9,7 @@ import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
+import org.ods.util.PipelineDebugInfo
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
@@ -93,6 +94,7 @@ class FinalizeStage extends Stage {
 
         // Dump a representation of the project
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
+        new PipelineDebugInfo().save(project, steps)
 
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
