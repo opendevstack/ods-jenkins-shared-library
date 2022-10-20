@@ -249,7 +249,7 @@ class FinalizeStage extends Stage {
             messageToCommit
         )
 
-        if (project.isWorkInProgress) {
+        if (project.gitReleaseBranch == MASTER_BRANCH) {
             git.pushRef(MASTER_BRANCH)
         } else {
             // We don't need to merge, we simply commit the env file.
@@ -262,7 +262,7 @@ class FinalizeStage extends Stage {
             )
             git.pushRef(MASTER_BRANCH)
             git.switchToExistingBranch(project.gitReleaseBranch)
-            if (!git.remoteTagExists(project.targetTag)) {
+            if (!project.isWorkInProgress && !git.remoteTagExists(project.targetTag)) {
                 git.createTag(project.targetTag)
             }
             // To overwrite the existing tag (if redeploy)
