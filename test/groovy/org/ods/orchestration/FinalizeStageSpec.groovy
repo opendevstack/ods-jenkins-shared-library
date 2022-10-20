@@ -56,7 +56,7 @@ class FinalizeStageSpec extends SpecHelper {
         return registry
     }
 
-    def "pushToMasterWhenWIP"(){
+    def "pushToMasterWhenWIPandNoReleaseBranch"(){
         given:
         Map buildParams = [ : ]
         buildParams.version = "WIP"
@@ -69,8 +69,25 @@ class FinalizeStageSpec extends SpecHelper {
         finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
 
         then:
-        1 * gitService.pushRef(project.gitReleaseBranch)
+        1 * gitService.pushRef('master')
+    }
 
+    def "pushToReleaseAndMasterWhenWipAndReleaseBranch"(){
+        given:
+        Map buildParams = [ : ]
+        buildParams.version = "WIP"
+        buildParams.changeId = "1.0.0"
+        buildParams.targetEnvironmentToken = "D"
+        project.buildParams.version = "WIP"
+        project.setGitReleaseBranch('release/1.0.0')
+
+        when:
+        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+
+        then:
+        1 * gitService.pushRef('master')
+        0 * gitService.createTag(project.targetTag)
+        1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
     def "pushToReleaseAndTag"(){
@@ -86,6 +103,7 @@ class FinalizeStageSpec extends SpecHelper {
         finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
 
         then:
+        1 * gitService.pushRef('master')
         1 * gitService.createTag(project.targetTag)
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
@@ -103,6 +121,7 @@ class FinalizeStageSpec extends SpecHelper {
         finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
 
         then:
+        1 * gitService.pushRef('master')
         0 * gitService.createTag(project.targetTag)
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
