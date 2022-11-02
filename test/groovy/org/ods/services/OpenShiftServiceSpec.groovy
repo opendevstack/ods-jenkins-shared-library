@@ -101,7 +101,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh(
-            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color --three-way-merge bar ./',
+            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color --three-way-merge  --normalize-manifests --detailed-exitcode bar ./',
             label: 'Show diff explaining what helm upgrade would change for release bar in foo'
         )
         1 * steps.sh(

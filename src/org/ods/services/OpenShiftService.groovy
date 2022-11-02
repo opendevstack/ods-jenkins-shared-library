@@ -140,6 +140,8 @@ class OpenShiftService {
             def diffFlags = upgradeFlags.findAll { it  }
             diffFlags << '--no-color'
             diffFlags << '--three-way-merge'
+            diffFlags << '--normalize-manifests'
+            diffFlags << '--detailed-exitcode'
             steps.sh(
                 script: "HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
                 label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
