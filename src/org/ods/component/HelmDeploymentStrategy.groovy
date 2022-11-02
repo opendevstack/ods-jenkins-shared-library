@@ -93,20 +93,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def deploymentResources = openShift.getResourcesForComponent(
             context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
-        def refreshResources = false
-
         // Tag images which have been built in this pipeline from cd project into target project
         retagImages(context.targetProject, getBuiltImages())
 
         logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
-        refreshResources = true
         helmUpgrade(context.targetProject)
 
-        if (refreshResources) {
-            deploymentResources = openShift.getResourcesForComponent(
-                context.targetProject, DEPLOYMENT_KINDS, options.selector
-            )
-        }
+        deploymentResources = openShift.getResourcesForComponent(
+            context.targetProject, DEPLOYMENT_KINDS, options.selector
+        )
         logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
         logger.info(
             JsonOutput.prettyPrint(
