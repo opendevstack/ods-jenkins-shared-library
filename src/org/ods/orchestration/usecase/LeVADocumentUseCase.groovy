@@ -590,8 +590,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
                     probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                    riskPriority: riskPriority ? riskPriority.value : "N/A",
-                    riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
+                    riskPriority: (riskPriority != null) ? riskPriority.value : "N/A",
+                    riskPriorityNumber: (r.riskPriorityNumber != null) ? r.riskPriorityNumber : "N/A",
                     riskComment: r.riskComment ? r.riskComment : "N/A",
                 ]
             }
