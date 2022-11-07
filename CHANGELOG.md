@@ -97,6 +97,7 @@
 - Fix when the git checkout raise an Exception, the RM is not informed because the Registry is not initialized. ([#938]https://github.com/opendevstack/ods-jenkins-shared-library/issues/938)
 - Fixed document history path in IVP and IVR ([#944](https://github.com/opendevstack/ods-jenkins-shared-library/pull/944))
 - Fixed redeploy to P ([#947](https://github.com/opendevstack/ods-jenkins-shared-library/pull/947))
+- Remove support for the url repository field in metadata.yml ([#954](https://github.com/opendevstack/ods-jenkins-shared-library/pull/954))
 
 ## [3.0] - 2020-08-11
 
