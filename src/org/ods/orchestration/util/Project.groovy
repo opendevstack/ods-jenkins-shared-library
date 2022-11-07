@@ -1386,21 +1386,16 @@ class Project {
                 repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
             }
 
-            // Resolve repo URL, if not provided
-            if (!repo.url?.trim()) {
-                this.logger.debug("Could not determine Git URL for repo '${repo.id}' " +
-                        'from project meta data. Attempting to resolve automatically...')
-
-                def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
-                if (repo.name?.trim()) {
-                    repo.url = gitURL.resolve("${repo.name}.git").toString()
-                    repo.remove('name')
-                } else {
-                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-                }
-
-                this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+            // Resolve repo URL
+            def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+            if (repo.name?.trim()) {
+                repo.url = gitURL.resolve("${repo.name}.git").toString()
+                repo.remove('name')
+            } else {
+                repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
             }
+
+            this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
