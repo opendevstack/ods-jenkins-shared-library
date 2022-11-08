@@ -338,7 +338,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             environments:
               prod:
                 apiUrl: ${configuredProdApiUrl}
@@ -369,7 +368,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - Zephyr
               - LeVADocs:
@@ -405,7 +403,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - Zephyr
               - LeVADocs:
@@ -445,7 +442,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - Zephyr
               - LeVADocs:
@@ -1467,7 +1463,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - LeVADocs:
                   GAMPCategory: 5
@@ -1496,7 +1491,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - LeVADocs:
                   GAMPCategory: 5
@@ -1521,7 +1515,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - LeVADocs:
                   GAMPCategory: 1
@@ -1549,7 +1542,6 @@ class ProjectSpec extends SpecHelper {
             repositories:
               - id: A
                 name: A
-                url: http://git.com
             capabilities:
               - LeVADocs:
         """
