@@ -20,6 +20,7 @@
 - Fixed document history path in IVP and IVR ([#944](https://github.com/opendevstack/ods-jenkins-shared-library/pull/944))
 - Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
 - Fixed redeploy to P ([#947](https://github.com/opendevstack/ods-jenkins-shared-library/pull/947))
+- Fixed RPN and RP Risk Assessment fields to display proper values when not null ([#956](https://github.com/opendevstack/ods-jenkins-shared-library/pull/956))
 
 ## [4.0] - 2021-05-11
 
