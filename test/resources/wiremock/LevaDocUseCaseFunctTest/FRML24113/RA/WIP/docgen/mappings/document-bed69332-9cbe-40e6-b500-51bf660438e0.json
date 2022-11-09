@@ -168,7 +168,7 @@
                                             "probabilityOfOccurrence": "None",
                                             "severityOfImpact": "None",
                                             "probabilityOfDetection": "None",
-                                            "riskPriority": "N/A",
+                                            "riskPriority": "None",
                                             "riskPriorityNumber": "N/A",
                                             "riskComment": "N/A"
                                         },
@@ -183,7 +183,7 @@
                                             "probabilityOfOccurrence": "None",
                                             "severityOfImpact": "None",
                                             "probabilityOfDetection": "None",
-                                            "riskPriority": "N/A",
+                                            "riskPriority": "None",
                                             "riskPriorityNumber": "N/A",
                                             "riskComment": "N/A"
                                         },
@@ -198,7 +198,7 @@
                                             "probabilityOfOccurrence": "None",
                                             "severityOfImpact": "None",
                                             "probabilityOfDetection": "None",
-                                            "riskPriority": "N/A",
+                                            "riskPriority": "None",
                                             "riskPriorityNumber": "N/A",
                                             "riskComment": "N/A"
                                         },
@@ -213,7 +213,7 @@
                                             "probabilityOfOccurrence": "None",
                                             "severityOfImpact": "None",
                                             "probabilityOfDetection": "None",
-                                            "riskPriority": "N/A",
+                                            "riskPriority": "None",
                                             "riskPriorityNumber": "N/A",
                                             "riskComment": "N/A"
                                         },
@@ -228,7 +228,7 @@
                                             "probabilityOfOccurrence": "None",
                                             "severityOfImpact": "None",
                                             "probabilityOfDetection": "None",
-                                            "riskPriority": "N/A",
+                                            "riskPriority": "None",
                                             "riskPriorityNumber": "N/A",
                                             "riskComment": "N/A"
                                         }
