@@ -263,7 +263,7 @@ class FinalizeStage extends Stage {
             )
             git.pushRef(MASTER_BRANCH)
             git.switchToExistingBranch(project.gitReleaseBranch)
-            if (!project.isWorkInProgress && !git.remoteTagExists(project.targetTag)) {
+            if (!project.isWorkInProgress) {
                 git.createTag(project.targetTag)
             }
             // To overwrite the existing tag (if redeploy)
