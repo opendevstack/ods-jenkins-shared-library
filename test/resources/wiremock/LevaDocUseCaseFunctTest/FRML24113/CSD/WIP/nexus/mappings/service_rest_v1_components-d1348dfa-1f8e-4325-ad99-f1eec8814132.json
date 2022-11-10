@@ -1,9 +1,5 @@
 {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTP/WIP/nexus/mappings/service_rest_v1_components-cc26c4bf-632d-4982-8c16-4f1607d8870a.json
-  "id" : "cc26c4bf-632d-4982-8c16-4f1607d8870a",
-========
   "id" : "d1348dfa-1f8e-4325-ad99-f1eec8814132",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CSD/WIP/nexus/mappings/service_rest_v1_components-d1348dfa-1f8e-4325-ad99-f1eec8814132.json
   "name" : "service_rest_v1_components",
   "request" : {
     "url" : "/service/rest/v1/components?repository=leva-documentation",
@@ -15,17 +11,6 @@
   "response" : {
     "status" : 204,
     "headers" : {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTP/WIP/nexus/mappings/service_rest_v1_components-cc26c4bf-632d-4982-8c16-4f1607d8870a.json
-      "Date" : "Wed, 20 Oct 2021 15:12:21 GMT",
-      "Server" : "Nexus/3.28.1-01 (OSS)",
-      "X-Content-Type-Options" : "nosniff",
-      "Set-Cookie" : "b7bd9d362cf28fa3746ddf3faaa39cfe=55010cf410a222649d2c6fc5d575a27d; path=/; HttpOnly; Secure; SameSite=None"
-    }
-  },
-  "uuid" : "cc26c4bf-632d-4982-8c16-4f1607d8870a",
-  "persistent" : true,
-  "insertionIndex" : 3
-========
       "Date" : "Mon, 13 Dec 2021 19:57:21 GMT",
       "Server" : "Nexus/3.28.1-01 (OSS)",
       "X-Content-Type-Options" : "nosniff",
@@ -35,5 +20,4 @@
   "uuid" : "d1348dfa-1f8e-4325-ad99-f1eec8814132",
   "persistent" : true,
   "insertionIndex" : 1
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CSD/WIP/nexus/mappings/service_rest_v1_components-d1348dfa-1f8e-4325-ad99-f1eec8814132.json
 }

@@ -1,11 +1,6 @@
 {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_issue_ofi2004-155-dcdd5325-9032-481f-b473-7d263eafd166.json
-  "id" : "dcdd5325-9032-481f-b473-7d263eafd166",
-  "name" : "rest_api_2_issue_ofi2004-155",
-========
   "id" : "44911ba1-57b0-4d93-9b2c-e4f2216b9287",
   "name" : "rest_api_2_issue_frml24113-139",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/IVP/WIP/jira/mappings/rest_api_2_issue_frml24113-139-44911ba1-57b0-4d93-9b2c-e4f2216b9287.json
   "request" : {
     "url" : "/rest/api/2/issue/FRML24113-139?fields=customfield_19208",
     "method" : "GET"
@@ -14,18 +9,10 @@
     "status" : 200,
     "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"367244\",\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issue/367244\",\"key\":\"FRML24113-139\",\"fields\":{\"customfield_19208\":\"2\"}}",
     "headers" : {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_issue_ofi2004-155-dcdd5325-9032-481f-b473-7d263eafd166.json
-      "Server" : "nginx/1.20.1",
-      "Date" : "Thu, 30 Sep 2021 10:11:33 GMT",
-      "Content-Type" : "application/json;charset=UTF-8",
-      "X-AREQUESTID" : "731x40767x1",
-      "X-ASESSIONID" : "u66ube",
-========
       "Server" : "nginx/1.8.1",
       "Date" : "Thu, 23 Dec 2021 06:29:48 GMT",
       "Content-Type" : "application/json;charset=UTF-8",
       "X-AREQUESTID" : "449x3885855x1",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/IVP/WIP/jira/mappings/rest_api_2_issue_frml24113-139-44911ba1-57b0-4d93-9b2c-e4f2216b9287.json
       "Referrer-Policy" : "strict-origin-when-cross-origin",
       "X-XSS-Protection" : "1; mode=block",
       "X-Content-Type-Options" : "nosniff",
@@ -40,14 +27,7 @@
       "Vary" : "User-Agent"
     }
   },
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_issue_ofi2004-155-dcdd5325-9032-481f-b473-7d263eafd166.json
-  "uuid" : "dcdd5325-9032-481f-b473-7d263eafd166",
-  "persistent" : true,
-  "insertionIndex" : 183
-}
-========
   "uuid" : "44911ba1-57b0-4d93-9b2c-e4f2216b9287",
   "persistent" : true,
   "insertionIndex" : 40
 }
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/IVP/WIP/jira/mappings/rest_api_2_issue_frml24113-139-44911ba1-57b0-4d93-9b2c-e4f2216b9287.json

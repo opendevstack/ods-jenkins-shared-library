@@ -1,9 +1,5 @@
 {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-bb43449f-ec73-473a-8dd8-b9e76d6c5cfa.json
-  "id" : "bb43449f-ec73-473a-8dd8-b9e76d6c5cfa",
-========
   "id" : "2e2614af-e6a0-4f48-a9d8-4c60bbcd552e",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CSD/WIP/jira/mappings/rest_api_2_search-2e2614af-e6a0-4f48-a9d8-4c60bbcd552e.json
   "name" : "rest_api_2_search",
   "request" : {
     "url" : "/rest/api/2/search",
@@ -18,18 +14,10 @@
     "status" : 200,
     "body" : "{\"startAt\":0,\"maxResults\":1000,\"total\":0,\"issues\":[]}",
     "headers" : {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-bb43449f-ec73-473a-8dd8-b9e76d6c5cfa.json
-      "Server" : "nginx/1.20.1",
-      "Date" : "Tue, 05 Oct 2021 15:13:26 GMT",
-      "Content-Type" : "application/json;charset=UTF-8",
-      "X-AREQUESTID" : "1033x96941x1",
-      "X-ASESSIONID" : "191ic89",
-========
       "Server" : "nginx/1.8.1",
       "Date" : "Mon, 13 Dec 2021 19:56:18 GMT",
       "Content-Type" : "application/json;charset=UTF-8",
       "X-AREQUESTID" : "1256x3155963x1",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CSD/WIP/jira/mappings/rest_api_2_search-2e2614af-e6a0-4f48-a9d8-4c60bbcd552e.json
       "Referrer-Policy" : "strict-origin-when-cross-origin",
       "X-XSS-Protection" : "1; mode=block",
       "X-Content-Type-Options" : "nosniff",
@@ -44,13 +32,7 @@
       "Vary" : "User-Agent"
     }
   },
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-bb43449f-ec73-473a-8dd8-b9e76d6c5cfa.json
-  "uuid" : "bb43449f-ec73-473a-8dd8-b9e76d6c5cfa",
-  "persistent" : true,
-  "insertionIndex" : 167
-========
   "uuid" : "2e2614af-e6a0-4f48-a9d8-4c60bbcd552e",
   "persistent" : true,
   "insertionIndex" : 16
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CSD/WIP/jira/mappings/rest_api_2_search-2e2614af-e6a0-4f48-a9d8-4c60bbcd552e.json
 }

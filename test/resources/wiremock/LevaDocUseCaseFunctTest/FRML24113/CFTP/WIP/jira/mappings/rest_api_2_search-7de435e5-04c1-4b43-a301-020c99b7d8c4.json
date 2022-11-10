@@ -1,9 +1,5 @@
 {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd.json
-  "id" : "4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd",
-========
   "id" : "7de435e5-04c1-4b43-a301-020c99b7d8c4",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTP/WIP/jira/mappings/rest_api_2_search-7de435e5-04c1-4b43-a301-020c99b7d8c4.json
   "name" : "rest_api_2_search",
   "request" : {
     "url" : "/rest/api/2/search",
@@ -16,22 +12,12 @@
   },
   "response" : {
     "status" : 200,
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd.json
-    "bodyFileName" : "rest_api_2_search-4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd.json",
-    "headers" : {
-      "Server" : "nginx/1.20.1",
-      "Date" : "Tue, 05 Oct 2021 15:13:33 GMT",
-      "Content-Type" : "application/json;charset=UTF-8",
-      "X-AREQUESTID" : "1033x96946x1",
-      "X-ASESSIONID" : "191ic89",
-========
     "bodyFileName" : "rest_api_2_search-7de435e5-04c1-4b43-a301-020c99b7d8c4.json",
     "headers" : {
       "Server" : "nginx/1.8.1",
       "Date" : "Mon, 13 Dec 2021 20:02:49 GMT",
       "Content-Type" : "application/json;charset=UTF-8",
       "X-AREQUESTID" : "1262x3156348x1",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTP/WIP/jira/mappings/rest_api_2_search-7de435e5-04c1-4b43-a301-020c99b7d8c4.json
       "Referrer-Policy" : "strict-origin-when-cross-origin",
       "X-XSS-Protection" : "1; mode=block",
       "X-Content-Type-Options" : "nosniff",
@@ -46,13 +32,7 @@
       "Vary" : "User-Agent"
     }
   },
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/RA/WIP/jira/mappings/rest_api_2_search-4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd.json
-  "uuid" : "4a70a3b2-1ffa-4fbb-bcf1-3afe772ebadd",
-  "persistent" : true,
-  "insertionIndex" : 171
-========
   "uuid" : "7de435e5-04c1-4b43-a301-020c99b7d8c4",
   "persistent" : true,
   "insertionIndex" : 21
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTP/WIP/jira/mappings/rest_api_2_search-7de435e5-04c1-4b43-a301-020c99b7d8c4.json
 }

@@ -1,9 +1,5 @@
 {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-072397f2-0259-4922-9932-e763fe4dcb9b.json
-  "id" : "072397f2-0259-4922-9932-e763fe4dcb9b",
-========
   "id" : "17631964-49ae-4b3f-a82c-83021029a306",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTR/WIP/jira/mappings/rest_api_2_search-17631964-49ae-4b3f-a82c-83021029a306.json
   "name" : "rest_api_2_search",
   "request" : {
     "url" : "/rest/api/2/search",
@@ -18,18 +14,10 @@
     "status" : 200,
     "body" : "{\"startAt\":0,\"maxResults\":1000,\"total\":0,\"issues\":[]}",
     "headers" : {
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-072397f2-0259-4922-9932-e763fe4dcb9b.json
-      "Server" : "nginx/1.20.1",
-      "Date" : "Thu, 30 Sep 2021 10:10:44 GMT",
-      "Content-Type" : "application/json;charset=UTF-8",
-      "X-AREQUESTID" : "730x40743x1",
-      "X-ASESSIONID" : "u66ube",
-========
       "Server" : "nginx/1.8.1",
       "Date" : "Mon, 13 Dec 2021 20:11:54 GMT",
       "Content-Type" : "application/json;charset=UTF-8",
       "X-AREQUESTID" : "1271x3156898x1",
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTR/WIP/jira/mappings/rest_api_2_search-17631964-49ae-4b3f-a82c-83021029a306.json
       "Referrer-Policy" : "strict-origin-when-cross-origin",
       "X-XSS-Protection" : "1; mode=block",
       "X-Content-Type-Options" : "nosniff",
@@ -44,13 +32,7 @@
       "Vary" : "User-Agent"
     }
   },
-<<<<<<<< HEAD:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-072397f2-0259-4922-9932-e763fe4dcb9b.json
-  "uuid" : "072397f2-0259-4922-9932-e763fe4dcb9b",
-  "persistent" : true,
-  "insertionIndex" : 159
-========
   "uuid" : "17631964-49ae-4b3f-a82c-83021029a306",
   "persistent" : true,
   "insertionIndex" : 16
->>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/CFTR/WIP/jira/mappings/rest_api_2_search-17631964-49ae-4b3f-a82c-83021029a306.json
 }
