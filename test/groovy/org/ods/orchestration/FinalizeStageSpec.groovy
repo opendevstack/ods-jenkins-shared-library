@@ -122,7 +122,7 @@ class FinalizeStageSpec extends SpecHelper {
 
         then:
         1 * gitService.pushRef('master')
-        0 * gitService.createTag(project.targetTag)
+        1 * gitService.createTag(project.targetTag)
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 }
