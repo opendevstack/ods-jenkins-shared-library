@@ -267,6 +267,7 @@ class FinalizeStage extends Stage {
                 git.createTag(project.targetTag)
             }
             // To overwrite the existing tag (if redeploy)
+            // FIXME: Review this functionality to avoid orphaned commits
             git.pushForceBranchWithTags(project.gitReleaseBranch)
         }
     }

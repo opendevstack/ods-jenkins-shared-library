@@ -99,6 +99,7 @@
 - Fixed redeploy to P ([#947](https://github.com/opendevstack/ods-jenkins-shared-library/pull/947))
 - Remove support for the url repository field in metadata.yml ([#954](https://github.com/opendevstack/ods-jenkins-shared-library/pull/954))
 - Fixed RPN and RP Risk Assessment fields to display proper values when not null ([#956](https://github.com/opendevstack/ods-jenkins-shared-library/pull/956))
+- Redeployments to QA cause detached Tags (https://github.com/opendevstack/ods-jenkins-shared-library/pull/960)
 
 ## [3.0] - 2020-08-11
 
