@@ -1,0 +1,249 @@
+[
+    {
+        "components": [
+            
+        ],
+        "requirements": [
+            {
+                "action": "add",
+                "key": "FRML24113-169"
+            },
+            {
+                "action": "add",
+                "key": "FRML24113-174"
+            },
+            {
+                "action": "add",
+                "key": "FRML24113-162"
+            }
+        ],
+        "epics": [
+            
+        ],
+        "mitigations": [
+            
+        ],
+        "entryId": 1,
+        "bugs": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            {
+                "number": "3.2",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Operational Requirements",
+                "action": "add",
+                "key": "FRML24113-45"
+            },
+            {
+                "number": "6",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Reference Documents",
+                "action": "add",
+                "key": "FRML24113-44"
+            },
+            {
+                "number": "1",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Introduction and Purpose",
+                "action": "add",
+                "key": "FRML24113-43"
+            },
+            {
+                "number": "2",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Overview",
+                "action": "add",
+                "key": "FRML24113-42"
+            },
+            {
+                "number": "3.1",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Related Business / GxP Process",
+                "action": "add",
+                "key": "FRML24113-41"
+            },
+            {
+                "number": "5.1",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Definitions",
+                "action": "add",
+                "key": "FRML24113-40"
+            },
+            {
+                "number": "5.2",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Abbreviations",
+                "action": "add",
+                "key": "FRML24113-39"
+            },
+            {
+                "number": "7",
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Document History",
+                "action": "add",
+                "key": "FRML24113-38"
+            }
+        ],
+        "previousProjectVersion": "",
+        "techSpecs": [
+            
+        ],
+        "rational": "Initial document version.",
+        "projectVersion": "1.0"
+    },
+    {
+        "components": [
+            
+        ],
+        "requirements": [
+            {
+                "action": "add",
+                "key": "FRML24113-184"
+            }
+        ],
+        "epics": [
+            {
+                "action": "add",
+                "key": "FRML24113-183"
+            }
+        ],
+        "mitigations": [
+            
+        ],
+        "entryId": 2,
+        "bugs": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            {
+                "number": "2",
+                "predecessors": [
+                    "FRML24113-42"
+                ],
+                "documents": [
+                    "CSD"
+                ],
+                "heading": "Overview (from FRML24113-42)",
+                "action": "change",
+                "key": "FRML24113-190"
+            }
+        ],
+        "previousProjectVersion": "1.0",
+        "techSpecs": [
+            
+        ],
+        "rational": "Modifications for project version '2.0'.",
+        "projectVersion": "2.0"
+    },
+    {
+        "components": [
+            
+        ],
+        "requirements": [
+            {
+                "predecessors": [
+                    "FRML24113-169"
+                ],
+                "action": "change",
+                "key": "FRML24113-268"
+            },
+            {
+                "action": "discontinue",
+                "key": "FRML24113-174"
+            }
+        ],
+        "epics": [
+            
+        ],
+        "mitigations": [
+            
+        ],
+        "entryId": 3,
+        "bugs": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            
+        ],
+        "previousProjectVersion": "2.0",
+        "techSpecs": [
+            
+        ],
+        "rational": "Modifications for project version '3.0'.",
+        "projectVersion": "3.0"
+    },
+    {
+        "bugs": [
+            
+        ],
+        "components": [
+            
+        ],
+        "epics": [
+            {
+                "key": "FRML24113-272",
+                "action": "add"
+            }
+        ],
+        "mitigations": [
+            
+        ],
+        "requirements": [
+            {
+                "key": "FRML24113-273",
+                "action": "add"
+            }
+        ],
+        "risks": [
+            
+        ],
+        "techSpecs": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            
+        ],
+        "entryId": 4,
+        "projectVersion": "4.0",
+        "previousProjectVersion": "3.0",
+        "rational": "Modifications for project version '4.0'."
+    }
+]

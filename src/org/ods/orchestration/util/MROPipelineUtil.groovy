@@ -29,6 +29,7 @@ class MROPipelineUtil extends PipelineUtil {
         static final String REPO_TYPE_ODS_SAAS_SERVICE = "ods-saas-service"
         static final String REPO_TYPE_ODS_SERVICE = "ods-service"
         static final String REPO_TYPE_ODS_TEST = "ods-test"
+        static final String REPO_TYPE_ODS_LIB = "ods-library"
 
         static final String PHASE_EXECUTOR_TYPE_MAKEFILE = "Makefile"
         static final String PHASE_EXECUTOR_TYPE_SHELLSCRIPT = "ShellScript"
@@ -36,6 +37,12 @@ class MROPipelineUtil extends PipelineUtil {
         static final List PHASE_EXECUTOR_TYPES = [
             PHASE_EXECUTOR_TYPE_MAKEFILE,
             PHASE_EXECUTOR_TYPE_SHELLSCRIPT
+        ]
+
+        static final List<String> INSTALLABLE_REPO_TYPES = [
+            REPO_TYPE_ODS_CODE as String,
+            REPO_TYPE_ODS_SERVICE as String,
+            REPO_TYPE_ODS_INFRA as String
         ]
     }
 
@@ -369,7 +376,7 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
-
+                    repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir, false)
@@ -390,6 +397,14 @@ class MROPipelineUtil extends PipelineUtil {
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
+                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_LIB) {
+                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                            executeODSComponent(repo, baseDir)
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else {
+                            this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                        }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE) {
                         this.logger.debug("Repo '${repo.id}' is of type ODS SaaS Service Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
@@ -404,7 +419,7 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
-                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component, init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
                             if (repo.pipelineConfig?.initJenkinsFile) {
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.

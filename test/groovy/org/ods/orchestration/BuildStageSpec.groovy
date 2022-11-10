@@ -1,7 +1,5 @@
 package org.ods.orchestration
 
-import static util.FixtureHelper.createProject
-
 import org.ods.PipelineScript
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
@@ -15,8 +13,9 @@ import org.ods.util.Logger
 import org.ods.util.PipelineSteps
 import util.SpecHelper
 
-class BuildStageSpec extends SpecHelper {
+import static util.FixtureHelper.createProject
 
+class BuildStageSpec extends SpecHelper {
     Project project
     BuildStage buildStage
     IPipelineSteps steps
@@ -54,40 +53,40 @@ class BuildStageSpec extends SpecHelper {
 
     def "successful execution"() {
         when:
-          buildStage.run()
+        buildStage.run()
 
         then:
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
     }
 
     def "unit test errors in WIP version doesn't break the stage"() {
         given:
-          project.hasFailingTests = true
-          project.data.buildParams.version = project.BUILD_PARAM_VERSION_DEFAULT
+        project.hasFailingTests = true
+        project.data.buildParams.version = project.BUILD_PARAM_VERSION_DEFAULT
 
         when:
-          buildStage.run()
+        buildStage.run()
 
         then:
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-          1 * util.failBuild(_)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
+        1 * util.failBuild(_)
     }
 
     def "unit test errors in X version break the stage"() {
         given:
-          project.hasFailingTests = true
+        project.hasFailingTests = true
 
         when:
-          buildStage.run()
+        buildStage.run()
 
         then:
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
-          1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-          1 * util.failBuild(_)
-          IllegalStateException ex = thrown()
-          ex.message == 'Failing build as repositories contain errors!\nFailed: []'
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
+        1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
+        1 * util.failBuild(_)
+        IllegalStateException ex = thrown()
+        ex.message == 'Failing build as repositories contain errors!\nFailed: []'
     }
 
 }

@@ -32,6 +32,7 @@ class DocumentHistory {
     protected Long latestVersionId
     protected final String documentName
     protected Boolean allIssuesAreValid = true
+    protected String allIssuesAreNotValidMessage = ''
 
     DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentName) {
         this.steps = steps
@@ -268,11 +269,11 @@ class DocumentHistory {
                 //throw new RuntimeException('In order to build a coherent document history we need to have a' +
                 //    ' version for all the elements. In this case, the following items have this state: ' +
                 //    "'${issuesWithNoVersion*.key.join(', ')}'")
-                //this.logger.warn('Document history not valid. We don\'t have a version for  the following' +
-                //    " elements'${issuesWithNoVersion.collect { it.key }.join(', ')}'. " +
-                //    'If you are not using versioning ' +
-                //    'and its automated document history you can ignore this warning. Otherwise, make sure ' +
-                //    'all the issues have a version attached to it.')
+                this.allIssuesAreNotValidMessage = 'Document history not valid. We don\'t have a version for ' +
+                    "the following elements'${issuesWithNoVersion.collect { it.key }.join(', ')}'. " +
+                    'If you are not using versioning ' +
+                    'and its automated document history you can ignore this warning. Otherwise, make sure ' +
+                    'all the issues have a version attached to it.'
                 this.allIssuesAreValid = false
             }
         }
@@ -325,6 +326,9 @@ class DocumentHistory {
         this.allIssuesAreValid = true
 
         def versionMap = this.computeEntryData(jiraData, projectVersion, keysInDocument)
+        if (!this.allIssuesAreValid){
+            logger.warn(this.allIssuesAreNotValidMessage)
+        }
         logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }

@@ -111,14 +111,15 @@ class Stage {
             'JUnit XML Report'
         )
 
+        def testReportFiles = []
         if (!hasStashedTestReports) {
-            throw new RuntimeException(
-                "Error: unable to unstash JUnit XML reports, type '${type}' for repo '${repo.id}' " +
+            logger.warn(
+                "Unable to unstash JUnit XML reports, type '${type}' for repo '${repo.id}' " +
                 "from stash '${testReportsStashName}'."
             )
+        } else {
+            testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
         }
-
-        def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
 
         return [
             // Load JUnit test report files from path

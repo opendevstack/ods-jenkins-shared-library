@@ -1,9 +1,0 @@
-package workspace.OFI2004
-// See https://www.opendevstack.org/ods-documentation/ for usage and customization.
-
-@Library('ods-jenkins-shared-library@3.x') _
-
-odsOrchestrationPipeline(
-  debug: true,
-  odsImageTag: '3.x'
-)

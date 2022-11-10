@@ -1,0 +1,56 @@
+{
+<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/SSDS/WIP/jira/mappings/rest_api_2_search-c8e71f08-097d-4d1f-af5a-5b3cca7f0615.json
+  "id" : "c8e71f08-097d-4d1f-af5a-5b3cca7f0615",
+========
+  "id" : "773414a5-de70-47d6-aae8-c1d4bc2e780f",
+>>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-773414a5-de70-47d6-aae8-c1d4bc2e780f.json
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"fields\":[\"assignee\",\"duedate\",\"issuelinks\",\"status\",\"summary\",\"fixVersions\"],\"jql\":\"project = FRML24113 AND issuetype = Bug AND status != Done AND fixVersion = '4.0'\",\"expand\":[],\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"startAt\":0,\"maxResults\":1000,\"total\":0,\"issues\":[]}",
+    "headers" : {
+<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/SSDS/WIP/jira/mappings/rest_api_2_search-c8e71f08-097d-4d1f-af5a-5b3cca7f0615.json
+      "Server" : "nginx/1.20.1",
+      "Date" : "Wed, 20 Oct 2021 15:09:22 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1029x10462x1",
+      "X-ASESSIONID" : "wm2gu0",
+========
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 10:39:24 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "699x3144784x1",
+>>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-773414a5-de70-47d6-aae8-c1d4bc2e780f.json
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=C4104322888CE8250AD7AF2C82B7A501; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_487648460b990befbf9bbbc144c91a3f2157da38_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "v6qonv",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+<<<<<<<< HEAD:test/resources/wiremock/LevaDocumentUseCasePipelineSpec/SSDS/WIP/jira/mappings/rest_api_2_search-c8e71f08-097d-4d1f-af5a-5b3cca7f0615.json
+  "uuid" : "c8e71f08-097d-4d1f-af5a-5b3cca7f0615",
+  "persistent" : true,
+  "insertionIndex" : 162
+========
+  "uuid" : "773414a5-de70-47d6-aae8-c1d4bc2e780f",
+  "persistent" : true,
+  "insertionIndex" : 19
+>>>>>>>> master:test/resources/wiremock/LevaDocUseCaseFunctTest/FRML24113/spock/TIR/WIP/jira/mappings/rest_api_2_search-773414a5-de70-47d6-aae8-c1d4bc2e780f.json
+}
