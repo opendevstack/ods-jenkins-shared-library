@@ -124,8 +124,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 openShift
             )
             metadata.updateMetadata(true, deploymentResources)
-//            openShift.bulkResume(context.targetProject, deploymentResources)
-//            paused = false
 
             def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
             // FIXME: this is fugly as rollout(..) above will resume anyways and this leaks heavily

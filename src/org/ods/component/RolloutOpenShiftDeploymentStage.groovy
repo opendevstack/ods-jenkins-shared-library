@@ -13,9 +13,6 @@ import org.ods.util.ILogger
 class RolloutOpenShiftDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to OpenShift'
-//    private final List<String> DEPLOYMENT_KINDS = [
-//        OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
-//    ]
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final RolloutOpenShiftDeploymentOptions options
