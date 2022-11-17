@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## [4.1] - 2022-11-17
+
+### Added
+- Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
+- Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
+- Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
+- Add retry for Openshift image build status ([#901](https://github.com/opendevstack/ods-jenkins-shared-library/issues/901))
+
+### Changed
+- Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
+- Remove call to a cps method from a non_cps method ([852](https://github.com/opendevstack/ods-jenkins-shared-library/pull/852))
+- Improve error message when two coded tests are linked to the same test issue ([#835](https://github.com/opendevstack/ods-jenkins-shared-library/pull/835))
+- Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Closes ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+- Increase default timeout for rollout ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
+- Removes DIL from the set of docs generated for enviroment P ([#914](https://github.com/opendevstack/ods-jenkins-shared-library/pull/914))
+- Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
+- Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
+
+### Fixed
+- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
+- Fixed redeploy to P ([#947](https://github.com/opendevstack/ods-jenkins-shared-library/pull/947))
+- Fixed RPN and RP Risk Assessment fields to display proper values when not null ([#956](https://github.com/opendevstack/ods-jenkins-shared-library/pull/956))
+- Fixed errors in library (Null pointers and Serialization) ([#941](https://github.com/opendevstack/ods-jenkins-shared-library/pull/941))
+- Fixed document history path in IVP and IVR ([#944](https://github.com/opendevstack/ods-jenkins-shared-library/pull/944))
+- Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
+- JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
+
 ## [4.0] - 2022-11-10
 
 ### Added
@@ -27,18 +55,9 @@
 - Release Manager references v1.1 SLC Docs templates ([#798](https://github.com/opendevstack/ods-jenkins-shared-library/issues/798))
 - Improve Wiremock logs ([#809](https://github.com/opendevstack/ods-jenkins-shared-library/pull/809)
 - Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
-- Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
-- Set test summary for empty description in TCR for integration tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
 - Set test summary for empty description in TCR for acceptance tests ([#844](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
 - Bump Antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
-- Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
-- Add annotation to agents by default ([#879](https://github.com/opendevstack/ods-jenkins-shared-library/issues/879))
 - Improve memory cleanUp  ([#902](https://github.com/opendevstack/ods-jenkins-shared-library/pull/902))
-- Added default timeout to Aqua stage ([#899](https://github.com/opendevstack/ods-jenkins-shared-library/issues/899))
-- Increase default timeout for rollout ([#903](https://github.com/opendevstack/ods-jenkins-shared-library/issues/903))
-- Add retry for Openshift image build status ([#901](https://github.com/opendevstack/ods-jenkins-shared-library/issues/901))
-- Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
-- Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
 
 ### Changed
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
@@ -91,12 +110,10 @@
 - Fix Traceability matrix null error ([#817](https://github.com/opendevstack/ods-jenkins-shared-library/pull/817))
 - Problems with temporal folder in tests ([#819](https://github.com/opendevstack/ods-jenkins-shared-library/pull/819)
 - RM: test component causes new jenkins (run) instance after branch is created for release([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
-- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 - Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
 - JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
 - Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
-- Closes ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
 - Fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
 - Fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
 - Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
@@ -111,8 +128,6 @@
 - Remove the workaround for NPE resolving issues ([#660](https://github.com/opendevstack/ods-jenkins-shared-library/pull/660))
 - Remove not needed entries in the CFTP document history ([#707](https://github.com/opendevstack/ods-jenkins-shared-library/pull/707))
 - Remove non-breakable white space from Json response of JiraService ([760](https://github.com/opendevstack/ods-jenkins-shared-library/pull/760))
-- Removes DIL from the set of docs generated for enviroment P ([914](https://github.com/opendevstack/ods-jenkins-shared-library/pull/914))
-- Remove call to a cps method from a non_cps method ([852](https://github.com/opendevstack/ods-jenkins-shared-library/pull/852))
 - Remove support for the url repository field in metadata.yml ([#954](https://github.com/opendevstack/ods-jenkins-shared-library/pull/954))
 
 ## [3.0] - 2020-08-11
