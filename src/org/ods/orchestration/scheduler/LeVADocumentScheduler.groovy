@@ -14,7 +14,7 @@ import org.ods.util.IPipelineSteps
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category
-    private static Map GAMP_CATEGORIES = [
+    private final static Map GAMP_CATEGORIES = [
         "1": [
             DocumentType.CSD as String,
             DocumentType.RA as String,

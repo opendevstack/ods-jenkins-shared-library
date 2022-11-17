@@ -83,7 +83,7 @@ This type designates ODS components designed for _running services_ of arbitrary
 
 This type designates ODS components designed for _running automated tests against a live application_. Such components are based on quickstarters whose names start with `e2e-`.
 
-==== Repository Type: ods-library
+==== Repository Type: ods-library (EXPERIMENTAL feature)
 
 This type designates ODS components designed for _library components_. Such components are only build in dev (WIP and assemble mode), and are needed for other components to be built.
 
