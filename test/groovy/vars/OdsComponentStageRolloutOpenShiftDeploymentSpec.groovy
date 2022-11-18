@@ -43,7 +43,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 15) >> "bar-124"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [new PodData([ deploymentId: "bar-124" ])]
-//    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([ deploymentId: "bar-124" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'DeploymentConfig', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -79,7 +78,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 15) >> "bar-6f8db5fb69"
     // test the handover of the poddata retries
     openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
-//    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'Deployment', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -114,7 +112,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
     openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
-//    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -217,7 +214,6 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     IContext context = new Context(null, cfg, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.getResourcesForComponent(_, { it == ['Deployment', 'DeploymentConfig'] }, _) >> [DeploymentConfig: ['bar']]
-//    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     openShiftService.resourceExists(_, { it == 'ImageStream' }, _) >> isExists
     openShiftService.getImagesOfDeployment(*_) >> images
     openShiftService.getRevision(*_) >> latestVersion

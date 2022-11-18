@@ -42,7 +42,6 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         when:
         def script = loadScript('vars/odsComponentStageCopyImage.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { "secret-token" }
-//        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
         script.call(context, cfg)
 
 
