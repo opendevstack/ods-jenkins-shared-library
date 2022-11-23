@@ -112,7 +112,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = rollout(deploymentResources) ?: [:]
+        def rolloutData = getRolloutData(deploymentResources) ?: [:]
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
     }
@@ -218,7 +218,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     //    'Deployment/bar': [[podName: 'bar-a', ...]]
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
-    private Map<String, List<PodData>> rollout(
+    private Map<String, List<PodData>> getRolloutData(
         Map<String, List<String>> deploymentResources) {
 
         def rolloutData = [:]
