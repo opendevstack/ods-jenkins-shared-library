@@ -73,7 +73,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         when:
         def deploymentResources = [Deployment: ['bar']]
-        def rolloutData = strategy.rollout(deploymentResources)
+        def rolloutData = strategy.getRolloutData(deploymentResources)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
 
