@@ -167,7 +167,7 @@ class DeployOdsComponent {
                         project.targetProject,
                         deploymentMean.tailorSelectors as Map<String, String>,
                         project.environmentParamsFile,
-                        deploymentMean.tailorParams as List<String>,
+                        deploymentMean.tailorParams as Set<String>,
                         deploymentMean.tailorPreserve as List<String>,
                         pkeyFile,
                         true // verify

@@ -145,7 +145,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                     targetProject,
                     [selector: options.tailorSelector, exclude: options.tailorExclude],
                     options.tailorParamFile,
-                    options.tailorParams,
+                    options.tailorParams as Set<String>,
                     options.tailorPreserve,
                     pkeyFile,
                     options.tailorVerify
