@@ -145,7 +145,8 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                     targetProject,
                     [selector: options.tailorSelector, exclude: options.tailorExclude],
                     options.tailorParamFile,
-                    options.tailorParams as Set<String>,
+                    // ensure that we don't pass duplicate parameters
+                    (options.tailorParams as Set<String>) as List<String>,
                     options.tailorPreserve,
                     pkeyFile,
                     options.tailorVerify

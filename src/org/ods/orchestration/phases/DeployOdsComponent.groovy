@@ -167,7 +167,8 @@ class DeployOdsComponent {
                         project.targetProject,
                         deploymentMean.tailorSelectors as Map<String, String>,
                         project.environmentParamsFile,
-                        deploymentMean.tailorParams as Set<String>,
+                        // ensure that we don't pass duplicate parameters
+                        (deploymentMean.tailorParams as Set<String>) as List<String>,
                         deploymentMean.tailorPreserve as List<String>,
                         pkeyFile,
                         true // verify
