@@ -35,14 +35,10 @@ def call(IContext context, Map config = [:]) {
     if (!nexusService) {
         nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
     }
-    def inheritedConfig = [:]
-    if (config.resourceName) {
-        inheritedConfig.resourceName = config.resourceName
-    }
     def stage = new ScanWithSonarStage(
         this,
         context,
-        inheritedConfig,
+        config,
         bitbucketService,
         sonarQubeService,
         nexusService,
