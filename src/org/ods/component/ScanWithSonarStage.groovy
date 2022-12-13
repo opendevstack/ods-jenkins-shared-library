@@ -30,6 +30,9 @@ class ScanWithSonarStage extends Stage {
         NexusService nexus,
         ILogger logger) {
         super(script, context, logger)
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
+        }
         // If user did not explicitly define which branches to scan,
         // infer that information from elsewhere.
         if (!config.containsKey('branches') && !config.containsKey('branch')) {
