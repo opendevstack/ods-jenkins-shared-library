@@ -1,7 +1,6 @@
 package vars
 
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
-import groovy.lang.MissingPropertyException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.component.Context
@@ -41,7 +40,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       sonarQubeEdition: 'developer',
   ]
 
-  def "run successfully"() {
+def "run successfully"() {
     given:
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
@@ -159,7 +158,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     projectStatus                      | projectStatusKey || expectedToFail | message
     """{"projectStatus": "ERROR"}"""   | 'ERROR'          || true           | 'Quality gate failed'
     """{"projectStatus": "SUCCESS"}""" | 'SUCCESS'        || false          | 'Quality gate passed'
-    """{}"""                           | ''               || true          | 'Quality gate unknown'
+    """{}"""                           | ''               || true           | 'Quality gate unknown'
   }
 
   def "skip branch should not be scanned"() {
