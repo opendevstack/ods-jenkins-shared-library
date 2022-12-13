@@ -279,7 +279,7 @@ class ScanWithSonarStage extends Stage {
 
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
-            "${context.projectId}/${context.componentId}/" +
+            "${context.projectId}/${this.options.resourceName}/" +
                 "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/sonarQube",
             "report.pdf",
             pdfReport, "application/pdf")
