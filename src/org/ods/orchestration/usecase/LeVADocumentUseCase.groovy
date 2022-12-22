@@ -50,6 +50,8 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
+    protected static final Boolean IS_GXP_PROJECT_DEFAULT = Boolean.TRUE;
+
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
@@ -939,6 +941,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec2s3") sections."sec2s3" = [:]
         sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
+        if (calculateIfProjectIsGxp(this.project.getProjectProperties())) {
+            sections."sec2s3".isGxpProject = true;
+        }
+
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
 
@@ -983,9 +989,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
+
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    protected boolean calculateIfProjectIsGxp(Map projectProperties) {
+        return (!projectProperties.containsKey("PROJECT.IS_GXP") && IS_GXP_PROJECT_DEFAULT
+            || projectProperties."PROJECT.IS_GXP".toBoolean())
     }
 
     @NonCPS

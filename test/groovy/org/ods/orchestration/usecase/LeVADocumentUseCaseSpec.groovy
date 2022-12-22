@@ -1919,4 +1919,34 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         [name: '',description: 'DESCRIPTION']          |       'DESCRIPTION'
         [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
     }
+
+    def "calculateIfProjectIsGxp for missing isGxp property should return default value" (){
+        given:
+        Map projectProperties = [:]
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null)
+
+        when:
+        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
+
+        then:
+        result == LeVADocumentUseCase.IS_GXP_PROJECT_DEFAULT
+    }
+
+    def "calculateIfProjectIsGxp when not a gxp project should return false" (){
+        given:
+        Map projectProperties = [:]
+        def isGxpValue = false;
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null)
+
+        when:
+        projectProperties['PROJECT.IS_GXP'] = isGxpValue
+        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
+
+        then:
+        result == isGxpValue
+    }
 }
