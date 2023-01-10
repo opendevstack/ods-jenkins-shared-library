@@ -1949,4 +1949,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         result == isGxpValue
     }
+
+    def "calculateIfProjectIsGxp when project is gxp should return true" (){
+        given:
+        Map projectProperties = [:]
+        def isGxpValue = true;
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null)
+
+        when:
+        projectProperties['PROJECT.IS_GXP'] = isGxpValue
+        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
+
+        then:
+        result == isGxpValue
+    }
 }
