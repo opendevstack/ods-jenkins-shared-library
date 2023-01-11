@@ -50,7 +50,7 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    protected static final Boolean IS_GXP_PROJECT_DEFAULT = Boolean.TRUE;
+    protected static final Boolean IS_GXP_PROJECT_DEFAULT = Boolean.TRUE
 
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
@@ -941,10 +941,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec2s3") sections."sec2s3" = [:]
         sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
-        if (calculateIfProjectIsGxp(this.project.getProjectProperties())) {
-            sections."sec2s3".isGxpProject = true;
-        }
-
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
 
@@ -989,6 +985,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
+
+        if (calculateIfProjectIsGxp(this.project.getProjectProperties())) {
+            data_.data.isGxpProject = true;
+        }
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
@@ -1787,5 +1787,4 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String replaceDashToNonBreakableUnicode(theString) {
         return theString?.replaceAll('-', '&#x2011;')
     }
-
 }
