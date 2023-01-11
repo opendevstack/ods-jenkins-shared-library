@@ -20,6 +20,7 @@
 - Removes DIL from the set of docs generated for enviroment P ([#914](https://github.com/opendevstack/ods-jenkins-shared-library/pull/914))
 - Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
 - Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
+- Support Trivy premium CLI (`scannercli`) in Aqua server with new Trivy Enterprise engine ([#964](https://github.com/opendevstack/ods-jenkins-shared-library/issues/964))
 
 ### Fixed
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))

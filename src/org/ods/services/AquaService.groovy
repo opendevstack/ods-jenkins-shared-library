@@ -37,7 +37,7 @@ class AquaService {
                   --scan-timeout ${timeout} \
                   --htmlfile '${reportFile}' \
                   --jsonfile '${jsonFile}' \
-                  -w /tmp \
+                  -w /home/jenkins \
                   -U '${username}' \
                   -P '${password}' \
                   -H '${aquaUrl}' \
