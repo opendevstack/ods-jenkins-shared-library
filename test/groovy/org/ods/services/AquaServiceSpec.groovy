@@ -52,7 +52,7 @@ class AquaServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--scan-timeout 100')
             assert it.script.toString().contains('--htmlfile \'report.html\'')
             assert it.script.toString().contains('--jsonfile \'report.json\'')
-            assert it.script.toString().contains('-w /tmp')
+            assert it.script.toString().contains('-w /home/jenkins')
             assert it.script.toString().contains('-U \'user\'')
             assert it.script.toString().contains('-P \'pass\'')
             assert it.script.toString().contains('-H \'http://aqua\'')
