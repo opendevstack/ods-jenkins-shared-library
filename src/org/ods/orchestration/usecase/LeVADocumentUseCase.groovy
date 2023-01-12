@@ -983,12 +983,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                isGxpProject: calculateIfProjectIsGxp(this.project.getProjectProperties()),
             ]
         ]
-
-        if (calculateIfProjectIsGxp(this.project.getProjectProperties())) {
-            data_.data.isGxpProject = true;
-        }
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
