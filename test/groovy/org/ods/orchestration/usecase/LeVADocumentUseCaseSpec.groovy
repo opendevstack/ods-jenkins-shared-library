@@ -1904,7 +1904,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "getTestDescription"(testIssue, expected) {
         given:
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null, null, null, null, null)
+            null, null, null, null, null, null, null, null,
+            null, null, null)
 
         when:
         def result = leVADocumentUseCase.getTestDescription(testIssue)
@@ -1920,49 +1921,22 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
     }
 
-    def "calculateIfProjectIsGxp for missing isGxp property should return default value" (){
+    def "verify isGxpProject property"() {
         given:
-        Map projectProperties = [:]
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
             null, null, null, null, null, null, null, null,
             null, null, null)
 
         when:
-        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
+        def result = leVADocumentUseCase.isGxpProject(projectProperties)
 
         then:
-        result == LeVADocumentUseCase.IS_GXP_PROJECT_DEFAULT
-    }
+        result == expected
 
-    def "calculateIfProjectIsGxp when not a gxp project should return false" (){
-        given:
-        Map projectProperties = [:]
-        def isGxpValue = false;
-        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null, null,
-            null, null, null)
-
-        when:
-        projectProperties['PROJECT.IS_GXP'] = isGxpValue
-        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
-
-        then:
-        result == isGxpValue
-    }
-
-    def "calculateIfProjectIsGxp when project is gxp should return true" (){
-        given:
-        Map projectProperties = [:]
-        def isGxpValue = true;
-        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null, null,
-            null, null, null)
-
-        when:
-        projectProperties['PROJECT.IS_GXP'] = isGxpValue
-        def result = leVADocumentUseCase.calculateIfProjectIsGxp(projectProperties)
-
-        then:
-        result == isGxpValue
+        where:
+        projectProperties                               |       expected
+        [:]                                             |       LeVADocumentUseCase.IS_GXP_PROJECT_DEFAULT
+        ['PROJECT.IS_GXP': 'false']                     |       false
+        ['PROJECT.IS_GXP': 'true']                      |       true
     }
 }

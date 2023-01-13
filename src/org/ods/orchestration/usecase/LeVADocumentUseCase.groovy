@@ -50,7 +50,7 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    protected static final Boolean IS_GXP_PROJECT_DEFAULT = Boolean.TRUE
+    protected static final boolean IS_GXP_PROJECT_DEFAULT = true
 
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
@@ -983,7 +983,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
-                isGxpProject: calculateIfProjectIsGxp(this.project.getProjectProperties()),
+                isGxpProject: isGxpProject(this.project.getProjectProperties()),
             ]
         ]
 
@@ -992,9 +992,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    protected boolean calculateIfProjectIsGxp(Map projectProperties) {
-        return (!projectProperties.containsKey("PROJECT.IS_GXP") && IS_GXP_PROJECT_DEFAULT
-            || projectProperties."PROJECT.IS_GXP".toBoolean())
+    protected boolean isGxpProject(Map projectProperties) {
+        String isGxp = projectProperties."PROJECT.IS_GXP"
+        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     @NonCPS
