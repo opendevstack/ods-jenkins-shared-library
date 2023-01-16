@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add project property PROJECT.IS_GXP ([#963](https://github.com/opendevstack/ods-jenkins-shared-library/pull/963))
+
 ## [4.1] - 2022-11-17
 
 ### Added
