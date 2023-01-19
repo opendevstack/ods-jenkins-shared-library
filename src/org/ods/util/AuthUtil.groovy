@@ -4,6 +4,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import org.apache.http.client.utils.URIBuilder
 
+import java.nio.charset.StandardCharsets
+
 @TypeChecked
 class AuthUtil {
 
@@ -13,7 +15,7 @@ class AuthUtil {
 
     @NonCPS
     static String base64(String str) {
-        Base64.getEncoder().encodeToString((str).getBytes())
+        Base64.getEncoder().encodeToString((str).getBytes(StandardCharsets.UTF_8))
     }
 
     @NonCPS
