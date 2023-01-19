@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix tests that failed when running on Windows([#966](https://github.com/opendevstack/ods-jenkins-shared-library/pull/966))
+- Fix tests that failed when running on Windows ([#966](https://github.com/opendevstack/ods-jenkins-shared-library/pull/966))
 - Add project property PROJECT.IS_GXP ([#963](https://github.com/opendevstack/ods-jenkins-shared-library/pull/963))
 
 ## [4.1] - 2022-11-17
