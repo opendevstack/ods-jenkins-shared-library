@@ -54,9 +54,11 @@ class InitStage extends Stage {
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
         def hasErrorsDuringCheckout = false
+        def checkOutException = null
         try {
             checkOutReleaseManagerRepository(buildParams, git, logger)
-        } catch (Exception) {
+        } catch (Exception e) {
+            checkOutException = new RuntimeException("Error during the checkout of the release manager repository", e)
             hasErrorsDuringCheckout = true
         }
 
