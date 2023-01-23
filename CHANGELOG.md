@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix tests that failed when running on Windows ([#966](https://github.com/opendevstack/ods-jenkins-shared-library/pull/966))
 - Add project property PROJECT.IS_GXP ([#963](https://github.com/opendevstack/ods-jenkins-shared-library/pull/963))
 - Deploy into Q without git tags fails ([#967](https://github.com/opendevstack/ods-jenkins-shared-library/issues/967))
 
