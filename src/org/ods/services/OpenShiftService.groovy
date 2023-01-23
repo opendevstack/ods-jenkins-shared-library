@@ -428,6 +428,10 @@ class OpenShiftService {
     // If not all pods are running until the retries are exhausted,
     // an exception is thrown.
     List<PodData> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
+        if (kind == DEPLOYMENTCONFIG_KIND
+            && getDesiredReplicas(project, podManagerName) < 1) {
+            return []
+        }
         def label = getPodLabelForPodManager(project, kind, podManagerName)
         for (def i = 0; i < retries; i++) {
             def podData = checkForPodData(project, label)
@@ -1384,4 +1388,15 @@ class OpenShiftService {
         imageInfo
     }
 
+    private int getDesiredReplicas(String project, String podManagerName) {
+        def jsonPath = '{.spec.replicas}'
+        def replicas = getJSONPath(project, 'rc', podManagerName, jsonPath)
+
+        if (!replicas.isInteger()) {
+            throw new RuntimeException(
+                "ERROR: Latest desired replicas of rc '${podManagerName}' is not a number: '${replicas}"
+            )
+        }
+        replicas as int
+    }
 }

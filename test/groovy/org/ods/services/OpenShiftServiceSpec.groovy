@@ -543,4 +543,17 @@ class OpenShiftServiceSpec extends SpecHelper {
         result == [key: "key1", value: "value1"]
     }
 
+    def "getPodDataForDeployment if DeploymentConfig request 0 replicas"() {
+        given:
+          def steps = Spy(util.PipelineSteps)
+          def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+          service.getJSONPath('project-name', 'rc', 'deployment-name', '{.spec.replicas}') >> "0"
+
+        when:
+          def result = service.getPodDataForDeployment("project-name", "DeploymentConfig", "deployment-name", 1)
+
+        then:
+          result == []
+    }
+
 }
