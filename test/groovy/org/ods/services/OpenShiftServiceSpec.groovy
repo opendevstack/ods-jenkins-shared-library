@@ -548,12 +548,14 @@ class OpenShiftServiceSpec extends SpecHelper {
           def steps = Spy(util.PipelineSteps)
           def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
           service.getJSONPath('project-name', 'rc', 'deployment-name', '{.spec.replicas}') >> "0"
+          service.getJSONPath('project-name', 'rc', 'deployment-name', '{.spec.template.spec.containers[0].image}') >>
+          "image-registry.openshift-image-registry.svc:5000/project-name/component@sha256:76b583cc97aa9efeb99adacb58fa6ef94e5dbe28051637c165111eb104c77d22"
 
         when:
           def result = service.getPodDataForDeployment("project-name", "DeploymentConfig", "deployment-name", 1)
 
         then:
-          result == []
+          result[0].containers."component" == "image-registry.openshift-image-registry.svc:5000/project-name/component@sha256:76b583cc97aa9efeb99adacb58fa6ef94e5dbe28051637c165111eb104c77d22"
     }
 
 }
