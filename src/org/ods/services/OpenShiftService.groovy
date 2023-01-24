@@ -430,7 +430,7 @@ class OpenShiftService {
     List<PodData> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
         if (kind == DEPLOYMENTCONFIG_KIND
             && getDesiredReplicas(project, podManagerName) < 1) {
-            return []
+            return retrieveImageData(project, podManagerName)
         }
         def label = getPodLabelForPodManager(project, kind, podManagerName)
         for (def i = 0; i < retries; i++) {
@@ -1398,5 +1398,19 @@ class OpenShiftService {
             )
         }
         replicas as int
+    }
+
+    private List<PodData> retrieveImageData(String project, String podManagerName) {
+        def image = getJSONPath(project, 'rc',
+                                podManagerName, '{.spec.template.spec.containers[0].image}')
+        def imageInfo = imageInfoForImageUrl(image)
+        def podJson = [
+            items: [
+                [spec: [containers: [[name: imageInfo.name]]],
+                 status: [containerStatuses: [[name: imageInfo.name, imageID: image]]]]
+            ]
+        ]
+
+        extractPodData(podJson)
     }
 }

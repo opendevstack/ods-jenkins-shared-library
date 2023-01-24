@@ -21,7 +21,7 @@ class DeploymentDescriptor {
         def strippedDownDeployments = [:]
         deployments.each { dn, d ->
             def strippedDownContainers = [:]
-            d?.containers.each { cn, image ->
+            d.containers.each { cn, image ->
                 def imageParts = image.split('/')[-2..-1]
                 if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
                     strippedDownContainers[cn] = imageParts.join('/')
