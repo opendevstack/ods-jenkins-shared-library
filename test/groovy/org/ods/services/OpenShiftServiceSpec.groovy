@@ -4,6 +4,7 @@ import groovy.json.JsonSlurperClassic
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import spock.lang.Unroll
 import util.FixtureHelper
 import util.OpenShiftHelper
 import util.SpecHelper
@@ -541,6 +542,27 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         result == [key: "key1", value: "value1"]
+    }
+
+    @Unroll
+    def "getPodDataForDeployment if #kind request 0 replicas"() {
+        given:
+          def steps = Spy(util.PipelineSteps)
+          def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+          service.getJSONPath('project-name', object, 'deployment-name', '{.spec.replicas}') >> "0"
+          service.getJSONPath('project-name', object, 'deployment-name', '{.spec.template.spec.containers[0].image}') >>
+          "image-registry.openshift-image-registry.svc:5000/project-name/component@sha256:76b583cc97aa9efeb99adacb58fa6ef94e5dbe28051637c165111eb104c77d22"
+
+        when:
+          def result = service.getPodDataForDeployment("project-name", kind, "deployment-name", 1)
+
+        then:
+          result[0].containers."component" == "image-registry.openshift-image-registry.svc:5000/project-name/component@sha256:76b583cc97aa9efeb99adacb58fa6ef94e5dbe28051637c165111eb104c77d22"
+
+        where:
+          kind              |   object
+          'DeploymentConfig'|   'rc'
+          'Deployment'      |   'rs'
     }
 
 }
