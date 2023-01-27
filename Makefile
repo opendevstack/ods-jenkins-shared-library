@@ -9,3 +9,6 @@ test:
 doc:
 	./gradlew groovydoc
 	go run render-adoc.go
+
+.PHONY: docs
+docs: doc

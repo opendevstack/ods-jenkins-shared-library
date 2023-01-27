@@ -234,7 +234,7 @@ class ScanWithAquaStage extends Stage {
         try {
             URI report = nexus.storeArtifact(
                 "${nexusRepository}",
-                "${context.projectId}/${context.componentId}/" +
+                "${context.projectId}/${this.options.resourceName}/" +
                     "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
                 "report.html",
                 (steps.readFile(file: reportFile) as String).bytes, "text/html")

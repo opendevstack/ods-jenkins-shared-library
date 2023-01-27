@@ -367,6 +367,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     Map.Entry<String, Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
+        //noinspection GroovyAssignabilityCheck
         return [
             repo.id,
             {

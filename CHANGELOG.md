@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+-   Add Helm Support to Release Manager ([#866](https://github.com/opendevstack/ods-jenkins-shared-library/issues/866))
 
 - Fix tests that failed when running on Windows ([#966](https://github.com/opendevstack/ods-jenkins-shared-library/pull/966))
 - Add project property PROJECT.IS_GXP ([#963](https://github.com/opendevstack/ods-jenkins-shared-library/pull/963))

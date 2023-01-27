@@ -67,6 +67,19 @@ _boolean_
  referenced by `chartDir` exists.
 
 
+| *helmEnvBasedValuesFiles* +
+_List<String>_
+|List of paths to values files (empty by default). Only relevant if the
+ directory referenced by `chartDir` exists.
+ These must contain a suffix called '.env.yml' - which will be replaced
+ during rollout and deployment, and then added to helmValueFiles
+
+ Passing a string literal of 'values.env.yaml' will be expanded to their respective environments.
+
+ For example: 'values.env.yaml' will become 'values.dev.yaml', 'values.test.yaml' or 'values.prod.yaml'.
+ That means creating the usual files that are named after their respective environment are parsed as usual.
+
+
 | *helmPrivateKeyCredentialsId* +
 _String_
 |Credentials name of the private key used by helm-secrets (defaults to
@@ -158,6 +171,10 @@ _boolean_
 
 |===
 
-All the created or updated OpenShift resources are automatically labeled to ease their management.
+== Differences between tailor and helm deployments
+
+When tailor does the rollout, all the created or updated OpenShift resources are automatically labeled to ease their management.
+This is in contrast to helm rollouts which rely on the chart providing the desired labels.
+Add labels either via the chart directly or via supplying them in the values or values files.
 
 Detailed information about the labelling can be found xref:jenkins-shared-library:labelling.adoc[here].

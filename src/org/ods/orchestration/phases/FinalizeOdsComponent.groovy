@@ -27,21 +27,30 @@ class FinalizeOdsComponent {
         this.logger = logger
     }
 
+    // @ FIXME - this is all hardcoded - and should come off the deployments!!!
+    @TypeChecked(TypeCheckingMode.SKIP)
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
-        def componentSelector = "app=${project.key}-${repo.id}"
-
-        verifyDeploymentsBuiltByODS(repo, componentSelector)
-
-        def envParamsFile = project.environmentParamsFile
-        def envParams = project.getEnvironmentParams(envParamsFile)
 
         steps.dir(baseDir) {
-            def openshiftDir = findOrCreateOpenShiftDir()
+            Map deploymentMean = verifyDeploymentsBuiltByODS(repo).values().get(0) as Map
+            logger.debug("DeploymentMean: ${deploymentMean}")
+
+            def openshiftDir
+            if (deploymentMean.type == 'helm') {
+                openshiftDir = deploymentMean.chartDir
+            } else {
+                openshiftDir = findOrCreateOpenShiftDir()
+            }
+
+            def componentSelector = deploymentMean.selector
+
             steps.dir(openshiftDir) {
                 def filesToStage = []
                 def commitMessage = ''
                 if (openshiftDir == 'openshift-exported') {
+                    def envParamsFile = project.environmentParamsFile
+                    def envParams = project.getEnvironmentParams(envParamsFile)
                     commitMessage = 'ODS: Export OpenShift configuration ' +
                         "\r${commitBuildReference()}"
                     logger.debugClocked(
@@ -50,8 +59,8 @@ class FinalizeOdsComponent {
                     )
                     os.tailorExport(
                         project.targetProject,
-                        componentSelector,
-                        envParams,
+                        componentSelector as String,
+                        envParams as Map<String, String>,
                         OpenShiftService.EXPORTED_TEMPLATE_FILE
                     )
                     filesToStage << OpenShiftService.EXPORTED_TEMPLATE_FILE
@@ -111,17 +120,41 @@ class FinalizeOdsComponent {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void verifyDeploymentsBuiltByODS(Map repo, String componentSelector) {
+    @SuppressWarnings(['AbcMetric'])
+    private Map verifyDeploymentsBuiltByODS(Map repo) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
         // Verify that all DCs are managed by ODS
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
+
+        Map deploymentMeans = odsBuiltDeploymentInformation.findAll {it.key.endsWith('-deploymentMean') }
+
+        logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMeans}")
+
+        if (deploymentMeans.size() == 0) {
+            throw new RuntimeException ("Deploymentmeans for repo ${repo.id}" +
+                " are not found. These means are automatically generated!\n" +
+                " Likely you upgraded and tried to deploy to Q instead of rebuilding on dev")
+        } else if (deploymentMeans.size() > 1) {
+            throw new RuntimeException ("Found more than 1 Deploymentmeans ${deploymentMeans.size()} " +
+                "for repo ${repo.id}. This is not supported!")
+        }
+
+        Map deploymentMean = deploymentMeans.values().get(0)
+
+        String componentSelector = deploymentMean.selector
+
         def allComponentDeploymentsByKind = os.getResourcesForComponent(
-            project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND], componentSelector
+            project.targetProject,
+            [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND],
+            componentSelector
         )
-        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND]
+        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
+        if (allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]) {
+            allComponentDeployments.addAll(allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND])
+        }
         logger.debug(
             "ODS created deployments for ${repo.id}: " +
             "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
@@ -169,5 +202,6 @@ class FinalizeOdsComponent {
             }
         }
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
+        return deploymentMeans
     }
 }

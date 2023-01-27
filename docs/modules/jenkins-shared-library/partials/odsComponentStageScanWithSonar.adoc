@@ -56,4 +56,12 @@ _boolean_
 |Whether to fail the build if the quality gate defined in the SonarQube
  project is not reached. Defaults to `false`.
 
+
+| *resourceName* +
+_String_
+|Name of `BuildConfig`/`ImageStream` of the image that we want to scan (defaults to `context.componentId`).
+ BuildOpenShiftImageStage puts the imageRef into a map with the `resourceName` as key.
+ In order to be able to receive the imageRef for scanning, the `resourceName` needs
+ to be the same as in BuildOpenShiftImageStage.
+
 |===

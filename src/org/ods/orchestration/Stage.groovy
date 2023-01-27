@@ -37,6 +37,7 @@ class Stage {
         script.stage(STAGE_NAME) {
             logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
+                logger.debug("BEGIN Calling ${this.class.name}.run()")
                 return this.run()
             } catch (e) {
                 def eThrow = e
@@ -48,7 +49,7 @@ class Stage {
                     ).initCause(e)
                 }
 
-                logger.warn("Error occured within the orchestration pipeline: ${e.message}")
+                logger.warn("Error occured within the orchestration pipeline (${this.class.name}): ${e.message}")
 
                 try {
                     project.reportPipelineStatus(eThrow.message, true)
@@ -60,6 +61,7 @@ class Stage {
 
                 throw eThrow
             } finally {
+                logger.debug("END Calling ${this.class.name}.run()")
                 logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
         }

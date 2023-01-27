@@ -319,7 +319,7 @@ class OpenShiftResourceMetadata {
      * @return a <code>Map</code> with mandatory metadata for the component.
      * @throws IllegalArgumentException if a invalid chart file is found.
      */
-    private getMandatoryMetadata() {
+    public getMandatoryMetadata() {
         def metadata = [
             componentId:         context.componentId,
             managedBy:           'tailor',
@@ -330,7 +330,7 @@ class OpenShiftResourceMetadata {
         // Find out whether this component is managed by helm
         def chart = getChartNameAndVersion()
         if (chart) {
-            metadata.managedBy = 'helm'
+            metadata.managedBy = 'Helm'
             metadata.chartNameAndVersion = chart
         }
 
