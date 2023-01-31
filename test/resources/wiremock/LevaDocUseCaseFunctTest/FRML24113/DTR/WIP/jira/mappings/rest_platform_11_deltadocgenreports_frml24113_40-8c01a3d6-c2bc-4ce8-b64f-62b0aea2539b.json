@@ -1,0 +1,33 @@
+{
+  "id" : "8c01a3d6-c2bc-4ce8-b64f-62b0aea2539b",
+  "name" : "rest_platform_11_deltadocgenreports_frml24113_40",
+  "request" : {
+    "url" : "/rest/platform/1.1/deltadocgenreports/FRML24113/4.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_platform_11_deltadocgenreports_frml24113_40-8c01a3d6-c2bc-4ce8-b64f-62b0aea2539b.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:19:51 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1279x3157364x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=0EC6291D1C3CEFD8D064C5A3BB3EFE74; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_9cf295f85b2941fa1c4acbbf871fa7d06de2cbb9_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "u4rzkx",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "8c01a3d6-c2bc-4ce8-b64f-62b0aea2539b",
+  "persistent" : true,
+  "insertionIndex" : 15
+}

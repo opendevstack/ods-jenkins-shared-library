@@ -92,6 +92,7 @@ class JiraUseCase {
             testCase.name.startsWith("${issueKeyClean}_")
     }
 
+    @NonCPS
     String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
 
@@ -111,8 +112,9 @@ class JiraUseCase {
         testFailures.each { failure ->
             // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
             // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
+            String version = this.project.versionFromReleaseStatusIssue
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
+                this.project.jiraProjectKey, failure.type, failure.text, version)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -139,7 +141,8 @@ class JiraUseCase {
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
-              tests: bugAffectedTestIssues.keySet() as List
+              tests: bugAffectedTestIssues.keySet() as List,
+              versions: [ "${version}" ]
             ], Project.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
@@ -230,7 +233,10 @@ class JiraUseCase {
     }
 
     String getVersionFromReleaseStatusIssue() {
-        if (!this.jira) return ""
+        if (!this.jira) {
+            logger.warn("WARNING: this.jira has an invalid value.")
+            return ""
+        }
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
@@ -350,9 +356,14 @@ class JiraUseCase {
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
-        if (!this.jira) return
+        if (!this.jira) {
+            logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
+            return
+        }
 
         def status = isError ? 'Failed' : 'Successful'
+
+        logger.info("Updating Jira release status with result ${status} and comment ${message}")
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
@@ -368,7 +379,12 @@ class JiraUseCase {
     void addCommentInReleaseStatus(String message) {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         if (message) {
-            this.jira.appendCommentToIssue(releaseStatusIssueKey, "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}")
+            String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
+            logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+            this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
+            logger.info("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+        } else {
+            logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
 
     }
@@ -387,7 +403,7 @@ class JiraUseCase {
                     versionNumber = version.toLong()
                 } catch (NumberFormatException _) {
                     this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        "version. It contains value '${version}'.")
+                        " version. It contains value '${version}'.")
                 }
             }
 

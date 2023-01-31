@@ -82,17 +82,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
-    static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String
-    ]
-
     static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component'
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
@@ -590,8 +586,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
                     probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                    riskPriority: riskPriority ? riskPriority.value : "N/A",
-                    riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
+                    riskPriority: riskPriority ? riskPriority."short" : "None",
+                    riskPriorityNumber: (r.riskPriorityNumber != null) ? r.riskPriorityNumber : "N/A",
                     riskComment: r.riskComment ? r.riskComment : "N/A",
                 ]
             }
@@ -672,8 +668,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForIPV(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
-        def installedRepos = this.project.repositories.collect {
-            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        def installedRepos = this.project.repositories.findAll { it ->
+            MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
         }
 
         def data_ = [
@@ -689,9 +685,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
-                testsOdsCode   : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode   : testsOfRepoTypeOdsCode,
+                documentHistory: docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
@@ -735,8 +731,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc =  this.computeKeysInDocForIVR(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
-        def installedRepos = this.project.repositories.collect {
-            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        def installedRepos = this.project.repositories.findAll { it ->
+            MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
         }
 
         def data_ = [
@@ -764,9 +760,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode      : testsOfRepoTypeOdsCode,
+                documentHistory   : docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
@@ -1006,17 +1002,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
-        //def repositories = this.project.repositories.findAll {
-        //    !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())
-        //}
-
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories.collect {
-                    it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
-                },
+                repositories: this.project.repositories,
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
@@ -1048,8 +1038,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
-
-        repo << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo.type?.toLowerCase())]
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1111,9 +1099,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
 
-            data_.repositories = this.project.repositories.collect {
-                it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
-            }
+            data_.repositories = this.project.repositories
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
@@ -1440,7 +1426,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
                     componentType     : INTERNAL_TO_EXT_COMPONENT_TYPES.get(repo_.type?.toLowerCase()),
-                    doInstall         : !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo_.type?.toLowerCase()),
+                    doInstall         : MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo_.type),
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : normComponentName ?: metadata.name,

@@ -1,0 +1,420 @@
+{
+    "id": "6ae3cfb1-afe6-429d-bfc4-ad45dbea7d28",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "CFTR-5",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Combined Functional and Requirements Testing Report",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Combined Functional and Requirements Testing Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": {
+                                "sec4": {
+                                    "number": "4",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Risk Assessment",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec4",
+                                    "content": "<p><font color=\"blue\">There have been no critical failures observed in the testing. For failed test cases no unacceptable risks have been identified. No follow-up actions are required.</font></p>",
+                                    "key": "FRML24113-120",
+                                    "status": "Done"
+                                },
+                                "sec3s6": {
+                                    "number": "3.6",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Traceability Matrix",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s6",
+                                    "content": "<p><font color=\"blue\">The test coverage is captured in the traceability matrix which maps user requirements and functional specifications to test cases. The traceability matrix has been updated prior to execution of the test cases and has been archived in the validation archive (add a reference).</font></p>",
+                                    "key": "FRML24113-119",
+                                    "status": "Done"
+                                },
+                                "sec3s5s2": {
+                                    "number": "3.5.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Non-Functional Testing Results",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s5s2",
+                                    "content": "<p><font color=\"blue\">Non-Functional testing was performed according to the approved functional / requirements test plan (final v1.0), approved on &lt;date&gt;.<br/>\n<br/>\nThe test execution run of the non-functional test cases was performed on Mar 03. All the test cases of the project were executed without significant failures.</font></p>",
+                                    "key": "FRML24113-118",
+                                    "status": "Done"
+                                },
+                                "sec3s3": {
+                                    "number": "3.3",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Discrepancy Log",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s3",
+                                    "content": "<p><font color=\"blue\">All failures and problems which have been observed during testing have been collected in a discrepancy log. The discrepancy log is attached to this report.</font></p>",
+                                    "key": "FRML24113-117",
+                                    "status": "Done"
+                                },
+                                "sec3s2": {
+                                    "number": "3.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Responsibilities and Signature Resource Log",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s2",
+                                    "content": "<p><font color=\"blue\">All Testers and Test Administrators have signed the signature resource log prior to the start of testing activities. The signature resource log is attached to this report.</font></p>",
+                                    "key": "FRML24113-116",
+                                    "status": "Done"
+                                },
+                                "sec3s1": {
+                                    "number": "3.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Training",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s1",
+                                    "content": "<p><font color=\"blue\">All Testers and Test Administrators have been trained prior to the start of testing activities. Two classroom trainings have been performed on 23-Apr-2001 in Ingelheim and on 26-Apr-2011 in Ridgefield. Copies of the training records and agenda are attached to this report.</font></p>",
+                                    "key": "FRML24113-115",
+                                    "status": "Done"
+                                },
+                                "sec2": {
+                                    "number": "2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Testing Environment",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec2",
+                                    "content": "<p><font color=\"blue\">All integration and acceptance test cases have been executed in the qualified validation environment as defined in the combined functional / requirements testing plan (ref).</font></p>",
+                                    "key": "FRML24113-114",
+                                    "status": "Done"
+                                },
+                                "sec1": {
+                                    "number": "1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Purpose",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec1",
+                                    "content": "<p><font color=\"blue\">The purpose of this document is to report on testing activities that were performed according to the functional / requirements testing plan, to summarize and asses all failed and skipped test cases, and decide if the System name can be formally released for installation in production environment.</font></p>",
+                                    "key": "FRML24113-113",
+                                    "status": "Done"
+                                },
+                                "sec8": {
+                                    "number": "8",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec8",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-112",
+                                    "status": "Done"
+                                },
+                                "sec7": {
+                                    "number": "7",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Reference Documents",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7",
+                                    "content": " ",
+                                    "key": "FRML24113-111",
+                                    "status": "Done"
+                                },
+                                "sec6s1": {
+                                    "number": "6.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-110",
+                                    "status": "Done"
+                                },
+                                "sec6s2": {
+                                    "number": "6.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "CFTR",
+                                        "CFTR_M"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Abbreviation</th>\n<th class='confluenceTh'>Meaning</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">ODS</font></td>\n<td class='confluenceTd'><font color=\"blue\">OpenDevStack</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">EDP</font></td>\n<td class='confluenceTd'><font color=\"blue\">Enterprise Development Platform</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-109",
+                                    "status": "Done"
+                                }
+                            },
+                            "numAdditionalAcceptanceTests": 0,
+                            "numAdditionalIntegrationTests": 0,
+                            "conclusion": {
+                                "summary": "No success - major discrepancies found",
+                                "statement": "Some discrepancies found as tests were not executed."
+                            },
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "tests",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                {
+                                                    "action": "discontinue",
+                                                    "key": "FRML24113-175"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "tests",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-274",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            "acceptanceTests": [
+                                {
+                                    "key": "FRML24113-170",
+                                    "datetime": "N/A",
+                                    "description": "<p>Test MODIFIED - Description</p>",
+                                    "remarks": "Not executed",
+                                    "risk_key": "N/A",
+                                    "success": "N",
+                                    "ur_key": "FRML24113-268"
+                                }
+                            ],
+                            "integrationTests": [
+                                {
+                                    "key": "FRML24113-274",
+                                    "datetime": "N/A",
+                                    "description": "<p>Test to Modify - Description - Modified</p>",
+                                    "remarks": "Not executed",
+                                    "risk_key": "N/A",
+                                    "success": "N",
+                                    "ur_key": "FRML24113-273"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-6ae3cfb1-afe6-429d-bfc4-ad45dbea7d28.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "6ae3cfb1-afe6-429d-bfc4-ad45dbea7d28",
+    "persistent": true,
+    "insertionIndex": 1
+}

@@ -1,0 +1,173 @@
+[
+    {
+        "components": [
+            
+        ],
+        "requirements": [
+            
+        ],
+        "epics": [
+            
+        ],
+        "mitigations": [
+            
+        ],
+        "entryId": 1,
+        "bugs": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "tests": [
+            {
+                "action": "add",
+                "key": "FRML24113-179"
+            }
+        ],
+        "docs": [
+            {
+                "number": "9",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Reference Documents",
+                "action": "add",
+                "key": "FRML24113-95"
+            },
+            {
+                "number": "8.2",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Abbreviations",
+                "action": "add",
+                "key": "FRML24113-94"
+            },
+            {
+                "number": "8.1",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Definitions",
+                "action": "add",
+                "key": "FRML24113-93"
+            },
+            {
+                "number": "2",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Scope",
+                "action": "add",
+                "key": "FRML24113-92"
+            },
+            {
+                "number": "12.2",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Configuration database CMDB",
+                "action": "add",
+                "key": "FRML24113-91"
+            },
+            {
+                "number": "12.1",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Operational documents on system level",
+                "action": "add",
+                "key": "FRML24113-90"
+            },
+            {
+                "number": "10",
+                "documents": [
+                    "IVP",
+                    "IVR"
+                ],
+                "heading": "Document History",
+                "action": "add",
+                "key": "FRML24113-89"
+            }
+        ],
+        "previousProjectVersion": "",
+        "techSpecs": [
+            
+        ],
+        "rational": "Initial document version.",
+        "projectVersion": "1.0"
+    },
+    {
+        "components": [
+            
+        ],
+        "requirements": [
+            
+        ],
+        "epics": [
+            
+        ],
+        "mitigations": [
+            
+        ],
+        "entryId": 2,
+        "bugs": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            
+        ],
+        "previousProjectVersion": "1.0",
+        "techSpecs": [
+            
+        ],
+        "rational": "Modifications for project version '2.0'.",
+        "projectVersion": "2.0"
+    },
+    {
+        "bugs": [
+            
+        ],
+        "components": [
+            
+        ],
+        "epics": [
+            
+        ],
+        "mitigations": [
+            
+        ],
+        "requirements": [
+            
+        ],
+        "risks": [
+            
+        ],
+        "techSpecs": [
+            
+        ],
+        "tests": [
+            
+        ],
+        "docs": [
+            
+        ],
+        "entryId": 3,
+        "projectVersion": "3.0",
+        "previousProjectVersion": "2.0",
+        "rational": "Modifications for project version '3.0'."
+    }
+]

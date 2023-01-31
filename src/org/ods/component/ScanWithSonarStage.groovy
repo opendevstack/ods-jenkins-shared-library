@@ -218,7 +218,7 @@ class ScanWithSonarStage extends Stage {
                 computeEngineTaskResult = sonarQube.getComputeEngineTaskResult(taskProperties['ceTaskId'])
             } catch (Exception ex) {
                 script.error 'Compute engine status could not be retrieved. ' +
-                "Status was: '${computeEngineTaskJSON}'. Error was: ${ex}"
+                "Status was: '${computeEngineTaskResult}'. Error was: ${ex}"
             }
             if (computeEngineTaskResult == 'IN_PROGRESS' || computeEngineTaskResult == 'PENDING') {
                 logger.info "SonarQube background task has not finished yet."

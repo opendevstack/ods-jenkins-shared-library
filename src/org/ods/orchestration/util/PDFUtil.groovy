@@ -70,6 +70,19 @@ class PDFUtil {
     }
 
     @NonCPS
+    byte[] convertFromMarkdown(String markdownContent, Boolean landscape = false) {
+        def result
+
+        try {
+            result = new MarkdownUtil().toPDF(markdownContent, landscape)
+        } catch (e) {
+            throw new RuntimeException("Error: unable to convert Markdown document to PDF: ${e.message}").initCause(e)
+        }
+
+        return result
+    }
+
+    @NonCPS
     byte[] convertFromWordDoc(File wordDoc) {
         def result
 

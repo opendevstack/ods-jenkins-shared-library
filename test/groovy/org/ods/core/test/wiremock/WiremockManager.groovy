@@ -1,3 +1,4 @@
+
 package org.ods.core.test.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
@@ -35,6 +36,10 @@ class WiremockManager {
     }
 
     WiremockManager startServer(boolean recording = false, String targetURLParam = null) {
+        if (recording){
+            cleanExistingRecords()
+        }
+
         wireMockServer = new WireMockServer(
             WireMockConfiguration
                 .wireMockConfig()
@@ -45,8 +50,8 @@ class WiremockManager {
         log.info("startServer WireMockServer:[{}:{}] usingFilesUnderDirectory:[{}]", serverType, wireMockServer.baseUrl(), pathToFiles)
 
         if (recording) {
+            wireMockServer.resetAll()
             String targetURL = getTargetURL(targetURLParam)
-            cleanExistingRecords()
             log.info("startServer recording:[{}] targetURL:[{}]",recording, targetURL)
             wireMockServer.startRecording(WireMock.recordSpec().forTarget(targetURL).build())
             this.recording = recording
@@ -62,12 +67,11 @@ class WiremockManager {
         log.info("tearDown")
 
         wireMockServer.stop();
-        if (this.recording) {
+        if (recording) {
             try {
                 SnapshotRecordResult recording = wireMockServer.stopRecording()
-                log.info("record files:[{}]", recording.stubMappings)
-                if (recording && serverType == "docgen")
-                    cleanWiremockDatafiles()
+                log.info("record files:[{}]", recording.stubMappings?.size())
+                cleanWiremockDatafiles()
             }catch(Exception e){
                 log.error("stopRecording error", e)
                 throw new RuntimeException("Error when stopRecording", e)
@@ -76,8 +80,8 @@ class WiremockManager {
     }
 
     private void cleanExistingRecords() {
-        wireMockServer.resetAll()
         try {
+            log.info("Clean directory $pathToFiles");
             FileUtils.cleanDirectory(new File(pathToFiles));
         } catch (Exception ex) {
             log.warn("Exception deleting Files: " + ex);
@@ -88,19 +92,58 @@ class WiremockManager {
 
     private cleanWiremockDatafiles() {
         log.info("cleanWiremock date_created field")
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateDateCreated(it)}
+        Map replaceAllMap = prepareReplaceMap()
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
+            replaceFileInText(it, replaceAllMap)
+            updateDateCreated(it)
+        }
+        new File("${pathToFiles}/${FILES_ROOT}").eachFileRecurse() {replaceFileInText(it, replaceAllMap)}
+    }
+
+    private Map prepareReplaceMap() {
+        Map replaceAllMap = ["${System.properties['domainUser']}"  : 'dummyUser']
+        Map customReplaceAllMap = (System.properties['wiremock.textToReplace'] as String).tokenize(',')
+            .collectEntries {
+                List value = it.tokenize(':')
+                return [value[0], value[1]]
+            }
+        replaceAllMap += customReplaceAllMap
+        return replaceAllMap
+    }
+
+    private void replaceFileInText(File file, Map replaceAllMap) {
+        replaceAllMap.each {
+            if (file.text.contains(it.key))
+                file.text = file.text.replace(it.key, it.value)
+        }
     }
 
     private void updateDateCreated(File file) {
         JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
         String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns?.equalToJson
-        if (!equalToJsonField)
+        if (!equalToJsonField || !equalToJsonField.contains("date_created") || equalToJsonField.contains("json-unit.any-string"))
             return
 
-        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
+        JsonBuilder jsonBuilderField = getJsonFromText(equalToJsonField)
 
-        jsonBuilderFromEqualToJsonField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
-        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
+        jsonBuilderField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
+        if (jsonBuilderField.content[0].data.data.repo){
+            jsonBuilderField.content[0].data.data.repo?.data?.tests?.unit?.testReportFiles[0]?.with {
+                freeSpace = "\${json-unit.any-number}"
+                canonicalPath = "\${json-unit.any-string}"
+                usableSpace = "\${json-unit.any-number}"
+                totalSpace = "\${json-unit.any-number}"
+                path = "\${json-unit.any-string}"
+                absolutePath = "\${json-unit.any-string}"
+                parent = "\${json-unit.any-string}"
+            }
+            jsonBuilderField.content[0].data.data?.testFiles?.each { testFile ->
+                testFile.path = "\${json-unit.any-string}"
+
+            }
+        }
+
+        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderField.content[0]
 
         file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
     }

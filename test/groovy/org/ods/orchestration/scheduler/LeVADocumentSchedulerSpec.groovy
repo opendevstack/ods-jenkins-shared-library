@@ -6821,7 +6821,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6927,7 +6926,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6995,7 +6993,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 

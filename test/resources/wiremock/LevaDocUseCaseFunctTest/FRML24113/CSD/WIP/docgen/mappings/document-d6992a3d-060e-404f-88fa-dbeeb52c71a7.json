@@ -1,0 +1,533 @@
+{
+    "id": "d6992a3d-060e-404f-88fa-dbeeb52c71a7",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "CSD-5",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Combined Specification Document",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Combined Specification Document, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": {
+                                "sec2": {
+                                    "number": "2",
+                                    "predecessors": [
+                                        "FRML24113-42"
+                                    ],
+                                    "heading": "Overview (from FRML24113-42)",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "2.0"
+                                    ],
+                                    "section": "sec2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184817/184817_image-2021-11-24-15-19-10-531.png\" height=\"193\" width=\"616\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-190",
+                                    "expandedPredecessors": [
+                                        {
+                                            "versions": [
+                                                "1.0"
+                                            ],
+                                            "key": "FRML24113-42"
+                                        }
+                                    ],
+                                    "status": "Done"
+                                },
+                                "sec5s1": {
+                                    "number": "5.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-40",
+                                    "status": "Done"
+                                },
+                                "sec6": {
+                                    "number": "6",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Reference Documents",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6",
+                                    "content": "<ul>\n\t<li><em><font color=\"blue\">Reference document 1</font></em></li>\n\t<li><em><font color=\"blue\">Reference document 2</font></em></li>\n</ul>\n",
+                                    "key": "FRML24113-44",
+                                    "status": "Done"
+                                },
+                                "sec1": {
+                                    "number": "1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Introduction and Purpose",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec1",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184800/184800_image-2021-11-24-15-18-44-538.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-43",
+                                    "status": "Done"
+                                },
+                                "sec3s1": {
+                                    "number": "3.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Related Business / GxP Process",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s1",
+                                    "content": " ",
+                                    "key": "FRML24113-41",
+                                    "status": "Done"
+                                },
+                                "sec3s2": {
+                                    "number": "3.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Operational Requirements",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s2",
+                                    "content": " ",
+                                    "key": "FRML24113-45",
+                                    "status": "Done"
+                                },
+                                "sec5s2": {
+                                    "number": "5.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Abbreviation</th>\n<th class='confluenceTh'>Meaning</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">ODS</font></td>\n<td class='confluenceTd'><font color=\"blue\">OpenDevStack</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">EDP</font></td>\n<td class='confluenceTd'><font color=\"blue\">Enterprise Development Platform</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-39",
+                                    "status": "Done"
+                                },
+                                "sec7": {
+                                    "number": "7",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "CSD"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-38",
+                                    "status": "Done"
+                                }
+                            },
+                            "requirements": {
+                                "securityrequirements": {
+                                    "noepics": [
+                                        {
+                                            "key": "FRML24113-268",
+                                            "applicability": "Mandatory",
+                                            "ursName": "Story MODIFIED (from FRML24113-169)",
+                                            "ursDescription": "<p>Story MODIFIED - Description</p>",
+                                            "csName": "Story MODIFIED",
+                                            "csDescription": "<p>Story MODIFIED</p>",
+                                            "fsName": "Story MODIFIED",
+                                            "fsDescription": "<p>Story MODIFIED</p>",
+                                            "epic": null,
+                                            "epicName": null,
+                                            "epicTitle": null,
+                                            "epicDescription": null
+                                        }
+                                    ],
+                                    "epics": [
+                                        
+                                    ]
+                                },
+                                "availabilityrequirements": {
+                                    "noepics": [
+                                        {
+                                            "key": "FRML24113-162",
+                                            "applicability": "Mandatory",
+                                            "ursName": "Story CONTINUED",
+                                            "ursDescription": "<p>Story CONTINUED - Description</p>",
+                                            "csName": "Story CONTINUED",
+                                            "csDescription": "<p>Story CONTINUED</p>",
+                                            "fsName": "Story CONTINUED",
+                                            "fsDescription": "<p>Story CONTINUED</p>",
+                                            "epic": null,
+                                            "epicName": null,
+                                            "epicTitle": null,
+                                            "epicDescription": null
+                                        }
+                                    ],
+                                    "epics": [
+                                        
+                                    ]
+                                },
+                                "regulatoryrequirements": {
+                                    "noepics": [
+                                        
+                                    ],
+                                    "epics": [
+                                        {
+                                            "epicName": "Epic ADDED",
+                                            "epicTitle": "Epic ADDED",
+                                            "epicDescription": "<p>Epic ADDED - Description</p>",
+                                            "key": "FRML24113-183",
+                                            "epicIndex": 1,
+                                            "stories": [
+                                                {
+                                                    "key": "FRML24113-184",
+                                                    "applicability": "Mandatory",
+                                                    "ursName": "Story ADDED",
+                                                    "ursDescription": "<p>Story ADDED - Description</p>",
+                                                    "csName": "Story ADDED",
+                                                    "csDescription": "<p>Story ADDED</p>",
+                                                    "fsName": "Story ADDED",
+                                                    "fsDescription": "<p>Story ADDED</p>",
+                                                    "epic": "FRML24113-183",
+                                                    "epicName": "Epic ADDED",
+                                                    "epicTitle": "Epic ADDED",
+                                                    "epicDescription": "<p>Epic ADDED - Description</p>"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "compatibility": {
+                                    "noepics": [
+                                        
+                                    ],
+                                    "epics": [
+                                        {
+                                            "epicName": "Epic to Modify",
+                                            "epicTitle": "Epic to Modify",
+                                            "epicDescription": "<p>Epic to Modify - Description - Modified</p>",
+                                            "key": "FRML24113-272",
+                                            "epicIndex": 1,
+                                            "stories": [
+                                                {
+                                                    "key": "FRML24113-273",
+                                                    "applicability": "Mandatory",
+                                                    "ursName": "Story to Modify",
+                                                    "ursDescription": "<p>Story to Modify - Description</p>",
+                                                    "csName": "Story to Modify",
+                                                    "csDescription": "<p>Story to Modify</p>",
+                                                    "fsName": "Story to Modify",
+                                                    "fsDescription": "<p>Story to Modify</p>",
+                                                    "epic": "FRML24113-272",
+                                                    "epicName": "Epic to Modify",
+                                                    "epicTitle": "Epic to Modify",
+                                                    "epicDescription": "<p>Epic to Modify - Description - Modified</p>"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "uncategorized": {
+                                    "noepics": [
+                                        
+                                    ],
+                                    "epics": [
+                                        
+                                    ]
+                                }
+                            },
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "epics",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-183"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-184"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                {
+                                                    "action": "change",
+                                                    "key": "FRML24113-190",
+                                                    "details": "2 Overview (from FRML24113-42)",
+                                                    "predecessors": "FRML24113-42"
+                                                }
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                {
+                                                    "key": "FRML24113-268",
+                                                    "predecessors": "FRML24113-169"
+                                                }
+                                            ],
+                                            "discontinued": [
+                                                {
+                                                    "action": "discontinue",
+                                                    "key": "FRML24113-174"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "epics",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-272"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-273"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "epics",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-272",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-273",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-d6992a3d-060e-404f-88fa-dbeeb52c71a7.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "d6992a3d-060e-404f-88fa-dbeeb52c71a7",
+    "persistent": true,
+    "insertionIndex": 1
+}

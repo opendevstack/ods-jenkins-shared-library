@@ -20,14 +20,15 @@ class MROPipelineUtilSpec extends SpecHelper {
     Project project
     IPipelineSteps steps
     MROPipelineUtil util
+    GitService gitService
     def logger
 
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
-        def git = Mock(GitService)
+        gitService = Mock(GitService)
         logger = Mock(Logger)
-        util = new MROPipelineUtil(project, steps, git, logger)
+        util = new MROPipelineUtil(project, steps, gitService, logger)
     }
 
     def "load a repo's pipeline config"() {
@@ -579,4 +580,44 @@ class MROPipelineUtilSpec extends SpecHelper {
         then:
         noExceptionThrown() // pipeline does not stop here
     }
+
+    def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenBranchExists"() {
+        given:
+        Map repo = [:]
+        boolean isWorkInProgress = true
+        this.project.gitReleaseBranch = "release/1.0.0"
+        when:
+        util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
+        then:
+        1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> true
+        1 * gitService.checkout("*/${this.project.gitReleaseBranch}", _, _)
+    }
+
+    def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenBranchNotExistsAndWIP"() {
+        given:
+        Map repo = [:]
+        repo.branch = "forTesting"
+        boolean isWorkInProgress = true
+        this.project.gitReleaseBranch = "release/1.0.0"
+        when:
+        util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
+        then:
+        1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> false
+        1 * gitService.checkout("*/${repo.branch}", _, _)
+    }
+
+    def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenBranchNotExistsAndNotWIP"() {
+        given:
+        Map repo = [:]
+        repo.branch = "forTesting"
+        boolean isWorkInProgress = false
+        this.project.gitReleaseBranch = "release/1.0.0"
+        when:
+        util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
+        then:
+        1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> false
+        1 * gitService.checkout("*/${repo.branch}", _, _)
+        1 * gitService.checkoutNewLocalBranch("${this.project.gitReleaseBranch}")
+    }
+
 }

@@ -1,0 +1,16 @@
+projects:
+  - id: FRML24113
+    releaseId: FRML24113-230
+    version: WIP
+    validation: >
+      ### Project validates
+      * Large images
+      * Discontinue tests
+
+#  - id: OFI2004
+#    releaseId: OFI2004-207
+#    validation: In this project we are testing....
+
+ # - id: EDPP
+ #   releaseId: EDPP-1302
+ #   validation: In this project we are testing EDPP

@@ -1,0 +1,572 @@
+{
+    "id": "bed69332-9cbe-40e6-b500-51bf660438e0",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "RA",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Risk Assessment",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Risk Assessment, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ],
+                            "orientation": "Landscape"
+                        },
+                        "data": {
+                            "sections": {
+                                "sec8": {
+                                    "number": "8",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "RA"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec8",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-50",
+                                    "status": "Done"
+                                },
+                                "sec6s2": {
+                                    "number": "6.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "RA"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Abbreviation</th>\n<th class='confluenceTh'>Meaning</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">ODS</font></td>\n<td class='confluenceTd'><font color=\"blue\">OpenDevStack</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">EDP</font></td>\n<td class='confluenceTd'><font color=\"blue\">Enterprise Development Platform</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-48",
+                                    "status": "Done"
+                                },
+                                "sec6s1": {
+                                    "number": "6.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "RA"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-47",
+                                    "status": "Done"
+                                },
+                                "sec3": {
+                                    "number": "3",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Assumptions",
+                                    "documents": [
+                                        "RA"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3",
+                                    "content": "<p><em><font color=\"blue\">None</font></em></p>",
+                                    "key": "FRML24113-46",
+                                    "status": "Done"
+                                },
+                                "sec7": {
+                                    "number": "7",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Reference Documents",
+                                    "documents": [
+                                        "RA"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184807/184807_image-2021-11-24-16-24-26-707.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-49",
+                                    "status": "Done"
+                                },
+                                "sec4s2s1": {
+                                    "nonGxpEvaluation": "Non-GxP risks are not being evaluated"
+                                },
+                                "sec4s2s2": {
+                                    
+                                },
+                                "sec5": {
+                                    "risks": [
+                                        {
+                                            "key": "FRML24113-165",
+                                            "name": "RA CONTINUED",
+                                            "description": "<p>RA CONTINUED - Description</p>",
+                                            "proposedMeasures": "Mitigations: FRML24113&#x2011;166<br/>Tests: None",
+                                            "requirements": "Story CONTINUED",
+                                            "requirementsKey": "FRML24113-162",
+                                            "gxpRelevance": "None",
+                                            "probabilityOfOccurrence": "None",
+                                            "severityOfImpact": "None",
+                                            "probabilityOfDetection": "None",
+                                            "riskPriority": "None",
+                                            "riskPriorityNumber": "N/A",
+                                            "riskComment": "N/A"
+                                        },
+                                        {
+                                            "key": "FRML24113-167",
+                                            "name": "RA to TST",
+                                            "description": "<p>RA to TST - Description</p>",
+                                            "proposedMeasures": "Mitigations: None<br/>Tests: None",
+                                            "requirements": "Story CONTINUED<br/>TST CONTINUED",
+                                            "requirementsKey": "FRML24113-162<br/>FRML24113-164",
+                                            "gxpRelevance": "None",
+                                            "probabilityOfOccurrence": "None",
+                                            "severityOfImpact": "None",
+                                            "probabilityOfDetection": "None",
+                                            "riskPriority": "None",
+                                            "riskPriorityNumber": "N/A",
+                                            "riskComment": "N/A"
+                                        },
+                                        {
+                                            "key": "FRML24113-187",
+                                            "name": "RA ADDED",
+                                            "description": "<p>RA ADDED - Description</p>",
+                                            "proposedMeasures": "Mitigations: FRML24113&#x2011;188<br/>Tests: None",
+                                            "requirements": "Story ADDED",
+                                            "requirementsKey": "FRML24113-184",
+                                            "gxpRelevance": "None",
+                                            "probabilityOfOccurrence": "None",
+                                            "severityOfImpact": "None",
+                                            "probabilityOfDetection": "None",
+                                            "riskPriority": "None",
+                                            "riskPriorityNumber": "N/A",
+                                            "riskComment": "N/A"
+                                        },
+                                        {
+                                            "key": "FRML24113-269",
+                                            "name": "RA MODIFIED (from FRML24113-172)",
+                                            "description": "<p>RA MODIFIED - Description</p>",
+                                            "proposedMeasures": "Mitigations: FRML24113&#x2011;189<br/>Tests: None",
+                                            "requirements": "Story MODIFIED (from FRML24113-169)",
+                                            "requirementsKey": "FRML24113-268",
+                                            "gxpRelevance": "None",
+                                            "probabilityOfOccurrence": "None",
+                                            "severityOfImpact": "None",
+                                            "probabilityOfDetection": "None",
+                                            "riskPriority": "None",
+                                            "riskPriorityNumber": "N/A",
+                                            "riskComment": "N/A"
+                                        },
+                                        {
+                                            "key": "FRML24113-276",
+                                            "name": "RA to Modify",
+                                            "description": "<p>RA to Modify - Description - Modified</p>",
+                                            "proposedMeasures": "Mitigations: FRML24113&#x2011;277<br/>Tests: None",
+                                            "requirements": "Story to Modify<br/>TST to Modify",
+                                            "requirementsKey": "FRML24113-273<br/>FRML24113-275",
+                                            "gxpRelevance": "None",
+                                            "probabilityOfOccurrence": "None",
+                                            "severityOfImpact": "None",
+                                            "probabilityOfDetection": "None",
+                                            "riskPriority": "None",
+                                            "riskPriorityNumber": "N/A",
+                                            "riskComment": "N/A"
+                                        }
+                                    ],
+                                    "proposedMeasures": [
+                                        {
+                                            "key": "FRML24113-166",
+                                            "name": "Mitigation CONTINUED",
+                                            "description": "<p>Mitigation CONTINUED - Description</p>",
+                                            "type": "mitigation",
+                                            "referencesRisk": "FRML24113-165"
+                                        },
+                                        {
+                                            "key": "FRML24113-188",
+                                            "name": "Mitigation ADDED",
+                                            "description": "<p>Mitigation ADDED</p>",
+                                            "type": "mitigation",
+                                            "referencesRisk": "FRML24113-187"
+                                        },
+                                        {
+                                            "key": "FRML24113-189",
+                                            "name": "Mitigation MODIFIED (from FRML24113-173)",
+                                            "description": "<p>Mitigation MODIFIED - Description</p>",
+                                            "type": "mitigation",
+                                            "referencesRisk": "FRML24113-269"
+                                        },
+                                        {
+                                            "key": "FRML24113-277",
+                                            "name": "Mitigation to Modify",
+                                            "description": "<p>Mitigation to Modify - Description - Modified </p>",
+                                            "type": "mitigation",
+                                            "referencesRisk": "FRML24113-276"
+                                        }
+                                    ]
+                                }
+                            },
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "mitigations",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-188"
+                                                }
+                                            ],
+                                            "changed": [
+                                                {
+                                                    "key": "FRML24113-189",
+                                                    "predecessors": "FRML24113-173"
+                                                }
+                                            ],
+                                            "discontinued": [
+                                                {
+                                                    "action": "discontinue",
+                                                    "key": "FRML24113-178"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-184"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "risks",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-187"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                {
+                                                    "key": "FRML24113-268",
+                                                    "predecessors": "FRML24113-169"
+                                                }
+                                            ],
+                                            "discontinued": [
+                                                {
+                                                    "action": "discontinue",
+                                                    "key": "FRML24113-174"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "risks",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                {
+                                                    "key": "FRML24113-269",
+                                                    "predecessors": "FRML24113-172"
+                                                }
+                                            ],
+                                            "discontinued": [
+                                                {
+                                                    "action": "discontinue",
+                                                    "key": "FRML24113-177"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "mitigations",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-277"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-273"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "risks",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-276"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "techSpecs",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-275"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "mitigations",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-277",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-273",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "risks",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-276",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "techSpecs",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-275",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-bed69332-9cbe-40e6-b500-51bf660438e0.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "bed69332-9cbe-40e6-b500-51bf660438e0",
+    "persistent": true,
+    "insertionIndex": 1
+}

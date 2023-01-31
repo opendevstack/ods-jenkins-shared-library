@@ -53,17 +53,12 @@ class InitStage extends Stage {
         // to concurrent releases).
         def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
-        logger.startClocked("git-releasemanager-${STAGE_NAME}")
-        // git checkout
-        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        if (!Project.isWorkInProgress(buildParams.version)) {
-            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                checkOutRepoInPromotionMode(git, buildParams, logger, gitReleaseBranch)
-            } else {
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, logger)
-            }
+        def hasErrorsDuringCheckout = false
+        try {
+            checkOutReleaseManagerRepository(buildParams, git, logger)
+        } catch (Exception) {
+            hasErrorsDuringCheckout = true
         }
-        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -71,6 +66,11 @@ class InitStage extends Stage {
         logger.debug'Register global services'
         def registry = ServiceRegistry.instance
         addServicesToRegistry(registry, git, steps, logger)
+
+        if (hasErrorsDuringCheckout) {
+            //throw an exception after project init
+            throw new RuntimeException(checkOutException.message, checkOutException)
+        }
 
         logger.debug 'Checkout repositories into the workspace'
         BitbucketService bitbucket = registry.get(BitbucketService)
@@ -145,7 +145,7 @@ class InitStage extends Stage {
         return stageToStartAgent
     }
 
-    private Closure buildCheckOutClousure(repos, logger, envState, util) {
+    private Closure buildCheckOutClousure(repos, logger, envState, MROPipelineUtil util) {
         @SuppressWarnings('Indentation')
         Closure checkoutClosure =
             {
@@ -285,18 +285,15 @@ class InitStage extends Stage {
             }
 
             if (project.isPromotionMode && git.remoteTagExists(project.targetTag)) {
-                if (project.buildParams.targetEnvironmentToken == 'Q' && project.buildParams.rePromote) {
-                    logger.warn("Deploying tag '${project.targetTag}' to Q again!")
-                } else if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
-                    )
-                } else {
-                    throw new RuntimeException(
-                        "Git Tag '${project.targetTag}' already exists. " +
-                            "It cannot be deployed again to 'P'."
-                    )
+                ['Q', 'P'].each {
+                    if (project.buildParams.targetEnvironmentToken == it && project.buildParams.rePromote) {
+                        logger.warn("Deploying tag '${project.targetTag}' to ${it} again!")
+                    } else if (project.buildParams.targetEnvironmentToken == it) {
+                        throw new RuntimeException(
+                            "Git Tag '${project.targetTag}' already exists. " +
+                                "It can only be deployed again to '${it}' if build param 'rePromote' is set to 'true'."
+                        )
+                    }
                 }
             }
             if (!project.isWorkInProgress) {
@@ -306,7 +303,7 @@ class InitStage extends Stage {
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
             logger.debug 'Configure current build description'
-            script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
+            script.currentBuild.description = "Build ${jobMode} #${script.env.BUILD_NUMBER} - " +
                 "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
                 "Project: ${project.key}, " +
                 "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
@@ -440,23 +437,59 @@ class InitStage extends Stage {
         }
     }
 
-    private void checkOutRepoInNotPromotionMode(GitService git, String gitReleaseBranch, Logger logger) {
+    private void checkOutReleaseManagerRepository(def buildParams, def git,
+                                                  ILogger logger) {
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
+        if (!Project.isWorkInProgress(buildParams.version)) {
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+            logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
+            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
+                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
+            } else {
+                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
+            }
+        } else {
+            // Here is the difference with respect to deploy-to-D:
+            // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
+            def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
+            logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
+            checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
+        }
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+
+    }
+
+    private void checkOutRepoInNotPromotionMode(GitService git,
+                                                String gitReleaseBranch,
+                                                boolean isWorkInProgress,
+                                                Logger logger) {
         if (git.remoteBranchExists(gitReleaseBranch)) {
-            logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
+            logger.info("Checkout release manager repository branch ${gitReleaseBranch}")
             git.checkout(
                 "*/${gitReleaseBranch}",
                 [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
                 script.scm.userRemoteConfigs
             )
+            project.setGitReleaseBranch(gitReleaseBranch)
         } else {
-            git.checkoutNewLocalBranch(gitReleaseBranch)
+            // If we are still in WIP and there is no branch for current release,
+            // do not create it. We use if only if it exists. We use master if it does not exist.
+            if (! isWorkInProgress) {
+                logger.info("Creating release manager repository branch: ${gitReleaseBranch}")
+                git.checkoutNewLocalBranch(gitReleaseBranch)
+                project.setGitReleaseBranch(gitReleaseBranch)
+            } else {
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                    "using master branch for developer preview.")
+                project.setGitReleaseBranch("master")
+            }
         }
     }
 
-    private void checkOutRepoInPromotionMode(GitService git,
+    private Exception checkOutRepoInPromotionMode(GitService git,
                                              Map buildParams,
-                                             Logger logger,
-                                             String gitReleaseBranch) {
+                                             String gitReleaseBranch,
+                                             Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,

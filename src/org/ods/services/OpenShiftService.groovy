@@ -70,6 +70,12 @@ class OpenShiftService {
     }
 
     static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
+        if (!envExists(steps, project)) {
+            String currentClusterUrl = getApiUrl(steps)
+            throw new IOException ("OCP project ${project} on server ${currentClusterUrl}" +
+                ' does not exist - cannot create route to retrieve host / domain name!' +
+                ' If this is needed, please create project on cluster!')
+        }
         def routeName = 'test-route-' + (System.currentTimeMillis() +
             new SecureRandom().nextInt(1000))
         steps.sh (

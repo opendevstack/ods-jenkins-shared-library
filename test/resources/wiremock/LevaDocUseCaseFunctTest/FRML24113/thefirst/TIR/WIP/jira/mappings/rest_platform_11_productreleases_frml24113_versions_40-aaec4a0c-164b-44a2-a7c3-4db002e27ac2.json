@@ -1,0 +1,33 @@
+{
+  "id" : "aaec4a0c-164b-44a2-a7c3-4db002e27ac2",
+  "name" : "rest_platform_11_productreleases_frml24113_versions_40",
+  "request" : {
+    "url" : "/rest/platform/1.1/productreleases/FRML24113/versions/4.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"precedingVersions\":[\"3.0\"],\"addedIssues\":[{\"key\":\"FRML24113-279\",\"summary\":\"Test Unit\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-277\",\"summary\":\"Mitigation to Modify\",\"issueTypeName\":\"Mitigation\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-276\",\"summary\":\"RA to Modify\",\"issueTypeName\":\"Risk Assessment\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-275\",\"summary\":\"TST to Modify \",\"issueTypeName\":\"Technical Specification Task\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[\"FRML24113-276\"],\"status\":\"Done\"},{\"key\":\"FRML24113-274\",\"summary\":\"Test to Modify\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-273\",\"summary\":\"Story to Modify\",\"issueTypeName\":\"Story\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-272\",\"summary\":\"Epic to Modify\",\"issueTypeName\":\"Epic\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"FRML24113-280\",\"summary\":\"t1\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"4.0\"],\"subTaskKeys\":[],\"status\":\"Done\"}],\"modifiedIssues\":{},\"continuedIssueKeys\":[\"FRML24113-269\",\"FRML24113-268\",\"FRML24113-179\",\"FRML24113-189\",\"FRML24113-167\",\"FRML24113-188\",\"FRML24113-166\",\"FRML24113-187\",\"FRML24113-165\",\"FRML24113-186\",\"FRML24113-164\",\"FRML24113-185\",\"FRML24113-163\",\"FRML24113-184\",\"FRML24113-162\",\"FRML24113-183\",\"FRML24113-171\",\"FRML24113-170\",\"FRML24113-180\",\"FRML24113-190\"],\"discontinuedIssueKeys\":[],\"predecessorIssueKeys\":[],\"addedLinks\":[{\"sourceKey\":\"FRML24113-277\",\"linkType\":\"MITIGATES\",\"destKey\":\"FRML24113-276\"},{\"sourceKey\":\"FRML24113-279\",\"linkType\":\"COMPONENTS\",\"destKey\":\"Technology-thefirst\"},{\"sourceKey\":\"FRML24113-274\",\"linkType\":\"TESTS\",\"destKey\":\"FRML24113-273\"},{\"sourceKey\":\"FRML24113-275\",\"linkType\":\"SUBTASKS\",\"destKey\":\"FRML24113-276\"},{\"sourceKey\":\"FRML24113-280\",\"linkType\":\"COMPONENTS\",\"destKey\":\"Technology-release\"},{\"sourceKey\":\"FRML24113-272\",\"linkType\":\"EPIC_STORY_LINK\",\"destKey\":\"FRML24113-273\"},{\"sourceKey\":\"FRML24113-275\",\"linkType\":\"SPECIFIES\",\"destKey\":\"FRML24113-273\"}],\"continuedLinks\":[{\"sourceKey\":\"FRML24113-166\",\"linkType\":\"MITIGATES\",\"destKey\":\"FRML24113-165\"},{\"sourceKey\":\"FRML24113-163\",\"linkType\":\"TESTS\",\"destKey\":\"FRML24113-162\"},{\"sourceKey\":\"FRML24113-188\",\"linkType\":\"MITIGATES\",\"destKey\":\"FRML24113-187\"},{\"sourceKey\":\"FRML24113-185\",\"linkType\":\"TESTS\",\"destKey\":\"FRML24113-184\"},{\"sourceKey\":\"FRML24113-268\",\"linkType\":\"SUBTASKS\",\"destKey\":\"FRML24113-269\"},{\"sourceKey\":\"FRML24113-164\",\"linkType\":\"SUBTASKS\",\"destKey\":\"FRML24113-167\"},{\"sourceKey\":\"FRML24113-162\",\"linkType\":\"SUBTASKS\",\"destKey\":\"FRML24113-165\"},{\"sourceKey\":\"FRML24113-184\",\"linkType\":\"SUBTASKS\",\"destKey\":\"FRML24113-187\"},{\"sourceKey\":\"FRML24113-164\",\"linkType\":\"SPECIFIES\",\"destKey\":\"FRML24113-162\"},{\"sourceKey\":\"FRML24113-186\",\"linkType\":\"SPECIFIES\",\"destKey\":\"FRML24113-184\"}],\"discontinuedLinks\":[],\"inheritedLinks\":[],\"predecessorLinks\":[],\"deployToDevDate\":1637838897580,\"deletedIssuesAfterDeployToDev\":[],\"managerStatus\":\"Successful\",\"versionId\":21011,\"documentsCreated\":false,\"name\":\"4.0\",\"frozen\":false,\"version\":\"4.0\",\"releaseState\":\"Change Ready for Implementation\"}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Thu, 23 Dec 2021 06:33:25 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "453x3886000x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=1E5880850AF306739763ECE7C4009E65; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_821933251b61891755687a744f88d1b5ebad66a2_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "oy8l0u",
+      "X-AUSERNAME" : "sergio.sacristan%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "aaec4a0c-164b-44a2-a7c3-4db002e27ac2",
+  "persistent" : true,
+  "insertionIndex" : 14
+}

@@ -155,7 +155,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (DocumentType.TIR as String): null
         ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB): [:],
     ]
 
     // Document types at the project level which require repositories
@@ -201,8 +202,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (DocumentType.TIR as String)    : ["${DocumentType.TIR}_P"],
             (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_P"],
             (DocumentType.IVR as String)    : ["${DocumentType.IVR}_P"],
-            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"],
-            (DocumentType.DIL as String)    : ["${DocumentType.DIL}_P"]
+            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"]
         ]
     ]
 

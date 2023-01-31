@@ -87,31 +87,37 @@ class DeployStage extends Stage {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
-                logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
+                def installableRepos = this.project.repositories.findAll { repo ->
+                    MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
+                }
+                logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'" +
+                    " installable repos? ${installableRepos.size()}")
 
-                if (project.targetClusterIsExternal) {
-                    logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
-                    script.withCredentials([
-                        script.usernamePassword(
-                            credentialsId: project.environmentConfig.credentialsId,
-                            usernameVariable: 'EXTERNAL_OCP_API_SA',
-                            passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
-                        )
-                    ]) {
-                        OpenShiftService.loginToExternalCluster(
-                            steps,
-                            project.openShiftTargetApiUrl,
-                            script.EXTERNAL_OCP_API_TOKEN
+                if (installableRepos?.size() > 0) {
+                    if (project.targetClusterIsExternal) {
+                        logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
+                        script.withCredentials([
+                            script.usernamePassword(
+                                credentialsId: project.environmentConfig.credentialsId,
+                                usernameVariable: 'EXTERNAL_OCP_API_SA',
+                                passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
+                            )
+                        ]) {
+                            OpenShiftService.loginToExternalCluster(
+                                steps,
+                                project.openShiftTargetApiUrl,
+                                script.EXTERNAL_OCP_API_TOKEN
+                            )
+                        }
+                    }
+
+                    // Check if the target environment exists in OpenShift
+                    if (!os.envExists(targetProject)) {
+                        throw new RuntimeException(
+                            "Error: target environment '${targetProject}' does not exist " +
+                            "in ${project.openShiftTargetApiUrl}."
                         )
                     }
-                }
-
-                // Check if the target environment exists in OpenShift
-                if (!os.envExists(targetProject)) {
-                    throw new RuntimeException(
-                        "Error: target environment '${targetProject}' does not exist " +
-                        "in ${project.openShiftTargetApiUrl}."
-                    )
                 }
             }
 

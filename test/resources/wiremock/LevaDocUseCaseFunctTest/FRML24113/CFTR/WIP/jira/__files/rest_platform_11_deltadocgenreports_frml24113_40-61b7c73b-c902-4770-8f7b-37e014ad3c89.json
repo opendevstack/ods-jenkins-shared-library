@@ -1,0 +1,343 @@
+{
+  "project" : {
+    "name" : "Formal Test 241121",
+    "description" : "Formal Test 241121",
+    "key" : "FRML24113",
+    "jiraBaseUrl" : "https://jira-qa.biscrum.com/FRML24113",
+    "projectProperties" : {
+      "PROJECT.POO_CAT.LOW" : "Frequency of the usage of the related function is <10 times per year.",
+      "PROJECT.POO_CAT.HIGH" : "Frequency of the usage of the related function is >10 times per week.",
+      "WEBHOOK_PROXY.URL" : "https://webhook-proxy-FRML24113-cd.inh-odsapps.eu.boehringer.com/build?trigger_secret=82fa2ece-d158-4059-a68c-33b45234c3fe",
+      "RM.REPOSITORY" : "frml24113-release",
+      "PROJECT.POO_CAT.MEDIUM" : "Frequency of the usage of the related function is <10 times per week.",
+      "PROJECT.NON-GXP_EVALUATION" : "Non-GxP risks are not being evaluated",
+      "PROJECT.USES_POO" : "false",
+      "PROJECT.IS_EDP_PROJECT" : "true",
+      "PROJECT.CONFIG_ITEM" : "BI-IT-DEVSTACK"
+    },
+    "gampTopics" : [ "operational requirements", "functional requirements", "data requirements", "technical requirements", "interface requirements", "environment requirements", "performance requirements", "availability requirements", "security requirements", "maintenance requirements", "regulatory requirements", "roles", "compatibility", "procedural constraints", "overarching requirements" ],
+    "enumDictionary" : {
+      "ProbabilityOfDetection" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Immediate",
+          "short" : "I"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Before Impact",
+          "short" : "B"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "After Impact",
+          "short" : "A"
+        }
+      },
+      "SeverityOfImpact" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Low",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Medium",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "High",
+          "short" : "H"
+        }
+      },
+      "ProbabilityOfOccurrence" : {
+        "1" : {
+          "value" : 1,
+          "text" : "LOW",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "HIGH",
+          "short" : "H"
+        }
+      },
+      "RiskPriority" : {
+        "0" : {
+          "value" : 0,
+          "text" : "N/A",
+          "short" : "N"
+        },
+        "1" : {
+          "value" : 1,
+          "text" : "HIGH",
+          "short" : "H"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "LOW",
+          "short" : "L"
+        }
+      },
+      "GxPRelevance" : {
+        "R2" : {
+          "value" : 2,
+          "text" : "Relevant",
+          "short" : "R2"
+        },
+        "N0" : {
+          "value" : 0,
+          "text" : "Not relevant/ZERO",
+          "short" : "N0"
+        },
+        "N1" : {
+          "value" : 1,
+          "text" : "Not relevant/LESS",
+          "short" : "N1"
+        },
+        "N2" : {
+          "value" : 2,
+          "text" : "Not relevant/EQUAL",
+          "short" : "N2"
+        }
+      }
+    },
+    "versions" : [ "1.0", "2.0", "3.0", "4.0" ],
+    "id" : "27511"
+  },
+  "components" : {
+    "Technology-spock" : {
+      "name" : "Technology-spock",
+      "description" : "Technology component frml24113-spock stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-spock/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-release" : {
+      "name" : "Technology-release",
+      "description" : "Technology component frml24113-release stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-release/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ "FRML24113-280" ],
+      "mitigations" : [ ]
+    },
+    "Technology-thefirst" : {
+      "name" : "Technology-thefirst",
+      "description" : "Technology component frml24113-thefirst stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-thefirst/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ "FRML24113-279" ],
+      "mitigations" : [ ]
+    },
+    "Technology-thesecond" : {
+      "name" : "Technology-thesecond",
+      "description" : "Technology component frml24113-thesecond stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-thesecond/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    }
+  },
+  "releaseState" : "Change Ready for Implementation",
+  "version" : "4.0",
+  "epics" : {
+    "FRML24113-272" : {
+      "key" : "FRML24113-272",
+      "description" : "<p>Epic to Modify - Description - Modified</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "epicName" : "Epic to Modify",
+      "predecessors" : [ ],
+      "title" : "Epic to Modify",
+      "requirements" : [ "FRML24113-273" ]
+    }
+  },
+  "requirements" : {
+    "FRML24113-273" : {
+      "key" : "FRML24113-273",
+      "name" : "Story to Modify",
+      "description" : "<p>Story to Modify - Description</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "compatibility",
+      "acceptanceCriteria" : "Story to Modify - Modified",
+      "configSpec" : {
+        "name" : "Story to Modify",
+        "description" : "<p>Story to Modify</p>"
+      },
+      "funcSpec" : {
+        "name" : "Story to Modify",
+        "description" : "<p>Story to Modify</p>",
+        "acceptanceCriteria" : "Story to Modify"
+      },
+      "components" : [ ],
+      "epics" : [ "FRML24113-272" ],
+      "risks" : [ ],
+      "tests" : [ "FRML24113-274" ],
+      "techSpecs" : [ "FRML24113-275" ],
+      "bugs" : [ "FRML24113-278" ],
+      "mitigations" : [ "FRML24113-277" ],
+      "predecessors" : [ ]
+    }
+  },
+  "risks" : {
+    "FRML24113-276" : {
+      "key" : "FRML24113-276",
+      "name" : "RA to Modify",
+      "description" : "<p>RA to Modify - Description - Modified</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ "FRML24113-277" ],
+      "requirements" : [ "FRML24113-273" ],
+      "techSpecs" : [ "FRML24113-275" ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    }
+  },
+  "tests" : {
+    "FRML24113-274" : {
+      "id" : "367424",
+      "key" : "FRML24113-274",
+      "name" : "Test to Modify",
+      "description" : "<p>Test to Modify - Description - Modified</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "FRML24113-273" ],
+      "techSpecs" : [ "FRML24113-275" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "FRML24113-279" : {
+      "id" : "367684",
+      "key" : "FRML24113-279",
+      "name" : "Test Unit",
+      "description" : null,
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-thefirst" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "FRML24113-280" : {
+      "id" : "367685",
+      "key" : "FRML24113-280",
+      "name" : "t1",
+      "description" : "<p>dasdsds</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "components" : [ "Technology-release" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : null
+    }
+  },
+  "mitigations" : {
+    "FRML24113-277" : {
+      "key" : "FRML24113-277",
+      "name" : "Mitigation to Modify",
+      "description" : "<p>Mitigation to Modify - Description - Modified </p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ "FRML24113-276" ],
+      "components" : [ ],
+      "requirements" : [ "FRML24113-273" ],
+      "techSpecs" : [ "FRML24113-275" ],
+      "predecessors" : [ ]
+    }
+  },
+  "techSpecs" : {
+    "FRML24113-275" : {
+      "key" : "FRML24113-275",
+      "name" : "TST to Modify",
+      "description" : "<p>TST to Modify - Description</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>TST to Modify - Modified</p>",
+      "softwareDesignSpec" : "<p>TST to Modify</p>",
+      "components" : [ ],
+      "requirements" : [ "FRML24113-273" ],
+      "risks" : [ "FRML24113-276" ],
+      "tests" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ "FRML24113-277" ],
+      "predecessors" : [ ]
+    }
+  },
+  "bugs" : {
+    "FRML24113-278" : {
+      "key" : "FRML24113-278",
+      "name" : "Bug to Modify",
+      "description" : "<p>Bug to Modify - Description - Modified</p>",
+      "versions" : [ "4.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "tests" : [ "FRML24113-274" ],
+      "predecessors" : [ ]
+    }
+  },
+  "notesAndHints" : [ ],
+  "precedingVersions" : [ "3.0" ],
+  "modifiedKeys" : { },
+  "continuedKeys" : [ "FRML24113-269", "FRML24113-268", "FRML24113-228", "FRML24113-227", "FRML24113-226", "FRML24113-225", "FRML24113-224", "FRML24113-223", "FRML24113-222", "FRML24113-221", "FRML24113-220", "FRML24113-219", "FRML24113-218", "FRML24113-217", "FRML24113-216", "FRML24113-215", "FRML24113-214", "FRML24113-213", "FRML24113-212", "FRML24113-211", "FRML24113-210", "FRML24113-209", "FRML24113-208", "FRML24113-207", "FRML24113-206", "FRML24113-205", "FRML24113-204", "FRML24113-203", "FRML24113-202", "FRML24113-201", "FRML24113-200", "FRML24113-199", "FRML24113-198", "FRML24113-197", "FRML24113-196", "FRML24113-195", "FRML24113-194", "FRML24113-193", "FRML24113-192" ],
+  "discontinuedKeys" : [ ]
+}

@@ -73,10 +73,8 @@ class FinalizeStage extends Stage {
             logger.debug("Gathering commits")
             gatherCreatedExecutionCommits(steps, git)
 
-            if (!project.buildParams.rePromote) {
-                pushRepos(steps, git)
-                recordAndPushEnvStateForReleaseManager(steps, logger, git)
-            }
+            pushRepos(steps, git)
+            recordAndPushEnvStateForReleaseManager(steps, logger, git)
 
             // add the tag commit that was created for traceability ..
             logger.debug "Current release manager commit: ${project.gitData.commit}"
@@ -97,6 +95,9 @@ class FinalizeStage extends Stage {
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
+
+        logger.debug("Project has failing tests? ${project.hasFailingTests()}")
+        logger.debug("Project has unexecuted jira tests? ${project.hasUnexecutedJiraTests()}")
 
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
@@ -121,9 +122,11 @@ class FinalizeStage extends Stage {
                     'FAILED', "Release Manager for commit: ${project.gitData.commit}")
             }
 
+            logger.debug(message)
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
+            logger.debug("Reporting pipeline status to Jira...")
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
@@ -141,12 +144,17 @@ class FinalizeStage extends Stage {
             repoPushTasks << [ (repo.id): {
                 steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                     if (project.isWorkInProgress) {
-                        git.pushRef(repo.branch)
+                        String branchName = repo.data.git.branch ?: repo.branch
+                        git.pushRef(branchName)
                     } else if (project.isAssembleMode) {
-                        git.createTag(project.targetTag)
+                        if (!git.remoteTagExists(project.targetTag)) {
+                            git.createTag(project.targetTag)
+                        }
                         git.pushBranchWithTags(project.gitReleaseBranch)
                     } else {
-                        git.createTag(project.targetTag)
+                        if (!git.remoteTagExists(project.targetTag)) {
+                            git.createTag(project.targetTag)
+                        }
                         git.pushRef(project.targetTag)
                     }
                 }
@@ -242,7 +250,7 @@ class FinalizeStage extends Stage {
             messageToCommit
         )
 
-        if (project.isWorkInProgress) {
+        if (project.gitReleaseBranch == MASTER_BRANCH) {
             git.pushRef(MASTER_BRANCH)
         } else {
             // We don't need to merge, we simply commit the env file.
@@ -255,8 +263,12 @@ class FinalizeStage extends Stage {
             )
             git.pushRef(MASTER_BRANCH)
             git.switchToExistingBranch(project.gitReleaseBranch)
-            git.createTag(project.targetTag)
-            git.pushBranchWithTags(project.gitReleaseBranch)
+            if (!project.isWorkInProgress) {
+                git.createTag(project.targetTag)
+            }
+            // To overwrite the existing tag (if redeploy)
+            // FIXME: Review this functionality to avoid orphaned commits
+            git.pushForceBranchWithTags(project.gitReleaseBranch)
         }
     }
 

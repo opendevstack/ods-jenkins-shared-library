@@ -1,0 +1,329 @@
+{
+    "id": "3e2b46f3-4b67-4518-a15b-636e9558e626",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "IVR",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Configuration and Installation Testing Report",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Configuration and Installation Testing Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "repositories": [
+                                {
+                                    "id": "thefirst",
+                                    "type": "ods",
+                                    "doInstall": true,
+                                    "data": {
+                                        "git": {
+                                            "url": null
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": "thesecond",
+                                    "type": "ods",
+                                    "doInstall": true,
+                                    "data": {
+                                        "git": {
+                                            "url": null
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": "release",
+                                    "type": "ods",
+                                    "doInstall": true,
+                                    "data": {
+                                        "git": {
+                                            "url": null
+                                        }
+                                    }
+                                }
+                            ],
+                            "sections": {
+                                "sec9": {
+                                    "number": "9",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Reference Documents",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec9",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184811/184811_image-2021-11-24-16-27-37-453.png\" height=\"88\" width=\"291\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-95",
+                                    "status": "Done"
+                                },
+                                "sec8s2": {
+                                    "number": "8.2",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec8s2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184805/184805_image-2021-11-24-16-24-02-065.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-94",
+                                    "status": "Done"
+                                },
+                                "sec8s1": {
+                                    "number": "8.1",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec8s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-93",
+                                    "status": "Done"
+                                },
+                                "sec2": {
+                                    "number": "2",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Scope",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec2",
+                                    "content": "<p><font color=\"blue\">Hardware verification is out of scope, similar runtime platform verification, because those are qualified.<br/>\n||Runtime Platform||Qualification Summary Report||<br/>\n|BI-IT-CONTAINER-PAAS|tbd|</font></p>",
+                                    "key": "FRML24113-92",
+                                    "status": "Done"
+                                },
+                                "sec10": {
+                                    "number": "10",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec10",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-89",
+                                    "status": "Done"
+                                },
+                                "sec12s2": {
+                                    "number": "12.2",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Configuration database CMDB",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec12s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Instructions</th>\n<th class='confluenceTh'>Expected result / Evidence</th>\n<th class='confluenceTh'>Observed result</th>\n<th class='confluenceTh'>Comments</th>\n</tr>\n<tr>\n<td class='confluenceTd'><b>Role assignment:</b><br/>\nCheck if name of contact persons are entered to CMDBWeb: IT System Lead Validation Manager System Owner CSV&amp;C function </td>\n<td class='confluenceTd'> Document, if a Role Assignment Log is required and available and all entries in CMDB are correct (RAL)<br/>\n&lt; If no RAL is required, a rational must be provided e.g. in the Qualification Plan &gt;<br/>\n&lt; If for Infrastructure Systems we do not have a RAL available, please ensure correct entries in CMDBWeb anyway and state in Observed result &gt; </td>\n<td class='confluenceTd'>RAL is required and available<br/>\n\u2610 Yes   \u2610 No <br/>\nCMDB entries are correct<br/>\n\u2610 Yes   \u2610 No</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n<tr>\n<td class='confluenceTd'><b>Related components:</b><br/>\nCheck if components are related to Environments as described in System Design Specification.</td>\n<td class='confluenceTd'> Components are related to Environments as listed in System Design Specification</td>\n<td class='confluenceTd'> CMDB entries are correct<br/>\n\u2610 Yes   \u2610 No </td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n<tr>\n<td class='confluenceTd'><b>Emergency class:</b><br/>\nCheck if emergency class is correctly set according to the related specification document</td>\n<td class='confluenceTd'>Emergency class per environment (env) is correctly set<br/>\n&lt;enter defined class number per environment&gt;<br/>\n<em>Productive env: class</em> <br/>\n<em>Validation env: class</em> <br/>\n<em>Training env: class</em>  </td>\n<td class='confluenceTd'><em>Productive env:</em> <br/>\n<em>Validation env:</em> <br/>\n<em>Training env:</em> </td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n<tr>\n<td class='confluenceTd'><b>GxP relevance</b></td>\n<td class='confluenceTd'>GxP relevance is set to 'yes'</td>\n<td class='confluenceTd'>Actual setting in CMDB: </td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n<tr>\n<td class='confluenceTd'><b>Support category:</b><br/>\nCheck if support category is correctly set according to the related specification document</td>\n<td class='confluenceTd'>Support category per environment (env) is correctly set<br/>\n&lt;enter defined category number per environment&gt;<br/>\n<em>Productive env: class</em> <br/>\n<em>Validation env: class</em> <br/>\n<em>Training env: class</em> </td>\n<td class='confluenceTd'><em>Productive env:</em> <br/>\n<em>Validation env:</em> <br/>\n<em>Training env:</em> </td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-91",
+                                    "status": "Done"
+                                },
+                                "sec12s1": {
+                                    "number": "12.1",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Operational documents on system level",
+                                    "documents": [
+                                        "IVP",
+                                        "IVR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec12s1",
+                                    "content": "<p><font color=\"blue\">Operational documents at system level:<br/>\n<br/>\n<b>System level monitoring:</b> </font></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id (Plan / Report)</th>\n</tr>\n<tr>\n<td class='confluenceTd'>BI-IT-Container-PAAS</td>\n<td class='confluenceTd'>Theplatform that runs ODS based applications</td>\n<td class='confluenceTd'><ul>\n\t<li>Plan ID: ...</li>\n\t<li>Release date:</li>\n\t<li>Report ID: ....</li>\n\t<li>Release date:</li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n\n\n<p><b>System level backup :</b></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id (Plan / Report)</th>\n</tr>\n<tr>\n<td class='confluenceTd'>BI-IT-Container-PAAS</td>\n<td class='confluenceTd'>The platform that runs ODS based applications</td>\n<td class='confluenceTd'><ul>\n\t<li>Plan ID: ...</li>\n\t<li>Release date:</li>\n\t<li>Report ID: ....</li>\n\t<li>Release date:</li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n\n\n<p> <font color=\"blue\"><b>System level restore/recovery:</b> </font></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id (Plan / Report)</th>\n</tr>\n<tr>\n<td class='confluenceTd'>BI-IT-Container-PAAS</td>\n<td class='confluenceTd'>The platform that runs ODS based applications</td>\n<td class='confluenceTd'><ul>\n\t<li>Plan ID: ...</li>\n\t<li>Release date:</li>\n\t<li>Report ID: ....</li>\n\t<li>Release date:</li>\n\t<li></li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n\n\n<p> <b>System Operational instructions</b><b>:</b></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id (Plan / Report)</th>\n</tr>\n<tr>\n<td class='confluenceTd'>BI-IT-Container-PAAS</td>\n<td class='confluenceTd'>The platform that runs ODS based applications</td>\n<td class='confluenceTd'><ul>\n\t<li>Plan ID: ...</li>\n\t<li>Release date:</li>\n\t<li>Report ID: ....</li>\n\t<li>Release date:</li>\n\t<li></li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n\n\n<p><b>Service Agreement :</b></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'><ul>\n\t<li>Document ID: ...</li>\n\t<li>Release date:</li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n\n\n<p><b>AAP/IAP/TAP</b> <b>:</b></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Config Item</th>\n<th class='confluenceTh'>Description</th>\n<th class='confluenceTh'>Items Doc Id</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'><ul>\n\t<li>Document ID: ...</li>\n\t<li>Release date:</li>\n</ul>\n</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-90",
+                                    "status": "Done"
+                                }
+                            },
+                            "tests": [
+                                {
+                                    "key": "FRML24113-179",
+                                    "description": "<p>Installation Test - Description</p>",
+                                    "remarks": "Not executed",
+                                    "success": "N",
+                                    "summary": "Installation Test",
+                                    "techSpec": "N/A"
+                                }
+                            ],
+                            "numAdditionalTests": 0,
+                            "testFiles": [
+
+                            ],
+                            "discrepancies": "The following major discrepancies were found during testing. Unexecuted tests: FRML24113-179.",
+                            "conclusion": {
+                                "summary": "No success - major discrepancies found",
+                                "statement": "Some discrepancies found as tests were not executed."
+                            },
+                            "testsOdsService": [
+
+                            ],
+                            "testsOdsCode": [
+
+                            ],
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+
+                                            ],
+                                            "changed": [
+
+                                            ],
+                                            "discontinued": [
+
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-3e2b46f3-4b67-4518-a15b-636e9558e626.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "3e2b46f3-4b67-4518-a15b-636e9558e626",
+    "persistent": true,
+    "insertionIndex": 1
+}

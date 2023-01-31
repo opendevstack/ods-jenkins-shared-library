@@ -1,0 +1,35 @@
+{
+  "id" : "c238c0ea-82f0-4ff9-98ae-dd3287230379",
+  "name" : "rest_api_2_project_frml24113_versions",
+  "request" : {
+    "url" : "/rest/api/2/project/FRML24113/versions",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21006\",\"id\":\"21006\",\"name\":\"1.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21007\",\"id\":\"21007\",\"name\":\"2.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21009\",\"id\":\"21009\",\"name\":\"3.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21011\",\"id\":\"21011\",\"name\":\"4.0\",\"archived\":false,\"released\":false,\"projectId\":27511}]",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Thu, 23 Dec 2021 06:35:14 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "455x3886081x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=C29BDEC9399493EC216072D01CC08FB9; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_6e2a970bd3cba6dc80df3e0a275cf656664843f2_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "7mjm33",
+      "X-AUSERNAME" : "sergio.sacristan%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "c238c0ea-82f0-4ff9-98ae-dd3287230379",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-rest-api-2-project-FRML24113-versions",
+  "requiredScenarioState" : "scenario-1-rest-api-2-project-FRML24113-versions-2",
+  "insertionIndex" : 18
+}

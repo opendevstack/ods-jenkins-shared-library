@@ -1,0 +1,9 @@
+{
+    "version": "WIP",
+    "changeId": "4.0",
+    "repositories": {
+        "thefirst": "09ea457d6abec9b524206c05c0ad1fa487cf6bae",
+        "thesecond": "d0aa71ad20c130f3b132473e88a3f749d2b22a9f",
+        "spock": "b9f450a59d1ac116789bc0155831ed61335fd647"
+    }
+}

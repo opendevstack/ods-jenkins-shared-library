@@ -36,7 +36,7 @@ class ShellWithRetry {
         if (executedWithErrors) {
             throw new ExecutionException("Jenkins serialization issue, when: [${shellParams.script}]")
         }
-        return returnScript.trim()
+        return returnScript ? returnScript.trim() : ""
     }
 
 }

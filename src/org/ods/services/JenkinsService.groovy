@@ -16,30 +16,36 @@ class JenkinsService {
 
     def stashTestResults(String customXunitResultsDir, String stashNamePostFix = 'stash') {
         def contextresultMap = [:]
+        logger.info ('Collecting test results, if available ...')
         def xUnitResultDir = XUNIT_SYSTEM_RESULT_DIR
         if (customXunitResultsDir?.trim()?.length() > 0) {
-            logger.debug "overwritten testresult location: ${customXunitResultsDir}"
+            logger.debug "Overwritten testresult location: ${customXunitResultsDir}"
             xUnitResultDir = customXunitResultsDir.trim()
+            if (!script.fileExists(xUnitResultDir)) {
+                throw new IOException ("Cannot use custom test directory '${xUnitResultDir}' that does not exist!")
+            }
         }
 
-        logger.debug "Collecting (applicable) testresults from location: '${xUnitResultDir}'"
-        script.sh(
-            script: """
-                ${logger.shellScriptDebugFlag}
-                mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
-                cp -rf ${xUnitResultDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
-            """,
-            label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}"
-          )
+        if (!script.fileExists(XUNIT_SYSTEM_RESULT_DIR)) {
+            script.sh(script: "mkdir -p ${XUNIT_SYSTEM_RESULT_DIR}", label: "creating test directory")
+        }
 
-        def foundTests = script.sh(
-            script: """
-                ${logger.shellScriptDebugFlag}
-                ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l
-            """,
-            returnStdout: true,
-            label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}"
-        ).trim()
+        if (XUNIT_SYSTEM_RESULT_DIR != xUnitResultDir) {
+            logger.debug "Copying (applicable) testresults from location: '${xUnitResultDir}' to " +
+                " '${XUNIT_SYSTEM_RESULT_DIR}'."
+            script.sh(
+                script: """
+                    ${logger.shellScriptDebugFlag}
+                    cp -rf ${xUnitResultDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
+                """,
+                label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}"
+            )
+        }
+
+        def foundTests = 0
+        script.dir (XUNIT_SYSTEM_RESULT_DIR) {
+            foundTests = script.findFiles(glob: '**/**.xml').size()
+        }
 
         logger.debug "Found ${foundTests} test files in '${XUNIT_SYSTEM_RESULT_DIR}'"
 
@@ -60,7 +66,7 @@ class JenkinsService {
                 allowEmpty: true
             )
         } else {
-            logger.debug 'No xUnit results for stashing'
+            logger.info 'No xUnit results for stashing'
         }
 
         return contextresultMap

@@ -1,0 +1,35 @@
+{
+  "id" : "2bfd2ac6-b5f5-4ec3-84d8-9d81fa85d5fb",
+  "name" : "rest_api_2_project_frml24113_versions",
+  "request" : {
+    "url" : "/rest/api/2/project/FRML24113/versions",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21006\",\"id\":\"21006\",\"name\":\"1.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21007\",\"id\":\"21007\",\"name\":\"2.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21009\",\"id\":\"21009\",\"name\":\"3.0\",\"archived\":false,\"released\":false,\"projectId\":27511},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/version/21011\",\"id\":\"21011\",\"name\":\"4.0\",\"archived\":false,\"released\":false,\"projectId\":27511}]",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:18:33 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1278x3157290x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=DB686A55AA77794F769ADA7C0F824054; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_ed498496aaf3bbeb22989a9888236b486332c9e6_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "6cvzx2",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "2bfd2ac6-b5f5-4ec3-84d8-9d81fa85d5fb",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-rest-api-2-project-FRML24113-versions",
+  "requiredScenarioState" : "scenario-1-rest-api-2-project-FRML24113-versions-2",
+  "insertionIndex" : 18
+}

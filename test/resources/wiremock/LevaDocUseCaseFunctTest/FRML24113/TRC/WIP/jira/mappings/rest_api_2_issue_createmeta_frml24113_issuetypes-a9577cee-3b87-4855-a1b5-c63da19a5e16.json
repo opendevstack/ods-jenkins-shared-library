@@ -1,0 +1,33 @@
+{
+  "id" : "a9577cee-3b87-4855-a1b5-c63da19a5e16",
+  "name" : "rest_api_2_issue_createmeta_frml24113_issuetypes",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/FRML24113/issuetypes",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"maxResults\":50,\"startAt\":0,\"total\":11,\"isLast\":true,\"values\":[{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/1\",\"id\":\"1\",\"description\":\"A problem which impairs or prevents the functions of the product.\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype\",\"name\":\"Bug\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/10000\",\"id\":\"10000\",\"description\":\"Created by Jira Software - do not edit or delete. Issue type for a big user story that needs to be broken down.\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10307&avatarType=issuetype\",\"name\":\"Epic\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/10001\",\"id\":\"10001\",\"description\":\"Created by Jira Software - do not edit or delete. Issue type for a user story.\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10315&avatarType=issuetype\",\"name\":\"Story\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/10006\",\"id\":\"10006\",\"description\":\"\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10306&avatarType=issuetype\",\"name\":\"Documentation\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/10009\",\"id\":\"10009\",\"description\":\"This Issue Type is used to create Zephyr Test within Jira.\",\"iconUrl\":\"https://jira-qa.biscrum.com/download/resources/com.thed.zephyr.je/images/icons/ico_zephyr_issuetype.png\",\"name\":\"Test\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/11805\",\"id\":\"11805\",\"description\":\"Spikes are used to determine feasibility and impact of usage.\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype\",\"name\":\"Spike\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/14300\",\"id\":\"14300\",\"description\":\"Release status of project\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=22600&avatarType=issuetype\",\"name\":\"Release Status\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/14301\",\"id\":\"14301\",\"description\":\"Document part\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=22601&avatarType=issuetype\",\"name\":\"Documentation Chapter\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/14302\",\"id\":\"14302\",\"description\":\"The issue for definition of a risk mitigation\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=22602&avatarType=issuetype\",\"name\":\"Mitigation\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/14303\",\"id\":\"14303\",\"description\":\"The issue for technical specification\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=22603&avatarType=issuetype\",\"name\":\"Technical Specification Task\",\"subtask\":false},{\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issuetype/14400\",\"id\":\"14400\",\"description\":\"The issue for risk definition\",\"iconUrl\":\"https://jira-qa.biscrum.com/secure/viewavatar?size=xsmall&avatarId=22700&avatarType=issuetype\",\"name\":\"Risk Assessment\",\"subtask\":true}]}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:08:58 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1268x3156727x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=855DC6EC55E18894E334E7F0EE2202B9; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_d51f0e4cfedfb8accee6e7946c0c30abf61e8f9b_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "1hj8w4g",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "a9577cee-3b87-4855-a1b5-c63da19a5e16",
+  "persistent" : true,
+  "insertionIndex" : 1
+}

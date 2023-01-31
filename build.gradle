@@ -6,7 +6,6 @@ plugins {
 
 group "org.ods"
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = 1.8
 
 ext {
     nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')
@@ -19,7 +18,7 @@ repositories {
     if (no_nexus) {
         println("using repositories 'jcenter' and 'mavenCentral'")
         mavenLocal()
-        jcenter()
+        // deprecated: jcenter()
         mavenCentral()
         maven {
             url "https://repo1.maven.org/maven2/"
@@ -47,7 +46,7 @@ repositories {
                 url repoUrl
             }
         }
-        nexusMaven("${nexus_url}/repository/jcenter/")
+        // deprecated: nexusMaven("${nexus_url}/repository/jcenter/")
         nexusMaven("${nexus_url}/repository/maven-public/")
         nexusMaven("${nexus_url}/repository/atlassian_public/")
         nexusMaven("${nexus_url}/repository/jenkins-ci-releases/")
@@ -61,7 +60,7 @@ dependencies {
     // e.g. because two pipelines are started in parallel.
     // See https://github.com/opendevstack/ods-jenkins-shared-library/issues/422.
     implementation "com.cloudbees:groovy-cps:1.29"
-    implementation "org.codehaus.groovy:groovy-all:2.4.12"
+    implementation "org.codehaus.groovy:groovy-all:2.4.21"
     implementation "org.jenkins-ci.main:jenkins-core:2.46.3"
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13', ext: 'jar'
@@ -80,16 +79,16 @@ dependencies {
     implementation 'com.xlson.groovycsv:groovycsv:1.3'
 
     testImplementation "org.spockframework:spock-core:1.3-groovy-2.4"
-    testImplementation ("com.athaydes:spock-reports:1.6.0") { transitive = false }
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.19.0'
+    testImplementation ("com.athaydes:spock-reports:1.6.3") { transitive = false }
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.21.0'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
-    testImplementation "com.lesfurets:jenkins-pipeline-unit:1.9"
+    testImplementation group: 'com.lesfurets', name: 'jenkins-pipeline-unit', version: '1.9' // "com.lesfurets:jenkins-pipeline-unit:1.9"
     testImplementation "net.bytebuddy:byte-buddy:1.10.8"
     testImplementation "org.objenesis:objenesis:3.1"
     testImplementation "cglib:cglib-nodep:3.3.0"                      // for mocking classes
     testImplementation "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
-    testImplementation "com.github.tomakehurst:wiremock:2.27.0"       // for mocking HTTP server reponses
-    testImplementation "com.github.tomakehurst:wiremock-jre8:2.29.0" // for mocking HTTP server reponses
+    testImplementation "com.github.tomakehurst:wiremock:2.27.2"       // for mocking HTTP server reponses
+    testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0" // for mocking HTTP server reponses
     testImplementation "org.hamcrest:hamcrest:2.1"
     testImplementation "org.skyscreamer:jsonassert:1.5.0"             // JSON Asserts
 }
@@ -134,6 +133,7 @@ test {
     systemProperty "domainPassword", project.findProperty('domainPassword')?: "openshift"
     systemProperty "nexusUser", project.findProperty('nexusUser')?: "openshift"
     systemProperty "nexusPassword", project.findProperty('nexusPassword')?: "openshift"
+    systemProperty "wiremock.textToReplace", project.findProperty('wiremock.textToReplace')?: ""
 }
 
 codenarc {

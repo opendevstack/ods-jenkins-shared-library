@@ -270,6 +270,7 @@ class Project {
     protected Map config
     protected String targetProject
     protected Boolean isVersioningEnabled = false
+    private String _gitReleaseBranch
 
     protected Map data = [:]
 
@@ -365,12 +366,18 @@ class Project {
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
+        this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
+        this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
+
         if (this.hasWipJiraIssues()) {
+            this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
+
+            this.logger.debug "addCommentInJiraReleaseStatus: ${message}"
             this.addCommentInReleaseStatus(message)
         }
 
@@ -994,7 +1001,14 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        return GitService.getReleaseBranch(buildParams.version)
+        if (null == _gitReleaseBranch) {
+            _gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        }
+        return _gitReleaseBranch
+    }
+
+    void setGitReleaseBranch(String gitReleaseBranch) {
+        _gitReleaseBranch = gitReleaseBranch
     }
 
     String getTargetProject() {
@@ -1050,7 +1064,10 @@ class Project {
         def configItem = steps.env.configItem?.trim() ?: 'UNDEFINED'
         def changeDescription = steps.env.changeDescription?.trim() ?: 'UNDEFINED'
         // Set rePromote=true if an existing tag should be deployed again
-        def rePromote = steps.env.rePromote?.trim() == 'true'
+        def rePromote = true
+        if (steps.env.rePromote && 'false'.equalsIgnoreCase(steps.env.rePromote.trim())) {
+            rePromote = false
+        }
 
         return [
             changeDescription: changeDescription,
@@ -1108,6 +1125,16 @@ class Project {
                 logger.info("Versioning not supported for this release")
                 result = this.loadFullJiraData(projectKey)
             }
+        } else {
+            logger.warn("WARNING: Could *not* retrieve data from Jira.")
+            if (! this.jiraUseCase) {
+                logger.warn("WARNING: Reason: this.jiraUseCase has no value")
+            } else {
+                if (! this.jiraUseCase.jira) {
+                    logger.warn("WARNING: Reason: this.jiraUseCase.jira has no value")
+                }
+            }
+            logger.warn("WARNING: Without Jira data, we might not work as expected.")
         }
 
         return result
@@ -1165,13 +1192,13 @@ class Project {
         }
 
         if (previousVersionId) {
-            logger.info("Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
+            logger.info("loadJiraData: Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
             result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
-            logger.info("No predecessor project version found. Loading only data from Jira.")
+            logger.info("loadJiraData: No predecessor project version found. Loading only data from Jira.")
             result << this.addKeyAndVersionToComponentsWithout(newData)
         }
 
@@ -1359,21 +1386,16 @@ class Project {
                 repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
             }
 
-            // Resolve repo URL, if not provided
-            if (!repo.url?.trim()) {
-                this.logger.debug("Could not determine Git URL for repo '${repo.id}' " +
-                        'from project meta data. Attempting to resolve automatically...')
-
-                def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
-                if (repo.name?.trim()) {
-                    repo.url = gitURL.resolve("${repo.name}.git").toString()
-                    repo.remove('name')
-                } else {
-                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-                }
-
-                this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+            // Resolve repo URL
+            def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+            if (repo.name?.trim()) {
+                repo.url = gitURL.resolve("${repo.name}.git").toString()
+                repo.remove('name')
+            } else {
+                repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
             }
+
+            this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
@@ -1381,6 +1403,7 @@ class Project {
                         "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
+            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
         }
 
         if (result.capabilities == null) {
@@ -1416,12 +1439,18 @@ class Project {
     }
 
     void reportPipelineStatus(String message = '', boolean isError = false) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
+            return
+        }
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
     void addCommentInReleaseStatus(String message) {
-        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase) {
+            logger.warn("addCommentInReleaseStatus: Could *NOT* add comment because jiraUseCase has invalid value.")
+            return
+        }
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 

@@ -29,7 +29,6 @@ name: Project Phoenix
 
 repositories:
   - id: A
-    url: https://github.com/my-org/my-repo-A.git
     branch: master
   - id: B
     name: my-repo-B
@@ -44,7 +43,7 @@ dependencies:
   - A
 ```
 
-The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, and `ods-test`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
+The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, `ods-test` and `ods-library`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
 
 ```
 id: PHOENIX
@@ -52,7 +51,6 @@ name: Project Phoenix
 
 repositories:
   - id: A
-    url: https://github.com/my-org/my-repo-A.git
     branch: master
     type: ods
   - id: B
@@ -85,9 +83,13 @@ This type designates ODS components designed for _running services_ of arbitrary
 
 This type designates ODS components designed for _running automated tests against a live application_. Such components are based on quickstarters whose names start with `e2e-`.
 
+==== Repository Type: ods-library (EXPERIMENTAL feature)
+
+This type designates ODS components designed for _library components_. Such components are only build in dev (WIP and assemble mode), and are needed for other components to be built.
+
 === Automated Resolution of Repository Git URL
 
-If no `url` parameter is provided for a repository configuration in a release manager component's `metadata.yml`, the library will attempt to resolve it based on the component's *origin remote URL* and one of the following:
+The library will attempt to resolve the repository URL based on the component's *origin remote URL* and one of the following:
 
 1) If the `name` parameter is provided, and not empty, the last path part of the URL is resolved to `${repo-name}.git`.
 2) If no `name` parameter is provided, the last path part of the URL is resolved to `${project-id}-${repo-id}.git` (which is the repository name pattern used with *OpenDevStack*). Here `${project-id}` refers to the lowercase value of the top-level `id` attribute in `metadata.yml`.
