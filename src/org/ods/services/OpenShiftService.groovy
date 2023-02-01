@@ -428,6 +428,10 @@ class OpenShiftService {
     // If not all pods are running until the retries are exhausted,
     // an exception is thrown.
     List<PodData> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
+        if (kind in [DEPLOYMENTCONFIG_KIND, DEPLOYMENT_KIND]
+            && getDesiredReplicas(project, kind, podManagerName) < 1) {
+            return retrieveImageData(project, kind, podManagerName)
+        }
         def label = getPodLabelForPodManager(project, kind, podManagerName)
         for (def i = 0; i < retries; i++) {
             def podData = checkForPodData(project, label)
@@ -1384,4 +1388,33 @@ class OpenShiftService {
         imageInfo
     }
 
+    private int getDesiredReplicas(String project, String kind, String podManagerName) {
+        def jsonPath = '{.spec.replicas}'
+        def replicas = getJSONPath(project, (kind == DEPLOYMENTCONFIG_KIND) ? 'rc' : 'rs',
+                                   podManagerName, jsonPath)
+        if (!replicas.isInteger()) {
+            throw new RuntimeException(
+                "ERROR: Desired replicas of '${podManagerName}' is not a number: '${replicas}"
+            )
+        }
+
+        replicas as int
+    }
+
+    private List<PodData> retrieveImageData(String project, String kind, String podManagerName) {
+        def jsonPath = '{.spec.template.spec.containers[0].image}'
+        def image = getJSONPath(project, (kind == DEPLOYMENTCONFIG_KIND) ? 'rc' : 'rs',
+                                podManagerName, jsonPath)
+        def imageInfo = imageInfoForImageUrl(image)
+        def podJson = [
+            items: [
+                [
+                    spec: [containers: [[name: imageInfo.name]]],
+                    status: [containerStatuses: [[name: imageInfo.name, imageID: image]]]
+                ]
+            ]
+        ]
+
+        extractPodData(podJson)
+    }
 }

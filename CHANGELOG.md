@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix Deployment rollout doesn't support replicas=0 ([#969](https://github.com/opendevstack/ods-jenkins-shared-library/issues/969))
+
 ## [4.1] - 2022-11-17
 
 ### Added
