@@ -137,17 +137,27 @@ class OpenShiftService {
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
         if (withDiff) {
-            def diffFlags = upgradeFlags.findAll { it != '--atomic' }
+            def diffFlags = upgradeFlags.findAll { it  }
             diffFlags << '--no-color'
+            diffFlags << '--three-way-merge'
+            diffFlags << '--normalize-manifests'
+            // diffFlags << '--detailed-exitcode'
             steps.sh(
-                script: "helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
+                script: "HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
                 label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
             )
         }
-        steps.sh(
+        def failed = steps.sh(
             script: "helm -n ${project} secrets upgrade ${upgradeFlags.join(' ')} ${release} ./",
-            label: "Upgrade Helm release ${release} in ${project}"
+            label: "Upgrade Helm release ${release} in ${project}",
+            returnStatus: true
         )
+        if (failed){
+            throw new RuntimeException(
+                'Rollout Failed!. ' +
+                    "Helm could not install the ${release} in ${project}"
+            )
+        }
     }
 
     @SuppressWarnings(['LineLength', 'ParameterCount'])
@@ -1014,7 +1024,7 @@ class OpenShiftService {
     // checkForPodData returns a subset of information from every pod, once
     // all pods matching the label are "running". If this is not the case,
     // it returns an empty list.
-    private List<PodData> checkForPodData(String project, String label) {
+    List<PodData> checkForPodData(String project, String label) {
         List<PodData> pods = []
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l ${label} -o json",

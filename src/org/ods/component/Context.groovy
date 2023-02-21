@@ -74,6 +74,7 @@ class Context implements IContext {
         config.buildUrl = script.env.BUILD_URL
         config.buildTag = script.env.BUILD_TAG
         config.buildTime = new Date()
+        config.dockerRegistry = script.env.DOCKER_REGISTRY
         config.openshiftHost = script.env.OPENSHIFT_API_URL
         config << BitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
@@ -86,6 +87,8 @@ class Context implements IContext {
         config.globalExtensionImageLabels = getExtensionBuildParams()
         config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
             'JENKINS_MASTER_'))
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('BUILD_',
+            ''))
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
@@ -612,6 +615,11 @@ class Context implements IContext {
     @NonCPS
     boolean getCommitGitWorkingTree () {
         config.commitGitWorkingTree
+    }
+
+    @NonCPS
+    String getClusterRegistryAddress () {
+        config.dockerRegistry
     }
 
     private String retrieveGitUrl() {

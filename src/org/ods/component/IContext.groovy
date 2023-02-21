@@ -204,4 +204,6 @@ interface IContext {
     // get commit the working tree
     boolean getCommitGitWorkingTree ()
 
+    // get the internal cluster registry address
+    String getClusterRegistryAddress ()
 }

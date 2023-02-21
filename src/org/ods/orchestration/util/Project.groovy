@@ -552,6 +552,10 @@ class Project {
         isPromotionMode(buildParams.targetEnvironmentToken)
     }
 
+    String getTargetEnvironmentToken() {
+        buildParams.targetEnvironmentToken
+    }
+
     boolean getIsAssembleMode() {
         !getIsPromotionMode()
     }
@@ -1550,6 +1554,11 @@ class Project {
 
     String getTailorPrivateKeyCredentialsId() {
         def secretName = steps.env.TAILOR_PRIVATE_KEY_SECRET ?: 'tailor-private-key'
+        "${getKey()}-cd-${secretName}"
+    }
+
+    String getHelmPrivateKeyCredentialsId() {
+        def secretName = steps.env.HELM_PRIVATE_KEY_SECRET ?: 'helm-private-key'
         "${getKey()}-cd-${secretName}"
     }
 

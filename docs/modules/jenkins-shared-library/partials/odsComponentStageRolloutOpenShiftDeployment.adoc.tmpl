@@ -18,6 +18,10 @@ _{{.Type}}_
 {{end}}
 |===
 
-All the created or updated OpenShift resources are automatically labeled to ease their management.
+== Differences between tailor and helm deployments
+
+When tailor does the rollout, all the created or updated OpenShift resources are automatically labeled to ease their management.
+This is in contrast to helm rollouts which rely on the chart providing the desired labels.
+Add labels either via the chart directly or via supplying them in the values or values files.
 
 Detailed information about the labelling can be found xref:jenkins-shared-library:labelling.adoc[here].

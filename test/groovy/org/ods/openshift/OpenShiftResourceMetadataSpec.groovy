@@ -131,7 +131,7 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
 
     private static final labels6 = [
         'app.kubernetes.io/name':           'testComponent',
-        'app.kubernetes.io/managed-by':     'helm',
+        'app.kubernetes.io/managed-by':     'Helm',
         'app.kubernetes.io/instance':       null,
         'app.kubernetes.io/part-of':        null,
         'app.openshift.io/runtime':         null,
@@ -171,7 +171,7 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
 
     private static final labels8 = [
         'app.kubernetes.io/name':                'testComponent',
-        'app.kubernetes.io/managed-by':          'helm',
+        'app.kubernetes.io/managed-by':          'Helm',
         'app.kubernetes.io/instance':            null,
         'app.kubernetes.io/part-of':             null,
         'app.openshift.io/runtime':              null,

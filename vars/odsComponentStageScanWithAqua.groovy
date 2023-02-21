@@ -78,10 +78,14 @@ def call(IContext context, Map config = [:]) {
 
         boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
+        def inheritedConfig = [:]
+        if (config.resourceName) {
+            inheritedConfig.resourceName = config.resourceName
+        }
         if (enabledInCluster && enabledInProject) {
             new ScanWithAquaStage(this,
                 context,
-                [:],
+                inheritedConfig,
                 aquaService,
                 bitbucketService,
                 openShiftService,

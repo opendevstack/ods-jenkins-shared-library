@@ -19,17 +19,26 @@ class DeploymentDescriptor {
 
     static Map stripDeployments(Map deployments) {
         def strippedDownDeployments = [:]
+        def deploymentMeanPostfix = 'deploymentMean'
         deployments.each { dn, d ->
             def strippedDownContainers = [:]
-            d.containers.each { cn, image ->
-                def imageParts = image.split('/')[-2..-1]
-                if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
-                    strippedDownContainers[cn] = imageParts.join('/')
-                } else {
-                    strippedDownContainers[cn] = imageParts.last()
+            if (!dn.endsWith(deploymentMeanPostfix)) {
+                d.containers.each { cn, image ->
+                    def imageParts = image.split('/')[-2..-1]
+                    if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
+                        strippedDownContainers[cn] = imageParts.join('/')
+                    } else {
+                        strippedDownContainers[cn] = imageParts.last()
+                    }
+                }
+                strippedDownDeployments[dn] = [containers: strippedDownContainers]
+                // get if exists the mean of deployment - this is the gstring pain again
+                String dMKey = dn + '-'+ deploymentMeanPostfix
+                Map deploymentMean = deployments[dMKey]
+                if (deploymentMean) {
+                    strippedDownDeployments[dn] << [(deploymentMeanPostfix): deploymentMean]
                 }
             }
-            strippedDownDeployments[dn] = [containers: strippedDownContainers]
         }
         strippedDownDeployments
     }

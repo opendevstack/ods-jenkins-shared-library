@@ -41,7 +41,6 @@ class OdsComponentStageImportOpenShiftImageSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageImportOpenShiftImage.groovy')
-//    helper.registerAllowedMethod('echo', [ String ]) {String args -> }
     def buildInfo = script.call(context, [sourceProject: 'foo-dev'])
 
     then:

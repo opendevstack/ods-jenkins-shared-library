@@ -392,9 +392,13 @@ class LeVADocumentScheduler extends DocGenScheduler {
                     this.util.executeBlockAndFailBuild {
                         try {
                             // Apply args according to the method's parameters length
+                            logger.debug("calling this.getMethodNamesForDocumentType(${documentType})")
                             def method = this.getMethodNameForDocumentType(documentType)
+                            logger.debug("method: ${method}")
                             this.usecase.invokeMethod(method, args as Object[])
+                            logger.debug("this.useCase.invokeMethod done")
                         } catch (e) {
+                            logger.debug("Exception occured: ${e.class.name}, ${e.message}")
                             throw new IllegalStateException("Error: ${message} has failed: ${e.message}.", e)
                         }
                     }

@@ -14,7 +14,7 @@ odsComponentPipeline(
   imageStreamTag: 'ods/jenkins-agent-golang:3.x',
   branchToEnvironmentMapping: [
     'master': 'dev',
-    // 'release/*': 'test'
+    // 'release/': 'test'
   ]
 ) { context ->
   odsComponentStageImportOpenShiftImageOrElse(context) {
@@ -28,7 +28,7 @@ odsComponentPipeline(
 }
 ----
 
-The version in `@Library` can be any Git revsison, such as a branch (e.g. `master` or `2.x`), a tag (e.g. `v2.0`) or even a specific commit.
+The version in `@Library` can be any Git revision, such as a branch (e.g. `master` or `2.x`), a tag (e.g. `v2.0`) or even a specific commit.
 
 There are many built-in stages like `odsComponentStageScanWithSonar` that you can use, please see <<_stages,Stages>> for more details.
 
@@ -77,3 +77,7 @@ include::partial$odsComponentStageRolloutOpenShiftDeployment.adoc[leveloffset=+2
 === odsComponentStageUploadToNexus
 
 include::partial$odsComponentStageUploadToNexus.adoc[leveloffset=+2]
+
+=== odsComponentStageCopyImage
+
+include::partial$odsComponentStageCopyImage.adoc[leveloffset=+2]

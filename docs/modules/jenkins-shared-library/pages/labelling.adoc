@@ -1,6 +1,13 @@
-= OpenShift resource labelling
+= OpenShift resource labelling with tailor
 
-== Overview
+When a rollout happens via tailor there are labels that are added regardless of whether they are in any template or not.
+This is in contrast to helm which relies on the charts setting the right labels.
+This decision avoids an unexpected pause or resume during a rollout.
+A helm rollout will have only the labels that were specified and OpenDevStack will not try to add, remove or change any labels.
+If your cluster has operators there could still be some label changes.
+
+
+== Overview of tailor labels
 
 The shared library automatically labels all OpenShift resources created in order to ease their management.
 The labels applied are based on the recommendations by:

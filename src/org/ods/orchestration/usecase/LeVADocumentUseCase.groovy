@@ -50,6 +50,8 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
+    protected static final boolean IS_GXP_PROJECT_DEFAULT = true
+
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
@@ -981,11 +983,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                isGxpProject: isGxpProject(this.project.getProjectProperties()),
             ]
         ]
+
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    protected boolean isGxpProject(Map projectProperties) {
+        String isGxp = projectProperties."PROJECT.IS_GXP"
+        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     @NonCPS
@@ -1775,5 +1784,4 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String replaceDashToNonBreakableUnicode(theString) {
         return theString?.replaceAll('-', '&#x2011;')
     }
-
 }

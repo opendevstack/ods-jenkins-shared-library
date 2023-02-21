@@ -2,9 +2,22 @@
 
 ## Unreleased
 
-- Fix Deployment rollout doesn't support replicas=0 ([#969](https://github.com/opendevstack/ods-jenkins-shared-library/issues/969))
+## [4.2.0] - 2023-02-21
 
-## [4.1] - 2022-11-17
+### Added
+- Add Helm Support to Release Manager ([#866](https://github.com/opendevstack/ods-jenkins-shared-library/issues/866))
+- Add project property PROJECT.IS_GXP ([#963](https://github.com/opendevstack/ods-jenkins-shared-library/pull/963))
+- Support Trivy premium CLI (`scannercli`) in Aqua server with new Trivy Enterprise engine ([#964](https://github.com/opendevstack/ods-jenkins-shared-library/issues/964))
+
+### Changed
+
+### Fixed
+- Fix tests that failed when running on Windows ([#966](https://github.com/opendevstack/ods-jenkins-shared-library/pull/966))
+- Deploy into Q without git tags fails ([#967](https://github.com/opendevstack/ods-jenkins-shared-library/issues/967))
+- Fix Deployment rollout doesn't support replicas=0 ([#969](https://github.com/opendevstack/ods-jenkins-shared-library/issues/969))
+- Fix Aqua scan support for mono repo ([#916](https://github.com/opendevstack/ods-jenkins-shared-library/pull/916))
+
+## [4.1.0] - 2022-11-17
 
 ### Added
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
@@ -22,6 +35,7 @@
 - Removes DIL from the set of docs generated for enviroment P ([#914](https://github.com/opendevstack/ods-jenkins-shared-library/pull/914))
 - Developer preview uses the release branch if exists, the branch in Release Manager s metadata.yml cfg if not ([#920](https://github.com/opendevstack/ods-jenkins-shared-library/pull/920/))
 - Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
+
 
 ### Fixed
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
