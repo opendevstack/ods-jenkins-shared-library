@@ -262,8 +262,11 @@ class Pipeline implements Serializable {
                             logger.warnClocked("${context.componentId}",
                                 "***** Finished ODS Pipeline for ${context.componentId} (with error) *****")
                             logger.warn "Error: ${err}"
-                            updateBuildStatus('FAILURE')
-                            setBitbucketBuildStatus('FAILED')
+                            // we want under ALL circcumstances that the above error bubbles
+                          	try {
+                              updateBuildStatus('FAILURE')
+                              setBitbucketBuildStatus('FAILED')
+                            } catch (Throwable t) {}
                             if (notifyNotGreen) {
                                 doNotifyNotGreen(context.emailextRecipients)
                             }
