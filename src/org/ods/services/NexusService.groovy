@@ -151,11 +151,9 @@ class NexusService {
         if (artifactExists) {
             artifactExists.delete()
         }
-        def response = restCall.asFile("${extractionPath}/${name}")
+        // def response = restCall.asFile("${extractionPath}/${name}")
+        def response = restCall.asFile("${name}")
 
-        response.ifSuccess {
-          println "Download of ${urlToDownload} successfull ${response.getStatus()}: ${response.getBody()}"
-        }
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'." +
@@ -167,7 +165,7 @@ class NexusService {
           
             // if we get a 200 as failure with a good artifact, wtf. - parsing error?!
             if (response.getStatus() == 200) {
-                throw new RuntimeException(response.getParsingError().get())
+                throw new RuntimeException("Could not parse response from: ${urlToDownload}", response.getParsingError().get())
             } else {
               	throw new RuntimeException(message)
             }  
@@ -177,8 +175,6 @@ class NexusService {
             url: "${urlToDownload}",
             status: "${response.getStatus()}",
             content: response.getBody(),
-            fLocation: "${extractionPath}/${name}",
-            exists: new File("${extractionPath}/${name}").exists(),
         ]
     }
 
