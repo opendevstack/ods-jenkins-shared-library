@@ -153,6 +153,9 @@ class NexusService {
         }
         def response = restCall.asFile("${extractionPath}/${name}")
 
+        response.ifSuccess {
+          	println "Download of ${urlToDownload} successfull + ${response.getBody()"
+        }
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'." +
