@@ -152,6 +152,17 @@ class NexusService {
             artifactExists.delete()
         }
         def response = restCall.asFile("${extractionPath}/${name}")
+		/*
+		hudson.remoting.ProxyException: java.nio.file.NoSuchFileException: /var/lib/jenkins/jobs/dcare-cd/jobs/dcare-cd-releasemanager-master/workspace/reports/gol/DTR-dcare-gol-WIP-5.zip
+			at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:116)
+			at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:219)
+			at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:478)
+			at java.base/java.nio.file.Files.newOutputStream(Files.java:220)
+			at java.base/java.nio.file.Files.copy(Files.java:3067)
+			at kong.unirest.FileResponse.<init>(FileResponse.java:41)        
+        */
 
         /*
         // def response = restCall.asFile("${name}")
