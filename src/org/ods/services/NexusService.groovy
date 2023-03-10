@@ -169,7 +169,7 @@ class NexusService {
 
         return [
             url: "${urlToDownload}",
-            status: "${response.getStatus}",
+            status: "${response.getStatus()}",
             content: response.getBody(),
             fLocation: "${extractionPath}/${name}",
             exists: new File("${extractionPath}/${name}").exists(),
