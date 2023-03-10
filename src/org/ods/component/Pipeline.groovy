@@ -168,8 +168,10 @@ class Pipeline implements Serializable {
                 }
             } catch (err) {
                 logger.warn("Error during ODS component pipeline setup: ${err}")
-                updateBuildStatus('FAILURE')
-                setBitbucketBuildStatus('FAILED')
+                try {
+                	updateBuildStatus('FAILURE')
+                  	setBitbucketBuildStatus('FAILED')
+              	} catch (Throwable th) {}
                 if (notifyNotGreen) {
                     doNotifyNotGreen(context.emailextRecipients)
                 }
