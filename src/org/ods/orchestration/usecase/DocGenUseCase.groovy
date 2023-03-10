@@ -187,13 +187,13 @@ abstract class DocGenUseCase {
         def basename = getDocumentBasename(
             documentType, oldBuildVersion, buildVersionKey[1], repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
-        def mkdirresult = new File(path).mkdir()
-        this.steps.echo "Created directory ${path} for reports, success: ${mkdirresult}"
-      // hack - classically it does not work?!
+        // hack - classically it does not work, code returns false, dir not there
+        // def mkdirresult = new File(path).mkdir()
+        // so we have to go the jenkins version
 		this.steps.dir (path) {
 			this.steps.writeFile file:'dummy', text:''
 		}
-      
+
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
         String contentType = fileExtensions.content ?: 'pdf'
