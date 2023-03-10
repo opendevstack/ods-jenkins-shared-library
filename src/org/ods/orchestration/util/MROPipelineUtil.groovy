@@ -394,7 +394,8 @@ class MROPipelineUtil extends PipelineUtil {
                         } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS Infrastructure Component - SKIPPING FINALIZE!")
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
@@ -402,7 +403,8 @@ class MROPipelineUtil extends PipelineUtil {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS library Component - SKIPPING FINALIZE!")
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
@@ -432,7 +434,7 @@ class MROPipelineUtil extends PipelineUtil {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
                             this.logger.warn("Repo '${repo.id}' is of type ODS Test Component - SKIPPING FINALIZE!")
-                            //new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
