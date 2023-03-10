@@ -168,11 +168,11 @@ class NexusService {
         }
 
         return [
-            uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
+            url: "${urlToDownload}",
+            status: "${response.getStatus}",
             content: response.getBody(),
-            location: "${extractionPath}/${name}",
-            created: new File("${extractionPath}/${name}").exists(),
-            size: new File("${extractionPath}/${name}").size(),
+            fLocation: "${extractionPath}/${name}",
+            exists: new File("${extractionPath}/${name}").exists(),
         ]
     }
 
