@@ -218,10 +218,11 @@ class GitService {
         }
         script.sh(
             script: """
-                ${filesToAddCommand}                
+                ${filesToAddCommand}
             """,
             label: 'Stash'
         )
+        // check if the commit is dirty, so real changes happened - if not - skip
         if (!isCommitDirty()) {
           	logger.debug("Commit stash is Not dirty - skipping")
             return
