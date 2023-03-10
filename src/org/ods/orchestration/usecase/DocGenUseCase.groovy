@@ -189,7 +189,11 @@ abstract class DocGenUseCase {
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
         def mkdirresult = new File(path).mkdir()
         this.steps.echo "Created directory ${path} for reports, success: ${mkdirresult}"
-
+      // hack - classically it does not work?!
+		this.steps.dir (path) {
+			this.steps.writeFile file:'dummy', text:''
+		}
+      
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
         String contentType = fileExtensions.content ?: 'pdf'
