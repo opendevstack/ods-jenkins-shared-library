@@ -224,6 +224,7 @@ class GitService {
         )
         if (!isCommitDirty()) {
           	logger.debug("Commit stash is Not dirty - skipping")
+            return
         }
         script.sh(
             script: """
