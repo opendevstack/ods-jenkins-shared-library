@@ -165,9 +165,9 @@ class NexusService {
                 message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
             }
             // very weird, we get a 200 as failure with a good artifact, wtf.
-            if (response.getStatus() != 200) {
+            //if (response.getStatus() != 200) {
                 throw new RuntimeException(message)
-            }
+            //}
         }
 
         return [
