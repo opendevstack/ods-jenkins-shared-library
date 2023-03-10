@@ -207,6 +207,10 @@ class GitService {
     }
 
     def commit(List files, String msg, boolean allowEmpty = true) {
+        if (allowEmpty && !files) {
+          	logger.debug("Nothing to commit - skipping")
+          	return
+        }
         def allowEmptyFlag = allowEmpty ? '--allow-empty' : ''
         def filesToAddCommand = "git add ${files.join(' ')}"
         if (files.empty) {
