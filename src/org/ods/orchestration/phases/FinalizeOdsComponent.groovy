@@ -33,7 +33,8 @@ class FinalizeOdsComponent {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
         logger.debug("Checking ${repo} for resurrection ... ")
       	if (repo.data?.openshift?.resurrectedBuild) {
-	        logger.debug("Skipping ${repo.id} as it was resurrected")            
+	        logger.debug("Skipping ${repo.id} as it was resurrected")  
+	        return 
         }
         steps.dir(baseDir) {
             Map deploymentMean = verifyDeploymentsBuiltByODS(repo).values().get(0) as Map
