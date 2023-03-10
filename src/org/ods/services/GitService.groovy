@@ -222,8 +222,8 @@ class GitService {
             """,
             label: 'Stash'
         )
-        if (isCommitEmpty() && allowEmpty) {
-          	logger.debug("Nothing to commit - skipping")
+        if (!isCommitDirty()) {
+          	logger.debug("Commit stash is Not dirty - skipping")
         }
         script.sh(
             script: """
