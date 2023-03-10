@@ -168,6 +168,7 @@ class Pipeline implements Serializable {
                 }
             } catch (err) {
                 logger.warn("Error during ODS component pipeline setup: ${err}")
+              	// we want to ensure the root error bubbles - and nothing else
                 try {
                 	updateBuildStatus('FAILURE')
                   	setBitbucketBuildStatus('FAILED')
