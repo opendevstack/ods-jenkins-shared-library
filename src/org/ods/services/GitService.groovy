@@ -351,7 +351,7 @@ class GitService {
 
     def isCommitDirty () {
 	    def content = script.sh(
-            script: "git status --porcelain",
+            script: "git status --porcelain -uno",
             label: "get current commit stash",
       		returnStdout : true
         ).trim()
