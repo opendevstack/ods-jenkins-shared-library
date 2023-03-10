@@ -516,7 +516,8 @@ class MROPipelineUtil extends PipelineUtil {
     private void amendRepoForResurrectionIfEligible(Map repo) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
-        if (repo.type?.toLowerCase() != PipelineConfig.REPO_TYPE_ODS_CODE) {
+        if (repo.type?.toLowerCase() != PipelineConfig.REPO_TYPE_ODS_CODE ||
+            repo.type?.toLowerCase() != PipelineConfig.REPO_TYPE_ODS_SERVICE) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +
                 "type '${repo.type}' is not eligible."
