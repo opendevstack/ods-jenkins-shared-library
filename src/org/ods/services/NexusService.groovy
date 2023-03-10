@@ -151,32 +151,9 @@ class NexusService {
         if (artifactExists) {
             artifactExists.delete()
         }
+        // NOTE: unnirest expects the directory tree to be present! MUST be created from outside
         def response = restCall.asFile("${extractionPath}/${name}")
-		/*
-		hudson.remoting.ProxyException: java.nio.file.NoSuchFileException: /var/lib/jenkins/jobs/dcare-cd/jobs/dcare-cd-releasemanager-master/workspace/reports/gol/DTR-dcare-gol-WIP-5.zip
-			at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
-			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
-			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:116)
-			at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:219)
-			at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:478)
-			at java.base/java.nio.file.Files.newOutputStream(Files.java:220)
-			at java.base/java.nio.file.Files.copy(Files.java:3067)
-			at kong.unirest.FileResponse.<init>(FileResponse.java:41)        
-        */
 
-        /*
-        // def response = restCall.asFile("${name}")
-        hudson.remoting.ProxyException: java.nio.file.AccessDeniedException: DTR-dcare-gol-WIP-5.zip
-			at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:90)
-			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
-			at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:116)
-			at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:219)
-			at java.base/java.nio.file.spi.FileSystemProvider.newOutputStream(FileSystemProvider.java:478)
-			at java.base/java.nio.file.Files.newOutputStream(Files.java:220)
-			at java.base/java.nio.file.Files.copy(Files.java:3067)
-			at kong.unirest.FileResponse.<init>(FileResponse.java:41)
-		*/
-      
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'." +
@@ -185,7 +162,7 @@ class NexusService {
             if (response.getStatus() == 404) {
                 message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
             }
-          
+
             // if we get a 200 as failure with a good artifact, wtf. - parsing error?!
             if (response.getStatus() == 200) {
                 throw new RuntimeException("Could not parse response from: ${urlToDownload}", response.getParsingError().get())
