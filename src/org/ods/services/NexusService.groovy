@@ -170,6 +170,9 @@ class NexusService {
         return [
             uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
+            location: "${extractionPath}/${name}",
+            created: new File("${extractionPath}/${name}).exists(),
+            created: new File("${extractionPath}/${name}).size(),
         ]
     }
 
