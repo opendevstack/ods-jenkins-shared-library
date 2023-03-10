@@ -82,6 +82,24 @@ class InitStage extends Stage {
 
         def repos = project.repositories
         MROPipelineUtil util = registry.get(MROPipelineUtil)
+      
+        // Compute target project. For now, the existance of DEV on the same cluster is verified.
+        def concreteEnv = Project.getConcreteEnvironment(
+            project.buildParams.targetEnvironment,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+        def targetProject = "${project.key}-${concreteEnv}"
+        def os = registry.get(OpenShiftService)
+        if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
+            throw new RuntimeException(
+                "Target project ${targetProject} does not exist " +
+                    "(versionedDevEnvsEnabled=${project.versionedDevEnvsEnabled})."
+            )
+        }
+        logger.debug "Computed targetProject: ${targetProject}"
+        project.setTargetProject(targetProject)
+      
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {
@@ -103,22 +121,6 @@ class InitStage extends Stage {
         }
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
-
-        // Compute target project. For now, the existance of DEV on the same cluster is verified.
-        def concreteEnv = Project.getConcreteEnvironment(
-            project.buildParams.targetEnvironment,
-            project.buildParams.version.toString(),
-            project.versionedDevEnvsEnabled
-        )
-        def targetProject = "${project.key}-${concreteEnv}"
-        def os = registry.get(OpenShiftService)
-        if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
-            throw new RuntimeException(
-                "Target project ${targetProject} does not exist " +
-                    "(versionedDevEnvsEnabled=${project.versionedDevEnvsEnabled})."
-            )
-        }
-        project.setTargetProject(targetProject)
 
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
