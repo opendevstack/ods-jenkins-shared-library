@@ -337,6 +337,16 @@ class GitService {
         script.sh("git checkout ${branchToMerge}")
     }
 
+    def isCommitIsEmpty () {
+	    def content = script.sh(
+            script: "git status --porcelain",
+            label: "get current commit stash"
+      		returnStdout : true
+        ).trim
+        logger.debug("Current commit stash: |${content}|")
+        return true
+    }
+  
     def checkoutNewLocalBranch(String name) {
         // Local state might have a branch from previous, failed pipeline runs.
         // If so, we'd rather start from a clean state.
@@ -373,5 +383,5 @@ class GitService {
         )
         return statusCode == 0
     }
-
+  
 }
