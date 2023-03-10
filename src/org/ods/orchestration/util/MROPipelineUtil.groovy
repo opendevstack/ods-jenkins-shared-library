@@ -431,7 +431,8 @@ class MROPipelineUtil extends PipelineUtil {
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS Test Component - SKIPPING FINALIZE!")
+                            //new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
