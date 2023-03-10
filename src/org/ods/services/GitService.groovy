@@ -344,7 +344,7 @@ class GitService {
     def isCommitEmpty () {
 	    def content = script.sh(
             script: "git status --porcelain",
-            label: "get current commit stash"
+            label: "get current commit stash",
       		returnStdout : true
         ).trim
         logger.debug("Current commit stash: |${content}|")
