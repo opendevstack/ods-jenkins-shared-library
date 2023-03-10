@@ -165,14 +165,12 @@ class NexusService {
                 message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
             }
           
-            response.getParsingError().ifPresent {
-                 throw new RuntimeException("Parsing Exception: ", e);
-            };
-
-            // very weird, we get a 200 as failure with a good artifact, wtf. - parsing error?!
-            if (response.getStatus() != 200) {
-                throw new RuntimeException(message)
-            }
+            // if we get a 200 as failure with a good artifact, wtf. - parsing error?!
+            if (response.getStatus() == 200) {
+                throw new RuntimeException(response.getParsingError().get())
+            } else {
+              	throw new RuntimeException(message)
+            }  
         }
 
         return [
