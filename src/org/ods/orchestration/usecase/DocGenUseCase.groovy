@@ -187,7 +187,8 @@ abstract class DocGenUseCase {
         def basename = getDocumentBasename(
             documentType, oldBuildVersion, buildVersionKey[1], repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
-        new File(path).mkdir()
+        def mkdirresult = new File(path).mkdir()
+        this.steps.echo "Created directory ${path} for reports, success: ${mkdirresult}"
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
