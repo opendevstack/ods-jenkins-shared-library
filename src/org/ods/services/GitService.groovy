@@ -218,7 +218,15 @@ class GitService {
         }
         script.sh(
             script: """
-                ${filesToAddCommand}
+                ${filesToAddCommand}                
+            """,
+            label: 'Stash'
+        )
+        if (isCommitEmpty() && allowEmpty) {
+          	logger.debug("Nothing to commit - skipping")
+        }
+        script.sh(
+            script: """
                 git commit -m "${msg}" ${allowEmptyFlag}
             """,
             label: 'Commit'
