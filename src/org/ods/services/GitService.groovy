@@ -337,14 +337,14 @@ class GitService {
         script.sh("git checkout ${branchToMerge}")
     }
 
-    def isCommitIsEmpty () {
+    def isCommitEmpty () {
 	    def content = script.sh(
             script: "git status --porcelain",
             label: "get current commit stash"
       		returnStdout : true
         ).trim
         logger.debug("Current commit stash: |${content}|")
-        return true
+        return !content.length() > 0
     }
   
     def checkoutNewLocalBranch(String name) {
