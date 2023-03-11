@@ -173,7 +173,7 @@ class NexusService {
         }
 
         return [
-            url: "${urlToDownload}",
+            uri: "${urlToDownload}",
             content: response.getBody(),
         ]
     }
