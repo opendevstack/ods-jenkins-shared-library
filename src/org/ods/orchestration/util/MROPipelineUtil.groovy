@@ -269,10 +269,12 @@ class MROPipelineUtil extends PipelineUtil {
         ]
         def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
         loadPipelineConfig(repoPath, repo)
-        if (this.project.isAssembleMode || this.project.isWorkInProgress) {
+        if (this.project.forceGlobalRebuild) {
+            this.logger.debug('Force rebuild found for ${repo.id}')
+        } else if (this.project.isAssembleMode || this.project.isWorkInProgress) {
             this.steps.dir(repoPath) {
                 this.logger.startClocked("${repo.id}-resurrect-data")
-                this.logger.debug('Checking if repo can be resurrected from previous build ...')
+                this.logger.debug('Checking if repo ${repo.id} can be resurrected from previous build(s) ...')
                 amendRepoForResurrectionIfEligible(repo)
                 this.logger.debugClocked("${repo.id}-resurrect-data")
             }
@@ -524,7 +526,7 @@ class MROPipelineUtil extends PipelineUtil {
         if (repo.forceRebuild) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +
-                "repo '${repo.id}' is forced to rebuild."
+                "repo '${repo.id}' is forced to rebuild (configuration)."
             )
             return
         }
