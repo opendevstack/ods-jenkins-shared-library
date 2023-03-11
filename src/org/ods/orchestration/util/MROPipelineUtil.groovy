@@ -269,16 +269,12 @@ class MROPipelineUtil extends PipelineUtil {
         ]
         def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
         loadPipelineConfig(repoPath, repo)
-        if (this.project.isAssembleMode) {
-            if (this.project.forceGlobalRebuild) {
-                this.logger.debug('Project forces global rebuild ...')
-            } else {
-                this.steps.dir(repoPath) {
-                    this.logger.startClocked("${repo.id}-resurrect-data")
-                    this.logger.debug('Checking if repo can be resurrected from previous build ...')
-                    amendRepoForResurrectionIfEligible(repo)
-                    this.logger.debugClocked("${repo.id}-resurrect-data")
-                }
+        if (this.project.isAssembleMode || this.project.isWorkInProgress) {
+            this.steps.dir(repoPath) {
+                this.logger.startClocked("${repo.id}-resurrect-data")
+                this.logger.debug('Checking if repo can be resurrected from previous build ...')
+                amendRepoForResurrectionIfEligible(repo)
+                this.logger.debugClocked("${repo.id}-resurrect-data")
             }
         }
     }
@@ -394,7 +390,8 @@ class MROPipelineUtil extends PipelineUtil {
                         } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS Infrastructure Component - SKIPPING FINALIZE!")
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
@@ -402,7 +399,8 @@ class MROPipelineUtil extends PipelineUtil {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS library Component - SKIPPING FINALIZE!")
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
@@ -431,7 +429,8 @@ class MROPipelineUtil extends PipelineUtil {
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            this.logger.warn("Repo '${repo.id}' is of type ODS Test Component - SKIPPING FINALIZE!")
+                            // new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
@@ -513,7 +512,8 @@ class MROPipelineUtil extends PipelineUtil {
     private void amendRepoForResurrectionIfEligible(Map repo) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
-        if (repo.type?.toLowerCase() != PipelineConfig.REPO_TYPE_ODS_CODE) {
+        if (!repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+            !repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +
                 "type '${repo.type}' is not eligible."

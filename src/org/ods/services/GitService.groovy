@@ -207,6 +207,10 @@ class GitService {
     }
 
     def commit(List files, String msg, boolean allowEmpty = true) {
+        if (allowEmpty && !files) {
+            logger.debug("Nothing to commit - skipping")
+            return
+        }
         def allowEmptyFlag = allowEmpty ? '--allow-empty' : ''
         def filesToAddCommand = "git add ${files.join(' ')}"
         if (files.empty) {
@@ -215,6 +219,16 @@ class GitService {
         script.sh(
             script: """
                 ${filesToAddCommand}
+            """,
+            label: 'Stash'
+        )
+        // check if the commit is dirty, so real changes happened - if not - skip
+        if (!isCommitDirty()) {
+            logger.debug("Commit stash is Not dirty - skipping")
+            return
+        }
+        script.sh(
+            script: """
                 git commit -m "${msg}" ${allowEmptyFlag}
             """,
             label: 'Commit'
@@ -335,6 +349,16 @@ class GitService {
         """)
         pushRef(mainBranch)
         script.sh("git checkout ${branchToMerge}")
+    }
+
+    def isCommitDirty () {
+        def content = script.sh(
+            script: "git status --porcelain -uno",
+            label: "get current commit stash",
+            returnStdout: true
+        ).trim()
+        logger.debug("Check current commit stash: |${content}|")
+        return (content.length() > 0)
     }
 
     def checkoutNewLocalBranch(String name) {
