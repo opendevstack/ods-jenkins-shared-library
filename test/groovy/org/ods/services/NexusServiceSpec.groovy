@@ -210,6 +210,9 @@ class NexusServiceSpec extends SpecHelper {
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
+        // this has changed appearently, nio file permissions?
+        request.data.directory =  System.getProperty("java.io.tmpdir")
+        new File(request.data.directory).mkdir()
 
         when:
         Map result = service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
