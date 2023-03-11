@@ -39,4 +39,5 @@ class FinalizeNonOdsComponent {
     private String commitBuildReference() {
         "${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
     }
+
 }

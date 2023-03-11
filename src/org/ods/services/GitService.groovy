@@ -208,8 +208,8 @@ class GitService {
 
     def commit(List files, String msg, boolean allowEmpty = true) {
         if (allowEmpty && !files) {
-          	logger.debug("Nothing to commit - skipping")
-          	return
+            logger.debug("Nothing to commit - skipping")
+            return
         }
         def allowEmptyFlag = allowEmpty ? '--allow-empty' : ''
         def filesToAddCommand = "git add ${files.join(' ')}"
@@ -224,7 +224,7 @@ class GitService {
         )
         // check if the commit is dirty, so real changes happened - if not - skip
         if (!isCommitDirty()) {
-          	logger.debug("Commit stash is Not dirty - skipping")
+            logger.debug("Commit stash is Not dirty - skipping")
             return
         }
         script.sh(
@@ -352,15 +352,15 @@ class GitService {
     }
 
     def isCommitDirty () {
-	    def content = script.sh(
+        def content = script.sh(
             script: "git status --porcelain -uno",
             label: "get current commit stash",
-      		returnStdout : true
+            returnStdout : true
         ).trim()
         logger.debug("Current commit stash: |${content}|")
-        return content.length() > 0
+        return (content.length() > 0)
     }
-  
+
     def checkoutNewLocalBranch(String name) {
         // Local state might have a branch from previous, failed pipeline runs.
         // If so, we'd rather start from a clean state.
@@ -397,5 +397,5 @@ class GitService {
         )
         return statusCode == 0
     }
-  
+
 }

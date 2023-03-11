@@ -190,9 +190,9 @@ abstract class DocGenUseCase {
         // hack - classically it does not work, code returns false, dir not there
         // def mkdirresult = new File(path).mkdir()
         // so we have to go the jenkins version
-		this.steps.dir (path) {
-			this.steps.writeFile file:'dummy', text:''
-		}
+        this.steps.dir (path) {
+            this.steps.writeFile( file:'dummy', text:'dummy' )
+        }
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
