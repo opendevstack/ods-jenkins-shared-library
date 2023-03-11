@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- 4.x/master: allowPartialRebuild is broken ([#977](https://github.com/opendevstack/ods-jenkins-shared-library/pull/977))
+
 ## [4.2.0] - 2023-02-21
 
 ### Added

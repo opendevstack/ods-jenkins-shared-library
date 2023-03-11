@@ -299,7 +299,7 @@ class Pipeline implements Serializable {
     }
 
     private void cleanUp() {
-        logger.debug('-- SHUTTING DOWN RM (..) --')
+        logger.debug('-- SHUTTING DOWN ODS Component Pipeline (..) --')
         logger.resetStopwatch()
         this.script = null
         this.steps = null
@@ -351,6 +351,12 @@ class Pipeline implements Serializable {
 
     private void setBitbucketBuildStatus(String state) {
         if (!this.bitbucketNotificationEnabled) {
+            return
+        }
+        // in some nasty nullpointer cases - jenkins suddenly nullifies this bitbucket service?
+        // which in case a previous error, will push the nullp up the stack, and hide the "real" error
+        if (!bitbucketService) {
+            logger.warn "Cannot set Bitbucket build status to '${state}' as bitbucket service is null!"
             return
         }
         if (!context.buildUrl || !context.gitCommit) {
