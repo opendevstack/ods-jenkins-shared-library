@@ -355,9 +355,9 @@ class GitService {
         def content = script.sh(
             script: "git status --porcelain -uno",
             label: "get current commit stash",
-            returnStdout : true
+            returnStdout: true
         ).trim()
-        logger.debug("Current commit stash: |${content}|")
+        logger.debug("Check current commit stash: |${content}|")
         return (content.length() > 0)
     }
 

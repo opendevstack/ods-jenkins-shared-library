@@ -165,7 +165,7 @@ class NexusService {
 
             // if we get a 200 as failure with a good artifact, wtf. - parsing error?!
             if (response.getStatus() == 200) {
-                throw new RuntimeException("Could not parse response from: ${urlToDownload}", 
+                throw new RuntimeException("Could not parse response from: ${urlToDownload}",
                     response.getParsingError().get())
             } else {
                 throw new RuntimeException(message)
