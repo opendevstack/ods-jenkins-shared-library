@@ -82,8 +82,10 @@ class InitStage extends Stage {
 
         def repos = project.repositories
         MROPipelineUtil util = registry.get(MROPipelineUtil)
-      
+
         // Compute target project. For now, the existance of DEV on the same cluster is verified.
+        // This must be done here - very early, otherwise the resurrection code will later fail
+        // as it depends on the target environment to check the artifacts there
         def concreteEnv = Project.getConcreteEnvironment(
             project.buildParams.targetEnvironment,
             project.buildParams.version.toString(),
@@ -99,7 +101,7 @@ class InitStage extends Stage {
         }
         logger.debug "Computed targetProject: ${targetProject}"
         project.setTargetProject(targetProject)
-      
+
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {

@@ -188,10 +188,10 @@ abstract class DocGenUseCase {
             documentType, oldBuildVersion, buildVersionKey[1], repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
         // hack - classically it does not work, code returns false, dir not there
-        // def mkdirresult = new File(path).mkdir()
+        // def mkdirresult = new File(path).mkdir() -> returns false!
         // so we have to go the jenkins version
         this.steps.dir (path) {
-            this.steps.writeFile( file:'dummy', text:'dummy' )
+            this.steps.writeFile(file: 'dummy', text: 'dummy')
         }
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
