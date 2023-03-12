@@ -18,11 +18,9 @@ def call(Map config, Closure body) {
     def logger = new Logger(this, config.debug)
     def pipeline = new Pipeline(this, logger)
     String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
-    UnirestConfig.init()
-
     try {
         pipeline.execute(config, body)
-     }  finally {
+    }  finally {
         if (env.MULTI_REPO_BUILD) {
             logger.debug('-- in RM mode, shutdown skipped --')
         }
@@ -40,7 +38,8 @@ def call(Map config, Closure body) {
                 cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
             } catch (Exception e) {
                 logger.debug("cleanupHeap err: ${e}")
-            }            
+            } 
+            logger = null
         }
     }
 }
