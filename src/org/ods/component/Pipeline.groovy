@@ -289,9 +289,6 @@ class Pipeline implements Serializable {
                                 "ODS Build Artifacts '${context.componentId}': " +
                                 "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
-                        if (!!!script.env.MULTI_REPO_BUILD) {
-                            cleanUp()
-                        }
                     }
                 }
             }

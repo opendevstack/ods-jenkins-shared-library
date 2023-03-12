@@ -5,7 +5,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
 import org.ods.util.UnirestConfig
 import java.lang.reflect.Method
-import java.nio.file.Paths
 
 def call(Map config, Closure body) {
     def debug = env.DEBUG
@@ -38,7 +37,7 @@ def call(Map config, Closure body) {
                 cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
             } catch (Exception e) {
                 logger.debug("cleanupHeap err: ${e}")
-            } 
+            }
             logger = null
         }
     }
