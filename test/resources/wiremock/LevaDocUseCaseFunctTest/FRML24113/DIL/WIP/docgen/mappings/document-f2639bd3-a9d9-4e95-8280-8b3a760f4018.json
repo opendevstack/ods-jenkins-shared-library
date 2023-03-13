@@ -57,13 +57,12 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Discrepancy Log, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Discrepancy Log, Config Item: BI-IT-DEVSTACK"
                             ],
                             "orientation": "Landscape"
                         },
                         "data": {
-                            
+
                         }
                     }
                 },

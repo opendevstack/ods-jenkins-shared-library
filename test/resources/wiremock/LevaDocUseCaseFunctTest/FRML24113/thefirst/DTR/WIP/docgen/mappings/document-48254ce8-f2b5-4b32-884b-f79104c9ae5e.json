@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Software Development Testing Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Software Development Testing Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -389,7 +388,7 @@
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
                                     "issueType": [
                                         {
                                             "type": "tests",
@@ -420,7 +419,8 @@
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Combined Functional and Requirements Testing Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Combined Functional and Requirements Testing Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -66,7 +65,7 @@
                                 "sec4": {
                                     "number": "4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Risk Assessment",
                                     "documents": [
@@ -84,7 +83,7 @@
                                 "sec3s6": {
                                     "number": "3.6",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Traceability Matrix",
                                     "documents": [
@@ -102,7 +101,7 @@
                                 "sec3s5s2": {
                                     "number": "3.5.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Non-Functional Testing Results",
                                     "documents": [
@@ -120,7 +119,7 @@
                                 "sec3s3": {
                                     "number": "3.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Discrepancy Log",
                                     "documents": [
@@ -138,7 +137,7 @@
                                 "sec3s2": {
                                     "number": "3.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Responsibilities and Signature Resource Log",
                                     "documents": [
@@ -156,7 +155,7 @@
                                 "sec3s1": {
                                     "number": "3.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Training",
                                     "documents": [
@@ -174,7 +173,7 @@
                                 "sec2": {
                                     "number": "2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Testing Environment",
                                     "documents": [
@@ -192,7 +191,7 @@
                                 "sec1": {
                                     "number": "1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Purpose",
                                     "documents": [
@@ -210,7 +209,7 @@
                                 "sec8": {
                                     "number": "8",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -228,7 +227,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -246,7 +245,7 @@
                                 "sec6s1": {
                                     "number": "6.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -264,7 +263,7 @@
                                 "sec6s2": {
                                     "number": "6.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -298,13 +297,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -316,10 +315,10 @@
                                         {
                                             "type": "tests",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
                                                 {
@@ -331,13 +330,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -355,27 +354,28 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
                             ],
+                            "documentHistoryLatestVersionId" : 4,
                             "acceptanceTests": [
                                 {
                                     "key": "FRML24113-170",

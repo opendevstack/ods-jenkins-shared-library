@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Software Development Testing Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Software Development Testing Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -69,11 +68,11 @@
                                     "tests": {
                                         "unit": {
                                             "testReportFiles": [
-                                                
+
                                             ],
                                             "testResults": {
                                                 "testsuites": [
-                                                    
+
                                                 ]
                                             }
                                         }
@@ -109,7 +108,7 @@
                                         "CREATED_BY_BUILD": "WIP/1"
                                     },
                                     "documents": {
-                                        
+
                                     },
                                     "git": {
                                         "branch": "master",
@@ -125,7 +124,7 @@
                                 "branch": "master",
                                 "pipelineConfig": {
                                     "dependencies": [
-                                        
+
                                     ]
                                 },
                                 "metadata": {
@@ -139,7 +138,7 @@
                                 "sec5s1": {
                                     "number": "5.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -157,7 +156,7 @@
                                 "sec6": {
                                     "number": "6",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -174,7 +173,7 @@
                                 "sec5s2": {
                                     "number": "5.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -192,7 +191,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -208,11 +207,11 @@
                                 }
                             },
                             "tests": [
-                                
+
                             ],
                             "numAdditionalTests": 0,
                             "testFiles": [
-                                
+
                             ],
                             "discrepancies": "No discrepancies found.",
                             "conclusion": {
@@ -231,13 +230,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -249,13 +248,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -267,36 +266,37 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

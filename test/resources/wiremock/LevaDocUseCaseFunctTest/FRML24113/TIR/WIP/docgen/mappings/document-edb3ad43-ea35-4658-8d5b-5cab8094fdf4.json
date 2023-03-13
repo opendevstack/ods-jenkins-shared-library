@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Overall Technical Installation Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Overall Technical Installation Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -85,7 +84,7 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
                                             "TIR": "TIR-WIP-1.pdf"
@@ -108,7 +107,7 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
                                             "TIR": "TIR-WIP-1.pdf"
@@ -131,10 +130,10 @@
                                     "type": "ods-test",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-spock.git",
@@ -154,10 +153,10 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-release.git",

@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "deployNote": "Components were built & deployed during installation.",
@@ -342,7 +341,7 @@
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -358,7 +357,8 @@
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Traceability Matrix, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Traceability Matrix, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -317,7 +316,8 @@
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 4
                         }
                     }
                 },
