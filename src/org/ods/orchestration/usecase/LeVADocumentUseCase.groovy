@@ -1144,7 +1144,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def testIssues = systemRequirements
             .collect { it.getResolvedTests() }
-            .flatten().unique().findAll{it != null}
+            .flatten().unique().findAll { it != null }
             .findAll {
                 [Project.TestType.ACCEPTANCE,
                  Project.TestType.INSTALLATION,
@@ -1798,4 +1798,5 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String replaceDashToNonBreakableUnicode(theString) {
         return theString?.replaceAll('-', '&#x2011;')
     }
+
 }
