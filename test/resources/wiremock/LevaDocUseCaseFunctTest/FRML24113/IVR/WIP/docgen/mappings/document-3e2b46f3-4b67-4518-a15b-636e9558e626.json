@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Configuration and Installation Testing Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -249,11 +249,13 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "projectVersion": "1.0"
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "projectVersion": "2.0",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -272,6 +274,7 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "projectVersion": "3.0",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -290,6 +293,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "projectVersion": "4.0",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",

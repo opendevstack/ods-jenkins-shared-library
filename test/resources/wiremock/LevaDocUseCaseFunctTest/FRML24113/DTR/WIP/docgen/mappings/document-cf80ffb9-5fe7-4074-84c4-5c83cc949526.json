@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Overall Software Development Testing Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
