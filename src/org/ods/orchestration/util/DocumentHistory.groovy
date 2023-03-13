@@ -432,5 +432,5 @@ class DocumentHistory {
                 }
             }
     }
-    
+
 }
