@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+
 ## [4.2.0] - 2023-02-21
 
 ### Added
