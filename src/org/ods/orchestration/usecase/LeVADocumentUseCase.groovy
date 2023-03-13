@@ -606,23 +606,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             } + r.getResolvedMitigations().collect { [key: it.key, name: it.name, description: it.description, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
-        if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
-        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION" ?: 'n/a'
-
-        if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
-
-        if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
-            sections."sec4s2s2" = [
-                usesPoo          : "true",
-                lowDescription   : this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
-                mediumDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.MEDIUM",
-                highDescription  : this.project.getProjectProperties()."PROJECT.POO_CAT.HIGH"
-            ]
-        }
-
-        if (!sections."sec5") sections."sec5" = [:]
-        sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["requirementsKey", "key"])
-        sections."sec5".proposedMeasures = SortUtil.sortIssuesByKey(proposedMeasuresDesription)
+        fillRASections(sections, risks, proposedMeasuresDesription)
 
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
         metadata.orientation = "Landscape"
@@ -642,6 +626,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
+        if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
+        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION" ?: 'n/a'
+
+        if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
+
+        if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
+            sections."sec4s2s2" = [
+                usesPoo          : "true",
+                lowDescription   : this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
+                mediumDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.MEDIUM",
+                highDescription  : this.project.getProjectProperties()."PROJECT.POO_CAT.HIGH"
+            ]
+        }
+
+        if (!sections."sec5") sections."sec5" = [:]
+        sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["requirementsKey", "key"])
+        sections."sec5".proposedMeasures = SortUtil.sortIssuesByKey(proposedMeasuresDesription)
     }
 
     @NonCPS
