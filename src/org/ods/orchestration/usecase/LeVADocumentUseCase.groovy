@@ -182,7 +182,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -248,6 +249,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 tests: tests,
                 modules: modules,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -325,6 +327,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -456,6 +459,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections        : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -503,6 +507,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -630,6 +635,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -688,7 +694,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
                 testsOdsCode   : testsOfRepoTypeOdsCode,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -763,7 +770,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
                 testsOdsCode      : testsOfRepoTypeOdsCode,
-                documentHistory   : docHistory?.getDocGenFormat() ?: []
+                documentHistory   : docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -856,6 +864,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -899,6 +908,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -983,6 +993,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
                 isGxpProject: isGxpProject(this.project.getProjectProperties()),
             ]
         ]
@@ -1018,6 +1029,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 repositories: this.project.repositories,
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1062,6 +1074,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 repo    : repo,
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1166,6 +1179,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1517,7 +1531,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             referencedDocs : this.getReferencedDocumentsVersion()
         ]
 
-        metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
+        metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}"]
 
         return metadata
     }

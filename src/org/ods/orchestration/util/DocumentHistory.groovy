@@ -139,6 +139,7 @@ class DocumentHistory {
                 return [
                     entryId: e.getEntryId(),
                     rational: e.getRational(),
+                    projectVersion: e.getProjectVersion(),
                     ]
             }
             def formatedIssues = issueTypes.collect { type ->
@@ -158,7 +159,8 @@ class DocumentHistory {
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
+                    projectVersion: e.getProjectVersion(),
+                    issueType: formatedIssues + computeDocChaptersOfDocument(e),
             ]
         }
         sortDocHistories(this.data).collect { transformEntry(it) }
@@ -315,7 +317,7 @@ class DocumentHistory {
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the changes done in document version${pluralS} " +
-                "'${concurrentVersions.join(', ')}'."
+                "'${currentEntry.getProjectVersion()}/${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
         }
     }
 
