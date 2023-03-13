@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
 
 ## [4.2.0] - 2023-02-21
 
