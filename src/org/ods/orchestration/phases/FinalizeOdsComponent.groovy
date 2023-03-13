@@ -159,16 +159,17 @@ class FinalizeOdsComponent {
             odsBuiltDeployments.each { odsBuiltDeploymentName ->
                 allComponentDeployments.remove(odsBuiltDeploymentName)
             }
-        }
 
-        if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
-            def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
-                "'${allComponentDeployments}'!\r" +
-                "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
-            if (project.isWorkInProgress) {
-                util.warnBuild(message)
-            } else {
-                throw new RuntimeException(message)
+
+            if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
+                def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
+                    "'${allComponentDeployments}'!\r" +
+                    "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
+                if (project.isWorkInProgress) {
+                    util.warnBuild(message)
+                } else {
+                    throw new RuntimeException(message)
+                }
             }
         }
 
