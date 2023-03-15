@@ -149,7 +149,7 @@ class JenkinsService {
                 }
                 if (!isCommitRMBased) return
                 try {
-                    previousBuild.getRawBuild().delete()
+                    previousBuild.getRawBuild().keepLog​(false)
                     logger.debug("deleted build: ${previousBuild.getId()}")
                 } catch (Exception couldNotDelete) {
                     logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
