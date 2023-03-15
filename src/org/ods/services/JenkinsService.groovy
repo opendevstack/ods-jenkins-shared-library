@@ -131,7 +131,7 @@ class JenkinsService {
         if (previousBuild) {
             logger.debug("Found previous run: " +
                 "${previousBuild.getDescription()} res: ${previousBuild.getResult()}")
-            if (previousBuild.getResult().equals('NOT_BUILT')) {
+            if (previousBuild.getResult().toString() == 'NOT_BUILT') {
                 try {
                     previousBuild.delete()
                     logger.debug("deleted build: ${previousBuild.getId()}")
@@ -139,7 +139,7 @@ class JenkinsService {
                     logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
                 }
             } else {
-                logger.debug('Skipping deletion of build!')
+                logger.debug('Skipping deletion of build, it was not a skip one!')
             }
         }
     }
