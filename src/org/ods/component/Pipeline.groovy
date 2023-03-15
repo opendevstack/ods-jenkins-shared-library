@@ -155,6 +155,9 @@ class Pipeline implements Serializable {
                         }
                     }
 
+                    // check if there is a skipped previous run - if so - delete (to save memory)
+                    jenkinsService.deletePreviousNotBuiltBuild()
+
                     skipCi = isCiSkip()
                     if (skipCi) {
                         script.stage('odsPipeline (ci skip) finished') {

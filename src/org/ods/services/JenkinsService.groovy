@@ -1,6 +1,7 @@
 package org.ods.services
 
 import org.ods.util.ILogger
+import hudson.model.Run
 
 class JenkinsService {
 
@@ -125,4 +126,19 @@ class JenkinsService {
         }
     }
 
+    void deletePreviousNotBuiltBuild () {
+        Run previousBuild = script.currentBuild.getPreviousBuild()?.getRawBuild()
+        if (previousBuild) {
+            logger.debug("Found previous run ${previousBuild.getId()}, ${previousBuild.getNumber()}" +
+                "${previousBuild.getDescription()} res: ${previousBuild.getResult()}")
+            if (previousBuild.getResult() == 'NOT_BUILT') {
+                try {
+                    previousBuild.delete()
+                    logger.debug("deleted build: ${previousBuild.getId()}")
+                } catch (Exception couldNotDelete) {
+                    logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
+                }
+            }
+        }
+    }
 }
