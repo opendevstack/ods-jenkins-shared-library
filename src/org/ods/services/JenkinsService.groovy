@@ -2,6 +2,8 @@ package org.ods.services
 
 import org.ods.util.ILogger
 import hudson.model.Run
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper
+import hudson.scm.ChangeLogSet
 
 class JenkinsService {
 
@@ -127,13 +129,25 @@ class JenkinsService {
     }
 
     void deletePreviousNotBuiltBuild () {
-        Run previousBuild = script.currentBuild.getPreviousBuild()?.getRawBuild()
+        RunWrapper previousBuild = script.currentBuild.getPreviousBuild()
         if (previousBuild) {
             logger.debug("Found previous run: " +
                 "${previousBuild.getDescription()} res: ${previousBuild.getResult()}")
             if (previousBuild.getResult().toString() == 'NOT_BUILT') {
+                boolean isCommitRMBased = false
+                if (!previousBuild.getChangeSets()?.isEmpty()) {
+                    ChangeLogSet changes = previousBuild.getChangeSets().get(0)
+                    if (!changes.isEmptySet()) {
+                        ChangeLogSet.Entry change = changes.getItems()[0]
+                        logger.debug("Changlog message: ${change.getMsg()}")
+                        if (change.getMsg().startsWith('ODS: Export OpenShift configuration')) {
+                            isCommitRMBased = true
+                        }
+                    }
+                }
+                if (!isCommitRMBased) return
                 try {
-                    previousBuild.delete()
+                    previousBuild.getRawBuild().delete()
                     logger.debug("deleted build: ${previousBuild.getId()}")
                 } catch (Exception couldNotDelete) {
                     logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
