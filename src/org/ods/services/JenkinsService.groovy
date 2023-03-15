@@ -142,6 +142,8 @@ class JenkinsService {
                         logger.debug("Changlog message: ${change.getMsg()}")
                         if (change.getMsg().startsWith('ODS: Export OpenShift configuration')) {
                             isCommitRMBased = true
+                        } else {
+                            logger.debug('Found human changelog, previous build will not be deleted')
                         }
                     }
                 }
