@@ -131,6 +131,7 @@ class JenkinsService {
     void deletePreviousNotBuiltBuild () {
         RunWrapper previousBuild = script.currentBuild.getPreviousBuild()
         if (previousBuild) {
+            def buildId = "${previousBuild.getId()}"
             logger.debug("Found previous run: " +
                 "${previousBuild.getDescription()} res: ${previousBuild.getResult()}")
             if (previousBuild.getResult().toString() == 'NOT_BUILT') {
@@ -150,12 +151,12 @@ class JenkinsService {
                 if (!isCommitRMBased) return
                 try {
                     previousBuild.getRawBuild().delete()
-                    logger.debug("deleted build: ${previousBuild.getId()}")
-                } catch (Exception couldNotDelete) {
-                    logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
+                    logger.debug("deleted build: ${buildId}")
+                } catch (err) {
+                    logger.warn ("Could not delete '${buildId}' - ${err}")
                 }
             } else {
-                logger.debug('Skipping deletion of build, it was not a skip one!')
+                logger.debug('Skipping deletion of build '${buildId}', it was not a skip one!')
             }
         }
     }
