@@ -151,12 +151,12 @@ class JenkinsService {
                 if (!isCommitRMBased) return
                 try {
                     previousBuild.getRawBuild().delete()
-                    logger.debug("deleted build: ${buildId}")
+                    logger.debug("Deleted build: ${buildId}")
                 } catch (err) {
                     logger.warn ("Could not delete '${buildId}' - ${err}")
                 }
             } else {
-                logger.debug('Skipping deletion of build '${buildId}', it was not a skip one!')
+                logger.debug("Skipping deletion of build '${buildId}', it was not a skip one!")
             }
         }
     }
