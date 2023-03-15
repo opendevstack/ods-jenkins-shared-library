@@ -129,15 +129,17 @@ class JenkinsService {
     void deletePreviousNotBuiltBuild () {
         Run previousBuild = script.currentBuild.getPreviousBuild()?.getRawBuild()
         if (previousBuild) {
-            logger.debug("Found previous run ${previousBuild.getId()}, ${previousBuild.getNumber()}" +
+            logger.debug("Found previous run: " +
                 "${previousBuild.getDescription()} res: ${previousBuild.getResult()}")
-            if (previousBuild.getResult() == 'NOT_BUILT') {
+            if (previousBuild.getResult().equals('NOT_BUILT')) {
                 try {
                     previousBuild.delete()
                     logger.debug("deleted build: ${previousBuild.getId()}")
                 } catch (Exception couldNotDelete) {
                     logger.warn ("Could not delete '${previousBuild.getId()}' - ${couldNotDelete}")
                 }
+            } else {
+                logger.debug('Skipping deletion of build!')
             }
         }
     }
