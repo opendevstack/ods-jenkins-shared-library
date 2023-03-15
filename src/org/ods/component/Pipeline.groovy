@@ -156,7 +156,7 @@ class Pipeline implements Serializable {
                     }
 
                     // check if there is a skipped previous run - if so - delete (to save memory)
-                    if (!MULTI_REPO_BUILD) {
+                    if (!env.MULTI_REPO_BUILD) {
                         jenkinsService.deletePreviousNotBuiltBuild()
                     }
 
