@@ -69,19 +69,20 @@ class BuildStage extends Stage {
             }
         }
 
-        Closure generateDocuments = {
+//        Closure generateDocuments = {
             levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
-        }
+//        }
 
         // Execute phase for each repository
-        Closure executeRepos = {
+ //       Closure executeRepos = {
             util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
                 .each { group ->
                     // FailFast only if not WIP
                     group.failFast = !project.isWorkInProgress
                     script.parallel(group)
                 }
-        }
+ //       }
+
         executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
