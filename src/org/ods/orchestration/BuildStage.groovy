@@ -83,7 +83,7 @@ class BuildStage extends Stage {
                 }
  //       }
 
-        executeInParallel(executeRepos, generateDocuments)
+//        executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
