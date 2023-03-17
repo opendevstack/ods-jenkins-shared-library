@@ -148,7 +148,7 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
-private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, 
+private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
     String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
