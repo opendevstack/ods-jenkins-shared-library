@@ -300,21 +300,6 @@ class Pipeline implements Serializable {
         }
     }
 
-    private void cleanUp() {
-        logger.debug('-- SHUTTING DOWN RM (..) --')
-        logger.resetStopwatch()
-        this.script = null
-        this.steps = null
-        this.logger = null
-
-        this.gitService = null
-        this.openShiftService = null
-        this.jenkinsService = null
-        this.bitbucketService = null
-
-        ServiceRegistry.removeInstance()
-    }
-
     def setupForMultiRepoBuild(def config) {
         logger.info '-> Detected multirepo orchestration pipeline build'
         config.localCheckoutEnabled = false

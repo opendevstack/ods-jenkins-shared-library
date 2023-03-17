@@ -69,7 +69,7 @@ class BuildStage extends Stage {
             }
         }
 
-        // (cut) the reason to NOT go parallel here is a jenkins feature with too many 
+        // (cut) the reason to NOT go parallel here is a jenkins feature with too many
         // parallels causing arraylist$itr serioalouation errors
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
 
