@@ -2,7 +2,6 @@ package org.ods.services
 
 import org.ods.util.ILogger
 import hudson.model.Run
-import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper
 import hudson.scm.ChangeLogSet
 
 class JenkinsService {
@@ -129,7 +128,7 @@ class JenkinsService {
     }
 
     void deletePreviousNotBuiltBuild () {
-        RunWrapper previousBuild = script.currentBuild.getPreviousBuild()
+        def previousBuild = script.currentBuild.getPreviousBuild()
         if (previousBuild) {
             def buildId = "${previousBuild.getId()}"
             logger.debug("Found previous run: ${buildId}," +
