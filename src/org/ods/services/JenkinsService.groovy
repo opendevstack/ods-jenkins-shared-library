@@ -130,7 +130,9 @@ class JenkinsService {
     void deleteNotBuiltBuilds (def previousBuild = null) {
         if (!previousBuild) {
             return
-        }
+        }`
+        // we need to do this super early - similar to the id, because once deleted - no access
+        def previousMinusOneBuild = previousBuild.getPreviousBuild()
         if (previousBuild?.getResult()?.toString() == 'NOT_BUILT') {
             def buildId = "${previousBuild.getId()}"
             logger.debug("Found CI SKIP run: ${buildId}, ${previousBuild.getDescription()}")
@@ -155,6 +157,6 @@ class JenkinsService {
             }
         }
         // call this recursively to clean-up all the rm created builds
-        deleteNotBuiltBuilds (previousBuild.getPreviousBuild())
+        deleteNotBuiltBuilds (previousMinusOneBuild)
     }
 }
