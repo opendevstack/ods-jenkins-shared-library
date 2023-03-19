@@ -130,7 +130,7 @@ class JenkinsService {
     void deleteNotBuiltBuilds (def previousBuild = null) {
         if (!previousBuild) {
             return
-        }`
+        }
         // we need to do this super early - similar to the id, because once deleted - no access
         def previousMinusOneBuild = previousBuild.getPreviousBuild()
         if (previousBuild?.getResult()?.toString() == 'NOT_BUILT') {
