@@ -132,6 +132,7 @@ class JenkinsService {
             return
         }
         // we need to do this super early - similar to the id, because once deleted - no access
+        // option2 -reset the result to SUCCESS
         def previousMinusOneBuild = previousBuild.getPreviousBuild()
         if (previousBuild?.getResult()?.toString() == 'NOT_BUILT') {
             def buildId = "${previousBuild.getId()}"
@@ -155,8 +156,7 @@ class JenkinsService {
                     }
                 }
             } else {
-                def causes = previousBuild?.getRawBuild().getCauses()
-                logger.debug("Found SCM: ${causes}")
+                logger.debug("Environment: ${previousBuild.getBuildVariables()}")
             }
         }
         // call this recursively to clean-up all the rm created builds
