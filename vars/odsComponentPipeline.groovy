@@ -19,7 +19,7 @@ def call(Map config, Closure body) {
     String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
     try {
         pipeline.execute(config, body)
-    }  finally {
+    } finally {
         if (env.MULTI_REPO_BUILD) {
             logger.debug('-- in RM mode, shutdown skipped --')
         }
