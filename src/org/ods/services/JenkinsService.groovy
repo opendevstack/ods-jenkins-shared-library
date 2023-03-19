@@ -154,6 +154,11 @@ class JenkinsService {
                             "hence build '${buildId}' will not be deleted")
                     }
                 }
+            } else {
+                def scmAction = previousBuild?.actions.find { action ->
+                    action instanceof jenkins.scm.api.SCMRevisionAction
+                }
+                logger.debug("Found SCM: ${scmAction?.revision}")
             }
         }
         // call this recursively to clean-up all the rm created builds
