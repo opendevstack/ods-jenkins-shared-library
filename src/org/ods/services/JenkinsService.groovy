@@ -155,10 +155,8 @@ class JenkinsService {
                     }
                 }
             } else {
-                def scmAction = previousBuild?.actions.find { action ->
-                    action instanceof jenkins.scm.api.SCMRevisionAction
-                }
-                logger.debug("Found SCM: ${scmAction?.revision}")
+                def causes = previousBuild?.getRawBuild().getCauses()
+                logger.debug("Found SCM: ${causes}")
             }
         }
         // call this recursively to clean-up all the rm created builds
