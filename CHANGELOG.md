@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
 
 ### Fixed
 - Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
