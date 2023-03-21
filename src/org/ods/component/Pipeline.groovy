@@ -86,7 +86,7 @@ class Pipeline implements Serializable {
                         script.checkout script.scm
                     }
                     script.stage('odsPipeline start') {
-                        def defaultDockerRegistry = 'docker-registry.default.svc:5000'
+                        def defaultDockerRegistry = 'image-registry.openshift-image-registry.svc:5000'
                         // we leave the check here for the registry
                         // to bring this close to the real bootstrap of the agent.
                         if (!config.containsKey('podContainers') && !config.image) {
