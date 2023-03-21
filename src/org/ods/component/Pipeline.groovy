@@ -155,6 +155,12 @@ class Pipeline implements Serializable {
                         }
                     }
 
+                    // check if there is a skipped previous run - if so - delete (to save memory)
+                    if (!script.env.MULTI_REPO_BUILD) {
+                        jenkinsService.deleteNotBuiltBuilds(
+                            script.currentBuild.getPreviousBuild())
+                    }
+
                     skipCi = isCiSkip()
                     if (skipCi) {
                         script.stage('odsPipeline (ci skip) finished') {
@@ -289,28 +295,10 @@ class Pipeline implements Serializable {
                                 "ODS Build Artifacts '${context.componentId}': " +
                                 "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
-                        if (!!!script.env.MULTI_REPO_BUILD) {
-                            cleanUp()
-                        }
                     }
                 }
             }
         }
-    }
-
-    private void cleanUp() {
-        logger.debug('-- SHUTTING DOWN ODS Component Pipeline (..) --')
-        logger.resetStopwatch()
-        this.script = null
-        this.steps = null
-        this.logger = null
-
-        this.gitService = null
-        this.openShiftService = null
-        this.jenkinsService = null
-        this.bitbucketService = null
-
-        ServiceRegistry.removeInstance()
     }
 
     def setupForMultiRepoBuild(def config) {

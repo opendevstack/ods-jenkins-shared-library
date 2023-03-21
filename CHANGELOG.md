@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Fixed
-- 4.x/master: allowPartialRebuild is broken ([#977](https://github.com/opendevstack/ods-jenkins-shared-library/pull/977))
+- allowPartialRebuild is broken ([#977](https://github.com/opendevstack/ods-jenkins-shared-library/pull/977))
+- Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
 
 ## [4.2.0] - 2023-02-21
 
