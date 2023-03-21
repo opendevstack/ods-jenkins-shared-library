@@ -151,7 +151,7 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
     String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
+    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {

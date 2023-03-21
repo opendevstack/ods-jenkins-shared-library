@@ -1,9 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
 
 ### Fixed
 - Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+- Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
 
 ## [4.2.0] - 2023-02-21
 
