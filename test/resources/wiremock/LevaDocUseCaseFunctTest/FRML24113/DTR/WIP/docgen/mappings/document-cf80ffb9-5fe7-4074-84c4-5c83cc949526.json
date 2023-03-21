@@ -57,7 +57,8 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Overall Software Development Testing Report, Config Item: BI-IT-DEVSTACK"
+                                "Overall Software Development Testing Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
                             ]
                         },
                         "data": {

@@ -1536,6 +1536,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}"]
+        if (documentTypeName.startsWith("Overall")) {
+            metadata.header << "Doc ID/Version: see auto-generated cover page"
+        }
 
         return metadata
     }
