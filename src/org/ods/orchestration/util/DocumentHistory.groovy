@@ -113,6 +113,7 @@ class DocumentHistory {
                     entry.entryId,
                     entry.projectVersion,
                     entry.previousProjectVersion,
+                    entry.docVersion,
                     entry.rational
                 )
             }
@@ -138,8 +139,8 @@ class DocumentHistory {
             if (e.getEntryId() == 1L) {
                 return [
                     entryId: e.getEntryId(),
+                    docVersion: e.getDocVersion() ?: e.getEntryId(),
                     rational: e.getRational(),
-                    projectVersion: e.getProjectVersion(),
                     ]
             }
             def formatedIssues = issueTypes.collect { type ->
@@ -158,8 +159,8 @@ class DocumentHistory {
             }.findAll { it }
 
             return [entryId: e.getEntryId(),
+                    docVersion: e.getDocVersion() ?: e.getEntryId(),
                     rational: e.getRational(),
-                    projectVersion: e.getProjectVersion(),
                     issueType: formatedIssues + computeDocChaptersOfDocument(e),
             ]
         }
@@ -332,7 +333,8 @@ class DocumentHistory {
             logger.warn(this.allIssuesAreNotValidMessage)
         }
         logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
-        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
+        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion,
+            "${projectVersion}/${this.latestVersionId}", '')
     }
 
     @NonCPS

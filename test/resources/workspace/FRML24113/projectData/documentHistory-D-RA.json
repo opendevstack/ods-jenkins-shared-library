@@ -1,7 +1,7 @@
 [
     {
         "components": [
-            
+
         ],
         "requirements": [
             {
@@ -18,7 +18,7 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
             {
@@ -36,7 +36,7 @@
         ],
         "entryId": 1,
         "bugs": [
-            
+
         ],
         "risks": [
             {
@@ -57,7 +57,7 @@
             }
         ],
         "tests": [
-            
+
         ],
         "docs": [
             {
@@ -118,7 +118,7 @@
     },
     {
         "components": [
-            
+
         ],
         "requirements": [
             {
@@ -127,7 +127,7 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
             {
@@ -148,7 +148,7 @@
         ],
         "entryId": 2,
         "bugs": [
-            
+
         ],
         "risks": [
             {
@@ -157,21 +157,21 @@
             }
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "previousProjectVersion": "1.0",
         "techSpecs": [
-            
+
         ],
         "rational": "Modifications for project version '2.0'.",
         "projectVersion": "2.0"
     },
     {
         "components": [
-            
+
         ],
         "requirements": [
             {
@@ -187,14 +187,14 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
-            
+
         ],
         "entryId": 3,
         "bugs": [
-            
+
         ],
         "risks": [
             {
@@ -210,27 +210,27 @@
             }
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "previousProjectVersion": "2.0",
         "techSpecs": [
-            
+
         ],
         "rational": "Modifications for project version '3.0'.",
         "projectVersion": "3.0"
     },
     {
         "bugs": [
-            
+
         ],
         "components": [
-            
+
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
             {
@@ -257,14 +257,15 @@
             }
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "entryId": 4,
         "projectVersion": "4.0",
         "previousProjectVersion": "3.0",
+        "docVersion": "4.0/4",
         "rational": "Modifications for project version '4.0'."
     }
 ]

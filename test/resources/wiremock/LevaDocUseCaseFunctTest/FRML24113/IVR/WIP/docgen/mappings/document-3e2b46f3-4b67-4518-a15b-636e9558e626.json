@@ -250,12 +250,12 @@
                                 {
                                     "entryId": 1,
                                     "rational": "Initial document version.",
-                                    "projectVersion": "1.0"
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
-                                    "projectVersion": "2.0",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -274,7 +274,7 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
-                                    "projectVersion": "3.0",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -293,7 +293,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
-                                    "projectVersion": "4.0",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
