@@ -42,6 +42,8 @@ def call(Map config) {
     boolean startAgentEarly = config.get('startOrchestrationAgentOnInit', true)
     def startAgentStage = startAgentEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
+    resourceLimitMemory = config.get('mroAgentMemoryLimit', '1Gi')
+
     logger.debug("Start agent stage: ${startAgentStage}")
     Project project = new Project(steps, logger)
     def repos = []
@@ -57,7 +59,7 @@ def call(Map config) {
 
             logger.startClocked('pod-template')
             def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-            withPodTemplate(odsImageTag, steps, alwaysPullImage) {
+            withPodTemplate(odsImageTag, steps, alwaysPullImage, resourceLimitMemory) {
                 logger.debugClocked('pod-template')
                 withEnv(envs) {
                     def result
@@ -146,9 +148,10 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
-private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
+private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
+    String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
+    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
@@ -165,7 +168,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
                 image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-base:${odsImageTag}",
                 workingDir: '/tmp',
                 resourceRequestMemory: '512Mi',
-                resourceLimitMemory: '1Gi',
+                resourceLimitMemory: "${mroAgentLimit}",
                 resourceRequestCpu: '200m',
                 resourceLimitCpu: '1',
                 alwaysPullImage: "${alwaysPullImage}",

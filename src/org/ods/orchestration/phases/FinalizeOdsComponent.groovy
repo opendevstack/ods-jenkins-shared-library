@@ -137,41 +137,39 @@ class FinalizeOdsComponent {
             throw new RuntimeException ("Deploymentmeans for repo ${repo.id}" +
                 " are not found. These means are automatically generated!\n" +
                 " Likely you upgraded and tried to deploy to Q instead of rebuilding on dev")
-        } else if (deploymentMeans.size() > 1) {
-            throw new RuntimeException ("Found more than 1 Deploymentmeans ${deploymentMeans.size()} " +
-                "for repo ${repo.id}. This is not supported!")
         }
 
-        Map deploymentMean = deploymentMeans.values().get(0)
+        deploymentMeans.values().each{deploymentMean->
+            String componentSelector = deploymentMean.selector
 
-        String componentSelector = deploymentMean.selector
+            def allComponentDeploymentsByKind = os.getResourcesForComponent(
+                project.targetProject,
+                [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND],
+                componentSelector
+            )
+            def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
+            if (allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]) {
+                allComponentDeployments.addAll(allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND])
+            }
+            logger.debug(
+                "ODS created deployments for ${repo.id}: " +
+                "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
+            )
 
-        def allComponentDeploymentsByKind = os.getResourcesForComponent(
-            project.targetProject,
-            [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND],
-            componentSelector
-        )
-        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
-        if (allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]) {
-            allComponentDeployments.addAll(allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND])
-        }
-        logger.debug(
-            "ODS created deployments for ${repo.id}: " +
-            "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
-        )
+            odsBuiltDeployments.each { odsBuiltDeploymentName ->
+                allComponentDeployments.remove(odsBuiltDeploymentName)
+            }
 
-        odsBuiltDeployments.each { odsBuiltDeploymentName ->
-            allComponentDeployments.remove(odsBuiltDeploymentName)
-        }
 
-        if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
-            def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
-                "'${allComponentDeployments}'!\r" +
-                "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
-            if (project.isWorkInProgress) {
-                util.warnBuild(message)
-            } else {
-                throw new RuntimeException(message)
+            if (allComponentDeployments != null && allComponentDeployments.size() > 0 ) {
+                def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
+                    "'${allComponentDeployments}'!\r" +
+                    "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
+                if (project.isWorkInProgress) {
+                    util.warnBuild(message)
+                } else {
+                    throw new RuntimeException(message)
+                }
             }
         }
 
