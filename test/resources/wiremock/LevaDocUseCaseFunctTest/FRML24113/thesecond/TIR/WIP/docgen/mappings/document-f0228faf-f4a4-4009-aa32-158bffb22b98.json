@@ -17,7 +17,7 @@
                             "name": "Project frml24113: thesecond",
                             "description": "Description of frml24113.",
                             "type": "Technical Installation Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "deployNote": "Components were built & deployed during installation.",
@@ -96,11 +95,11 @@
                                     "tests": {
                                         "unit": {
                                             "testReportFiles": [
-                                                
+
                                             ],
                                             "testResults": {
                                                 "testsuites": [
-                                                    
+
                                                 ]
                                             }
                                         }
@@ -136,7 +135,7 @@
                                         "CREATED_BY_BUILD": "WIP/1"
                                     },
                                     "documents": {
-                                        
+
                                     },
                                     "git": {
                                         "branch": "master",
@@ -152,7 +151,7 @@
                                 "branch": "master",
                                 "pipelineConfig": {
                                     "dependencies": [
-                                        
+
                                     ]
                                 },
                                 "metadata": {
@@ -166,7 +165,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -183,7 +182,7 @@
                                 "sec6": {
                                     "number": "6",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -200,7 +199,7 @@
                                 "sec5s2": {
                                     "number": "5.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -217,7 +216,7 @@
                                 "sec5s1": {
                                     "number": "5.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -235,22 +234,24 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -258,17 +259,18 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -276,40 +278,43 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

@@ -113,6 +113,7 @@ class DocumentHistory {
                     entry.entryId,
                     entry.projectVersion,
                     entry.previousProjectVersion,
+                    entry.docVersion,
                     entry.rational
                 )
             }
@@ -138,6 +139,7 @@ class DocumentHistory {
             if (e.getEntryId() == 1L) {
                 return [
                     entryId: e.getEntryId(),
+                    docVersion: e.getDocVersion() ?: e.getEntryId(),
                     rational: e.getRational(),
                     ]
             }
@@ -157,8 +159,9 @@ class DocumentHistory {
             }.findAll { it }
 
             return [entryId: e.getEntryId(),
+                    docVersion: e.getDocVersion() ?: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
+                    issueType: formatedIssues + computeDocChaptersOfDocument(e),
             ]
         }
         sortDocHistories(this.data).collect { transformEntry(it) }
@@ -193,7 +196,6 @@ class DocumentHistory {
                  (CHANGED): docIssues.findAll { it.action == CHANGE },
                  (DELETED): docIssues.findAll { it.action == DELETE },
         ]
-
     }
 
     @NonCPS
@@ -315,7 +317,8 @@ class DocumentHistory {
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the changes done in document version${pluralS} " +
-                "'${concurrentVersions.join(', ')}'."
+                "'${currentEntry.getProjectVersion()}/" +
+                "${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
         }
     }
 
@@ -326,16 +329,16 @@ class DocumentHistory {
         this.allIssuesAreValid = true
 
         def versionMap = this.computeEntryData(jiraData, projectVersion, keysInDocument)
-        if (!this.allIssuesAreValid){
+        if (!this.allIssuesAreValid) {
             logger.warn(this.allIssuesAreNotValidMessage)
         }
         logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
-        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
+        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion,
+            "${projectVersion}/${this.latestVersionId}", '')
     }
 
     @NonCPS
     private Map computeEntryData(Map jiraData, String projectVersion, List<String> keysInDocument) {
-
         def previousDocumentIssues = this.getDocumentKeys()
         def additionsAndUpdates = this.computeAdditionsAndUpdates(jiraData, projectVersion)
         def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)
@@ -431,4 +434,5 @@ class DocumentHistory {
                 }
             }
     }
+
 }

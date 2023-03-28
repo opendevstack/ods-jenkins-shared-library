@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Discrepancy Log",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -57,13 +57,12 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Discrepancy Log, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Discrepancy Log, Config Item: BI-IT-DEVSTACK"
                             ],
                             "orientation": "Landscape"
                         },
                         "data": {
-                            
+
                         }
                     }
                 },

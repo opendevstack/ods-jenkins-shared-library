@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Configuration and Installation Testing Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "Configuration and Installation Testing Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Configuration and Installation Testing Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -250,11 +249,13 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -273,6 +274,7 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -291,6 +293,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -306,7 +309,8 @@
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 4
                         }
                     }
                 },

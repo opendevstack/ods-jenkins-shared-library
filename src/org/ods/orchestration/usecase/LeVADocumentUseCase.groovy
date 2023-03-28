@@ -182,7 +182,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -248,6 +249,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 tests: tests,
                 modules: modules,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -325,6 +327,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -456,6 +459,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections        : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -503,6 +507,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -601,6 +606,29 @@ class LeVADocumentUseCase extends DocGenUseCase {
             } + r.getResolvedMitigations().collect { [key: it.key, name: it.name, description: it.description, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
+        fillRASections(sections, risks, proposedMeasuresDesription)
+
+        def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
+        metadata.orientation = "Landscape"
+
+        def keysInDoc = this.computeKeysInDocForRA(this.project.getRisks())
+        def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
+
+        def data_ = [
+            metadata: metadata,
+            data    : [
+                sections: sections,
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
+            ]
+        ]
+
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
+        return uri
+    }
+
+    private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
         if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
         sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION" ?: 'n/a'
 
@@ -618,24 +646,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec5") sections."sec5" = [:]
         sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["requirementsKey", "key"])
         sections."sec5".proposedMeasures = SortUtil.sortIssuesByKey(proposedMeasuresDesription)
-
-        def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
-        metadata.orientation = "Landscape"
-
-        def keysInDoc = this.computeKeysInDocForRA(this.project.getRisks())
-        def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
-
-        def data_ = [
-            metadata: metadata,
-            data    : [
-                sections: sections,
-                documentHistory: docHistory?.getDocGenFormat() ?: [],
-            ]
-        ]
-
-        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
-        return uri
     }
 
     @NonCPS
@@ -688,7 +698,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
                 testsOdsCode   : testsOfRepoTypeOdsCode,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -763,7 +774,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
                 testsOdsCode      : testsOfRepoTypeOdsCode,
-                documentHistory   : docHistory?.getDocGenFormat() ?: []
+                documentHistory   : docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -856,6 +868,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -899,6 +912,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -983,6 +997,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
                 isGxpProject: isGxpProject(this.project.getProjectProperties()),
             ]
         ]
@@ -1018,6 +1033,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 repositories: this.project.repositories,
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1062,6 +1078,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 repo    : repo,
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1131,7 +1148,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def testIssues = systemRequirements
             .collect { it.getResolvedTests() }
-            .flatten().unique().findAll{it != null}
+            .flatten().unique().findAll { it != null }
             .findAll {
                 [Project.TestType.ACCEPTANCE,
                  Project.TestType.INSTALLATION,
@@ -1166,6 +1183,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1517,7 +1535,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             referencedDocs : this.getReferencedDocumentsVersion()
         ]
 
-        metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
+        metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}"]
+        if (documentTypeName.startsWith("Overall")) {
+            metadata.header << "Doc ID/Version: see auto-generated cover page"
+        }
 
         return metadata
     }
@@ -1784,4 +1805,5 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String replaceDashToNonBreakableUnicode(theString) {
         return theString?.replaceAll('-', '&#x2011;')
     }
+
 }

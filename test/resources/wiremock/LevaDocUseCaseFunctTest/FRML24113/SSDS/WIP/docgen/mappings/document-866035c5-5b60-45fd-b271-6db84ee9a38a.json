@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "System and Software Design Specification",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -57,8 +57,7 @@
                                 "TIP": "BI-IT-DEVSTACK / 5-WIP"
                             },
                             "header": [
-                                "System and Software Design Specification, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "System and Software Design Specification, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -66,7 +65,7 @@
                                 "sec9": {
                                     "number": "9",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Data",
                                     "documents": [
@@ -83,7 +82,7 @@
                                 "sec12": {
                                     "number": "12",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Coding Review Results",
                                     "documents": [
@@ -100,7 +99,7 @@
                                 "sec13s1": {
                                     "number": "13.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -117,7 +116,7 @@
                                 "sec6s2": {
                                     "number": "6.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "QA/Test Environment",
                                     "documents": [
@@ -134,7 +133,7 @@
                                 "sec6s3": {
                                     "number": "6.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Training Environment",
                                     "documents": [
@@ -151,7 +150,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Environmental Conditions",
                                     "documents": [
@@ -168,7 +167,7 @@
                                 "sec8": {
                                     "number": "8",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Software Design Principles",
                                     "documents": [
@@ -185,7 +184,7 @@
                                 "sec5s3": {
                                     "number": "5.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Utilisation of Existing Infrastructure Systems",
                                     "documents": [
@@ -202,7 +201,7 @@
                                 "sec5s4": {
                                     "number": "5.4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Utilisation of Existing Infrastructure Services",
                                     "documents": [
@@ -219,7 +218,7 @@
                                 "sec6s1": {
                                     "number": "6.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Development Environment",
                                     "documents": [
@@ -236,7 +235,7 @@
                                 "sec13s2": {
                                     "number": "13.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -253,7 +252,7 @@
                                 "sec15": {
                                     "number": "15",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -270,7 +269,7 @@
                                 "sec14": {
                                     "number": "14",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -287,7 +286,7 @@
                                 "sec3s2s2": {
                                     "number": "3.2.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Interfaces between Modules",
                                     "documents": [
@@ -304,7 +303,7 @@
                                 "sec3s2s3": {
                                     "number": "3.2.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Interfaces to External Systems",
                                     "documents": [
@@ -321,7 +320,7 @@
                                 "sec3s2s4": {
                                     "number": "3.2.4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Diagram",
                                     "documents": [
@@ -338,7 +337,7 @@
                                 "sec4": {
                                     "number": "4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Architecture of the System",
                                     "documents": [
@@ -355,7 +354,7 @@
                                 "sec2s1": {
                                     "number": "2.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Design Overview",
                                     "documents": [
@@ -372,7 +371,7 @@
                                 "sec2s2": {
                                     "number": "2.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Software Design Overview",
                                     "documents": [
@@ -389,7 +388,7 @@
                                 "sec2s3": {
                                     "number": "2.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Source Code Review Overview",
                                     "documents": [
@@ -546,7 +545,7 @@
                                 "sec3s1": {
                                     "number": "3.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Design Profile",
                                     "documents": [
@@ -585,7 +584,7 @@
                                 "sec3s2": {
                                     "number": "3.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Description",
                                     "documents": [
@@ -602,7 +601,7 @@
                                 "sec1": {
                                     "number": "1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Introduction",
                                     "documents": [
@@ -679,16 +678,16 @@
                                             "supplier": "mySupplier-A",
                                             "version": "WIP",
                                             "requirements": [
-                                                
+
                                             ],
                                             "requirementKeys": [
-                                                
+
                                             ],
                                             "softwareDesignSpecKeys": [
-                                                
+
                                             ],
                                             "softwareDesignSpec": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -732,10 +731,10 @@
                                                 "FRML24113-162"
                                             ],
                                             "softwareDesignSpecKeys": [
-                                                
+
                                             ],
                                             "softwareDesignSpec": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -751,16 +750,16 @@
                                             "supplier": "mySupplier-A",
                                             "version": "WIP",
                                             "requirements": [
-                                                
+
                                             ],
                                             "requirementKeys": [
-                                                
+
                                             ],
                                             "softwareDesignSpecKeys": [
-                                                
+
                                             ],
                                             "softwareDesignSpec": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -769,11 +768,13 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -784,10 +785,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -799,22 +800,22 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -822,11 +823,12 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "requirements",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
                                                 {
@@ -844,10 +846,10 @@
                                         {
                                             "type": "techSpecs",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
                                                 {
@@ -859,13 +861,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -873,6 +875,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -883,10 +886,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -898,29 +901,30 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -931,10 +935,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -946,27 +950,28 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },
