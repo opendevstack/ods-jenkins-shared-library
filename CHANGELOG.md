@@ -2,6 +2,8 @@
 
 ## Unreleased
 - Use a consistent notion of document version and remove header ([#987](https://github.com/opendevstack/ods-jenkins-shared-library/issues/987))
+- Improve Document Generation Experience ([#991](https://github.com/opendevstack/ods-jenkins-shared-library/issues/991))
+
 
 ### Fixed
 - Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
