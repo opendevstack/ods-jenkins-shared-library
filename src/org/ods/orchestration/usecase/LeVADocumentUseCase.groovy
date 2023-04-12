@@ -953,7 +953,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
 
         if (!sections."sec2s3") sections."sec2s3" = [:]
-        sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
@@ -989,6 +988,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
+
+        if (!sections."sec16s1") sections."sec16s1" = [:]
+        sections."sec16s1".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
         def keysInDoc = this.computeKeysInDocForSSDS(this.project.getTechnicalSpecifications(), componentsMetadata, modules)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
