@@ -28,6 +28,7 @@ import java.nio.file.Paths
 class Project {
 
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
+    static final boolean IS_GXP_PROJECT_DEFAULT = true
 
     class JiraDataItem implements Map, Serializable {
         static final String TYPE_BUGS = 'bugs'
@@ -64,14 +65,14 @@ class Project {
             TYPE_DOCS,
         ]
 
-        static final List TYPES_TO_BE_CLOSED = [
+        static final List COMMON_TYPES_TO_BE_CLOSED = [
+            TYPE_BUGS,
             TYPE_EPICS,
             TYPE_MITIGATIONS,
             TYPE_REQUIREMENTS,
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
         ]
 
         static final String ISSUE_STATUS_DONE = 'done'
@@ -420,24 +421,29 @@ class Project {
     }
 
     @NonCPS
-    boolean isProjectReadyToFreeze(Map data) {
-        def result = true
-        JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
-            if (data.containsKey(type)) {
-                result = result & (data[type].find { k, v -> issueIsWIP(v) } == null)
-            }
-        }
-        return result
-    }
-
-    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:]
-        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Map<String, List> result = [:]
+        JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
                 result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         }
+
+        if (isGxpProject()) {
+            if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
+                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+            }
+        } else {
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
+                //use getWIPDocChaptersForDocument passyng the doc type
+                //as per JiraUseCase.groovy line 165
+                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
+                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
+                (doc.documents[0] == 'SSDS' &&
+                    doc.section in ['1', '2.1', '3.1', '5.4'])
+            }.keyset() as List<String>
+        }
+
         return result
     }
 
@@ -449,16 +455,30 @@ class Project {
      */
     @NonCPS
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-        (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { issueIsWIP(it) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
-            }
+        Map<String, List> result = [:]
+        if (isGxpProject()) {
+            result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
+                .values()
+                .findAll { issueIsWIP(it) }
+                .collect { chapter ->
+                    chapter.documents.collect { [doc: it, key: chapter.key] }
+                }.flatten()
+                .groupBy { it.doc }
+                .collectEntries { doc, issues ->
+                    [(doc as String): issues.collect { it.key } as List<String>]
+                }
+        } else {
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
+                //use getWIPDocChaptersForDocument passyng the doc type
+                //as per JiraUseCase.groovy line 165
+                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
+                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
+                    (doc.documents[0] == 'SSDS' &&
+                        doc.section in ['1', '2.1', '3.1', '5.4'])
+            }.keyset() as List<String>
+        }
+
+        return result
     }
 
     @NonCPS
@@ -587,6 +607,11 @@ class Project {
 
     static String envStateFileName(String targetEnvironment) {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
+    }
+
+    boolean isGxpProject() {
+        String isGxp = projectProperties."PROJECT.IS_GXP"
+        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     String getEnvStateFileName() {
