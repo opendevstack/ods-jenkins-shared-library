@@ -32,6 +32,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     Project project
     IPipelineSteps steps
+    IPipelineSteps stepsNoWip
     MROPipelineUtil util
     DocGenService docGen
     JenkinsService jenkins
@@ -54,6 +55,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.buildParams.version = "WIP"
 
         steps = Spy(util.PipelineSteps)
+        stepsNoWip = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         docGen = Mock(DocGenService)
         jenkins = Mock(JenkinsService)
@@ -82,6 +84,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
+        steps.getEnv() >> ['RELEASE_PARAM_VERSION': 'WIP']
+        stepsNoWip.getEnv() >> ['RELEASE_PARAM_VERSION': 'CHG00001']
     }
 
     def "compute test discrepancies"() {
@@ -1680,7 +1684,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 1L
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def versions = useCase.getReferencedDocumentsVersion()
@@ -1688,35 +1692,26 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
         versions == [
-            CSD: 'ConfigItem / 3',
-            SSDS: 'ConfigItem / 2',
-            RA: 'ConfigItem / 2',
-            TRC: 'ConfigItem / 1',
-            DTP: 'ConfigItem / 2',
-            DTR: 'ConfigItem / 4',
-            CFTP: 'ConfigItem / 2',
-            CFTR: 'ConfigItem / 1',
-            TIR: 'ConfigItem / 2',
-            TIP: 'ConfigItem / 2',
-        ]
-
-        when:
-        project.isWorkInProgress >> true
-        versions = useCase.getReferencedDocumentsVersion()
-
-        then:
-        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
-        versions == [
-            CSD: 'ConfigItem / 3-WIP',
-            SSDS: 'ConfigItem / 2-WIP',
-            RA: 'ConfigItem / 2-WIP',
-            TRC: 'ConfigItem / 2-WIP',
-            DTP: 'ConfigItem / 2-WIP',
-            DTR: 'ConfigItem / 4-WIP',
-            CFTP: 'ConfigItem / 2-WIP',
-            CFTR: 'ConfigItem / 2-WIP',
-            TIR: 'ConfigItem / 2-WIP',
-            TIP: 'ConfigItem / 2-WIP',
+            CSD: 'ConfigItem / See version created within this change',
+            CSD_version: 'WIP/3',
+            SSDS: 'ConfigItem / See version created within this change',
+            SSDS_version: 'WIP/2',
+            RA: 'ConfigItem / See version created within this change',
+            RA_version: 'WIP/2',
+            TRC: 'ConfigItem / See version created within this change',
+            TRC_version: 'WIP/1',
+            DTP: 'ConfigItem / See version created within this change',
+            DTP_version: 'WIP/2',
+            DTR: 'ConfigItem / See version created within this change',
+            DTR_version: 'WIP/4',
+            CFTP: 'ConfigItem / See version created within this change',
+            CFTP_version: 'WIP/2',
+            CFTR: 'ConfigItem / See version created within this change',
+            CFTR_version: 'WIP/1',
+            TIR: 'ConfigItem / See version created within this change',
+            TIR_version: 'WIP/2',
+            TIP: 'ConfigItem / See version created within this change',
+            TIP_version: 'WIP/2'
         ]
     }
 
@@ -1744,13 +1739,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
-        version == '3'
+        version == 'CHG00001/3'
     }
 
     def "get version from histories WIP"() {
@@ -1761,13 +1756,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
-        version == '3-WIP'
+        version == 'WIP/3'
     }
 
     def "get version new version WIP"() {
@@ -1779,14 +1774,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
         1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
-        version == '5-WIP'
+        version == 'WIP/5'
     }
 
     def "get version new version not WIP in first environment"() {
@@ -1798,14 +1793,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
         1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
-        version == '5'
+        version == 'CHG00001/5'
     }
 
     def "get version new version not WIP in second environment"() {
@@ -1817,14 +1812,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
         1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
-        version == '4'
+        version == 'CHG00001/4'
     }
 
     def "requirements are properly sorted and indexed by epic and key"() {
