@@ -1762,7 +1762,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def doc = dt as String
             def version = getVersion(this.project, doc)
 
-            return [(doc): "${this.project.buildParams.configItem} / ${version}"]
+            return [(doc): "${this.project.buildParams.configItem} / See version created within this change",
+                    ("${doc}_version" as String): version]
         }
     }
 
@@ -1785,16 +1786,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         } else {
             // TODO removeme in ODS 4.x
-            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
+            return "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
         }
 
-        if (project.isWorkInProgress) {
-            // If this is a developer preview, the document version is always a WIP, because,
-            // if we have the document history, it has already been updated to a new version.
-            version = "${version}-WIP"
-        }
-
-        return version as String
+        return "${this.steps.env.RELEASE_PARAM_VERSION}/${version}"
     }
 
     @NonCPS
