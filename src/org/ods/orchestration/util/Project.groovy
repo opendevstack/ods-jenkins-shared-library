@@ -438,12 +438,10 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                logger.debug "document: ${doc}"
-
-                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
-                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
-                (doc.documents[0] == 'SSDS' &&
-                    doc.section in ['1', '2.1', '3.1', '5.4'])
+                (doc.documents.contains('CSD') && //This should contain the labels of the issue, without prefix, as list
+                    doc.number in ['1', '3.1']) ||    //this should contain the heading number
+                (doc.documents.contains('SSDS') &&
+                    doc.number in ['1', '2.1', '3.1', '5.4'])
             }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
