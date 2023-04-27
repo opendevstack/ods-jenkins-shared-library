@@ -444,7 +444,7 @@ class Project {
                     doc.section in ['1', '2.1', '3.1', '5.4'])
             }.keyset() as List<String>
         }
-        logger.debug "result size: ${result.size()}"
+        logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
 
