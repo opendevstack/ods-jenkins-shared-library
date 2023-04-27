@@ -435,9 +435,11 @@ class Project {
                 result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         } else {
-            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
+                logger.debug "document: ${doc}"
+
                 (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
                     doc.section in ['1', '3.1']) ||    //this should contain the heading number
                 (doc.documents[0] == 'SSDS' &&
