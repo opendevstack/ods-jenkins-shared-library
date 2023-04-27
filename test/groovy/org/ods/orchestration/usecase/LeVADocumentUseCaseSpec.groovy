@@ -1930,7 +1930,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             null, null, null)
 
         when:
-        def result = leVADocumentUseCase.isGxpProject(projectProperties)
+        def result = leVADocumentUseCase.isGxpProject()
 
         then:
         result == expected
