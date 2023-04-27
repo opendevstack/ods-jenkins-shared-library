@@ -422,7 +422,7 @@ class Project {
 
     protected Map<String, List> computeWipJiraIssues(Map data) {
         logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
-        logger.debug "${data}"
+        logger.debug "${data.docs}"
         Map<String, List> result = [:]
         JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
