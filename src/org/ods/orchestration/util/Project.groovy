@@ -420,7 +420,7 @@ class Project {
         return !values.isEmpty()
     }
 
-    @NonCPS
+//    @NonCPS
 //    protected Map<String, List> computeWipJiraIssues(Map data) {
 //        logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
 //        logger.debug "${data.docs}"
