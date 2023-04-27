@@ -435,13 +435,14 @@ class Project {
                 result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         } else {
-            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                (doc.documents.contains('CSD') && //This should contain the labels of the issue, without prefix, as list
-                    doc.number in ['1', '3.1']) ||    //this should contain the heading number
-                (doc.documents.contains('SSDS') &&
-                    doc.number in ['1', '2.1', '3.1', '5.4'])
+                issueIsWIP(issue) &&
+                ((issue.documents.contains('CSD') && //This should contain the labels of the issue, without prefix, as list
+                    issue.number in ['1', '3.1']) ||    //this should contain the heading number
+                (issue.documents.contains('SSDS') &&
+                    issue.number in ['1', '2.1', '3.1', '5.4']))
             }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
