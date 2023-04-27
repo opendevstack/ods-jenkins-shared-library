@@ -420,7 +420,6 @@ class Project {
         return !values.isEmpty()
     }
 
-    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
         logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
         Map<String, List> result = [:]
@@ -576,7 +575,6 @@ class Project {
         return this.data.jira.project.enumDictionary[name]
     }
 
-    @NonCPS
     Map getProjectProperties() {
         return this.data.jira.project.projectProperties
     }
@@ -642,7 +640,6 @@ class Project {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
     }
 
-    @NonCPS
     boolean isGxpProject() {
         String isGxp = projectProperties."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
