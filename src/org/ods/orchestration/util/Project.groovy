@@ -439,60 +439,45 @@ class Project {
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
                 issueIsWIP(issue) &&
-                ((issue.documents.contains('CSD') && //This should contain the labels of the issue, without prefix, as list
-                    issue.number in ['1', '3.1']) ||    //this should contain the heading number
-                (issue.documents.contains('SSDS') &&
-                    issue.number in ['1', '2.1', '3.1', '5.4']))
+                    ((issue.documents.contains('CSD') && issue.number in ['1', '3.1'])
+                        || (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4']))
             }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
 
-    @NonCPS
-    protected Map<String, List> computeWipJiraIssues2(Map data) {
-        def result = [:]
-        JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            if (data.containsKey(type)) {
-                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
-            }
+    /**
+     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
+     * the sections not done
+     * @param data jira data
+     * @return dict with map documentTypes -> sectionsNotDoneKeys
+     */
+    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
+        Map<String, List> result = [:]
+        if (isGxpProject()) {
+            result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
+                .values()
+                .findAll { issueIsWIP(it) }
+                .collect { chapter ->
+                    chapter.documents.collect { [doc: it, key: chapter.key] }
+                }.flatten()
+                .groupBy { it.doc }
+                .collectEntries { doc, issues ->
+                    [(doc as String): issues.collect { it.key } as List<String>]
+                }
+        } else {
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
+                //use getWIPDocChaptersForDocument passyng the doc type
+                //as per JiraUseCase.groovy line 165
+                issueIsWIP(issue) &&
+                    ((issue.documents.contains('CSD') && issue.number in ['1', '3.1']) ||
+                        (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4']))
+            }.keySet() as List<String>
         }
+        logger.debug "docChapters result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
-
-//    /**
-//     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
-//     * the sections not done
-//     * @param data jira data
-//     * @return dict with map documentTypes -> sectionsNotDoneKeys
-//     */
-//    @NonCPS
-//    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-//        Map<String, List> result = [:]
-//        if (isGxpProject()) {
-//            result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-//                .values()
-//                .findAll { issueIsWIP(it) }
-//                .collect { chapter ->
-//                    chapter.documents.collect { [doc: it, key: chapter.key] }
-//                }.flatten()
-//                .groupBy { it.doc }
-//                .collectEntries { doc, issues ->
-//                    [(doc as String): issues.collect { it.key } as List<String>]
-//                }
-//        } else {
-//            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
-//                //use getWIPDocChaptersForDocument passyng the doc type
-//                //as per JiraUseCase.groovy line 165
-//                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
-//                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
-//                    (doc.documents[0] == 'SSDS' &&
-//                        doc.section in ['1', '2.1', '3.1', '5.4'])
-//            }.keyset() as List<String>
-//        }
-//
-//        return result
-//    }
 
     /**
      * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
@@ -501,7 +486,7 @@ class Project {
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
     @NonCPS
-    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
+    protected Map<String,List> computeWipDocChapterPerDocument2(Map data) {
         (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
             .findAll { issueIsWIP(it) }
