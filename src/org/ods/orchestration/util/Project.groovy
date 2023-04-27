@@ -420,37 +420,36 @@ class Project {
         return !values.isEmpty()
     }
 
-//    @NonCPS
-//    protected Map<String, List> computeWipJiraIssues(Map data) {
-//        logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
-//        logger.debug "${data.docs}"
-//        Map<String, List> result = [:]
-//        JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
-//            if (data.containsKey(type)) {
-//                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
-//            }
-//        }
-//
-//        if (isGxpProject()) {
-//            if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
-//                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
-//            }
-//        } else {
-//            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
-//                //use getWIPDocChaptersForDocument passyng the doc type
-//                //as per JiraUseCase.groovy line 165
-//                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
-//                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
-//                (doc.documents[0] == 'SSDS' &&
-//                    doc.section in ['1', '2.1', '3.1', '5.4'])
-//            }.keyset() as List<String>
-//        }
-//
-//        return result
-//    }
-
     @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
+        logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
+        Map<String, List> result = [:]
+        JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+            if (data.containsKey(type)) {
+                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+            }
+        }
+
+        if (isGxpProject()) {
+            if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
+                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+            }
+        } else {
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { doc ->
+                //use getWIPDocChaptersForDocument passyng the doc type
+                //as per JiraUseCase.groovy line 165
+                (doc.documents[0] == 'CSD' && //This should contain the labels of the issue, without prefix, as list
+                    doc.section in ['1', '3.1']) ||    //this should contain the heading number
+                (doc.documents[0] == 'SSDS' &&
+                    doc.section in ['1', '2.1', '3.1', '5.4'])
+            }.keyset() as List<String>
+        }
+
+        return result
+    }
+
+    @NonCPS
+    protected Map<String, List> computeWipJiraIssues2(Map data) {
         def result = [:]
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
@@ -642,6 +641,7 @@ class Project {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
     }
 
+    @NonCPS
     boolean isGxpProject() {
         String isGxp = projectProperties."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
