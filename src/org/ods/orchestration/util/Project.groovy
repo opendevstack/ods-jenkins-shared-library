@@ -1433,6 +1433,7 @@ class Project {
             if (!templatesVersion) {
                 levaDocsCapability.LeVADocs.templatesVersion = DEFAULT_TEMPLATE_VERSION
             }
+            levaDocsCapability.LeVADocs.templatesVersion = "${levaDocsCapability.LeVADocs.templatesVersion}"
         }
 
         if (result.environments == null) {
