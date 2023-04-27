@@ -444,7 +444,7 @@ class Project {
                     doc.section in ['1', '3.1']) ||    //this should contain the heading number
                 (doc.documents[0] == 'SSDS' &&
                     doc.section in ['1', '2.1', '3.1', '5.4'])
-            }.keyset() as List<String>
+            }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
