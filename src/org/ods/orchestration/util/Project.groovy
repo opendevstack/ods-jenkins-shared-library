@@ -422,8 +422,8 @@ class Project {
 
     @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        println "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
-        println "${data.docs}"
+        logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
+        logger.debug "${data.docs}"
         Map<String, List> result = [:]
         JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
@@ -457,7 +457,6 @@ class Project {
      */
     @NonCPS
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-        println "computeWipDocChapterPerDocument method called"
         Map<String, List> result = [:]
         if (isGxpProject()) {
             result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
