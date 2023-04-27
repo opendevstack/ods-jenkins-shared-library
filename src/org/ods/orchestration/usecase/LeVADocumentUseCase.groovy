@@ -1000,7 +1000,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
-                isGxpProject: isGxpProject()
+                isGxpProject: isGxpProject(this.project.getProjectProperties())
             ]
         ]
 
@@ -1009,8 +1009,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    private boolean isGxpProject() {
-        String isGxp = this.project.getProjectProperties()."PROJECT.IS_GXP"
+    protected boolean isGxpProject(Map projectProperties) {
+        String isGxp = projectProperties."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
@@ -1528,7 +1528,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             date_created  : LocalDateTime.now().toString(),
             buildParameter: this.project.buildParams,
             git           : repo ? repo.data.git : this.project.gitData,
-            gxp           : isGxpProject(),
+            gxp           : isGxpProject(this.project.getProjectProperties()),
             openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
