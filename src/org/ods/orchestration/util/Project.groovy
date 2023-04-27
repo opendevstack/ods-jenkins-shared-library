@@ -422,7 +422,7 @@ class Project {
 
     protected Map<String, List> computeWipJiraIssues(Map data) {
         logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
-        logger.debug "${data.docs}"
+        logger.debug "docs size: ${data.docs.size()}"
         Map<String, List> result = [:]
         JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
@@ -444,7 +444,7 @@ class Project {
                     doc.section in ['1', '2.1', '3.1', '5.4'])
             }.keyset() as List<String>
         }
-
+        logger.debug "result size: ${result.size()}"
         return result
     }
 
