@@ -1923,12 +1923,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "verify isGxpProject property"() {
         given:
+        def project = Stub(Project)
+        project.projectProperties = projectProperties
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
             null, null, null, null, null, null, null, null,
             null, null, null)
 
         when:
-        def result = leVADocumentUseCase.isGxpProject()
+        def result = leVADocumentUseCase.isGxpProject(projectProperties)
 
         then:
         result == expected
