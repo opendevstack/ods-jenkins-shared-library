@@ -438,7 +438,7 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && issueIsNonGxpManadatory(issue)
+                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
@@ -468,18 +468,18 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && issueIsNonGxpManadatory(issue)
+                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
         logger.debug "docChapters result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
 
-    private boolean issueIsNonGxpManadatory(Map issue) {
-        return issue.documents != null
+    private boolean isNonGxpManadatoryIssue(Map issue) {
+        return (issue.documents != null
             && issue.number != null
             && ((issue.documents.contains('CSD') && issue.number in ['1', '3.1']) ||
-            (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4']))
+            (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4'])))
     }
 
     /**
