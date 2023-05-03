@@ -459,7 +459,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections        : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
-                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1
+                documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
 
@@ -1000,7 +1000,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
-                isGxpProject: isGxpProject(this.project.getProjectProperties())
+                isGxpProject: isGxpProject(this.project.getProjectProperties()),
             ]
         ]
 
