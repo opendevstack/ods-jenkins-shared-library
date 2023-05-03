@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix errors when the templatesVersion is not set or set as number ([#](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
 - Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
 
 ### Fixed
