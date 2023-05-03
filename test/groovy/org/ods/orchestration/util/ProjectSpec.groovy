@@ -10,13 +10,11 @@ import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
-import spock.lang.Ignore
 import util.FixtureHelper
 import util.SpecHelper
 
 import java.nio.file.Files
 
-@Ignore
 class ProjectSpec extends SpecHelper {
 
     GitService git

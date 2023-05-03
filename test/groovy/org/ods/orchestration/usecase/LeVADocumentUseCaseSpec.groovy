@@ -8,7 +8,6 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.util.ILogger
 import org.ods.services.ServiceRegistry
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import org.ods.services.JenkinsService
@@ -1921,8 +1920,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         [name: '',description: 'DESCRIPTION']          |       'DESCRIPTION'
         [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
     }
-
-    @Ignore
     def "verify isGxpProject property"() {
         given:
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
@@ -1937,7 +1934,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         where:
         projectProperties                               |       expected
-        [:]                                             |       LeVADocumentUseCase.IS_GXP_PROJECT_DEFAULT
+        [:]                                             |       Project.IS_GXP_PROJECT_DEFAULT
         ['PROJECT.IS_GXP': 'false']                     |       false
         ['PROJECT.IS_GXP': 'true']                      |       true
     }
