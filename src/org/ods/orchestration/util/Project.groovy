@@ -432,13 +432,14 @@ class Project {
 
         if (isGxpProject()) {
             if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
-                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll {
+                    k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         } else {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
         logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
@@ -468,7 +469,7 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
         logger.debug "docChapters result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
@@ -507,6 +508,12 @@ class Project {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+    }
+
+    @NonCPS
+    protected boolean docIssueIsWIP(Map issue) {
+        issue.status != null &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
     }
 
     @NonCPS
