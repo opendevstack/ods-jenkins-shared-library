@@ -478,26 +478,6 @@ class Project {
             (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4'])))
     }
 
-    /**
-     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
-     * the sections not done
-     * @param data jira data
-     * @return dict with map documentTypes -> sectionsNotDoneKeys
-     */
-    @NonCPS
-    protected Map<String,List> computeWipDocChapterPerDocument2(Map data) {
-        (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { issueIsWIP(it) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
-            }
-    }
-
     @NonCPS
     protected boolean issueIsWIP(Map issue) {
         issue.status != null &&
