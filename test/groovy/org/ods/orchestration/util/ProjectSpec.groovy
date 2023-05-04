@@ -2853,4 +2853,36 @@ class ProjectSpec extends SpecHelper {
         "FALSE"         || false
     }
 
+    def "verify isGxpProject default value"() {
+        given:
+        project.projectProperties.remove(Project.IS_GXP_PROJECT_PROPERTY)
+
+        when:
+        def result = project.isGxpProject()
+
+        then:
+        result == Project.IS_GXP_PROJECT_DEFAULT
+    }
+
+    def "verify isGxpProject true value"() {
+        given:
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'true')
+
+        when:
+        def result = project.isGxpProject()
+
+        then:
+        result == true
+    }
+
+    def "verify isGxpProject false value"() {
+        given:
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+
+        when:
+        def result = project.isGxpProject()
+
+        then:
+        result == false
+    }
 }

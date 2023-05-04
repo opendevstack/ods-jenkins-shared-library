@@ -27,6 +27,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
+    static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
     static final boolean IS_GXP_PROJECT_DEFAULT = true
 
@@ -370,6 +371,9 @@ class Project {
         this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
         this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
 
+        System.currentTimeMillis()
+        System.nanoTime()
+
         if (this.hasWipJiraIssues()) {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
@@ -607,7 +611,7 @@ class Project {
     }
 
     boolean isGxpProject() {
-        String isGxp = projectProperties."PROJECT.IS_GXP"
+        String isGxp = projectProperties?."${IS_GXP_PROJECT_PROPERTY}"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
