@@ -1231,7 +1231,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String getDocumentTemplatesVersion() {
         def capability = this.project.getCapability('LeVADocs')
-        return capability.templatesVersion
+        return capability.templatesVersion ? "${capability.templatesVersion}": Project.DEFAULT_TEMPLATE_VERSION
     }
 
     boolean shouldCreateArtifact (String documentType, Map repo) {
