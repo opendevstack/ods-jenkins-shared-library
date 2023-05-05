@@ -371,9 +371,6 @@ class Project {
         this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
         this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
 
-        System.currentTimeMillis()
-        System.nanoTime()
-
         if (this.hasWipJiraIssues()) {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
