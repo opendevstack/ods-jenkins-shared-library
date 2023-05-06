@@ -341,6 +341,12 @@ class Pipeline implements Serializable {
         if (!this.bitbucketNotificationEnabled) {
             return
         }
+        // in some nasty nullpointer cases - jenkins suddenly nullifies this bitbucket service?
+        // which in case a previous error, will push the nullp up the stack, and hide the "real" error
+        if (!bitbucketService) {
+            logger.warn "Cannot set Bitbucket build status to '${state}' as bitbucket service is null!"
+            return
+        }
         if (!context.buildUrl || !context.gitCommit) {
             logger.info "Cannot set Bitbucket build status to '${state}' because required data is missing!"
             return

@@ -151,6 +151,7 @@ class NexusService {
         if (artifactExists) {
             artifactExists.delete()
         }
+        // NOTE: unnirest expects the directory tree to be present! MUST be created from outside
         def response = restCall.asFile("${extractionPath}/${name}")
 
         response.ifFailure {
@@ -161,14 +162,18 @@ class NexusService {
             if (response.getStatus() == 404) {
                 message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
             }
-            // very weird, we get a 200 as failure with a good artifact, wtf.
-            if (response.getStatus() != 200) {
+
+            // if we get a 200 as failure with a good artifact, wtf. - parsing error?!
+            if (response.getStatus() == 200) {
+                throw new RuntimeException("Could not parse response from: ${urlToDownload}",
+                    response.getParsingError().get())
+            } else {
                 throw new RuntimeException(message)
             }
         }
 
         return [
-            uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
+            uri: new URI(urlToDownload),
             content: response.getBody(),
         ]
     }
