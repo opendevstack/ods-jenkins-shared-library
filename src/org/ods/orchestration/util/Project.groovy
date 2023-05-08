@@ -76,6 +76,7 @@ class Project {
             TYPE_TESTS,
         ]
 
+        static final String ISSUE_STATUS_TODO = 'to do'
         static final String ISSUE_STATUS_DONE = 'done'
         static final String ISSUE_STATUS_CANCELLED = 'cancelled'
 
@@ -451,24 +452,16 @@ class Project {
      */
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
         Map<String, List> result = [:]
-        if (isGxpProject()) {
-            result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-                .values()
-                .findAll { issueIsWIP(it) }
-                .collect { chapter ->
-                    chapter.documents.collect { [doc: it, key: chapter.key] }
-                }.flatten()
-                .groupBy { it.doc }
-                .collectEntries { doc, issues ->
-                    [(doc as String): issues.collect { it.key } as List<String>]
-                }
-        } else {
-            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
-                //use getWIPDocChaptersForDocument passyng the doc type
-                //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
-            }.keySet() as List<String>
-        }
+        result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
+            .values()
+            .findAll { isGxpProject() ? issueIsWIP(it) : (issueIsWIP(it) && isNonGxpManadatoryIssue(it)) }
+            .collect { chapter ->
+                chapter.documents.collect { [doc: it, key: chapter.key] }
+            }.flatten()
+            .groupBy { it.doc }
+            .collectEntries { doc, issues ->
+                [(doc as String): issues.collect { it.key } as List<String>]
+            }
         return result
     }
 
