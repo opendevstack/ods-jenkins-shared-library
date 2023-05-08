@@ -1096,7 +1096,7 @@ class Project {
         if (!this.jiraUseCase) return false
         if (!this.jiraUseCase.jira) return false
         def levaDocsCapability = this.getCapability('LeVADocs')
-        if (levaDocsCapability.templatesVersion == '1.0') {
+        if (levaDocsCapability && levaDocsCapability?.templatesVersion == '1.0') {
             return false
         }
         return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
@@ -1433,6 +1433,7 @@ class Project {
             if (!templatesVersion) {
                 levaDocsCapability.LeVADocs.templatesVersion = DEFAULT_TEMPLATE_VERSION
             }
+            levaDocsCapability.LeVADocs.templatesVersion = "${levaDocsCapability.LeVADocs.templatesVersion}"
         }
 
         if (result.environments == null) {
