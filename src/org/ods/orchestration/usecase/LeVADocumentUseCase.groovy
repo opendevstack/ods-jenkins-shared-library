@@ -1660,7 +1660,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected Map getDocumentSections(String documentType) {
-		def sections = this.project.getDocumentChaptersForDocument(documentType)
+		        def sections = this.project.getDocumentChaptersForDocument(documentType)
         def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.containsKey(documentType)
 
         if (!sections) {
@@ -1668,11 +1668,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 'Could not obtain document chapter data from Jira.')
         }
         // Extract-out the section, as needed for the DocGen interface
-        logger.info("---> here <---")
-        logger.info("Man: " + isNonMandatoryWipDoc + ".")
-        return sections.collectEntries { sec ->
+        logger.info("---> Man: " + isNonMandatoryWipDoc + " <---")
+        var retVal = sections.collectEntries { sec ->
             [(sec.section): isNonMandatoryWipDoc ? "Non mandatory" : sec + [content: this.convertImages(sec.content)]]
         }
+        logger.info("---> " + retVal + " <---")
+        return retVal
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
