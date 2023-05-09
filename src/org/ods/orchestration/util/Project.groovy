@@ -27,6 +27,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
+    static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
     static final boolean IS_GXP_PROJECT_DEFAULT = true
 
@@ -75,6 +76,7 @@ class Project {
             TYPE_TESTS,
         ]
 
+        static final String ISSUE_STATUS_TODO = 'to do'
         static final String ISSUE_STATUS_DONE = 'done'
         static final String ISSUE_STATUS_CANCELLED = 'cancelled'
 
@@ -477,26 +479,6 @@ class Project {
             && issue.number != null
             && ((issue.documents.contains('CSD') && issue.number in ['1', '3.1']) ||
             (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4'])))
-    }
-
-    /**
-     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
-     * the sections not done
-     * @param data jira data
-     * @return dict with map documentTypes -> sectionsNotDoneKeys
-     */
-    @NonCPS
-    protected Map<String,List> computeWipDocChapterPerDocument2(Map data) {
-        (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { issueIsWIP(it) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
-            }
     }
 
     @NonCPS
