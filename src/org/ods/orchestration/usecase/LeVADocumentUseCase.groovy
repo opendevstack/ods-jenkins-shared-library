@@ -1507,7 +1507,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 buildUrl   : this.steps.env.BUILD_URL,
                 jobName    : this.steps.env.JOB_NAME
             ],
-            referencedDocs : this.getReferencedDocumentsVersion()
+            referencedDocs : this.getReferencedDocumentsVersion(),
+            isGxp: project.isGxpProject()
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]

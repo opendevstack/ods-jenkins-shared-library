@@ -421,8 +421,6 @@ class Project {
     }
 
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        logger.debug "computeWipJiraIssues isGxpProject: ${isGxpProject()}"
-        logger.debug "docs size: ${data.docs.size()}"
         Map<String, List> result = [:]
         JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
@@ -442,7 +440,6 @@ class Project {
                 docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
-        logger.debug "result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
 
@@ -472,7 +469,6 @@ class Project {
                 docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
-        logger.debug "docChapters result size: ${result[JiraDataItem.TYPE_DOCS].size()}"
         return result
     }
 
@@ -638,7 +634,7 @@ class Project {
     }
 
     boolean isGxpProject() {
-        String isGxp = projectProperties."PROJECT.IS_GXP"
+        String isGxp = projectProperties?."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 

@@ -10,13 +10,11 @@ import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
-import spock.lang.Ignore
 import util.FixtureHelper
 import util.SpecHelper
 
 import java.nio.file.Files
 
-@Ignore
 class ProjectSpec extends SpecHelper {
 
     GitService git
@@ -899,6 +897,119 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             !expectedMessage.find("${type}-3")
         }
+    }
+
+    def "fail build with mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        then:
+        def e = thrown(OpenIssuesException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
+
+        where:
+        a | b || c
+        "CSD" | '1' || true
+        "CSD" | '3.1' || true
+        "SSDS" | '1' || true
+        "SSDS" | '2.1' || true
+        "SSDS" | '3.1' || true
+        "SSDS" | '5.4' || true
+    }
+
+    def "NOT fail build with non-mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        where:
+        a | b || c
+        "CSD" | '2' || false
+        "CSD" | '3.2' || false
+        "SSDS" | '2' || false
+        "SSDS" | '2.2' || false
+        "SSDS" | '3.2' || false
+        "SSDS" | '5.5' || false
     }
 
     def "load initial version"() {
