@@ -1661,7 +1661,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map getDocumentSections(String documentType) {
 		def sections = this.project.getDocumentChaptersForDocument(documentType)
-        def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.contains(documentType)
+        def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.containsKey(documentType)
 
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
