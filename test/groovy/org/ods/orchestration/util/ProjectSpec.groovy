@@ -1112,6 +1112,19 @@ class ProjectSpec extends SpecHelper {
         "SSDS" | '2.2' || false
         "SSDS" | '3.2' || false
         "SSDS" | '5.5' || false
+        "CFTP" | '1' || false
+        "CFTR" | '1' || false
+        "DTP" | '1' || false
+        "DTR" | '1' || false
+        "DIL" | '1' || false
+        "IVP" | '1' || false
+        "IVR" | '1' || false
+        "RA" | '1' || false
+        "TCP" | '1' || false
+        "TCR" | '1' || false
+        "TIP" | '1' || false
+        "TIR" | '1' || false
+        "TRC" | '1' || false
     }
 
     def "load initial version"() {
