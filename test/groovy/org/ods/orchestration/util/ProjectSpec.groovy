@@ -1001,6 +1001,132 @@ class ProjectSpec extends SpecHelper {
         }
     }
 
+    def "fail build with mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        then:
+        def e = thrown(OpenIssuesException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
+
+        where:
+        a | b || c
+        "CSD" | '1' || true
+        "CSD" | '3.1' || true
+        "SSDS" | '1' || true
+        "SSDS" | '2.1' || true
+        "SSDS" | '3.1' || true
+        "SSDS" | '5.4' || true
+    }
+
+    def "NOT fail build with non-mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        where:
+        a | b || c
+        "CSD" | '2' || false
+        "CSD" | '3.2' || false
+        "SSDS" | '2' || false
+        "SSDS" | '2.2' || false
+        "SSDS" | '3.2' || false
+        "SSDS" | '5.5' || false
+        "CFTP" | '1' || false
+        "CFTR" | '1' || false
+        "DTP" | '1' || false
+        "DTR" | '1' || false
+        "DIL" | '1' || false
+        "IVP" | '1' || false
+        "IVR" | '1' || false
+        "RA" | '1' || false
+        "TCP" | '1' || false
+        "TCR" | '1' || false
+        "TIP" | '1' || false
+        "TIR" | '1' || false
+        "TRC" | '1' || false
+    }
+
     def "load initial version"() {
         given:
         def component1 = [key: "CMP-1", name: "Component 1"]

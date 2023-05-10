@@ -26,7 +26,8 @@
             "PROJECT.POO_CAT.HIGH": "Frequency of the usage of the related function is >10 times per week.",
             "PROJECT.POO_CAT.LOW": "Frequency of the usage of the related function is <10 times per year.",
             "PROJECT.POO_CAT.MEDIUM": "Frequency of the usage of the related function is <10 times per week.",
-            "PROJECT.USES_POO": "true"
+            "PROJECT.USES_POO": "true",
+            "PROJECT.IS_GXP": "true"
         },
         "enumDictionary": {
             "ProbabilityOfDetection": {

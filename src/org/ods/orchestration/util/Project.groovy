@@ -432,13 +432,14 @@ class Project {
 
         if (isGxpProject()) {
             if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
-                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll {
+                    k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         } else {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
             }.keySet() as List<String>
         }
         return result
@@ -452,16 +453,24 @@ class Project {
      */
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
         Map<String, List> result = [:]
-        result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { isGxpProject() ? issueIsWIP(it) : (issueIsWIP(it) && isNonGxpManadatoryIssue(it)) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
-            }
+        if (isGxpProject()) {
+            result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
+                .values()
+                .findAll { issueIsWIP(it) }
+                .collect { chapter ->
+                    chapter.documents.collect { [doc: it, key: chapter.key] }
+                }.flatten()
+                .groupBy { it.doc }
+                .collectEntries { doc, issues ->
+                    [(doc as String): issues.collect { it.key } as List<String>]
+                }
+        } else {
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
+                //use getWIPDocChaptersForDocument passyng the doc type
+                //as per JiraUseCase.groovy line 165
+                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+            }.keySet() as List<String>
+        }
         return result
     }
 
@@ -477,6 +486,12 @@ class Project {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+    }
+
+    @NonCPS
+    protected boolean docIssueIsWIP(Map issue) {
+        issue.status != null &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
     }
 
     @NonCPS
@@ -601,7 +616,7 @@ class Project {
     }
 
     boolean isGxpProject() {
-        String isGxp = projectProperties?."${IS_GXP_PROJECT_PROPERTY}"
+        String isGxp = projectProperties?."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 

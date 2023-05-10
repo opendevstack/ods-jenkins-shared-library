@@ -1507,7 +1507,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 buildUrl   : this.steps.env.BUILD_URL,
                 jobName    : this.steps.env.JOB_NAME
             ],
-            referencedDocs : this.getReferencedDocumentsVersion()
+            referencedDocs : this.getReferencedDocumentsVersion(),
+            isGxp: project.isGxpProject()
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
@@ -1659,16 +1660,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected Map getDocumentSections(String documentType) {
-        def sections = this.project.getDocumentChaptersForDocument(documentType)
+		        def sections = this.project.getDocumentChaptersForDocument(documentType)
+        def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.containsKey(documentType)
 
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
         }
         // Extract-out the section, as needed for the DocGen interface
-        return sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content)]]
+        logger.info("---> Man: " + isNonMandatoryWipDoc + " <---")
+        var retVal = sections.collectEntries { sec ->
+            [(sec.section): isNonMandatoryWipDoc ? "Non mandatory" : sec + [content: this.convertImages(sec.content)]]
         }
+        logger.info("---> " + retVal + " <---")
+        return retVal
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
