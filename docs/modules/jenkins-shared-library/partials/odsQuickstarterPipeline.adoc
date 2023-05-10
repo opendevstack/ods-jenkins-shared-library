@@ -29,10 +29,10 @@ Available options are:
 | Maximum memory the container can use - defaults to 2Gi. This value is not used when `podContainers` is set.
 
 | resourceRequestCpu
-| How much CPU the container requests - defaults to 10mi. This value is not used when `podContainers` is set.
+| How much CPU the container requests - defaults to 10m. This value is not used when `podContainers` is set.
 
 | resourceLimitCpu
-| Maximum CPU the container can use - defaults to 300mi. This value is not used when `podContainers` is set.
+| Maximum CPU the container can use - defaults to 300m. This value is not used when `podContainers` is set.
 
 | podLabel
 | Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
