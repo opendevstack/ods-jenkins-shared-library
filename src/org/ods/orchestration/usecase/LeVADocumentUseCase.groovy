@@ -1672,7 +1672,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         // Extract-out the section, as needed for the DocGen interface
         logger.info("---> Man: " + isNonMandatoryWipDoc + " <---")
-        var retVal = sections.collectEntries { sec ->
+        def retVal = sections.collectEntries { sec ->
             [(sec.section): (isNonMandatoryWipDoc ? "Non mandatory" : sec + [content: this.convertImages(sec.content)])]
         }
         logger.info("---> retVal: " + retVal + " <---")
