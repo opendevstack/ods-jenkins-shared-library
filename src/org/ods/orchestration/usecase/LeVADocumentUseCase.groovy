@@ -1668,7 +1668,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def sectionCollection = sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content)]]
+            [(sec.section): sec + [content2: this.convertImages(sec.content)]]
         }
 
         logger.info "---Section collection: ${sectionCollection}"
