@@ -1680,7 +1680,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private boolean checkIsNotMandatoryWipDoc(String documentType, String issueKey) {
         def wipDocChapters = this.project.getWIPDocChaptersForDocument(documentType)
-        logger.info "---wipDocChapters: ${wipDocChapters}"
+        logger.info "---wipDocChapters: ${wipDocChapters}, issueKey: ${issueKey}, ${wipDocChapters.contains(issueKey)}"
         return wipDocChapters.contains(issueKey);
     }
 
