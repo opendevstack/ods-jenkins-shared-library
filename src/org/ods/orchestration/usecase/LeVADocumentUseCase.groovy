@@ -1666,11 +1666,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
         }
-        // Extract-out the section, as needed for the DocGen interface
-        return sections.collectEntries { sec ->
+
+        def sectionCollection = sections.collectEntries { sec ->
             [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
+
+        log.info "---Section collection: ${sectionCollection}"
+
+        // Extract-out the section, as needed for the DocGen interface
+        return sectionCollection
     }
+
+
 
 
 
