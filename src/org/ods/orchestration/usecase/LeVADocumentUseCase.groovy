@@ -1671,7 +1671,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
 
-        log.info "---Section collection: ${sectionCollection}"
+        logger.info "---Section collection: ${sectionCollection}"
 
         // Extract-out the section, as needed for the DocGen interface
         return sectionCollection
