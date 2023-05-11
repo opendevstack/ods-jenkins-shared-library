@@ -1659,25 +1659,38 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return jiraIssues
     }
 
-
-
     protected Map getDocumentSections(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
-        //TODO fix this check
-        def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.containsKey(documentType)
 
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
         }
         // Extract-out the section, as needed for the DocGen interface
-        logger.info("---> Man: " + isNonMandatoryWipDoc + " <---")
-        def retVal = sections.collectEntries { sec ->
-            [(sec.section): (isNonMandatoryWipDoc ? "Non mandatory" : sec + [content: this.convertImages(sec.content)])]
+        return sections.collectEntries { sec ->
+            [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
-        logger.info("---> retVal: " + retVal + " <---")
-        return retVal
     }
+
+
+
+//    protected Map getDocumentSections(String documentType) {
+//        def sections = this.project.getDocumentChaptersForDocument(documentType)
+//        //TODO fix this check
+//        def isNonMandatoryWipDoc = this.project.data.jira.undoneDocChapters.containsKey(documentType)
+//
+//        if (!sections) {
+//            throw new RuntimeException("Error: unable to create ${documentType}. " +
+//                'Could not obtain document chapter data from Jira.')
+//        }
+//        // Extract-out the section, as needed for the DocGen interface
+//        logger.info("---> Man: " + isNonMandatoryWipDoc + " <---")
+//        def retVal = sections.collectEntries { sec ->
+//            [(sec.section): (isNonMandatoryWipDoc ? "Non mandatory" : sec + [content: this.convertImages(sec.content)])]
+//        }
+//        logger.info("---> retVal: " + retVal + " <---")
+//        return retVal
+//    }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
