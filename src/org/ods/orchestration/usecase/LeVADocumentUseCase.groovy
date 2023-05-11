@@ -1668,7 +1668,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def sectionCollection = sections.collectEntries { sec ->
-            [(sec.section): sec + [content2: this.convertImages(sec.content)]]
+            [(sec.section): sec + [content: checkIsNotMandatoryWipDoc(documentType, sec.key) ?
+                "Non mandatory" : this.convertImages(sec.content)]]
         }
 
         logger.info "---Section collection: ${sectionCollection}"
@@ -1677,8 +1678,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return sectionCollection
     }
 
-
-
+    private boolean checkIsNotMandatoryWipDoc(String documentType, String issueKey) {
+        return true;
+    }
 
 
 //    protected Map getDocumentSections(String documentType) {
