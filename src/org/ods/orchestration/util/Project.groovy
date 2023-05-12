@@ -489,7 +489,7 @@ class Project {
     }
 
     boolean isReplaceIssueContentWithNonMandatoryText(Map issue) {
-        !isNonGxpManadatoryIssue(issue) && docIssueIsWIP()
+        !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
     }
 
     @NonCPS

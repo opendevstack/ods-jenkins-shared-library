@@ -1668,7 +1668,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def sectionCollection = sections.collectEntries { sec ->
-            [(sec.section): sec + [content: checkIsNotMandatoryWipDoc(sec) ?
+            [(sec.section): sec + [content: this.project.isReplaceIssueContentWithNonMandatoryText(issue) ?
                 "Not mandatory" : this.convertImages(sec.content)]]
         }
 
@@ -1677,12 +1677,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Extract-out the section, as needed for the DocGen interface
         return sectionCollection
     }
-
-    private boolean checkIsNotMandatoryWipDoc(Map issue) {
-        logger.info "---isReplaceIssueContentWithNonMandatoryText: ${this.project.isReplaceIssueContentWithNonMandatoryText(issue)}"
-        return this.project.isReplaceIssueContentWithNonMandatoryText(issue)
-    }
-
 
 //    protected Map getDocumentSections(String documentType) {
 //        def sections = this.project.getDocumentChaptersForDocument(documentType)
