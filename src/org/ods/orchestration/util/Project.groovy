@@ -488,6 +488,10 @@ class Project {
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
     }
 
+    boolean isReplaceIssueContentWithNonMandatoryText(Map issue) {
+        !isNonGxpManadatoryIssue(issue) && docIssueIsWIP()
+    }
+
     @NonCPS
     protected Map convertJiraDataToJiraDataItems(Map data) {
         JiraDataItem.TYPES.each { type ->
