@@ -489,13 +489,13 @@ class Project {
     }
 
     boolean replaceIssueContentWithNonMandatoryText(Map issue) {
-        if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40']) {
+        if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40', 'TCVEDP-71']) {
             logger.info "${issue.key} docIssueIsWIP(issue): ${docIssueIsWIP(issue)} " +
                 "!isNonGxpManadatoryIssue(issue): ${!isNonGxpManadatoryIssue(issue)}  !isGxpProject(): ${!isGxpProject()} " +
                 " ${issue} "
         }
-
-        !isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
+        logger.info "---response: ${!isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)}"
+        return !isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
     }
 
     @NonCPS
