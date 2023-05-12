@@ -1668,7 +1668,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def sectionCollection = sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.project.isReplaceIssueContentWithNonMandatoryText(sec) ?
+            [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
                 "Not mandatory" : this.convertImages(sec.content)]]
         }
 

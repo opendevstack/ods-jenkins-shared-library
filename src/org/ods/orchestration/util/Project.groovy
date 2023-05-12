@@ -488,7 +488,7 @@ class Project {
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
     }
 
-    boolean isReplaceIssueContentWithNonMandatoryText(Map issue) {
+    boolean replaceIssueContentWithNonMandatoryText(Map issue) {
         if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40']) {
             logger.info "${issue.key} docIssueIsWIP(issue): ${docIssueIsWIP(issue)} " +
                 "!isNonGxpManadatoryIssue(issue): ${!isNonGxpManadatoryIssue(issue)}  !isGxpProject(): ${!isGxpProject()} " +
