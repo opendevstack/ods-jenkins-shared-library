@@ -489,6 +489,10 @@ class Project {
     }
 
     boolean isReplaceIssueContentWithNonMandatoryText(Map issue) {
+        if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40']) {
+            logger.info "${issue.key} docIssueIsWIP(issue): ${docIssueIsWIP(issue)} \\n\\n  ${issue} "
+        }
+
         !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
     }
 
