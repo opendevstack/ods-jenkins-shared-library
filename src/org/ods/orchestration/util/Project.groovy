@@ -494,7 +494,7 @@ class Project {
                 "!isNonGxpManadatoryIssue(issue): ${!isNonGxpManadatoryIssue(issue)}  !isGxpProject(): ${!isGxpProject()} " +
                 " ${issue} "
         }
-        logger.info "---response: ${!isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)}"
+        logger.info "---response ${issue.key}: ${!isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)}"
         return !isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
     }
 
