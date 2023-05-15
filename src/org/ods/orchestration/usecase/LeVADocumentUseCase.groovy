@@ -1669,7 +1669,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def sectionCollection = sections.collectEntries { sec ->
             [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
-                "Not mandatory" : this.convertImages(sec.content)]]
+                "<i>Not mandatory.</i>" : this.convertImages(sec.content)]]
+            //TODO better styling and put non mandatory also for cancelled issues
         }
 
         logger.info "---Section collection: ${sectionCollection}"
