@@ -366,8 +366,10 @@ class Project {
 
         this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
         this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
+        this.logger.debug "Jira_Object: ${this.data.jira}"
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
+        this.logger.debug "Jira_Object: ${this.data.jira}"
 
         this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
         this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
@@ -436,10 +438,10 @@ class Project {
                     k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         } else {
-            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
+            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+                docIssueIsWIP(data[JiraDataItem.TYPE_DOCS][key]) && isNonGxpManadatoryIssue(doc)
             }.keySet() as List<String>
         }
         return result
@@ -455,8 +457,7 @@ class Project {
         Map<String, List> result = [:]
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { isGxpProject() ? issueIsWIP(it) : docIssueIsWIP(it) && isNonGxpManadatoryIssue(it) }
+            .findAll { k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
@@ -468,11 +469,11 @@ class Project {
         return result
     }
 
-    private boolean isNonGxpManadatoryIssue(Map issue) {
-        return (issue.documents != null
-            && issue.number != null
-            && ((issue.documents.contains('CSD') && issue.number in ['1', '3.1']) ||
-            (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4'])))
+    private boolean isNonGxpManadatoryIssue(Map doc) {
+        return (doc.documents != null
+            && doc.number != null
+            && ((doc.documents.contains('CSD') && doc.number in ['1', '3.1']) ||
+            (doc.documents.contains('SSDS') && doc.number in ['1', '2.1', '3.1', '5.4'])))
     }
 
     @NonCPS
