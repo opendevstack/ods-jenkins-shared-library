@@ -727,8 +727,8 @@ class ProjectSpec extends SpecHelper {
             expected[type] = [ "${type}-1", "${type}-2", "${type}-5",
                                "${type}-8", "${type}-9", "${type}-10", "${type}-11", "${type}-12", ]
         }
-        //TODO Update expected to also consider cancelled issues as WIP
         expected[Project.JiraDataItem.TYPE_DOCS] = [ "${Project.JiraDataItem.TYPE_DOCS}-5",
+                                                     "${Project.JiraDataItem.TYPE_DOCS}-7",
                                                      "${Project.JiraDataItem.TYPE_DOCS}-8",
                                                      "${Project.JiraDataItem.TYPE_DOCS}-9",
                                                      "${Project.JiraDataItem.TYPE_DOCS}-10"]
@@ -2975,7 +2975,7 @@ class ProjectSpec extends SpecHelper {
 
         def data = [
             (Project.JiraDataItem.TYPE_DOCS): issue('77', '1', 'Introduction',
-                Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
                 issue('76', '2.1', 'System Design Overview',
                     Project.JiraDataItem.ISSUE_STATUS_CANCELLED, ['SSDS']) +
                 issue('73', '3.1', 'System Design Profile',
@@ -2992,8 +2992,7 @@ class ProjectSpec extends SpecHelper {
                     Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD'])
         ]
         project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
-// TODO       def expected = [SSDS:['77', '76']]
-        def expected = [SSDS:['77']]
+        def expected = [SSDS:['77', '76']]
 
         when:
         def result = project.computeWipDocChapterPerDocument(data)

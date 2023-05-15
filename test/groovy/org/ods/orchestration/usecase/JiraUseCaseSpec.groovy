@@ -861,7 +861,9 @@ class JiraUseCaseSpec extends SpecHelper {
         ])
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-4711", "${error.message}\n\nSee: ${steps.env.RUN_DISPLAY_URL}")
+        1 * jira.appendCommentToIssue("JIRA-4711",
+            "${error.message}\n\nSee: ${steps.env.RUN_DISPLAY_URL}" +
+                "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done.")
     }
 
     def "update Jira release status result without error"() {
