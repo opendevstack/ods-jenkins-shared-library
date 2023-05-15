@@ -490,6 +490,7 @@ class Project {
 
     @NonCPS
     protected boolean docIssueIsWIP(Map issue) {
+        this.logger.debug "Doc Issues: ${issue}"
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
     }
