@@ -439,7 +439,8 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, issue ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue)
+                true
+                /* docIssueIsWIP(issue) && isNonGxpManadatoryIssue(issue) */
             }.keySet() as List<String>
         }
         return result
@@ -456,7 +457,7 @@ class Project {
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
-            .findAll { isGxpProject() ? issueIsWIP(it) : docIssueIsWIP(it) && isNonGxpManadatoryIssue(it) }
+            .findAll { true /* isGxpProject() ? issueIsWIP(it) : docIssueIsWIP(it) && isNonGxpManadatoryIssue(it) */ }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
@@ -475,14 +476,12 @@ class Project {
             (issue.documents.contains('SSDS') && issue.number in ['1', '2.1', '3.1', '5.4'])))
     }
 
-    @NonCPS
     protected boolean issueIsWIP(Map issue) {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
     }
 
-    @NonCPS
     protected boolean docIssueIsWIP(Map issue) {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
