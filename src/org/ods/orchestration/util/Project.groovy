@@ -459,7 +459,7 @@ class Project {
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
-            .findAll { k, v -> issueIsWIP(v) /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
+            .findAll { issueIsWIP(it) /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
