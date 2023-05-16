@@ -441,7 +441,7 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                true
+                issueIsWIP(data[JiraDataItem.TYPE_DOCS][key])
                 /* docIssueIsWIP(data[JiraDataItem.TYPE_DOCS][key]) && isNonGxpManadatoryIssue(doc) */
             }.keySet() as List<String>
         }
@@ -459,7 +459,7 @@ class Project {
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
-            .findAll { true /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
+            .findAll { issueIsWIP(v) /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
@@ -493,12 +493,6 @@ class Project {
     }
 
     boolean replaceIssueContentWithNonMandatoryText(Map issue) {
-        if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40', 'TCVEDP-71']) {
-            logger.info "${issue.key} docIssueIsWIP(issue): ${docIssueIsWIP(issue)} " +
-                "!isNonGxpManadatoryIssue(issue): ${!isNonGxpManadatoryIssue(issue)}  !isGxpProject(): ${!isGxpProject()} " +
-                " ${issue} "
-        }
-        logger.info "---response ${issue.key}: ${!isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)}"
         return !isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
     }
 
