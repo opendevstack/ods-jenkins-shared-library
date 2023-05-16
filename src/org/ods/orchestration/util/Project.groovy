@@ -478,14 +478,12 @@ class Project {
             (doc.documents.contains('SSDS') && doc.number in ['1', '2.1', '3.1', '5.4'])))
     }
 
-    @NonCPS
     protected boolean issueIsWIP(Map issue) {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
     }
 
-    @NonCPS
     protected boolean docIssueIsWIP(Map issue) {
         this.logger.debug "Doc Issues: ${issue}"
         issue.status != null &&
