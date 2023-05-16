@@ -458,6 +458,7 @@ class Project {
         Map<String, List> result = [:]
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
+            .values()
             .findAll { true /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
