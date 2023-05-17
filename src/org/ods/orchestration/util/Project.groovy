@@ -366,10 +366,8 @@ class Project {
 
         this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
         this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
-        this.logger.debug "Jira_Object: ${this.data.jira}"
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
-        this.logger.debug "Jira_Object: ${this.data.jira}"
 
         this.logger.debug "WIP_Jira_Issues: ${this.data.jira.undone}"
         this.logger.debug "WIP_Jira_Chapters: ${this.data.jira.undoneDocChapters}"
@@ -424,25 +422,13 @@ class Project {
         return !values.isEmpty()
     }
 
+    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
         Map<String, List> result = [:]
-        JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+        JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+                result[type] = data[type].findAll { k, v -> issueIsWIPandMandatory(v, type) }.keySet() as List<String>
             }
-        }
-
-        if (isGxpProject()) {
-            if (data.containsKey(JiraDataItem.TYPE_DOCS)) {
-                result[JiraDataItem.TYPE_DOCS] = data[JiraDataItem.TYPE_DOCS].findAll {
-                    k, v -> issueIsWIP(v) }.keySet() as List<String>
-            }
-        } else {
-            result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
-                //use getWIPDocChaptersForDocument passyng the doc type
-                //as per JiraUseCase.groovy line 165
-                docIssueIsWIP(data[JiraDataItem.TYPE_DOCS][key]) && isNonGxpManadatoryIssue(doc)
-            }.keySet() as List<String>
         }
         return result
     }
@@ -453,11 +439,12 @@ class Project {
      * @param data jira data
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
+    @NonCPS
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
         Map<String, List> result = [:]
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .findAll { k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) }
+            .findAll { k, v -> issueIsWIPandMandatory(v, JiraDataItem.TYPE_DOCS) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
@@ -469,7 +456,8 @@ class Project {
         return result
     }
 
-    private boolean isNonGxpManadatoryIssue(Map doc) {
+    @NonCPS
+    private boolean isNonGxpManadatoryDoc(Map doc) {
         return (doc.documents != null
             && doc.number != null
             && ((doc.documents.contains('CSD') && doc.number in ['1', '3.1']) ||
@@ -477,27 +465,20 @@ class Project {
     }
 
     @NonCPS
-    protected boolean issueIsWIP(Map issue) {
-        issue.status != null &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+    protected boolean issueIsWIPandMandatory(Map issue, String type) {
+        if (this.isGxpProject() || type != JiraDataItem.TYPE_DOCS) {
+            return (issue.status != null &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED))
+        } else {
+            return (isNonGxpManadatoryDoc(issue) && (issue.status != null &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)))
+        }
     }
 
     @NonCPS
-    protected boolean docIssueIsWIP(Map issue) {
-        this.logger.debug "Doc Issues: ${issue}"
-        issue.status != null &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
-    }
-
     boolean replaceIssueContentWithNonMandatoryText(Map issue) {
-        if (issue.key in ['TCVEDP-77', 'TCVEDP-76', 'TCVEDP-73', 'TCVEDP-67', 'TCVEDP-42', 'TCVEDP-40', 'TCVEDP-71']) {
-            logger.info "${issue.key} docIssueIsWIP(issue): ${docIssueIsWIP(issue)} " +
-                "!isNonGxpManadatoryIssue(issue): ${!isNonGxpManadatoryIssue(issue)}  !isGxpProject(): ${!isGxpProject()} " +
-                " ${issue} "
-        }
-        logger.info "---response ${issue.key}: ${!isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)}"
-        return !isGxpProject() && !isNonGxpManadatoryIssue(issue) && docIssueIsWIP(issue)
+        return !isGxpProject() && !issueIsWIPandMandatory(issue, JiraDataItem.TYPE_DOCS)
     }
 
     @NonCPS
@@ -621,6 +602,7 @@ class Project {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
     }
 
+    @NonCPS
     boolean isGxpProject() {
         String isGxp = projectProperties?."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
