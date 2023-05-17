@@ -441,8 +441,7 @@ class Project {
             result[JiraDataItem.TYPE_DOCS] = data.docs.findAll { key, doc ->
                 //use getWIPDocChaptersForDocument passyng the doc type
                 //as per JiraUseCase.groovy line 165
-                issueIsWIP(data[JiraDataItem.TYPE_DOCS][key])
-                /* docIssueIsWIP(data[JiraDataItem.TYPE_DOCS][key]) && isNonGxpManadatoryIssue(doc) */
+                docIssueIsWIP(data[JiraDataItem.TYPE_DOCS][key]) && isNonGxpManadatoryIssue(doc)
             }.keySet() as List<String>
         }
         return result
@@ -459,7 +458,7 @@ class Project {
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
-            .findAll { issueIsWIP(it) /* k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) */ }
+            .findAll { k, v -> isGxpProject() ? issueIsWIP(v) : docIssueIsWIP(v) && isNonGxpManadatoryIssue(data.docs[k]) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
