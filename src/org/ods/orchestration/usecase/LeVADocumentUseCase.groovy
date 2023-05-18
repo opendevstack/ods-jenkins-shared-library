@@ -986,7 +986,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 isGxpProject: this.project.isGxpProject(),
             ]
         ]
-        logger.info "---Data for print: ${data_}"
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
@@ -1672,10 +1671,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sectionCollection = sections.collectEntries { sec ->
             [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
                 '<p><em>' + this.NON_MANDATORY_CONTENT + '</em></p>' : this.convertImages(sec.content)]]
-            //TODO better styling and put non mandatory also for cancelled issues
         }
-
-        logger.info "---Section collection: ${sectionCollection}"
 
         // Extract-out the section, as needed for the DocGen interface
         return sectionCollection
