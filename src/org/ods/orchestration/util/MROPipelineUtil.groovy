@@ -10,7 +10,6 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.ods.orchestration.phases.FinalizeNonOdsComponent
@@ -21,6 +20,7 @@ import org.yaml.snakeyaml.Yaml
 class MROPipelineUtil extends PipelineUtil {
 
     class PipelineConfig {
+
         // TODO: deprecate .pipeline-config.yml in favor of release-manager.yml
         static final List FILE_NAMES = ["release-manager.yml", ".pipeline-config.yml"]
 
@@ -36,23 +36,27 @@ class MROPipelineUtil extends PipelineUtil {
 
         static final List PHASE_EXECUTOR_TYPES = [
             PHASE_EXECUTOR_TYPE_MAKEFILE,
-            PHASE_EXECUTOR_TYPE_SHELLSCRIPT
+            PHASE_EXECUTOR_TYPE_SHELLSCRIPT,
         ]
 
         static final List<String> INSTALLABLE_REPO_TYPES = [
             REPO_TYPE_ODS_CODE as String,
             REPO_TYPE_ODS_SERVICE as String,
-            REPO_TYPE_ODS_INFRA as String
+            REPO_TYPE_ODS_INFRA as String,
         ]
+
     }
 
     class PipelineEnvs {
+
         static final String DEV = "dev"
         static final String QA = "qa"
         static final String PROD = "prod"
+
     }
 
     class PipelinePhases {
+
         static final String BUILD = "Build"
         static final String DEPLOY = "Deploy"
         static final String FINALIZE = "Finalize"
@@ -61,6 +65,7 @@ class MROPipelineUtil extends PipelineUtil {
         static final String TEST = "Test"
 
         static final List ALWAYS_PARALLEL = []
+
     }
 
     static final String COMPONENT_METADATA_FILE_NAME = 'metadata.yml'
@@ -85,46 +90,6 @@ class MROPipelineUtil extends PipelineUtil {
         // Transform sets of graph nodes into a sets of repository configs
         return DependencyGraph.resolveGroups(nodes).nodes.collect { group ->
             group.collect { it.data }
-        }
-    }
-
-    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true,
-        String jenkinsFile = 'Jenkinsfile') {
-        this.steps.dir(baseDir) {
-            if (repo.data.openshift.resurrectedBuild) {
-                logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
-                return
-            }
-            def job
-            def env = []
-            env.addAll(this.project.getMainReleaseManagerEnv())
-            this.project.buildParams.each { key, value ->
-                env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
-            }
-            env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
-            this.steps.withEnv (env) {
-                job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
-            }
-            // Collect ODS build artifacts for repo.
-            // We get a map with at least two keys ("build" and "deployments").
-            def buildArtifacts = job.getBuildArtifactURIs()
-            buildArtifacts.each { k, v ->
-                if (k != 'failedStage') {
-                    repo.data.openshift[k] = v
-                }
-            }
-            def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
-            repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
-            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
-
-            if (buildArtifacts.failedStage) {
-                repo.data << ['failedStage': buildArtifacts.failedStage]
-                if (failfast) {
-                    throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
-                } else {
-                    this.logger.warn("Got errors in repo '${repo.id}', will fail delayed.")
-                }
-            }
         }
     }
 
@@ -226,7 +191,7 @@ class MROPipelineUtil extends PipelineUtil {
             repo.id,
             {
                 checkoutNotReleaseManagerRepo(repo, recheckout)
-            }
+            },
         ]
     }
 
@@ -265,7 +230,7 @@ class MROPipelineUtil extends PipelineUtil {
             previousSucessfulCommit: lastSuccessCommit,
             url: scm.GIT_URL,
             baseTag: this.project.baseTag,
-            targetTag: this.project.targetTag
+            targetTag: this.project.targetTag,
         ]
         def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
         loadPipelineConfig(repoPath, repo)
@@ -281,66 +246,6 @@ class MROPipelineUtil extends PipelineUtil {
                 }
             }
         }
-    }
-
-    private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
-        Map scmResult = [ : ]
-        String gitReleaseBranch = this.project.gitReleaseBranch
-        if ("master" == gitReleaseBranch) {
-            gitReleaseBranch = repo.branch
-        }
-
-        // check if release manager repo already has a release branch
-        if (git.remoteBranchExists(gitReleaseBranch)) {
-            try {
-                scmResult.scm = checkoutBranchInRepoDir(repo, gitReleaseBranch)
-                scmResult.scmBranch = gitReleaseBranch
-            } catch (ex) {
-                if (! isWorkInProgress) {
-                    this.logger.warn """
-                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
-                                Attempting to checkout '${repo.branch}' and create the release branch from it.
-                                """
-                    // Possible reasons why this might happen:
-                    // * Release branch manually created in RM repo
-                    // * Repo is added to metadata.yml file on a release branch
-                    // * Release branch has been deleted in repo
-
-                    scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
-                    scmResult.scmBranch = gitReleaseBranch
-                } else {
-                    this.logger.warn """
-                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
-                                Attempting to checkout branch '${repo.branch}'.
-                                """
-                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
-                    scmResult.scmBranch = repo.branch
-                }
-            }
-        } else {
-            if (! isWorkInProgress) {
-                scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
-                scmResult.scmBranch = gitReleaseBranch
-            } else {
-                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.branch} for repo ${repo.id}")
-                scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
-                scmResult.scmBranch = repo.branch
-            }
-        }
-        return scmResult
-    }
-
-    private def createBranchFromDefaultBranch(Map repo, String branchName) {
-        this.logger.info("Creating branch ${branchName} from branch ${repo.branch} for repo ${repo.id} ")
-        def scm = checkoutBranchInRepoDir(repo, repo.branch)
-        if (repo.branch != branchName) {
-            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                git.checkoutNewLocalBranch(branchName)
-            }
-        } else {
-            this.logger.info("No need to create branch ${branchName} for repo ${repo.id} ")
-        }
-        return scm
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {
@@ -460,7 +365,7 @@ class MROPipelineUtil extends PipelineUtil {
                         postExecute(this.steps, repo)
                     }
                 }
-            }
+            },
         ]
     }
 
@@ -495,6 +400,106 @@ class MROPipelineUtil extends PipelineUtil {
             // Apply the visitor to the repo at the repo's base dir
             visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
         }
+    }
+
+    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true,
+                                     String jenkinsFile = 'Jenkinsfile') {
+        this.steps.dir(baseDir) {
+            if (repo.data.openshift.resurrectedBuild) {
+                logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
+                return
+            }
+            def job
+            def env = []
+            env.addAll(this.project.getMainReleaseManagerEnv())
+            this.project.buildParams.each { key, value ->
+                env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
+            }
+            env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+            this.steps.withEnv (env) {
+                job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
+            }
+            // Collect ODS build artifacts for repo.
+            // We get a map with at least two keys ("build" and "deployments").
+            def buildArtifacts = job.getBuildArtifactURIs()
+            buildArtifacts.each { k, v ->
+                if (k != 'failedStage') {
+                    repo.data.openshift[k] = v
+                }
+            }
+            def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
+            repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
+            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
+
+            if (buildArtifacts.failedStage) {
+                repo.data << ['failedStage': buildArtifacts.failedStage]
+                if (failfast) {
+                    throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+                } else {
+                    this.logger.warn("Got errors in repo '${repo.id}', will fail delayed.")
+                }
+            }
+        }
+    }
+
+    private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
+        Map scmResult = [ : ]
+        String gitReleaseBranch = this.project.gitReleaseBranch
+        if ("master" == gitReleaseBranch) {
+            gitReleaseBranch = repo.branch
+        }
+
+        // check if release manager repo already has a release branch
+        if (git.remoteBranchExists(gitReleaseBranch)) {
+            try {
+                scmResult.scm = checkoutBranchInRepoDir(repo, gitReleaseBranch)
+                scmResult.scmBranch = gitReleaseBranch
+            } catch (ex) {
+                if (! isWorkInProgress) {
+                    this.logger.warn """
+                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Attempting to checkout '${repo.branch}' and create the release branch from it.
+                                """
+                    // Possible reasons why this might happen:
+                    // * Release branch manually created in RM repo
+                    // * Repo is added to metadata.yml file on a release branch
+                    // * Release branch has been deleted in repo
+
+                    scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
+                    scmResult.scmBranch = gitReleaseBranch
+                } else {
+                    this.logger.warn """
+                                Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Attempting to checkout branch '${repo.branch}'.
+                                """
+                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
+                    scmResult.scmBranch = repo.branch
+                }
+            }
+        } else {
+            if (! isWorkInProgress) {
+                scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
+                scmResult.scmBranch = gitReleaseBranch
+            } else {
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.branch} for repo ${repo.id}")
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
+                scmResult.scmBranch = repo.branch
+            }
+        }
+        return scmResult
+    }
+
+    private createBranchFromDefaultBranch(Map repo, String branchName) {
+        this.logger.info("Creating branch ${branchName} from branch ${repo.branch} for repo ${repo.id} ")
+        def scm = checkoutBranchInRepoDir(repo, repo.branch)
+        if (repo.branch != branchName) {
+            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                git.checkoutNewLocalBranch(branchName)
+            }
+        } else {
+            this.logger.info("No need to create branch ${branchName} for repo ${repo.id} ")
+        }
+        return scm
     }
 
     private boolean isRepoModified(Map repo) {
@@ -583,7 +588,7 @@ class MROPipelineUtil extends PipelineUtil {
                 OpenShiftService.DEPLOYMENTCONFIG_KIND,
                 deploymentDescriptor.deploymentNames
             )
-        } catch(ex) {
+        } catch (ex) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +
                 "not all deployments could be retrieved: ${ex.message}"
@@ -613,4 +618,5 @@ class MROPipelineUtil extends PipelineUtil {
         repo.data.openshift.deployments = deployments
         logger.debug("Data from previous Jenkins build:\r${repo.data.openshift}")
     }
+
 }
