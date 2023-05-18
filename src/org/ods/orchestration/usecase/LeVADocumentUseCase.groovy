@@ -1522,7 +1522,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             date_created  : LocalDateTime.now().toString(),
             buildParameter: this.project.buildParams,
             git           : repo ? repo.data.git : this.project.gitData,
-            gxp           : isGxpProject(this.project.getProjectProperties()),
+            gxp           : project.isGxpProject(),
             openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
@@ -1530,7 +1530,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 jobName    : this.steps.env.JOB_NAME
             ],
             referencedDocs : this.getReferencedDocumentsVersion(),
-            isGxp: project.isGxpProject()
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}"]
