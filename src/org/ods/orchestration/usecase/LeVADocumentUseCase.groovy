@@ -50,6 +50,8 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
+    private static final String NOT_MANDATORY_CONTENT = 'Not mandatory.'
+
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
@@ -94,8 +96,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
-
-    private static String NON_MANDATORY_CONTENT = 'Not mandatory.'
 
     private final JiraUseCase jiraUseCase
     private final JUnitTestReportsUseCase junit
@@ -1691,7 +1691,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def sectionCollection = sections.collectEntries { sec ->
             [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
-                '<p><em>' + this.NON_MANDATORY_CONTENT + '</em></p>' : this.convertImages(sec.content)]]
+                '<p><em>' + this.NOT_MANDATORY_CONTENT + '</em></p>' : this.convertImages(sec.content)]]
         }
 
         // Extract-out the section, as needed for the DocGen interface

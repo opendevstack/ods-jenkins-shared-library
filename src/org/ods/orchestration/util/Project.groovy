@@ -376,7 +376,7 @@ class Project {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
-            if(!this.isWorkInProgress){
+            if (!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
 
@@ -384,7 +384,7 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira) {
+        if (this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
@@ -394,7 +394,7 @@ class Project {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0) {
+            if (faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
                     .collect { key -> key + ": " + faultMap.get(key) + "; " }
                     .inject("") { temp, val -> temp + val }
@@ -1600,7 +1600,6 @@ class Project {
     protected Map loadSavedJiraData(String savedVersion) {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
-
 
     /**
      * Saves the project data to the
