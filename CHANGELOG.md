@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Change initial project validation to take into account non GxP requirement([#1006](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1006))
 - Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
 
 ### Fixed
