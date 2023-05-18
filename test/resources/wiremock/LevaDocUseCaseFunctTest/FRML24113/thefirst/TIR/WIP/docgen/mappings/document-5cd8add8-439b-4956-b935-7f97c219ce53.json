@@ -17,7 +17,7 @@
                             "name": "Project frml24113: thefirst",
                             "description": "Description of frml24113.",
                             "type": "Technical Installation Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "deployNote": "Components were built & deployed during installation.",
@@ -259,7 +268,7 @@
                                         "1.0"
                                     ],
                                     "section": "sec5s2",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184806/184806_image-2021-11-24-16-24-13-147.png\" height=\"742\" width=\"1182\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"742\" width=\"1182\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-86",
                                     "status": "Done"
                                 },
@@ -276,7 +285,7 @@
                                         "1.0"
                                     ],
                                     "section": "sec5s1",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184816/184816_image-2021-11-24-17-06-37-578.png\" height=\"364\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"364\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-85",
                                     "status": "Done"
                                 }
@@ -284,11 +293,13 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -307,6 +318,7 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -325,6 +337,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -342,7 +355,8 @@
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
@@ -358,7 +372,8 @@
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

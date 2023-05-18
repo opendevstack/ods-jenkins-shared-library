@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "System and Software Design Specification",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "System and Software Design Specification, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "System and Software Design Specification, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -66,7 +75,7 @@
                                 "sec9": {
                                     "number": "9",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Data",
                                     "documents": [
@@ -83,7 +92,7 @@
                                 "sec12": {
                                     "number": "12",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Coding Review Results",
                                     "documents": [
@@ -100,7 +109,7 @@
                                 "sec13s1": {
                                     "number": "13.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -117,7 +126,7 @@
                                 "sec6s2": {
                                     "number": "6.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "QA/Test Environment",
                                     "documents": [
@@ -134,7 +143,7 @@
                                 "sec6s3": {
                                     "number": "6.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Training Environment",
                                     "documents": [
@@ -151,7 +160,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Environmental Conditions",
                                     "documents": [
@@ -168,7 +177,7 @@
                                 "sec8": {
                                     "number": "8",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Software Design Principles",
                                     "documents": [
@@ -185,7 +194,7 @@
                                 "sec5s3": {
                                     "number": "5.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Utilisation of Existing Infrastructure Systems",
                                     "documents": [
@@ -202,7 +211,7 @@
                                 "sec5s4": {
                                     "number": "5.4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Utilisation of Existing Infrastructure Services",
                                     "documents": [
@@ -219,7 +228,7 @@
                                 "sec6s1": {
                                     "number": "6.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Development Environment",
                                     "documents": [
@@ -236,7 +245,7 @@
                                 "sec13s2": {
                                     "number": "13.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -253,7 +262,7 @@
                                 "sec15": {
                                     "number": "15",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -270,7 +279,7 @@
                                 "sec14": {
                                     "number": "14",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -287,7 +296,7 @@
                                 "sec3s2s2": {
                                     "number": "3.2.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Interfaces between Modules",
                                     "documents": [
@@ -304,7 +313,7 @@
                                 "sec3s2s3": {
                                     "number": "3.2.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Interfaces to External Systems",
                                     "documents": [
@@ -321,7 +330,7 @@
                                 "sec3s2s4": {
                                     "number": "3.2.4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Diagram",
                                     "documents": [
@@ -338,7 +347,7 @@
                                 "sec4": {
                                     "number": "4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Architecture of the System",
                                     "documents": [
@@ -355,7 +364,7 @@
                                 "sec2s1": {
                                     "number": "2.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "System Design Overview",
                                     "documents": [
@@ -372,7 +381,7 @@
                                 "sec2s2": {
                                     "number": "2.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Software Design Overview",
                                     "documents": [
@@ -389,7 +398,7 @@
                                 "sec2s3": {
                                     "number": "2.3",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Source Code Review Overview",
                                     "documents": [
@@ -401,7 +410,231 @@
                                     "section": "sec2s3",
                                     "content": " ",
                                     "key": "FRML24113-75",
+                                    "status": "Done"
+                                },
+                                "sec3s1": {
+                                    "number": "3.1",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "System Design Profile",
+                                    "documents": [
+                                        "SSDS"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s1",
+                                    "content": " ",
+                                    "key": "FRML24113-74",
                                     "status": "Done",
+                                    "specifications": [
+                                        {
+                                            "key": "FRML24113-164",
+                                            "req_key": "FRML24113-162",
+                                            "description": "<p>TST CONTINUED</p>"
+                                        },
+                                        {
+                                            "key": "FRML24113-186",
+                                            "req_key": "FRML24113-184",
+                                            "description": "<p>TST ADDED</p>"
+                                        },
+                                        {
+                                            "key": "FRML24113-171",
+                                            "req_key": "FRML24113-268",
+                                            "description": "<p>TST MODIFIED</p>"
+                                        },
+                                        {
+                                            "key": "FRML24113-275",
+                                            "req_key": "FRML24113-273",
+                                            "description": "<p>TST to Modify - Modified</p>"
+                                        }
+                                    ]
+                                },
+                                "sec3s2": {
+                                    "number": "3.2",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "System Description",
+                                    "documents": [
+                                        "SSDS"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec3s2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-79",
+                                    "status": "Done"
+                                },
+                                "sec1": {
+                                    "number": "1",
+                                    "predecessors": [
+
+                                    ],
+                                    "heading": "Introduction",
+                                    "documents": [
+                                        "SSDS"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec1",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"125\" width=\"413\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-78",
+                                    "status": "Done"
+                                },
+                                "sec5s1": {
+                                    "components": [
+                                        {
+                                            "key": "Technology-spock",
+                                            "nameOfSoftware": "spock",
+                                            "componentType": "Automated tests",
+                                            "componentId": "spock",
+                                            "description": "myDescription-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "myVersion-A",
+                                            "references": "myReferences-A",
+                                            "doInstall": false
+                                        },
+                                        {
+                                            "key": "Technology-release",
+                                            "nameOfSoftware": "release",
+                                            "componentType": "ODS Software Component",
+                                            "componentId": "release",
+                                            "description": "myDescription-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "references": "myReferences-A",
+                                            "doInstall": true
+                                        },
+                                        {
+                                            "key": "Technology-thefirst",
+                                            "nameOfSoftware": "thefirst",
+                                            "componentType": "ODS Software Component",
+                                            "componentId": "thefirst",
+                                            "description": "myDescription-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "references": "myReferences-A",
+                                            "doInstall": true
+                                        },
+                                        {
+                                            "key": "Technology-thesecond",
+                                            "nameOfSoftware": "thesecond",
+                                            "componentType": "ODS Software Component",
+                                            "componentId": "thesecond",
+                                            "description": "myDescription-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "references": "myReferences-A",
+                                            "doInstall": true
+                                        }
+                                    ]
+                                },
+                                "sec10": {
+                                    "modules": [
+                                        {
+                                            "key": "Technology-release",
+                                            "componentName": "Technology-release",
+                                            "componentId": "release",
+                                            "componentType": "ODS Software Component",
+                                            "doInstall": true,
+                                            "odsRepoType": "ods",
+                                            "description": "myDescription-A",
+                                            "nameOfSoftware": "release",
+                                            "references": "myReferences-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "requirements": [
+
+                                            ],
+                                            "requirementKeys": [
+
+                                            ],
+                                            "softwareDesignSpecKeys": [
+
+                                            ],
+                                            "softwareDesignSpec": [
+
+                                            ]
+                                        },
+                                        {
+                                            "key": "Technology-thefirst",
+                                            "componentName": "Technology-thefirst",
+                                            "componentId": "thefirst",
+                                            "componentType": "ODS Software Component",
+                                            "doInstall": true,
+                                            "odsRepoType": "ods",
+                                            "description": "myDescription-A",
+                                            "nameOfSoftware": "thefirst",
+                                            "references": "myReferences-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "requirements": [
+                                                {
+                                                    "gampTopic": "security requirements",
+                                                    "requirementsofTopic": [
+                                                        {
+                                                            "key": "FRML24113-268",
+                                                            "name": "Story MODIFIED (from FRML24113-169)",
+                                                            "reqDescription": "<p>Story MODIFIED - Description</p>",
+                                                            "gampTopic": "security requirements"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "gampTopic": "availability requirements",
+                                                    "requirementsofTopic": [
+                                                        {
+                                                            "key": "FRML24113-162",
+                                                            "name": "Story CONTINUED",
+                                                            "reqDescription": "<p>Story CONTINUED - Description</p>",
+                                                            "gampTopic": "availability requirements"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "requirementKeys": [
+                                                "FRML24113-268",
+                                                "FRML24113-162"
+                                            ],
+                                            "softwareDesignSpecKeys": [
+
+                                            ],
+                                            "softwareDesignSpec": [
+
+                                            ]
+                                        },
+                                        {
+                                            "key": "Technology-thesecond",
+                                            "componentName": "Technology-thesecond",
+                                            "componentId": "thesecond",
+                                            "componentType": "ODS Software Component",
+                                            "doInstall": true,
+                                            "odsRepoType": "ods",
+                                            "description": "myDescription-A",
+                                            "nameOfSoftware": "thesecond",
+                                            "references": "myReferences-A",
+                                            "supplier": "mySupplier-A",
+                                            "version": "WIP",
+                                            "requirements": [
+
+                                            ],
+                                            "requirementKeys": [
+
+                                            ],
+                                            "softwareDesignSpecKeys": [
+
+                                            ],
+                                            "softwareDesignSpec": [
+
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "sec16s1": {
                                     "bitbucket": [
                                         {
                                             "date": "2021-03-16",
@@ -542,238 +775,18 @@
                                             "component": "edpt3-demo-app-backend"
                                         }
                                     ]
-                                },
-                                "sec3s1": {
-                                    "number": "3.1",
-                                    "predecessors": [
-                                        
-                                    ],
-                                    "heading": "System Design Profile",
-                                    "documents": [
-                                        "SSDS"
-                                    ],
-                                    "versions": [
-                                        "1.0"
-                                    ],
-                                    "section": "sec3s1",
-                                    "content": " ",
-                                    "key": "FRML24113-74",
-                                    "status": "Done",
-                                    "specifications": [
-                                        {
-                                            "key": "FRML24113-164",
-                                            "req_key": "FRML24113-162",
-                                            "description": "<p>TST CONTINUED</p>"
-                                        },
-                                        {
-                                            "key": "FRML24113-186",
-                                            "req_key": "FRML24113-184",
-                                            "description": "<p>TST ADDED</p>"
-                                        },
-                                        {
-                                            "key": "FRML24113-171",
-                                            "req_key": "FRML24113-268",
-                                            "description": "<p>TST MODIFIED</p>"
-                                        },
-                                        {
-                                            "key": "FRML24113-275",
-                                            "req_key": "FRML24113-273",
-                                            "description": "<p>TST to Modify - Modified</p>"
-                                        }
-                                    ]
-                                },
-                                "sec3s2": {
-                                    "number": "3.2",
-                                    "predecessors": [
-                                        
-                                    ],
-                                    "heading": "System Description",
-                                    "documents": [
-                                        "SSDS"
-                                    ],
-                                    "versions": [
-                                        "1.0"
-                                    ],
-                                    "section": "sec3s2",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184804/184804_image-2021-11-24-16-23-52-232.png\" style=\"border: 0px solid black\" /></span></p>",
-                                    "key": "FRML24113-79",
-                                    "status": "Done"
-                                },
-                                "sec1": {
-                                    "number": "1",
-                                    "predecessors": [
-                                        
-                                    ],
-                                    "heading": "Introduction",
-                                    "documents": [
-                                        "SSDS"
-                                    ],
-                                    "versions": [
-                                        "1.0"
-                                    ],
-                                    "section": "sec1",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184813/184813_image-2021-11-24-16-28-08-977.png\" height=\"125\" width=\"413\" style=\"border: 0px solid black\" /></span></p>",
-                                    "key": "FRML24113-78",
-                                    "status": "Done"
-                                },
-                                "sec5s1": {
-                                    "components": [
-                                        {
-                                            "key": "Technology-spock",
-                                            "nameOfSoftware": "spock",
-                                            "componentType": "Automated tests",
-                                            "componentId": "spock",
-                                            "description": "myDescription-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "myVersion-A",
-                                            "references": "myReferences-A",
-                                            "doInstall": false
-                                        },
-                                        {
-                                            "key": "Technology-release",
-                                            "nameOfSoftware": "release",
-                                            "componentType": "ODS Software Component",
-                                            "componentId": "release",
-                                            "description": "myDescription-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "references": "myReferences-A",
-                                            "doInstall": true
-                                        },
-                                        {
-                                            "key": "Technology-thefirst",
-                                            "nameOfSoftware": "thefirst",
-                                            "componentType": "ODS Software Component",
-                                            "componentId": "thefirst",
-                                            "description": "myDescription-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "references": "myReferences-A",
-                                            "doInstall": true
-                                        },
-                                        {
-                                            "key": "Technology-thesecond",
-                                            "nameOfSoftware": "thesecond",
-                                            "componentType": "ODS Software Component",
-                                            "componentId": "thesecond",
-                                            "description": "myDescription-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "references": "myReferences-A",
-                                            "doInstall": true
-                                        }
-                                    ]
-                                },
-                                "sec10": {
-                                    "modules": [
-                                        {
-                                            "key": "Technology-release",
-                                            "componentName": "Technology-release",
-                                            "componentId": "release",
-                                            "componentType": "ODS Software Component",
-                                            "doInstall": true,
-                                            "odsRepoType": "ods",
-                                            "description": "myDescription-A",
-                                            "nameOfSoftware": "release",
-                                            "references": "myReferences-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "requirements": [
-                                                
-                                            ],
-                                            "requirementKeys": [
-                                                
-                                            ],
-                                            "softwareDesignSpecKeys": [
-                                                
-                                            ],
-                                            "softwareDesignSpec": [
-                                                
-                                            ]
-                                        },
-                                        {
-                                            "key": "Technology-thefirst",
-                                            "componentName": "Technology-thefirst",
-                                            "componentId": "thefirst",
-                                            "componentType": "ODS Software Component",
-                                            "doInstall": true,
-                                            "odsRepoType": "ods",
-                                            "description": "myDescription-A",
-                                            "nameOfSoftware": "thefirst",
-                                            "references": "myReferences-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "requirements": [
-                                                {
-                                                    "gampTopic": "security requirements",
-                                                    "requirementsofTopic": [
-                                                        {
-                                                            "key": "FRML24113-268",
-                                                            "name": "Story MODIFIED (from FRML24113-169)",
-                                                            "reqDescription": "<p>Story MODIFIED - Description</p>",
-                                                            "gampTopic": "security requirements"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "gampTopic": "availability requirements",
-                                                    "requirementsofTopic": [
-                                                        {
-                                                            "key": "FRML24113-162",
-                                                            "name": "Story CONTINUED",
-                                                            "reqDescription": "<p>Story CONTINUED - Description</p>",
-                                                            "gampTopic": "availability requirements"
-                                                        }
-                                                    ]
-                                                }
-                                            ],
-                                            "requirementKeys": [
-                                                "FRML24113-268",
-                                                "FRML24113-162"
-                                            ],
-                                            "softwareDesignSpecKeys": [
-                                                
-                                            ],
-                                            "softwareDesignSpec": [
-                                                
-                                            ]
-                                        },
-                                        {
-                                            "key": "Technology-thesecond",
-                                            "componentName": "Technology-thesecond",
-                                            "componentId": "thesecond",
-                                            "componentType": "ODS Software Component",
-                                            "doInstall": true,
-                                            "odsRepoType": "ods",
-                                            "description": "myDescription-A",
-                                            "nameOfSoftware": "thesecond",
-                                            "references": "myReferences-A",
-                                            "supplier": "mySupplier-A",
-                                            "version": "WIP",
-                                            "requirements": [
-                                                
-                                            ],
-                                            "requirementKeys": [
-                                                
-                                            ],
-                                            "softwareDesignSpecKeys": [
-                                                
-                                            ],
-                                            "softwareDesignSpec": [
-                                                
-                                            ]
-                                        }
-                                    ]
                                 }
                             },
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -784,10 +797,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -799,22 +812,22 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -822,11 +835,12 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "requirements",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
                                                 {
@@ -844,10 +858,10 @@
                                         {
                                             "type": "techSpecs",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
                                                 {
@@ -859,13 +873,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -873,6 +887,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -883,10 +898,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -898,29 +913,30 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "requirements",
@@ -931,10 +947,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -946,27 +962,28 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

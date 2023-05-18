@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Technical Installation Plan",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "Technical Installation Plan, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Technical Installation Plan, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -69,10 +78,10 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-thefirst.git",
@@ -92,10 +101,10 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-thesecond.git",
@@ -115,10 +124,10 @@
                                     "type": "ods-test",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-spock.git",
@@ -138,10 +147,10 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-release.git",
@@ -161,7 +170,7 @@
                                 "sec3s4": {
                                     "number": "3.4",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Communication and Organization Tasks",
                                     "documents": [
@@ -178,7 +187,7 @@
                                 "sec12": {
                                     "number": "12",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -195,7 +204,7 @@
                                 "sec11": {
                                     "number": "11",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -212,7 +221,7 @@
                                 "sec10s2": {
                                     "number": "10.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -229,7 +238,7 @@
                                 "sec10s1": {
                                     "number": "10.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -247,22 +256,24 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -270,17 +281,18 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -288,40 +300,43 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },
