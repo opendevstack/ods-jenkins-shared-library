@@ -29,22 +29,22 @@
                 "FRML24113-189"
             ],
             "techSpecs": [
-                
+
             ],
             "epics": [
-                
+
             ],
             "key": "Technology-thefirst"
         },
         "Technology-release": {
             "requirements": [
-                
+
             ],
             "risks": [
-                
+
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -52,25 +52,25 @@
             "name": "Technology-release",
             "description": "Technology component frml24113-release stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-release/browse",
             "techSpecs": [
-                
+
             ],
             "epics": [
-                
+
             ],
             "mitigations": [
-                
+
             ],
             "key": "Technology-release"
         },
         "Technology-spock": {
             "requirements": [
-                
+
             ],
             "risks": [
-                
+
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -78,25 +78,25 @@
             "name": "Technology-spock",
             "description": "Technology component frml24113-spock stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-spock/browse",
             "techSpecs": [
-                
+
             ],
             "epics": [
-                
+
             ],
             "mitigations": [
-                
+
             ],
             "key": "Technology-spock"
         },
         "Technology-thesecond": {
             "requirements": [
-                
+
             ],
             "risks": [
                 "FRML24113-177"
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -104,13 +104,13 @@
             "name": "Technology-thesecond",
             "description": "Technology component frml24113-thesecond stored at https://bitbucket-qa.biscrum.com/projects/FRML24113/repos/frml24113-thesecond/browse",
             "techSpecs": [
-                
+
             ],
             "epics": [
-                
+
             ],
             "mitigations": [
-                
+
             ],
             "key": "Technology-thesecond"
         }
@@ -121,19 +121,19 @@
                 "Technology-thefirst"
             ],
             "predecessors": [
-                
+
             ],
             "gampTopic": "availability requirements",
             "description": "<p>Story CONTINUED - Description</p>",
             "resolution": "Implemented",
             "epics": [
-                
+
             ],
             "mitigations": [
                 "FRML24113-166"
             ],
             "labels": [
-                
+
             ],
             "acceptanceCriteria": "Story CONTINUED",
             "bugs": [
@@ -166,10 +166,10 @@
         },
         "FRML24113-184": {
             "components": [
-                
+
             ],
             "predecessors": [
-                
+
             ],
             "gampTopic": "regulatory requirements",
             "description": "<p>Story ADDED - Description</p>",
@@ -181,11 +181,11 @@
                 "FRML24113-188"
             ],
             "labels": [
-                
+
             ],
             "acceptanceCriteria": "Story ADDED",
             "bugs": [
-                
+
             ],
             "configSpec": {
                 "name": "Story ADDED",
@@ -226,7 +226,7 @@
                 "FRML24113-189"
             ],
             "epics": [
-                
+
             ],
             "expandedPredecessors": [
                 {
@@ -237,11 +237,11 @@
                 }
             ],
             "labels": [
-                
+
             ],
             "acceptanceCriteria": "Story MODIFIED",
             "bugs": [
-                
+
             ],
             "configSpec": {
                 "name": "Story MODIFIED",
@@ -273,7 +273,7 @@
     "epics": {
         "FRML24113-183": {
             "predecessors": [
-                
+
             ],
             "requirements": [
                 "FRML24113-184"
@@ -288,7 +288,7 @@
             "key": "FRML24113-183",
             "status": "Done",
             "labels": [
-                
+
             ]
         }
     },
@@ -314,7 +314,7 @@
                 }
             ],
             "labels": [
-                
+
             ],
             "risks": [
                 "FRML24113-269"
@@ -324,7 +324,7 @@
             ],
             "name": "Mitigation MODIFIED (from FRML24113-173)",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-189",
             "status": "Done"
@@ -337,12 +337,12 @@
                 "FRML24113-162"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>Mitigation CONTINUED - Description</p>",
             "resolution": "Defined",
             "labels": [
-                
+
             ],
             "risks": [
                 "FRML24113-165"
@@ -352,25 +352,25 @@
             ],
             "name": "Mitigation CONTINUED",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-166",
             "status": "Done"
         },
         "FRML24113-188": {
             "components": [
-                
+
             ],
             "requirements": [
                 "FRML24113-184"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>Mitigation ADDED</p>",
             "resolution": "Defined",
             "labels": [
-                
+
             ],
             "risks": [
                 "FRML24113-187"
@@ -380,7 +380,7 @@
             ],
             "name": "Mitigation ADDED",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-188",
             "status": "Done"
@@ -394,21 +394,21 @@
                 "FRML24113-162"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>RA to TST - Description</p>",
             "resolution": "Defined",
             "probabilityOfDetection": null,
             "mitigations": [
-                
+
             ],
             "labels": [
-                
+
             ],
             "probabilityOfOccurrence": null,
             "severityOfImpact": null,
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -429,7 +429,7 @@
                 "FRML24113-162"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>RA CONTINUED - Description</p>",
             "resolution": "Defined",
@@ -438,12 +438,12 @@
                 "FRML24113-166"
             ],
             "labels": [
-                
+
             ],
             "probabilityOfOccurrence": null,
             "severityOfImpact": null,
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -452,7 +452,7 @@
             "riskPriority": null,
             "name": "RA CONTINUED",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-165",
             "status": "Done"
@@ -464,7 +464,7 @@
                 "FRML24113-184"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>RA ADDED - Description</p>",
             "resolution": "Defined",
@@ -473,12 +473,12 @@
                 "FRML24113-188"
             ],
             "labels": [
-                
+
             ],
             "probabilityOfOccurrence": null,
             "severityOfImpact": null,
             "tests": [
-                
+
             ],
             "versions": [
                 "2.0"
@@ -487,7 +487,7 @@
             "riskPriority": null,
             "name": "RA ADDED",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-187",
             "status": "Done"
@@ -516,12 +516,12 @@
                 }
             ],
             "labels": [
-                
+
             ],
             "probabilityOfOccurrence": null,
             "severityOfImpact": null,
             "tests": [
-                
+
             ],
             "versions": [
                 "3.0"
@@ -530,7 +530,7 @@
             "riskPriority": null,
             "name": "RA MODIFIED (from FRML24113-172)",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-269",
             "status": "Done"
@@ -539,30 +539,30 @@
     "tests": {
         "FRML24113-179": {
             "components": [
-                
+
             ],
             "requirements": [
-                
+
             ],
             "predecessors": [
-                
+
             ],
             "executionType": "Automated",
             "description": "<p>Installation Test - Description</p>",
             "testType": "Installation",
             "repoTypes": [
-                
+
             ],
             "resolution": "Implemented",
             "steps": [
-                
+
             ],
             "execLabel": "Succeeded",
             "labels": [
                 "Succeeded"
             ],
             "risks": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -570,7 +570,7 @@
             "name": "Installation Test",
             "id": "367284",
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-179",
             "status": "Done"
@@ -583,21 +583,21 @@
                 "FRML24113-162"
             ],
             "predecessors": [
-                
+
             ],
             "executionType": "Automated",
             "description": "<p>Test CONTINUED - Description</p>",
             "testType": "Unit",
             "resolution": "Implemented",
             "steps": [
-                
+
             ],
             "execLabel": "Succeeded",
             "labels": [
                 "Succeeded"
             ],
             "risks": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -606,7 +606,7 @@
             "id": "367268",
             "isUnexecuted": false,
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-163",
             "status": "Done",
@@ -621,21 +621,21 @@
                 "FRML24113-184"
             ],
             "predecessors": [
-                
+
             ],
             "executionType": "Automated",
             "description": "<p>Test ADDED - Description</p>",
             "testType": "Unit",
             "resolution": "Implemented",
             "steps": [
-                
+
             ],
             "execLabel": "Succeeded",
             "labels": [
                 "Succeeded"
             ],
             "risks": [
-                
+
             ],
             "versions": [
                 "2.0"
@@ -644,7 +644,7 @@
             "id": "367293",
             "isUnexecuted": false,
             "techSpecs": [
-                
+
             ],
             "key": "FRML24113-185",
             "status": "Done",
@@ -659,21 +659,21 @@
                 "FRML24113-268"
             ],
             "predecessors": [
-                
+
             ],
             "executionType": "Automated",
             "description": "<p>Test MODIFIED - Description</p>",
             "testType": "Acceptance",
             "resolution": "Implemented",
             "steps": [
-                
+
             ],
             "execLabel": "Succeeded",
             "labels": [
                 "Succeeded"
             ],
             "risks": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -691,7 +691,7 @@
         "FRML24113-62": {
             "number": "9",
             "predecessors": [
-                
+
             ],
             "heading": "System Data",
             "documents": [
@@ -708,7 +708,7 @@
         "FRML24113-61": {
             "number": "12",
             "predecessors": [
-                
+
             ],
             "heading": "Coding Review Results",
             "documents": [
@@ -725,7 +725,7 @@
         "FRML24113-60": {
             "number": "13.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -742,7 +742,7 @@
         "FRML24113-66": {
             "number": "6.2",
             "predecessors": [
-                
+
             ],
             "heading": "QA/Test Environment",
             "documents": [
@@ -759,7 +759,7 @@
         "FRML24113-65": {
             "number": "6.3",
             "predecessors": [
-                
+
             ],
             "heading": "Training Environment",
             "documents": [
@@ -776,7 +776,7 @@
         "FRML24113-64": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Environmental Conditions",
             "documents": [
@@ -793,7 +793,7 @@
         "FRML24113-63": {
             "number": "8",
             "predecessors": [
-                
+
             ],
             "heading": "Software Design Principles",
             "documents": [
@@ -810,7 +810,7 @@
         "FRML24113-69": {
             "number": "5.3",
             "predecessors": [
-                
+
             ],
             "heading": "Utilisation of Existing Infrastructure Systems",
             "documents": [
@@ -827,7 +827,7 @@
         "FRML24113-68": {
             "number": "5.4",
             "predecessors": [
-                
+
             ],
             "heading": "Utilisation of Existing Infrastructure Services",
             "documents": [
@@ -844,7 +844,7 @@
         "FRML24113-67": {
             "number": "6.1",
             "predecessors": [
-                
+
             ],
             "heading": "Development Environment",
             "documents": [
@@ -861,7 +861,7 @@
         "FRML24113-122": {
             "number": "3",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -871,14 +871,14 @@
                 "1.0"
             ],
             "section": "sec3",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184808/184808_image-2021-11-24-16-24-36-345.png\" style=\"border: 0px solid black\" /></span></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n</tr>\n</tbody></table>\n</div>\n",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n<td class='confluenceTd'> </td>\n</tr>\n</tbody></table>\n</div>\n",
             "key": "FRML24113-122",
             "status": "Done"
         },
         "FRML24113-121": {
             "number": "1",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -896,7 +896,7 @@
         "FRML24113-120": {
             "number": "4",
             "predecessors": [
-                
+
             ],
             "heading": "Risk Assessment",
             "documents": [
@@ -914,7 +914,7 @@
         "FRML24113-95": {
             "number": "9",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -925,14 +925,14 @@
                 "1.0"
             ],
             "section": "sec9",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184811/184811_image-2021-11-24-16-27-37-453.png\" height=\"88\" width=\"291\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"88\" width=\"291\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-95",
             "status": "Done"
         },
         "FRML24113-51": {
             "number": "5.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -950,7 +950,7 @@
         "FRML24113-94": {
             "number": "8.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -961,14 +961,14 @@
                 "1.0"
             ],
             "section": "sec8s2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184805/184805_image-2021-11-24-16-24-02-065.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-94",
             "status": "Done"
         },
         "FRML24113-50": {
             "number": "8",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -985,7 +985,7 @@
         "FRML24113-93": {
             "number": "8.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1003,7 +1003,7 @@
         "FRML24113-92": {
             "number": "2",
             "predecessors": [
-                
+
             ],
             "heading": "Scope",
             "documents": [
@@ -1021,7 +1021,7 @@
         "FRML24113-99": {
             "number": "13.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1038,7 +1038,7 @@
         "FRML24113-55": {
             "number": "6",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Document",
             "documents": [
@@ -1055,7 +1055,7 @@
         "FRML24113-98": {
             "number": "13.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1072,7 +1072,7 @@
         "FRML24113-54": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1089,7 +1089,7 @@
         "FRML24113-97": {
             "number": "12",
             "predecessors": [
-                
+
             ],
             "heading": "Functional and Requirements Testing Documentation",
             "documents": [
@@ -1106,7 +1106,7 @@
         "FRML24113-53": {
             "number": "6",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1123,7 +1123,7 @@
         "FRML24113-96": {
             "number": "2",
             "predecessors": [
-                
+
             ],
             "heading": "Scope",
             "documents": [
@@ -1133,14 +1133,14 @@
                 "1.0"
             ],
             "section": "sec2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184802/184802_image-2021-11-24-16-23-17-348.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-96",
             "status": "Done"
         },
         "FRML24113-52": {
             "number": "5.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1158,7 +1158,7 @@
         "FRML24113-59": {
             "number": "13.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1175,7 +1175,7 @@
         "FRML24113-58": {
             "number": "15",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1192,7 +1192,7 @@
         "FRML24113-57": {
             "number": "14",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1209,7 +1209,7 @@
         "FRML24113-56": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1219,14 +1219,14 @@
                 "1.0"
             ],
             "section": "sec7",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184803/184803_image-2021-11-24-16-23-39-023.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-56",
             "status": "Done"
         },
         "FRML24113-119": {
             "number": "3.6",
             "predecessors": [
-                
+
             ],
             "heading": "Traceability Matrix",
             "documents": [
@@ -1244,7 +1244,7 @@
         "FRML24113-118": {
             "number": "3.5.2",
             "predecessors": [
-                
+
             ],
             "heading": "Non-Functional Testing Results",
             "documents": [
@@ -1262,7 +1262,7 @@
         "FRML24113-117": {
             "number": "3.3",
             "predecessors": [
-                
+
             ],
             "heading": "Discrepancy Log",
             "documents": [
@@ -1280,7 +1280,7 @@
         "FRML24113-116": {
             "number": "3.2",
             "predecessors": [
-                
+
             ],
             "heading": "Responsibilities and Signature Resource Log",
             "documents": [
@@ -1298,7 +1298,7 @@
         "FRML24113-115": {
             "number": "3.1",
             "predecessors": [
-                
+
             ],
             "heading": "Training",
             "documents": [
@@ -1316,7 +1316,7 @@
         "FRML24113-114": {
             "number": "2",
             "predecessors": [
-                
+
             ],
             "heading": "Testing Environment",
             "documents": [
@@ -1334,7 +1334,7 @@
         "FRML24113-113": {
             "number": "1",
             "predecessors": [
-                
+
             ],
             "heading": "Purpose",
             "documents": [
@@ -1352,7 +1352,7 @@
         "FRML24113-112": {
             "number": "8",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1370,7 +1370,7 @@
         "FRML24113-111": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1388,7 +1388,7 @@
         "FRML24113-110": {
             "number": "6.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1416,7 +1416,7 @@
                 "2.0"
             ],
             "section": "sec2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184817/184817_image-2021-11-24-15-19-10-531.png\" height=\"193\" width=\"616\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"193\" width=\"616\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-190",
             "expandedPredecessors": [
                 {
@@ -1431,7 +1431,7 @@
         "FRML24113-84": {
             "number": "3.4",
             "predecessors": [
-                
+
             ],
             "heading": "Communication and Organization Tasks",
             "documents": [
@@ -1448,7 +1448,7 @@
         "FRML24113-40": {
             "number": "5.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1465,7 +1465,7 @@
         "FRML24113-83": {
             "number": "12",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1482,7 +1482,7 @@
         "FRML24113-82": {
             "number": "11",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1499,7 +1499,7 @@
         "FRML24113-81": {
             "number": "10.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1516,7 +1516,7 @@
         "FRML24113-88": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1533,7 +1533,7 @@
         "FRML24113-44": {
             "number": "6",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1550,7 +1550,7 @@
         "FRML24113-87": {
             "number": "6",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1567,7 +1567,7 @@
         "FRML24113-43": {
             "number": "1",
             "predecessors": [
-                
+
             ],
             "heading": "Introduction and Purpose",
             "documents": [
@@ -1577,14 +1577,14 @@
                 "1.0"
             ],
             "section": "sec1",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184800/184800_image-2021-11-24-15-18-44-538.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-43",
             "status": "Done"
         },
         "FRML24113-86": {
             "number": "5.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1594,14 +1594,14 @@
                 "1.0"
             ],
             "section": "sec5s2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184806/184806_image-2021-11-24-16-24-13-147.png\" height=\"742\" width=\"1182\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"742\" width=\"1182\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-86",
             "status": "Done"
         },
         "FRML24113-85": {
             "number": "5.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1611,14 +1611,14 @@
                 "1.0"
             ],
             "section": "sec5s1",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184816/184816_image-2021-11-24-17-06-37-578.png\" height=\"364\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"364\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-85",
             "status": "Done"
         },
         "FRML24113-41": {
             "number": "3.1",
             "predecessors": [
-                
+
             ],
             "heading": "Related Business / GxP Process",
             "documents": [
@@ -1635,7 +1635,7 @@
         "FRML24113-48": {
             "number": "6.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1652,7 +1652,7 @@
         "FRML24113-47": {
             "number": "6.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -1669,7 +1669,7 @@
         "FRML24113-46": {
             "number": "3",
             "predecessors": [
-                
+
             ],
             "heading": "Assumptions",
             "documents": [
@@ -1686,7 +1686,7 @@
         "FRML24113-89": {
             "number": "10",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1704,7 +1704,7 @@
         "FRML24113-45": {
             "number": "3.2",
             "predecessors": [
-                
+
             ],
             "heading": "Operational Requirements",
             "documents": [
@@ -1721,7 +1721,7 @@
         "FRML24113-109": {
             "number": "6.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -1739,7 +1739,7 @@
         "FRML24113-108": {
             "number": "9",
             "predecessors": [
-                
+
             ],
             "heading": "Traceability Matrix",
             "documents": [
@@ -1756,7 +1756,7 @@
         "FRML24113-107": {
             "number": "8.1",
             "predecessors": [
-                
+
             ],
             "heading": "Test Cases",
             "documents": [
@@ -1773,7 +1773,7 @@
         "FRML24113-106": {
             "number": "7.2.2",
             "predecessors": [
-                
+
             ],
             "heading": "Scope of Non-Functional Testing",
             "documents": [
@@ -1783,14 +1783,14 @@
                 "1.0"
             ],
             "section": "sec7s2s2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184810/184810_image-2021-11-24-16-27-19-989.png\" height=\"175\" width=\"579\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"175\" width=\"579\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-106",
             "status": "Done"
         },
         "FRML24113-49": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Reference Documents",
             "documents": [
@@ -1800,14 +1800,14 @@
                 "1.0"
             ],
             "section": "sec7",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184807/184807_image-2021-11-24-16-24-26-707.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-49",
             "status": "Done"
         },
         "FRML24113-105": {
             "number": "7.1.2",
             "predecessors": [
-                
+
             ],
             "heading": "Scope of Functional Testing",
             "documents": [
@@ -1824,7 +1824,7 @@
         "FRML24113-104": {
             "number": "6.2",
             "predecessors": [
-                
+
             ],
             "heading": "Scope of Integration Testing",
             "documents": [
@@ -1841,7 +1841,7 @@
         "FRML24113-103": {
             "number": "5.2",
             "predecessors": [
-                
+
             ],
             "heading": "Test Procedure 2: Verification of Training Documentation",
             "documents": [
@@ -1858,7 +1858,7 @@
         "FRML24113-102": {
             "number": "5",
             "predecessors": [
-                
+
             ],
             "heading": "Operational Qualification Activities and Training",
             "documents": [
@@ -1875,7 +1875,7 @@
         "FRML24113-101": {
             "number": "10",
             "predecessors": [
-                
+
             ],
             "heading": "Validation Environment",
             "documents": [
@@ -1892,7 +1892,7 @@
         "FRML24113-100": {
             "number": "15",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -1909,7 +1909,7 @@
         "FRML24113-91": {
             "number": "12.2",
             "predecessors": [
-                
+
             ],
             "heading": "Configuration database CMDB",
             "documents": [
@@ -1927,7 +1927,7 @@
         "FRML24113-90": {
             "number": "12.1",
             "predecessors": [
-                
+
             ],
             "heading": "Operational documents on system level",
             "documents": [
@@ -1945,7 +1945,7 @@
         "FRML24113-73": {
             "number": "3.2.2",
             "predecessors": [
-                
+
             ],
             "heading": "Interfaces between Modules",
             "documents": [
@@ -1962,7 +1962,7 @@
         "FRML24113-72": {
             "number": "3.2.3",
             "predecessors": [
-                
+
             ],
             "heading": "Interfaces to External Systems",
             "documents": [
@@ -1979,7 +1979,7 @@
         "FRML24113-71": {
             "number": "3.2.4",
             "predecessors": [
-                
+
             ],
             "heading": "System Diagram",
             "documents": [
@@ -1996,7 +1996,7 @@
         "FRML24113-70": {
             "number": "4",
             "predecessors": [
-                
+
             ],
             "heading": "Architecture of the System",
             "documents": [
@@ -2013,7 +2013,7 @@
         "FRML24113-77": {
             "number": "2.1",
             "predecessors": [
-                
+
             ],
             "heading": "System Design Overview",
             "documents": [
@@ -2030,7 +2030,7 @@
         "FRML24113-76": {
             "number": "2.2",
             "predecessors": [
-                
+
             ],
             "heading": "Software Design Overview",
             "documents": [
@@ -2047,7 +2047,7 @@
         "FRML24113-75": {
             "number": "2.3",
             "predecessors": [
-                
+
             ],
             "heading": "Source Code Review Overview",
             "documents": [
@@ -2064,7 +2064,7 @@
         "FRML24113-74": {
             "number": "3.1",
             "predecessors": [
-                
+
             ],
             "heading": "System Design Profile",
             "documents": [
@@ -2081,7 +2081,7 @@
         "FRML24113-79": {
             "number": "3.2",
             "predecessors": [
-                
+
             ],
             "heading": "System Description",
             "documents": [
@@ -2091,14 +2091,14 @@
                 "1.0"
             ],
             "section": "sec3s2",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184804/184804_image-2021-11-24-16-23-52-232.png\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-79",
             "status": "Done"
         },
         "FRML24113-78": {
             "number": "1",
             "predecessors": [
-                
+
             ],
             "heading": "Introduction",
             "documents": [
@@ -2108,14 +2108,14 @@
                 "1.0"
             ],
             "section": "sec1",
-            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184813/184813_image-2021-11-24-16-28-08-977.png\" height=\"125\" width=\"413\" style=\"border: 0px solid black\" /></span></p>",
+            "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"125\" width=\"413\" style=\"border: 0px solid black\" /></span></p>",
             "key": "FRML24113-78",
             "status": "Done"
         },
         "FRML24113-39": {
             "number": "5.2",
             "predecessors": [
-                
+
             ],
             "heading": "Abbreviations",
             "documents": [
@@ -2132,7 +2132,7 @@
         "FRML24113-38": {
             "number": "7",
             "predecessors": [
-                
+
             ],
             "heading": "Document History",
             "documents": [
@@ -2149,7 +2149,7 @@
         "FRML24113-80": {
             "number": "10.1",
             "predecessors": [
-                
+
             ],
             "heading": "Definitions",
             "documents": [
@@ -2167,31 +2167,31 @@
     "techSpecs": {
         "FRML24113-164": {
             "components": [
-                
+
             ],
             "requirements": [
                 "FRML24113-162"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>TST CONTINUED - Description</p>",
             "systemDesignSpec": "<p>TST CONTINUED</p>",
             "resolution": "Implemented",
             "mitigations": [
-                
+
             ],
             "labels": [
-                
+
             ],
             "bugs": [
-                
+
             ],
             "risks": [
                 "FRML24113-167"
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"
@@ -2203,31 +2203,31 @@
         },
         "FRML24113-186": {
             "components": [
-                
+
             ],
             "requirements": [
                 "FRML24113-184"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>TST ADDED - Description</p>",
             "systemDesignSpec": "<p>TST ADDED</p>",
             "resolution": "Implemented",
             "mitigations": [
-                
+
             ],
             "labels": [
-                
+
             ],
             "bugs": [
-                
+
             ],
             "risks": [
-                
+
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "2.0"
@@ -2239,31 +2239,31 @@
         },
         "FRML24113-171": {
             "components": [
-                
+
             ],
             "requirements": [
                 "FRML24113-268"
             ],
             "predecessors": [
-                
+
             ],
             "description": "<p>TST MODIFIED - Description</p>",
             "systemDesignSpec": "<p>TST MODIFIED</p>",
             "resolution": "Implemented",
             "mitigations": [
-                
+
             ],
             "labels": [
-                
+
             ],
             "bugs": [
-                
+
             ],
             "risks": [
-                
+
             ],
             "tests": [
-                
+
             ],
             "versions": [
                 "1.0"

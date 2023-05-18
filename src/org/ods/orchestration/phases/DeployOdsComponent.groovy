@@ -56,7 +56,15 @@ class DeployOdsComponent {
 
                     applyTemplates(openShiftDir, deploymentMean)
 
-                    def podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
+                    def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                    for (def i = 0; i < retries; i++) {
+                        def podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
+                        if (podData) {
+                            return podData
+                        }
+                        steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
+                        steps.sleep(12)
+                    }
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.

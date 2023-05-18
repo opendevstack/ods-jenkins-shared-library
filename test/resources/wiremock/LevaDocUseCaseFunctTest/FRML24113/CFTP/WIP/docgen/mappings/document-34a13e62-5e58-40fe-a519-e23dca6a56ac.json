@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Combined Functional and Requirements Testing Plan",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "Combined Functional and Requirements Testing Plan, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Combined Functional and Requirements Testing Plan, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -66,7 +75,7 @@
                                 "sec13s2": {
                                     "number": "13.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -83,7 +92,7 @@
                                 "sec13s1": {
                                     "number": "13.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -100,7 +109,7 @@
                                 "sec12": {
                                     "number": "12",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Functional and Requirements Testing Documentation",
                                     "documents": [
@@ -117,7 +126,7 @@
                                 "sec2": {
                                     "number": "2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Scope",
                                     "documents": [
@@ -127,14 +136,14 @@
                                         "1.0"
                                     ],
                                     "section": "sec2",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184802/184802_image-2021-11-24-16-23-17-348.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-96",
                                     "status": "Done"
                                 },
                                 "sec9": {
                                     "number": "9",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Traceability Matrix",
                                     "documents": [
@@ -151,7 +160,7 @@
                                 "sec8s1": {
                                     "number": "8.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Test Cases",
                                     "documents": [
@@ -168,7 +177,7 @@
                                 "sec7s2s2": {
                                     "number": "7.2.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Scope of Non-Functional Testing",
                                     "documents": [
@@ -178,14 +187,14 @@
                                         "1.0"
                                     ],
                                     "section": "sec7s2s2",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184810/184810_image-2021-11-24-16-27-19-989.png\" height=\"175\" width=\"579\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"175\" width=\"579\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-106",
                                     "status": "Done"
                                 },
                                 "sec7s1s2": {
                                     "number": "7.1.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Scope of Functional Testing",
                                     "documents": [
@@ -202,7 +211,7 @@
                                 "sec6s2": {
                                     "number": "6.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Scope of Integration Testing",
                                     "documents": [
@@ -219,7 +228,7 @@
                                 "sec5s2": {
                                     "number": "5.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Test Procedure 2: Verification of Training Documentation",
                                     "documents": [
@@ -236,7 +245,7 @@
                                 "sec5": {
                                     "number": "5",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Operational Qualification Activities and Training",
                                     "documents": [
@@ -253,7 +262,7 @@
                                 "sec10": {
                                     "number": "10",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Validation Environment",
                                     "documents": [
@@ -270,7 +279,7 @@
                                 "sec15": {
                                     "number": "15",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -288,22 +297,24 @@
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion" : 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion" : 2,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -311,17 +322,18 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion" : 3,
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -329,40 +341,43 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion" : "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion" : "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },
