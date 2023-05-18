@@ -1529,7 +1529,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 buildUrl   : this.steps.env.BUILD_URL,
                 jobName    : this.steps.env.JOB_NAME
             ],
-            referencedDocs : this.getReferencedDocumentsVersion(),
+            referencedDocs : this.getReferencedDocumentsVersion()
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}"]
