@@ -29,20 +29,20 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
-            
+
         ],
         "entryId": 1,
         "bugs": [
-            
+
         ],
         "risks": [
-            
+
         ],
         "tests": [
-            
+
         ],
         "docs": [
             {
@@ -273,7 +273,7 @@
     },
     {
         "components": [
-            
+
         ],
         "requirements": [
             {
@@ -282,23 +282,23 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
-            
+
         ],
         "entryId": 2,
         "bugs": [
-            
+
         ],
         "risks": [
-            
+
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "previousProjectVersion": "1.0",
         "techSpecs": [
@@ -312,7 +312,7 @@
     },
     {
         "components": [
-            
+
         ],
         "requirements": [
             {
@@ -328,23 +328,23 @@
             }
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
-            
+
         ],
         "entryId": 3,
         "bugs": [
-            
+
         ],
         "risks": [
-            
+
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "previousProjectVersion": "2.0",
         "techSpecs": [
@@ -358,16 +358,16 @@
     },
     {
         "bugs": [
-            
+
         ],
         "components": [
-            
+
         ],
         "epics": [
-            
+
         ],
         "mitigations": [
-            
+
         ],
         "requirements": [
             {
@@ -376,7 +376,7 @@
             }
         ],
         "risks": [
-            
+
         ],
         "techSpecs": [
             {
@@ -385,14 +385,15 @@
             }
         ],
         "tests": [
-            
+
         ],
         "docs": [
-            
+
         ],
         "entryId": 4,
         "projectVersion": "4.0",
         "previousProjectVersion": "3.0",
+        "docVersion": "4.0/4",
         "rational": "Modifications for project version '4.0'."
     }
 ]

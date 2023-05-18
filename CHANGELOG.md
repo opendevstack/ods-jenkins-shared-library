@@ -2,10 +2,19 @@
 
 ## Unreleased
 - Change initial project validation to take into account non GxP requirement([#1006](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1006))
-- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+- Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
+- Use a consistent notion of document version and remove header ([#987](https://github.com/opendevstack/ods-jenkins-shared-library/issues/987))
+- Improve Document Generation Experience ([#991](https://github.com/opendevstack/ods-jenkins-shared-library/issues/991))
+- Update Reference Documents & Base Documents sections ([#994](https://github.com/opendevstack/ods-jenkins-shared-library/issues/994))
+- Updated functional tests after fix SSDS appendix per gamp and RA chapter 5 ([#103](https://github.com/opendevstack/ods-document-generation-templates/issues/103))
+- Fix helm release - Check pod status after deployment ([#1005](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1005))
+
 
 ### Fixed
 - Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
+- Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+- Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
 
 ## [4.2.0] - 2023-02-21
 

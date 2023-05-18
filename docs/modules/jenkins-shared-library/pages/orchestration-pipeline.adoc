@@ -7,11 +7,11 @@ Load the shared library in your `Jenkinsfile` like this:
 
 [source,groovy]
 ----
-@Library('ods-jenkins-shared-library@3.x') _
+@Library('ods-jenkins-shared-library@4.x') _
 
 odsOrchestrationPipeline(
   debug: true,
-  odsImageTag: '3.x'
+  odsImageTag: '4.x'
 )
 ----
 
@@ -156,6 +156,13 @@ By default the shared library will always pull the *agent image* from the intern
 cluster node setup, this may decrease execution performance. In order to re-use loaded images, a knob in the `Jenkinsfile` configuration of the stage `odsOrchestrationPipeline` can be turned on:
 ----
 alwaysPullImage: true
+----
+
+By default the orchestration pipeline will create a pod based on the jenkins-base-agent image to do much of its work.
+In seldom cases, ususally with a lot of repositories, one may hit an out of memory error on the pod named 'mro-XX'. In this case the below 
+memory limit should be adjusted (defaulting to '1Gi')
+----
+mroAgentMemoryLimit = "1Gi"
 ----
 
 == Automated Generation of Compliance Documents

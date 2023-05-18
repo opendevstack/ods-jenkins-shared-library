@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Overall Technical Installation Report",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "Overall Technical Installation Report, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Overall Technical Installation Report, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -85,7 +94,7 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
                                             "TIR": "TIR-WIP-1.pdf"
@@ -108,7 +117,7 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
                                             "TIR": "TIR-WIP-1.pdf"
@@ -131,10 +140,10 @@
                                     "type": "ods-test",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-spock.git",
@@ -154,10 +163,10 @@
                                     "type": "ods",
                                     "data": {
                                         "openshift": {
-                                            
+
                                         },
                                         "documents": {
-                                            
+
                                         }
                                     },
                                     "url": "frml24113-release.git",
