@@ -95,6 +95,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
 
+    private static String NON_MANDATORY_CONTENT = 'Not mandatory.'
+
     private final JiraUseCase jiraUseCase
     private final JUnitTestReportsUseCase junit
     private final LeVADocumentChaptersFileService levaFiles
@@ -1669,7 +1671,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def sectionCollection = sections.collectEntries { sec ->
             [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
-                "<p><em>Not mandatory.</em></p>" : this.convertImages(sec.content)]]
+                '<p><em>' + this.NON_MANDATORY_CONTENT + '</em></p>' : this.convertImages(sec.content)]]
             //TODO better styling and put non mandatory also for cancelled issues
         }
 

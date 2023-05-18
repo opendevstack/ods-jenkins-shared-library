@@ -444,7 +444,8 @@ class Project {
         Map<String, List> result = [:]
 
         result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .findAll { k, v -> issueIsWIPandMandatory(v, JiraDataItem.TYPE_DOCS) }
+            .values()
+            .findAll { v -> issueIsWIPandMandatory(v, JiraDataItem.TYPE_DOCS) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
