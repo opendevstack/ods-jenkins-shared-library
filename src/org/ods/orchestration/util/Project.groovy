@@ -538,6 +538,7 @@ class Project {
         return this.data.jira.project.enumDictionary[name]
     }
 
+    @NonCPS
     Map getProjectProperties() {
         return this.data.jira.project.projectProperties
     }
