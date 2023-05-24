@@ -1915,4 +1915,23 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         [name: '',description: 'DESCRIPTION']          |       'DESCRIPTION'
         [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
     }
+
+    def "replace content for non-mandatory open issues"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
+        project.projectProperties."PROJECT.IS_GXP" = false
+
+        // Argument Constraints
+        def documentType = DocumentType.CSD as String
+
+        // Stubbed Method Responses
+        project.data.jira.docs.doc2 = [documents: "CSD", status: "IN PROGRESS", number: "1", section: "sec1", content: "REPLACE THIS"]
+
+        when:
+        def result = usecase.getDocumentSections(documentType)
+
+        then:
+        result["sec1"].content == "<p><em>Not mandatory.</em></p>"
+    }
 }
