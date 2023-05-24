@@ -458,7 +458,7 @@ class Project {
     }
 
     @NonCPS
-    private boolean isNonGxpManadatoryDoc(Map doc) {
+    protected boolean isNonGxpManadatoryDoc(Map doc) {
         return (doc.documents != null
             && doc.number != null
             && ((doc.documents.contains('CSD') && doc.number in ['1', '3.1']) ||
