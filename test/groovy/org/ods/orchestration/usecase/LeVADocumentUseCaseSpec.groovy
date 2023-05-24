@@ -1939,20 +1939,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result["sec1"].content == expected
 
         where:
-        isGxp | documentType               | status        | number || expected
-        false | CSD as String  | "IN PROGRESS" | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | SSDS as String | "IN PROGRESS" | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "DONE"        | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "DONE"        | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "DONE"        | "1"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "CANCELLED"   | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "CANCELLED"   | "2"   || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "IN PROGRESS" | "1"   || "Original content"
-        false | CSD as String  | "IN PROGRESS" | "3.1" || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "1"   || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "2.1" || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "3.1" || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "5.4" || "Original content"
-        true  | CSD as String  | "IN PROGRESS" | "2"   || "Original content"
+        isGxp | documentType   | status        | number || expected
+        false | CSD as String  | "IN PROGRESS" | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | SSDS as String | "IN PROGRESS" | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | CSD as String  | "DONE"        | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | SSDS as String | "DONE"        | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | CSD as String  | "DONE"        | "1"    || "<p><em>Not mandatory.</em></p>"
+        false | CSD as String  | "CANCELLED"   | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | SSDS as String | "CANCELLED"   | "2"    || "<p><em>Not mandatory.</em></p>"
+        false | CSD as String  | "IN PROGRESS" | "1"    || "Original content"
+        false | CSD as String  | "IN PROGRESS" | "3.1"  || "Original content"
+        false | SSDS as String | "IN PROGRESS" | "1"    || "Original content"
+        false | SSDS as String | "IN PROGRESS" | "2.1"  || "Original content"
+        false | SSDS as String | "IN PROGRESS" | "3.1"  || "Original content"
+        false | SSDS as String | "IN PROGRESS" | "5.4"  || "Original content"
+        true  | CSD as String  | "IN PROGRESS" | "2"    || "Original content"
     }
 }
