@@ -1955,4 +1955,5 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         false | SSDS as String | "IN PROGRESS" | "5.4"  || "Original content"
         true  | CSD as String  | "IN PROGRESS" | "2"    || "Original content"
     }
+
 }
