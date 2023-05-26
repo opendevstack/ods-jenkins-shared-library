@@ -27,7 +27,9 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
+    static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
+    static final boolean IS_GXP_PROJECT_DEFAULT = true
 
     class JiraDataItem implements Map, Serializable {
         static final String TYPE_BUGS = 'bugs'
@@ -64,16 +66,17 @@ class Project {
             TYPE_DOCS,
         ]
 
-        static final List TYPES_TO_BE_CLOSED = [
+        static final List COMMON_TYPES_TO_BE_CLOSED = [
+            TYPE_BUGS,
             TYPE_EPICS,
             TYPE_MITIGATIONS,
             TYPE_REQUIREMENTS,
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
         ]
 
+        static final String ISSUE_STATUS_TODO = 'to do'
         static final String ISSUE_STATUS_DONE = 'done'
         static final String ISSUE_STATUS_CANCELLED = 'cancelled'
 
@@ -373,7 +376,7 @@ class Project {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
-            if(!this.isWorkInProgress){
+            if (!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
 
@@ -381,7 +384,7 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira) {
+        if (this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
@@ -391,7 +394,7 @@ class Project {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0) {
+            if (faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
                     .collect { key -> key + ": " + faultMap.get(key) + "; " }
                     .inject("") { temp, val -> temp + val }
@@ -420,22 +423,11 @@ class Project {
     }
 
     @NonCPS
-    boolean isProjectReadyToFreeze(Map data) {
-        def result = true
-        JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
-            if (data.containsKey(type)) {
-                result = result & (data[type].find { k, v -> issueIsWIP(v) } == null)
-            }
-        }
-        return result
-    }
-
-    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:]
+        Map<String, List> result = [:]
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+                result[type] = data[type].findAll { k, v -> issueIsWIPandMandatory(v, type) }.keySet() as List<String>
             }
         }
         return result
@@ -449,9 +441,11 @@ class Project {
      */
     @NonCPS
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-        (data[JiraDataItem.TYPE_DOCS] ?: [:])
+        Map<String, List> result = [:]
+
+        result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
-            .findAll { issueIsWIP(it) }
+            .findAll { v -> issueIsWIPandMandatory(v, JiraDataItem.TYPE_DOCS) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
             }.flatten()
@@ -459,13 +453,33 @@ class Project {
             .collectEntries { doc, issues ->
                 [(doc as String): issues.collect { it.key } as List<String>]
             }
+
+        return result
     }
 
     @NonCPS
-    protected boolean issueIsWIP(Map issue) {
-        issue.status != null &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+    protected boolean isNonGxpManadatoryDoc(Map doc) {
+        return (doc.documents != null
+            && doc.number != null
+            && ((doc.documents.contains('CSD') && doc.number in ['1', '3.1']) ||
+            (doc.documents.contains('SSDS') && doc.number in ['1', '2.1', '3.1', '5.4'])))
+    }
+
+    @NonCPS
+    protected boolean issueIsWIPandMandatory(Map issue, String type) {
+        if (this.isGxpProject() || type != JiraDataItem.TYPE_DOCS) {
+            return (issue.status != null &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED))
+        } else {
+            return (isNonGxpManadatoryDoc(issue) && (issue.status != null &&
+                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)))
+        }
+    }
+
+    @NonCPS
+    boolean replaceIssueContentWithNonMandatoryText(Map issue) {
+        return !isGxpProject() && !issueIsWIPandMandatory(issue, JiraDataItem.TYPE_DOCS)
     }
 
     @NonCPS
@@ -524,6 +538,7 @@ class Project {
         return this.data.jira.project.enumDictionary[name]
     }
 
+    @NonCPS
     Map getProjectProperties() {
         return this.data.jira.project.projectProperties
     }
@@ -587,6 +602,12 @@ class Project {
 
     static String envStateFileName(String targetEnvironment) {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
+    }
+
+    @NonCPS
+    boolean isGxpProject() {
+        String isGxp = projectProperties?."PROJECT.IS_GXP"
+        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     String getEnvStateFileName() {
@@ -1579,7 +1600,6 @@ class Project {
     protected Map loadSavedJiraData(String savedVersion) {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
-
 
     /**
      * Saves the project data to the
