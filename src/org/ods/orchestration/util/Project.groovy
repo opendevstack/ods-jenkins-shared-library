@@ -30,6 +30,21 @@ class Project {
     static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
     static final boolean IS_GXP_PROJECT_DEFAULT = true
+    static final Map<String, List<String>> MANDATORY_CHAPTERS =
+        [
+            'CSD': ['1', '3.1'],
+            'SSDS': ['1', '2.1', '3.1', '5.4'],
+        ]
+    private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+    static {
+        def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String>}
+        for (Map.Entry<String, List<String>> entry : MANDATORY_CHAPTERS.entrySet()) {
+            def document = entry.key
+            for (String headingNumber: entry.value) {
+                index[headingNumber] << document
+            }
+        }
+    }
 
     class JiraDataItem implements Map, Serializable {
         static final String TYPE_BUGS = 'bugs'
@@ -67,7 +82,7 @@ class Project {
         ]
 
 
-        static final List COMMON_TYPES_TO_BE_CLOSED = [
+        static final List REGULAR_ISSUE_TYPES = [
             TYPE_BUGS,
             TYPE_EPICS,
             TYPE_MITIGATIONS,
@@ -75,7 +90,6 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
         ]
 
         static final String ISSUE_STATUS_TODO = 'to do'
@@ -427,11 +441,16 @@ class Project {
     @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
         Map<String, List> result = [:]
-        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type].findAll { k, v -> issueIsWIPandMandatory(v, type) }.keySet() as List<String>
+                result[type] = data[type].findAll { k, v -> isIssueWIP(v) }.keySet() as List<String>
             }
         }
+        def docs = computeWIPDocChapters(data)
+        if (docs != null) {
+            result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+        }
+
         return result
     }
 
@@ -442,47 +461,42 @@ class Project {
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
     @NonCPS
-    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-
-        Map<String, List> result = [:]
-
-        result = (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { v -> issueIsWIPandMandatory(v, JiraDataItem.TYPE_DOCS) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
+    protected Map<String,List<String>> computeWipDocChapterPerDocument(Map data) {
+        Map <String, List<String>> result = [:]
+        Map <String, List<String>> docChaptersPerDocument = result.withDefault { [] as List<String>}
+        Map <String, Map> wipDocs = computeWIPDocChapters(data) ?: [:]
+        for (Map docChapter : wipDocs.values()) {
+            def chapterKey = docChapter.key
+            for (String doc : docChapter.documents) {
+                docChaptersPerDocument[doc] << chapterKey
             }
+        }
 
         return result
     }
 
     @NonCPS
-    private boolean isNonGxpManadatoryDoc(Map doc) {
-        return (doc.documents != null
-            && doc.number != null
-            && ((doc.documents.contains('CSD') && doc.number in ['1', '3.1']) ||
-            (doc.documents.contains('SSDS') && doc.number in ['1', '2.1', '3.1', '5.4'])))
+    private Map<String, Map> computeWIPDocChapters(Map data) {
+        def docs = data[JiraDataItem.TYPE_DOCS]
+        return docs?.findAll { k, v -> isDocChapterMandatory(v) && !isIssueDone(v) }
     }
 
     @NonCPS
-    protected boolean issueIsWIPandMandatory(Map issue, String type) {
-        if (this.isGxpProject() || type != JiraDataItem.TYPE_DOCS) {
-            return (issue.status != null &&
-                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED))
-        } else {
-            return (isNonGxpManadatoryDoc(issue) && (issue.status != null &&
-                !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)))
-        }
+    protected boolean isIssueWIP(Map issue) {
+        return (!issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED))
     }
 
     @NonCPS
-    boolean replaceIssueContentWithNonMandatoryText(Map issue) {
-        return !isGxpProject() && !issueIsWIPandMandatory(issue, JiraDataItem.TYPE_DOCS)
+    boolean isIssueDone(Map issue) {
+        return issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
+    }
+
+    @NonCPS
+    boolean isDocChapterMandatory(Map doc) {
+        return this.isGxp() || (
+            ! ( MANDATORY_CHAPTER_INDEX[doc.number] ? MANDATORY_CHAPTER_INDEX[doc.number].disjoint(doc.documents) : true)
+        )
     }
 
     @NonCPS
@@ -608,7 +622,7 @@ class Project {
     }
 
     @NonCPS
-    boolean isGxpProject() {
+    boolean isGxp() {
         String isGxp = projectProperties?."PROJECT.IS_GXP"
         return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }

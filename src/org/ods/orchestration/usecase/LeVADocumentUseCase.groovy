@@ -50,7 +50,7 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    private static final String NOT_MANDATORY_CONTENT = 'Not mandatory.'
+    private static final String NOT_MANDATORY_CONTENT = '<p><em>Not mandatory.</em></p>'
 
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
@@ -1000,7 +1000,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
-                isGxpProject: this.project.isGxpProject(),
+                isGxpProject: this.project.isGxp(),
             ]
         ]
 
@@ -1523,7 +1523,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             date_created  : LocalDateTime.now().toString(),
             buildParameter: this.project.buildParams,
             git           : repo ? repo.data.git : this.project.gitData,
-            gxp           : project.isGxpProject(),
+            gxp           : project.isGxp(),
             openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
@@ -1690,8 +1690,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def sectionCollection = sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.project.replaceIssueContentWithNonMandatoryText(sec) ?
-                '<p><em>' + this.NOT_MANDATORY_CONTENT + '</em></p>' : this.convertImages(sec.content)]]
+            String content = sec.content
+            if (!this.project.isDocChapterMandatory(sec) && !this.project.isIssueDone(sec)) {
+                content = NOT_MANDATORY_CONTENT
+            } else {
+                content = this.convertImages(content)
+            }
+            [(sec.section): sec + [content: content]]
         }
 
         // Extract-out the section, as needed for the DocGen interface

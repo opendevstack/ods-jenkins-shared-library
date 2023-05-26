@@ -623,10 +623,6 @@ class ProjectSpec extends SpecHelper {
                     status: "DONE",
                     key: "${type}-3",
                 ],
-                "${type}-4": [
-                    status: "CANCELLED",
-                    key: "${type}-4",
-                ]
             ]
         }
 
@@ -645,7 +641,7 @@ class ProjectSpec extends SpecHelper {
     def "compute wip jira issues for non Gxp project"() {
         given:
         def data = [:]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
             data[type] = [
                 "${type}-1": [
                     status: "TODO",
@@ -663,69 +659,72 @@ class ProjectSpec extends SpecHelper {
                     status: "CANCELLED",
                     key: "${type}-4",
                 ],
-                "${type}-5": [
+            ]
+        }
+
+        data[Project.JiraDataItem.TYPE_DOCS] = [
+                "${Project.JiraDataItem.TYPE_DOCS}-5": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-5",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-5",
                     number: '1',
                     heading: 'Introduction',
                     documents:['SSDS']
                 ],
-                "${type}-6": [
+                "${Project.JiraDataItem.TYPE_DOCS}-6": [
                     status: Project.JiraDataItem.ISSUE_STATUS_DONE,
-                    key: "${type}-6",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-6",
                     number: '2.1',
                     heading: 'System Design Overview',
                     documents:['SSDS']
                 ],
-                "${type}-7": [
+                "${Project.JiraDataItem.TYPE_DOCS}-7": [
                     status: Project.JiraDataItem.ISSUE_STATUS_CANCELLED,
-                    key: "${type}-7",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-7",
                     number: '3.1',
                     heading: 'System Design Profile',
                     documents:['SSDS']
                 ],
-                "${type}-8": [
+                "${Project.JiraDataItem.TYPE_DOCS}-8": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-8",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-8",
                     number: '5.4',
                     heading: 'Utilisation of Existing Infrastructure Services',
                     documents:['SSDS']
                 ],
-                "${type}-9": [
+                "${Project.JiraDataItem.TYPE_DOCS}-9": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-9",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-9",
                     number: '1',
                     heading: 'Introduction and Purpose',
                     documents:['SSDS']
                 ],
-                "${type}-10": [
+                "${Project.JiraDataItem.TYPE_DOCS}-10": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-10",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-10",
                     number: '3.1',
                     heading: 'Related Business / GxP Process',
                     documents:['CSD']
                 ],
-                "${type}-11": [
+                "${Project.JiraDataItem.TYPE_DOCS}-11": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-11",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-11",
                     number: '5.1',
                     heading: 'Definitions',
                     documents:['CSD']
                 ],
-                "${type}-12": [
+                "${Project.JiraDataItem.TYPE_DOCS}-12": [
                     status: Project.JiraDataItem.ISSUE_STATUS_TODO,
-                    key: "${type}-12",
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-12",
                     number: '5.2',
                     heading: 'Abbreviations',
                     documents:['CSD']
                 ]
             ]
-        }
+
         project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
         def expected = [:]
-        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
-            expected[type] = [ "${type}-1", "${type}-2", "${type}-5",
-                               "${type}-8", "${type}-9", "${type}-10", "${type}-11", "${type}-12", ]
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
+            expected[type] = [ "${type}-1", "${type}-2", ]
         }
         expected[Project.JiraDataItem.TYPE_DOCS] = [ "${Project.JiraDataItem.TYPE_DOCS}-5",
                                                      "${Project.JiraDataItem.TYPE_DOCS}-7",
@@ -1017,7 +1016,7 @@ class ProjectSpec extends SpecHelper {
         data.docs = [:]
         data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
         def expected = [:]
-        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
             expected[type] = ["${type}-1", "${type}-2"]
         }
 
@@ -1078,7 +1077,7 @@ class ProjectSpec extends SpecHelper {
         data.docs = [:]
         data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
         def expected = [:]
-        Project.JiraDataItem.COMMON_TYPES_TO_BE_CLOSED.each { type ->
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
             expected[type] = ["${type}-1", "${type}-2"]
         }
 
@@ -3190,7 +3189,7 @@ class ProjectSpec extends SpecHelper {
         project.projectProperties.remove(Project.IS_GXP_PROJECT_PROPERTY)
 
         when:
-        def result = project.isGxpProject()
+        def result = project.isGxp()
 
         then:
         result == Project.IS_GXP_PROJECT_DEFAULT
@@ -3201,7 +3200,7 @@ class ProjectSpec extends SpecHelper {
         project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'true')
 
         when:
-        def result = project.isGxpProject()
+        def result = project.isGxp()
 
         then:
         result == true
@@ -3212,7 +3211,7 @@ class ProjectSpec extends SpecHelper {
         project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
 
         when:
-        def result = project.isGxpProject()
+        def result = project.isGxp()
 
         then:
         result == false
