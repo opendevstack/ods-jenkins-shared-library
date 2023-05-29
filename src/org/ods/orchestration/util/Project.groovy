@@ -38,9 +38,8 @@ class Project {
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String>}
-        for (Map.Entry<String, List<String>> entry : MANDATORY_CHAPTERS.entrySet()) {
-            def document = entry.key
-            for (String headingNumber: entry.value) {
+        MANDATORY_CHAPTERS.each { document, headingNumbers ->
+            headingNumbers.each { headingNumber ->
                 index[headingNumber] << document
             }
         }
@@ -462,17 +461,16 @@ class Project {
      */
     @NonCPS
     protected Map<String,List<String>> computeWipDocChapterPerDocument(Map data) {
-        Map <String, List<String>> result = [:]
-        Map <String, List<String>> docChaptersPerDocument = result.withDefault { [] as List<String>}
-        Map <String, Map> wipDocs = computeWIPDocChapters(data) ?: [:]
-        for (Map docChapter : wipDocs.values()) {
-            def chapterKey = docChapter.key
-            for (String doc : docChapter.documents) {
-                docChaptersPerDocument[doc] << chapterKey
+        Map <String, List<String>> docChaptersPerDocument = [:]
+        Map <String, List<String>> defaultingWrapper = docChaptersPerDocument.withDefault { [] as List<String>}
+        Map <String, Map> wipDocs = computeWIPDocChapters(data)
+
+        wipDocs?.each {chapterKey, docChapter ->
+            docChapter.documents.each { document ->
+                defaultingWrapper[document] << chapterKey
             }
         }
-
-        return result
+        return docChaptersPerDocument
     }
 
     @NonCPS
@@ -494,9 +492,16 @@ class Project {
 
     @NonCPS
     boolean isDocChapterMandatory(Map doc) {
-        return this.isGxp() || (
-            ! ( MANDATORY_CHAPTER_INDEX[doc.number] ? MANDATORY_CHAPTER_INDEX[doc.number].disjoint(doc.documents) : true)
-        )
+        if (this.isGxp()) {
+            return true
+        }
+
+        def documents = MANDATORY_CHAPTER_INDEX[doc.number]
+        if (documents == null) {
+            return false
+        }
+
+        return !documents.disjoint(doc.documents)
     }
 
     @NonCPS
