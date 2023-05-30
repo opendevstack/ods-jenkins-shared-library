@@ -1623,7 +1623,6 @@ class Project {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
 
-
     /**
      * Saves the project data to the
      * @return filenames saved
