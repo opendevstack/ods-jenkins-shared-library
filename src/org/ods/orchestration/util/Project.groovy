@@ -37,7 +37,7 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
     static {
-        def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String>}
+        def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
             headingNumbers.each { headingNumber ->
                 index[headingNumber] << document
@@ -46,6 +46,7 @@ class Project {
     }
 
     class JiraDataItem implements Map, Serializable {
+
         static final String TYPE_BUGS = 'bugs'
         static final String TYPE_COMPONENTS = 'components'
         static final String TYPE_EPICS = 'epics'
@@ -80,7 +81,6 @@ class Project {
             TYPE_DOCS,
         ]
 
-
         static final List REGULAR_ISSUE_TYPES = [
             TYPE_BUGS,
             TYPE_EPICS,
@@ -98,7 +98,7 @@ class Project {
         static final String ISSUE_TEST_EXECUTION_TYPE_AUTOMATED = 'automated'
 
         private final String type
-        private HashMap delegate
+        private final HashMap delegate
 
         JiraDataItem(Map map, String type) {
             this.delegate = new HashMap(map)
@@ -263,9 +263,11 @@ class Project {
     }
 
     class LogReportType {
+
         static final String CHANGES = 'changes'
         static final String TARGET = 'target'
         static final String STATE = 'state'
+
      }
 
     class GampTopic {
@@ -391,7 +393,7 @@ class Project {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
-            if(!this.isWorkInProgress){
+            if (!this.isWorkInProgress) {
                 throw new OpenIssuesException(message)
             }
 
@@ -399,17 +401,17 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira) {
+        if (this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
                 .findAll { it.value.get("testType") == "Unit" }
                 .each { entry ->
-                    if(entry.value.get("components").size() != 1) {
+                    if (entry.value.get("components").size() != 1) {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0) {
+            if (faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
                     .collect { key -> key + ": " + faultMap.get(key) + "; " }
                     .inject("") { temp, val -> temp + val }
@@ -462,7 +464,7 @@ class Project {
     @NonCPS
     protected Map<String,List<String>> computeWipDocChapterPerDocument(Map data) {
         Map <String, List<String>> docChaptersPerDocument = [:]
-        Map <String, List<String>> defaultingWrapper = docChaptersPerDocument.withDefault { [] as List<String>}
+        def defaultingWrapper = docChaptersPerDocument.withDefault { [] }
         Map <String, Map> wipDocs = computeWIPDocChapters(data)
 
         wipDocs?.each {chapterKey, docChapter ->
@@ -1718,7 +1720,7 @@ class Project {
 
         def updateIssueLinks = { issue, index ->
             issue.collectEntries { String type, value ->
-                if(JiraDataItem.TYPES.contains(type)) {
+                if (JiraDataItem.TYPES.contains(type)) {
                     def newLinks = value.collect { link ->
                         def newLink = index[link]
                         newLink?:link
@@ -1732,7 +1734,7 @@ class Project {
 
         def updateLinks = { data, index ->
             data.collectEntries { issueType, content ->
-                if(JiraDataItem.TYPES.contains(issueType)) {
+                if (JiraDataItem.TYPES.contains(issueType)) {
                     def updatedIssues = content.collectEntries { String issueKey, Map issue ->
                         def updatedIssue = updateIssueLinks(issue, index)
                         [(issueKey): updatedIssue]
@@ -1826,7 +1828,7 @@ class Project {
     @NonCPS
     void clear() {
         this.data = null
-  	}
+    }
 
     @NonCPS
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
