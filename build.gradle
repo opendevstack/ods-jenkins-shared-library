@@ -141,7 +141,7 @@ codenarc {
     configFile = file('codenarc.groovy')
     maxPriority1Violations = 0
     maxPriority2Violations = 1
-    maxPriority3Violations = 305
+    maxPriority3Violations = 300
     reportFormat = 'html'
 }
 

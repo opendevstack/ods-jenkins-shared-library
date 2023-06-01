@@ -622,7 +622,7 @@ class ProjectSpec extends SpecHelper {
                 "${type}-3": [
                     status: "DONE",
                     key: "${type}-3",
-                ]
+                ],
             ]
         }
 
@@ -630,6 +630,107 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
+
+        when:
+        def result = project.computeWipJiraIssues(data)
+
+        then:
+        result == expected
+    }
+
+    def "compute wip jira issues for non Gxp project"() {
+        given:
+        def data = [:]
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
+            data[type] = [
+                "${type}-1": [
+                    status: "TODO",
+                    key: "${type}-1",
+                ],
+                "${type}-2": [
+                    status: "DOING",
+                    key: "${type}-2",
+                ],
+                "${type}-3": [
+                    status: "DONE",
+                    key: "${type}-3",
+                ],
+                "${type}-4": [
+                    status: "CANCELLED",
+                    key: "${type}-4",
+                ],
+            ]
+        }
+
+        data[Project.JiraDataItem.TYPE_DOCS] = [
+                "${Project.JiraDataItem.TYPE_DOCS}-5": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-5",
+                    number: '1',
+                    heading: 'Introduction',
+                    documents:['SSDS']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-6": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_DONE,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-6",
+                    number: '2.1',
+                    heading: 'System Design Overview',
+                    documents:['SSDS']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-7": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_CANCELLED,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-7",
+                    number: '3.1',
+                    heading: 'System Design Profile',
+                    documents:['SSDS']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-8": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-8",
+                    number: '5.4',
+                    heading: 'Utilisation of Existing Infrastructure Services',
+                    documents:['SSDS']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-9": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-9",
+                    number: '1',
+                    heading: 'Introduction and Purpose',
+                    documents:['SSDS']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-10": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-10",
+                    number: '3.1',
+                    heading: 'Related Business / GxP Process',
+                    documents:['CSD']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-11": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-11",
+                    number: '5.1',
+                    heading: 'Definitions',
+                    documents:['CSD']
+                ],
+                "${Project.JiraDataItem.TYPE_DOCS}-12": [
+                    status: Project.JiraDataItem.ISSUE_STATUS_TODO,
+                    key: "${Project.JiraDataItem.TYPE_DOCS}-12",
+                    number: '5.2',
+                    heading: 'Abbreviations',
+                    documents:['CSD']
+                ]
+            ]
+
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+        def expected = [:]
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
+            expected[type] = [ "${type}-1", "${type}-2", ]
+        }
+        expected[Project.JiraDataItem.TYPE_DOCS] = [ "${Project.JiraDataItem.TYPE_DOCS}-5",
+                                                     "${Project.JiraDataItem.TYPE_DOCS}-7",
+                                                     "${Project.JiraDataItem.TYPE_DOCS}-8",
+                                                     "${Project.JiraDataItem.TYPE_DOCS}-9",
+                                                     "${Project.JiraDataItem.TYPE_DOCS}-10"]
 
         when:
         def result = project.computeWipJiraIssues(data)
@@ -897,6 +998,132 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             !expectedMessage.find("${type}-3")
         }
+    }
+
+    def "fail build with mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        then:
+        def e = thrown(OpenIssuesException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
+
+        where:
+        a | b || c
+        "CSD" | '1' || true
+        "CSD" | '3.1' || true
+        "SSDS" | '1' || true
+        "SSDS" | '2.1' || true
+        "SSDS" | '3.1' || true
+        "SSDS" | '5.4' || true
+    }
+
+    def "NOT fail build with non-mandatory doc open issues for non-GxP project"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        data.project.projectProperties = [:]
+        data.project.projectProperties["PROJECT.IS_GXP"] = "false"
+        data.docs = [:]
+        data.docs["docs-1"] = [ documents: [a], number: b, status: "DOING"]
+        def expected = [:]
+        Project.JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+
+        expectedMessage += "\n\nDocs: docs-1"
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues() == c
+
+        where:
+        a | b || c
+        "CSD" | '2' || false
+        "CSD" | '3.2' || false
+        "SSDS" | '2' || false
+        "SSDS" | '2.2' || false
+        "SSDS" | '3.2' || false
+        "SSDS" | '5.5' || false
+        "CFTP" | '1' || false
+        "CFTR" | '1' || false
+        "DTP" | '1' || false
+        "DTR" | '1' || false
+        "DIL" | '1' || false
+        "IVP" | '1' || false
+        "IVR" | '1' || false
+        "RA" | '1' || false
+        "TCP" | '1' || false
+        "TCR" | '1' || false
+        "TIP" | '1' || false
+        "TIR" | '1' || false
+        "TRC" | '1' || false
     }
 
     def "load initial version"() {
@@ -2703,6 +2930,110 @@ class ProjectSpec extends SpecHelper {
         result == expected
     }
 
+    def "compute WIP document chapters per document for non Gxp docs - all mandatory issues done"() {
+        given:
+        def issue = { String key, String number, String heading, String status,
+                      List<String> docs -> [(key): [ documents: docs, status: status, key: key, number: number, heading: heading ]]
+        }
+
+        def data = [
+            (Project.JiraDataItem.TYPE_DOCS): issue('77', '1', 'Introduction',
+                Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('76', '2.1', 'System Design Overview',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('73', '3.1', 'System Design Profile',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('67', '5.4', 'Utilisation of Existing Infrastructure Services',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('66', '6.1', 'Development Environment',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('42', '1', 'Introduction and Purpose',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD']) +
+                issue('40', '3.1', 'Related Business / GxP Process',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD']) +
+                issue('39', '5.1', 'Definitions',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD']) +
+                issue('38', '5.2', 'Abbreviations',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD'])
+        ]
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+        def expected = [:]
+
+        when:
+        def result = project.computeWipDocChapterPerDocument(data)
+
+        then:
+        result == expected
+    }
+
+    def "compute WIP document chapters per document for non Gxp docs - one mandatory issue to do and one cancelled"() {
+        given:
+        def issue = { String key, String number, String heading, String status,
+                      List<String> docs -> [(key): [ documents: docs, status: status, key: key, number: number, heading: heading ]]
+        }
+
+        def data = [
+            (Project.JiraDataItem.TYPE_DOCS): issue('77', '1', 'Introduction',
+                Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('76', '2.1', 'System Design Overview',
+                    Project.JiraDataItem.ISSUE_STATUS_CANCELLED, ['SSDS']) +
+                issue('73', '3.1', 'System Design Profile',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('67', '5.4', 'Utilisation of Existing Infrastructure Services',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['SSDS']) +
+                issue('42', '1', 'Introduction and Purpose',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD']) +
+                issue('40', '3.1', 'Related Business / GxP Process',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD']) +
+                issue('39', '5.1', 'Definitions',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD']) +
+                issue('38', '5.2', 'Abbreviations',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD'])
+        ]
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+        def expected = [SSDS:['77', '76']]
+
+        when:
+        def result = project.computeWipDocChapterPerDocument(data)
+
+        then:
+        result == expected
+    }
+
+    def "compute WIP document chapters per document for non Gxp docs - all issues to do"() {
+        given:
+        def issue = { String key, String number, String heading, String status,
+                      List<String> docs -> [(key): [ documents: docs, status: status, key: key, number: number, heading: heading ]]
+        }
+
+        def data = [
+            (Project.JiraDataItem.TYPE_DOCS): issue('77', '1', 'Introduction',
+                Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('76', '2.1', 'System Design Overview',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('73', '3.1', 'System Design Profile',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('67', '5.4', 'Utilisation of Existing Infrastructure Services',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['SSDS']) +
+                issue('42', '1', 'Introduction and Purpose',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD']) +
+                issue('40', '3.1', 'Related Business / GxP Process',
+                    Project.JiraDataItem.ISSUE_STATUS_TODO, ['CSD']) +
+                issue('39', '5.1', 'Definitions',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD']) +
+                issue('38', '5.2', 'Abbreviations',
+                    Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD'])
+        ]
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+        def expected = [SSDS:['77', '76', '73', '67'], CSD:['42', '40']]
+
+        when:
+        def result = project.computeWipDocChapterPerDocument(data)
+
+        then:
+        result == expected
+    }
+
     def "assert if versioning is enabled for the project"() {
         given:
         def versionEnabled
@@ -2851,6 +3182,39 @@ class ProjectSpec extends SpecHelper {
         "false"         || false
         "False"         || false
         "FALSE"         || false
+    }
+
+    def "verify isGxpProject default value"() {
+        given:
+        project.projectProperties.remove(Project.IS_GXP_PROJECT_PROPERTY)
+
+        when:
+        def result = project.isGxp()
+
+        then:
+        result == Project.IS_GXP_PROJECT_DEFAULT
+    }
+
+    def "verify isGxpProject true value"() {
+        given:
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'true')
+
+        when:
+        def result = project.isGxp()
+
+        then:
+        result == true
+    }
+
+    def "verify isGxpProject false value"() {
+        given:
+        project.projectProperties.put(Project.IS_GXP_PROJECT_PROPERTY, 'false')
+
+        when:
+        def result = project.isGxp()
+
+        then:
+        result == false
     }
 
 }

@@ -50,7 +50,7 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    protected static final boolean IS_GXP_PROJECT_DEFAULT = true
+    private static final String NOT_MANDATORY_CONTENT = '<p><em>Not mandatory.</em></p>'
 
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
@@ -1000,18 +1000,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
-                isGxpProject: isGxpProject(this.project.getProjectProperties()),
+                isGxpProject: this.project.isGxp(),
             ]
         ]
-
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
-    }
-
-    protected boolean isGxpProject(Map projectProperties) {
-        String isGxp = projectProperties."PROJECT.IS_GXP"
-        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     @NonCPS
@@ -1528,7 +1522,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             date_created  : LocalDateTime.now().toString(),
             buildParameter: this.project.buildParams,
             git           : repo ? repo.data.git : this.project.gitData,
-            gxp           : isGxpProject(this.project.getProjectProperties()),
+            gxp           : project.isGxp(),
             openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
@@ -1693,10 +1687,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
         }
-        // Extract-out the section, as needed for the DocGen interface
-        return sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content)]]
+
+        def sectionCollection = sections.collectEntries { sec ->
+            String content = sec.content
+            if (!this.project.isDocChapterMandatory(sec) && !this.project.isIssueDone(sec)) {
+                content = NOT_MANDATORY_CONTENT
+            } else {
+                content = this.convertImages(content)
+            }
+            [(sec.section): sec + [content: content]]
         }
+
+        // Extract-out the section, as needed for the DocGen interface
+        return sectionCollection
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Change initial project validation to take into account non GxP requirement([#1007](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1007))
 - Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
 - Use a consistent notion of document version and remove header ([#987](https://github.com/opendevstack/ods-jenkins-shared-library/issues/987))
 - Improve Document Generation Experience ([#991](https://github.com/opendevstack/ods-jenkins-shared-library/issues/991))
