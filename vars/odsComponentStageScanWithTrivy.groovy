@@ -55,8 +55,8 @@ def call(IContext context) {
             context,
         //    inheritedConfig,
             trivyService,
-            bitbucketService,
-            nexusService,
+        //    bitbucketService,
+        //    nexusService,
             logger
         ).execute()
     } catch (err) {
