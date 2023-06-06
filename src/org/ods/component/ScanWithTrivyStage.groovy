@@ -15,7 +15,7 @@ class ScanWithTrivyStage extends Stage {
     private final TrivyService trivy
     private final BitbucketService bitbucket
     private final NexusService nexus
-//    private final ScanWithTrivyOptions options
+    private final ScanWithTrivyOptions options
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
