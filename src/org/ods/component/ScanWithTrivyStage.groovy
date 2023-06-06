@@ -3,8 +3,8 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.TrivyService
-import org.ods.services.BitbucketService
-import org.ods.services.NexusService
+// import org.ods.services.BitbucketService
+// import org.ods.services.NexusService
 import org.ods.util.ILogger
 
 @TypeChecked
@@ -13,9 +13,9 @@ class ScanWithTrivyStage extends Stage {
     static final String STAGE_NAME = 'Trivy Scan'
     static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.trivy"
     private final TrivyService trivy
-    private final BitbucketService bitbucket
-    private final NexusService nexus
-    private final ScanWithTrivyOptions options
+    // private final BitbucketService bitbucket
+    // private final NexusService nexus
+    // private final ScanWithTrivyOptions options
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -44,10 +44,13 @@ class ScanWithTrivyStage extends Stage {
         String format = "cyclonedx"
         String scanners = "vuln,config,secret,license"
         String vulType = "os,library"
+        logger.info "1º check"
         int returnCode = scanViaCli(scanners, vulType, format, jsonFile)
+        logger.info "2º check"
         if (![TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Trivy CLI</li>"
         }
+        logger.info "3º check"
         // If report exists
         // if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
         //     try {
@@ -79,6 +82,7 @@ class ScanWithTrivyStage extends Stage {
     private int scanViaCli(String scanners,String vulType, String format, String jsonFile) {
         int returnCode = trivy.scanViaCli(scanners, vulType, format, jsonFile)
         //Check return code for Trivy cli and adjust bellow
+        logger.info "1.1º check"
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
@@ -93,6 +97,7 @@ class ScanWithTrivyStage extends Stage {
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
+        logger.info "1.2º check"
         logger.infoClocked("","Trivy scan (via CLI)")
         return returnCode
     }
