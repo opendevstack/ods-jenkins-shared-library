@@ -15,14 +15,14 @@ class ScanWithTrivyStage extends Stage {
     private final TrivyService trivy
     private final BitbucketService bitbucket
     private final NexusService nexus
-    private final ScanWithTrivyOptions options
+//    private final ScanWithTrivyOptions options
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithTrivyStage(def script, IContext context, TrivyService trivy, BitbucketService bitbucket,
                       NexusService nexusService, ILogger logger) {
         super(script, context, logger)
-        this.options = new ScanWithTrivyOptions(config)
+//        this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         this.bitbucket = bitbucket
         this.nexus = nexusService
