@@ -29,6 +29,7 @@ class TrivyService {
             script: """
                 set +e && \
                 trivy fs  \
+                --cache-dir /tmp/.cache \
                 --scanners ${scanners} \
                 --vuln-type ${vulType} \
                 --format ${format} \
