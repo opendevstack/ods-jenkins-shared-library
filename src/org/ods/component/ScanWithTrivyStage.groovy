@@ -23,7 +23,7 @@ class ScanWithTrivyStage extends Stage {
     //                   NexusService nexusService, ILogger logger) {
     ScanWithTrivyStage(def script, IContext context, TrivyService trivy, ILogger logger) {
         super(script, context, logger)
-//        this.options = new ScanWithTrivyOptions(config)
+        // this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         // this.bitbucket = bitbucket
         // this.nexus = nexusService
