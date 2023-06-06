@@ -53,7 +53,7 @@ def call(IContext context) {
         //Nexus report
         new ScanWithTrivyStage(this,
             context,
-            inheritedConfig,
+        //    inheritedConfig,
             trivyService,
             bitbucketService,
             nexusService,
