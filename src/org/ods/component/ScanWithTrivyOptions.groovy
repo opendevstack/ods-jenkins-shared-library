@@ -14,4 +14,6 @@ class ScanWithTrivyOptions extends Options {
     String scanners
 
     String vulType
+
+    String nexusRepository
 }

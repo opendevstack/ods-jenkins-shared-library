@@ -3,8 +3,8 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.TrivyService
-// import org.ods.services.BitbucketService
-// import org.ods.services.NexusService
+import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.util.ILogger
 
 @TypeChecked
@@ -13,15 +13,14 @@ class ScanWithTrivyStage extends Stage {
     static final String STAGE_NAME = 'Trivy Scan'
     static final String BITBUCKET_TRIVY_REPORT_KEY = "org.opendevstack.trivy"
     private final TrivyService trivy
-    // private final BitbucketService bitbucket
-    // private final NexusService nexus
+    private final BitbucketService bitbucket
+    private final NexusService nexus
     private final ScanWithTrivyOptions options
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
-    // ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
-    //                   NexusService nexusService, ILogger logger) {
-    ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, ILogger logger) {
+    ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
+                      NexusService nexusService, ILogger logger) {
         super(script, context, logger)
         if (!config.format) {
             config.format = "cyclonedx"
@@ -34,36 +33,31 @@ class ScanWithTrivyStage extends Stage {
         }
         if (!config.resourceName) {
             config.resourceName = context.componentId
-        }        
+        }
+        if (!config.nexusRepository) {
+            config.nexusRepository = "leva-documentation"
+        }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
-        // this.bitbucket = bitbucket
-        // this.nexus = nexusService
+        this.bitbucket = bitbucket
+        this.nexus = nexusService
     }
 
     protected run() {
         String errorMessages = ''
-
-        // Name in Nexus of the repository where to store the reports.
-        //To set proper param
-        // String nexusRepository = configurationAquaCluster['nexusRepository']
-        // if (!nexusRepository) {
-        //     logger.info "Please provide the name of the repository in Nexus to store the reports!"
-        //     errorMessages += "<li>Provide the name of the repository in Nexus to use with Aqua</li>"
-        // }
-
-        String jsonFile = "trivy-sbom.json"
-        String format = "cyclonedx"
-        String scanners = "vuln,config,secret,license"
-        String vulType = "os,library"
+        String reportFile = "trivy-sbom.json"
+        // remove check
         logger.info "1º check"
-        int returnCode = scanViaCli(scanners, vulType, format, jsonFile)
+        int returnCode = scanViaCli(config.scanners, config.vulType, config.format, jsonFile)
+        // remove check
         logger.info "2º check"
         if (![TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Trivy CLI</li>"
         }
+        // remove check
         logger.info "3º check"
-        // If report exists
+        //If report exists
+        
         // if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
         //     try {
         //         def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
@@ -87,14 +81,15 @@ class ScanWithTrivyStage extends Stage {
         // }
 
         // notifyAquaProblem(alertEmails, errorMessages)
-        return
+        // return
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners,String vulType, String format, String jsonFile) {
+    private int scanViaCli(String scanners,String vulType, String format, String reportFile) {
          logger.startClocked(options.resourceName)
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, jsonFile)
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, reportFile)
         //Check return code for Trivy cli and adjust bellow
+        // remove check
         logger.info "1.1º check"
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
@@ -110,8 +105,10 @@ class ScanWithTrivyStage extends Stage {
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
+        // remove check
         logger.info "1.2º check"
         logger.infoClocked(options.resourceName,"Trivy scan (via CLI)")
+        // remove check
         logger.info "1.3º check"
         return returnCode
     }

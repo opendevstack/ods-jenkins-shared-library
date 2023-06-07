@@ -35,7 +35,6 @@ class TrivyService {
                 --format ${format} \
                 --output ${output} \
                 --license-full \
-                --dependency-tree \
                 . && \
                 set -e
             """
