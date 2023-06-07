@@ -65,8 +65,8 @@ def call(IContext context, Map config = [:]) {
             context,
            inheritedConfig,
             trivyService,
-        //    bitbucketService,
-        //    nexusService,
+           bitbucketService,
+           nexusService,
             logger
         ).execute()
     } catch (err) {
