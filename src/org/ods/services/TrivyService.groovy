@@ -9,7 +9,6 @@ class TrivyService {
 
     static final int TRIVY_SUCCESS = 0
     static final int TRIVY_OPERATIONAL_ERROR = 1
-    static final int TRIVY_POLICIES_ERROR = 4
 
     private final IPipelineSteps steps
     private final ILogger logger

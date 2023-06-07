@@ -37,14 +37,14 @@ class ScanWithTrivyStage extends Stage {
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format, reportFile)
         // remove check
         logger.info "2º check"
-        if (![TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
+        if (![TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             errorMessages += "<li>Error executing Trivy CLI</li>"
         }
         // remove check
         logger.info "3º check"
-        //If report exists
 
-        if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
+        //If report exists
+        if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
         //         def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
         //         Map vulnerabilities = resultInfo.vulnerability_summary as Map
@@ -54,7 +54,7 @@ class ScanWithTrivyStage extends Stage {
         //                           vulnerabilities.critical ?: 0,
         //                           vulnerabilities.malware ?: 0]
 
-        //         URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
+                URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
         //         createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
         //             registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
@@ -86,9 +86,6 @@ class ScanWithTrivyStage extends Stage {
             case TrivyService.TRIVY_OPERATIONAL_ERROR:
                 logger.info "An error occurred in processing the scan request " +
                     "(e.g. invalid command line options, image not pulled, operational error)."
-                break
-            case TrivyService.TRIVY_POLICIES_ERROR:
-                logger.info "The scan failed at least one of the Policies specified."
                 break
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
@@ -166,24 +163,24 @@ class ScanWithTrivyStage extends Stage {
     //     return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
     // }
 
-    // @SuppressWarnings('ReturnNullFromCatchBlock')
-    // private URI archiveReportInNexus(String reportFile, nexusRepository) {
-    //     try {
-    //         URI report = nexus.storeArtifact(
-    //             "${nexusRepository}",
-    //             "${context.projectId}/${this.options.resourceName}/" +
-    //                 "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
-    //             "report.html",
-    //             (steps.readFile(file: reportFile) as String).bytes, "text/html")
+    @SuppressWarnings('ReturnNullFromCatchBlock')
+    private URI archiveReportInNexus(String reportFile, nexusRepository) {
+        try {
+            URI report = nexus.storeArtifact(
+                "${nexusRepository}",
+                "${context.projectId}/${this.options.resourceName}/" +
+                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/trivy",
+                "${reportFile}",
+                (steps.readFile(file: reportFile) as String).bytes, "json")
 
-    //         logger.info "Report stored in: ${report}"
+            logger.info "Report stored in: ${report}"
 
-    //         return report
-    //     } catch (err) {
-    //         logger.warn("Error archiving the Aqua reports in Nexus due to: ${err}")
-    //         return null
-    //     }
-    // }
+            return report
+        } catch (err) {
+            logger.warn("Error archiving the Trivy reports in Nexus due to: ${err}")
+            return null
+        }
+    }
 
     private archiveReportInJenkins(boolean archive, String reportFile) {
         String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
@@ -195,6 +192,7 @@ class ScanWithTrivyStage extends Stage {
             label: 'Rename report to SCSR',
             script: "mv ${reportFile} artifacts/${targetReport}"
         )
+        //why arhive all artifacts and not only the specific file ?
         if (archive) {
             steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
         }
