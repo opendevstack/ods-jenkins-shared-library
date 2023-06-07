@@ -44,8 +44,8 @@ class ScanWithTrivyStage extends Stage {
         logger.info "3º check"
         //If report exists
 
-        // if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
-        //     try {
+        if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
+            try {
         //         def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
         //         Map vulnerabilities = resultInfo.vulnerability_summary as Map
         //         // returnCode is 0 --> Success or 4 --> Error policies
@@ -58,16 +58,16 @@ class ScanWithTrivyStage extends Stage {
         //         createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
         //             registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
-        //     } catch (err) {
-        //         logger.warn("Error archiving the Aqua reports due to: ${err}")
-        //         errorMessages += "<li>Error archiving Aqua reports</li>"
-        //     }
+            } catch (err) {
+                logger.warn("Error archiving the Trivy reports due to: ${err}")
+                errorMessages += "<li>Error archiving Trivy reports</li>"
+            }
         // } else {
         //     createBitbucketCodeInsightReport(errorMessages)
         // }
 
         // notifyAquaProblem(alertEmails, errorMessages)
-        // return
+        return
     }
 
     @SuppressWarnings('ParameterCount')
