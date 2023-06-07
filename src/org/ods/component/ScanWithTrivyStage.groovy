@@ -47,8 +47,6 @@ class ScanWithTrivyStage extends Stage {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
         // remove check
-        
-        logger.info "format: ${options.format}, scanners: ${options.scanners}, vulType: ${options.vulType}, resourceName: ${options.resourceName}, nexusRepository: ${options.nexusRepository}"
         logger.info "1º check"
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format, reportFile)
         // remove check

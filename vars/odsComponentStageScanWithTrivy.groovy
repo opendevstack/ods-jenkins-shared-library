@@ -46,7 +46,6 @@ def call(IContext context, Map config = [:]) {
         registry.add(NexusService, nexusService)
     }
 
-
     String errorMessages = ''
     def inheritedConfig = [:]
     if (config.resourceName) {
