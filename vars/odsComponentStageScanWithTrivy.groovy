@@ -68,6 +68,7 @@ def call(IContext context, Map config = [:]) {
     }else{
         inheritedConfig.vulType = config.vulType
     }
+    // make this param not configurable by user ?
     if (!config.nexusRepository) {
         inheritedConfig.nexusRepository = 'leva-documentation'
     }else{
