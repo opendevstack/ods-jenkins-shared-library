@@ -22,21 +22,21 @@ class ScanWithTrivyStage extends Stage {
     ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
                       NexusService nexusService, ILogger logger) {
         super(script, context, logger)
-        if (!config.format) {
-            config.format = 'cyclonedx'
-        }
-        if (!config.scanners) {
-            config.scanners = 'vuln,config,secret,license'
-        }
-        if (!config.vulType) {
-            config.vulType = 'os,library'
-        }
-        if (!config.resourceName) {
-            config.resourceName = context.componentId
-        }
-        if (!config.nexusRepository) {
-            config.nexusRepository = 'leva-documentation'
-        }
+        // if (!config.format) {
+        //     config.format = 'cyclonedx'
+        // }
+        // if (!config.scanners) {
+        //     config.scanners = 'vuln,config,secret,license'
+        // }
+        // if (!config.vulType) {
+        //     config.vulType = 'os,library'
+        // }
+        // if (!config.resourceName) {
+        //     config.resourceName = context.componentId
+        // }
+        // if (!config.nexusRepository) {
+        //     config.nexusRepository = 'leva-documentation'
+        // }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         this.bitbucket = bitbucket

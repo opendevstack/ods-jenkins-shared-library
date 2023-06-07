@@ -51,6 +51,26 @@ def call(IContext context, Map config = [:]) {
     if (config.resourceName) {
         inheritedConfig.resourceName = config.resourceName
     }
+    if (!config.format) {
+        inheritedConfig.format = 'cyclonedx'
+    }else{
+        inheritedConfig.format = config.format
+    }
+    if (!config.scanners) {
+        inheritedConfig.scanners = 'vuln,config,secret,license'
+    }else{
+        inheritedConfig.scanners = config.scanners
+    }
+    if (!config.vulType) {
+        inheritedConfig.vulType = 'os,library'
+    }else{
+        inheritedConfig.vulType = config.vulType
+    }
+    if (!config.nexusRepository) {
+        inheritedConfig.nexusRepository = 'leva-documentation'
+    }else{
+        inheritedConfig.nexusRepository = config.nexusRepository
+    }    
     try {
         //To Clean
         //Nexus report
