@@ -48,7 +48,7 @@ class ScanWithTrivyStage extends Stage {
         String reportFile = "trivy-sbom.json"
         // remove check
         logger.info "1º check"
-        int returnCode = scanViaCli(config.scanners, config.vulType, config.format, jsonFile)
+        int returnCode = scanViaCli(config.scanners, config.vulType, config.format, reportFile)
         // remove check
         logger.info "2º check"
         if (![TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
@@ -57,7 +57,7 @@ class ScanWithTrivyStage extends Stage {
         // remove check
         logger.info "3º check"
         //If report exists
-        
+
         // if ([TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
         //     try {
         //         def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
@@ -86,11 +86,13 @@ class ScanWithTrivyStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String scanners,String vulType, String format, String reportFile) {
-         logger.startClocked(options.resourceName)
+        logger.startClocked(options.resourceName)
+        // remove check
+        logger.info "1.1º check"
         int returnCode = trivy.scanViaCli(scanners, vulType, format, reportFile)
         //Check return code for Trivy cli and adjust bellow
         // remove check
-        logger.info "1.1º check"
+        logger.info "1.2º check"
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
@@ -106,10 +108,10 @@ class ScanWithTrivyStage extends Stage {
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
         // remove check
-        logger.info "1.2º check"
+        logger.info "1.3º check"
         logger.infoClocked(options.resourceName,"Trivy scan (via CLI)")
         // remove check
-        logger.info "1.3º check"
+        logger.info "1.4º check"
         return returnCode
     }
 
