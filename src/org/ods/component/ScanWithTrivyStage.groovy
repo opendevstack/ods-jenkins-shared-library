@@ -23,19 +23,19 @@ class ScanWithTrivyStage extends Stage {
                       NexusService nexusService, ILogger logger) {
         super(script, context, logger)
         if (!config.format) {
-            config.format = "cyclonedx"
+            config.format = 'cyclonedx'
         }
         if (!config.scanners) {
-            config.scanners = "vuln,config,secret,license"
+            config.scanners = 'vuln,config,secret,license'
         }
         if (!config.vulType) {
-            config.vulType = "os,library"
+            config.vulType = 'os,library'
         }
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
         if (!config.nexusRepository) {
-            config.nexusRepository = "leva-documentation"
+            config.nexusRepository = 'leva-documentation'
         }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
@@ -47,8 +47,9 @@ class ScanWithTrivyStage extends Stage {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
         // remove check
-        logger.info "1º check"
+        
         logger.info "format: ${config.format}, scanners: ${config.scanners}, vulType: ${config.vulType}, resourceName: ${config.resourceName}, nexusRepository: ${config.nexusRepository}"
+        logger.info "1º check"
         int returnCode = scanViaCli(config.scanners, config.vulType, config.format, reportFile)
         // remove check
         logger.info "2º check"
