@@ -48,6 +48,7 @@ class ScanWithTrivyStage extends Stage {
         String reportFile = "trivy-sbom.json"
         // remove check
         logger.info "1º check"
+        logger.info "format: ${config.format}, scanners: ${config.scanners}, vulType: ${config.vulType}, resourceName: ${config.resourceName}, nexusRepository: ${config.nexusRepository}"
         int returnCode = scanViaCli(config.scanners, config.vulType, config.format, reportFile)
         // remove check
         logger.info "2º check"
@@ -85,7 +86,7 @@ class ScanWithTrivyStage extends Stage {
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners,String vulType, String format, String reportFile) {
+    private int scanViaCli(String scanners, String vulType, String format, String reportFile) {
         logger.startClocked(options.resourceName)
         // remove check
         logger.info "1.1º check"
