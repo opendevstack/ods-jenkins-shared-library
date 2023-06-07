@@ -48,7 +48,9 @@ def call(IContext context, Map config = [:]) {
 
     String errorMessages = ''
     def inheritedConfig = [:]
-    if (config.resourceName) {
+    if (!config.resourceName) {
+        inheritedConfig.resourceName = context.componentId
+    }else{
         inheritedConfig.resourceName = config.resourceName
     }
     if (!config.format) {
