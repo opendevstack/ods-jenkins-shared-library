@@ -54,7 +54,7 @@ class ScanWithTrivyStage extends Stage {
         //                           vulnerabilities.critical ?: 0,
         //                           vulnerabilities.malware ?: 0]
 
-                URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
+                URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
         //         createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
         //             registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
