@@ -32,6 +32,9 @@ class ScanWithTrivyStage extends Stage {
         if (!config.vulType) {
             config.vulType = "os,library"
         }
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
+        }        
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         // this.bitbucket = bitbucket
@@ -89,6 +92,7 @@ class ScanWithTrivyStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String scanners,String vulType, String format, String jsonFile) {
+         logger.startClocked(options.resourceName)
         int returnCode = trivy.scanViaCli(scanners, vulType, format, jsonFile)
         //Check return code for Trivy cli and adjust bellow
         logger.info "1.1º check"
@@ -107,7 +111,7 @@ class ScanWithTrivyStage extends Stage {
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
         logger.info "1.2º check"
-        logger.infoClocked("","Trivy scan (via CLI)")
+        logger.infoClocked(options.resourceName,"Trivy scan (via CLI)")
         logger.info "1.3º check"
         return returnCode
     }

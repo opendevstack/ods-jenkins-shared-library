@@ -7,6 +7,8 @@ class ScanWithTrivyOptions extends Options {
 
     //Add proper exlanation and more options for trivy
 
+    String resourceName
+
     String format
 
     String scanners
