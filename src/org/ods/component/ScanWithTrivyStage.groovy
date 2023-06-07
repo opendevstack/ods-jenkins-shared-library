@@ -108,6 +108,7 @@ class ScanWithTrivyStage extends Stage {
         }
         logger.info "1.2º check"
         logger.infoClocked("","Trivy scan (via CLI)")
+        logger.info "1.3º check"
         return returnCode
     }
 
