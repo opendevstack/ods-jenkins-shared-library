@@ -49,24 +49,18 @@ def call(IContext context, Map config = [:]) {
 
     String errorMessages = ''
     def inheritedConfig = [:]
-    if (config.format) {
-        inheritedConfig.format = "cyclonedx"
-    }
-    if (config.scanners) {
-        inheritedConfig.scanners = "vuln,config,secret,license"
-    }
-    if (config.vulType) {
-        inheritedConfig.vulType = "os,library"
+    if (config.resourceName) {
+        inheritedConfig.resourceName = config.resourceName
     }
     try {
         //To Clean
         //Nexus report
         new ScanWithTrivyStage(this,
             context,
-           inheritedConfig,
+            inheritedConfig,
             trivyService,
-           bitbucketService,
-           nexusService,
+            bitbucketService,
+            nexusService,
             logger
         ).execute()
     } catch (err) {
