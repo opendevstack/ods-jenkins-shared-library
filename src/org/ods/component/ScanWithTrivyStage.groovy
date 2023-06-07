@@ -57,7 +57,7 @@ class ScanWithTrivyStage extends Stage {
         //         URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
         //         createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
         //             registry, imageRef, errorCodes.sum() as int, errorMessages)
-        //         archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
+                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
         //     } catch (err) {
         //         logger.warn("Error archiving the Aqua reports due to: ${err}")
         //         errorMessages += "<li>Error archiving Aqua reports</li>"
@@ -185,29 +185,29 @@ class ScanWithTrivyStage extends Stage {
     //     }
     // }
 
-    // private archiveReportInJenkins(boolean archive, String reportFile) {
-    //     String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
-    //     steps.sh(
-    //         label: 'Create artifacts dir',
-    //         script: 'mkdir -p artifacts'
-    //     )
-    //     steps.sh(
-    //         label: 'Rename report to SCSR',
-    //         script: "mv ${reportFile} artifacts/${targetReport}"
-    //     )
-    //     if (archive) {
-    //         steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
-    //     }
-    //     String aquaScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
-    //     context.addArtifactURI('aquaScanStashPath', aquaScanStashPath)
+    private archiveReportInJenkins(boolean archive, String reportFile) {
+        String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
+        steps.sh(
+            label: 'Create artifacts dir',
+            script: 'mkdir -p artifacts'
+        )
+        steps.sh(
+            label: 'Rename report to SCSR',
+            script: "mv ${reportFile} artifacts/${targetReport}"
+        )
+        if (archive) {
+            steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+        }
+        String trivyScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
+        context.addArtifactURI('trivyScanStashPath', trivyScanStashPath)
 
-    //     steps.stash(
-    //         name: "${aquaScanStashPath}",
-    //         includes: 'artifacts/SCSR*',
-    //         allowEmpty: true
-    //     )
-    //     context.addArtifactURI('SCSR', targetReport)
-    // }
+        steps.stash(
+            name: "${trivyScanStashPath}",
+            includes: 'artifacts/SCSR*',
+            allowEmpty: true
+        )
+        context.addArtifactURI('SCSR', targetReport)
+    }
 
     // private void notifyAquaProblem(String recipients = '', String message = '') {
     //     String subject = "Build $context.componentId on project $context.projectId had some problems with Aqua!"
