@@ -48,9 +48,9 @@ class ScanWithTrivyStage extends Stage {
         String reportFile = "trivy-sbom.json"
         // remove check
         
-        logger.info "format: ${config.format}, scanners: ${config.scanners}, vulType: ${config.vulType}, resourceName: ${config.resourceName}, nexusRepository: ${config.nexusRepository}"
+        logger.info "format: ${options.format}, scanners: ${options.scanners}, vulType: ${options.vulType}, resourceName: ${options.resourceName}, nexusRepository: ${options.nexusRepository}"
         logger.info "1º check"
-        int returnCode = scanViaCli(config.scanners, config.vulType, config.format, reportFile)
+        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, reportFile)
         // remove check
         logger.info "2º check"
         if (![TrivyService.TRIVY_SUCCESS, TrivyService.TRIVY_POLICIES_ERROR].contains(returnCode)) {
