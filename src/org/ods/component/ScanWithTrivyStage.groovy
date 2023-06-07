@@ -64,7 +64,7 @@ class ScanWithTrivyStage extends Stage {
             }
         // } else {
         //     createBitbucketCodeInsightReport(errorMessages)
-        // }
+        }
 
         // notifyAquaProblem(alertEmails, errorMessages)
         return
