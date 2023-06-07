@@ -11,7 +11,7 @@ import org.ods.util.ILogger
 class ScanWithTrivyStage extends Stage {
 
     static final String STAGE_NAME = 'Trivy Scan'
-    static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.trivy"
+    static final String BITBUCKET_TRIVY_REPORT_KEY = "org.opendevstack.trivy"
     private final TrivyService trivy
     // private final BitbucketService bitbucket
     // private final NexusService nexus
@@ -23,8 +23,7 @@ class ScanWithTrivyStage extends Stage {
     //                   NexusService nexusService, ILogger logger) {
     ScanWithTrivyStage(def script, IContext context, TrivyService trivy, ILogger logger) {
         super(script, context, logger)
-        // this.options = new ScanWithTrivyOptions(config)
-        this.options = options
+        this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         // this.bitbucket = bitbucket
         // this.nexus = nexusService
