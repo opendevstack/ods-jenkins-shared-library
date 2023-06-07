@@ -19,10 +19,19 @@ class ScanWithTrivyStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
-    // ScanWithTrivyStage(def script, IContext context, TrivyService trivy, BitbucketService bitbucket,
+    // ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
     //                   NexusService nexusService, ILogger logger) {
-    ScanWithTrivyStage(def script, IContext context, TrivyService trivy, ILogger logger) {
+    ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, ILogger logger) {
         super(script, context, logger)
+        if (!config.format) {
+            config.format = "cyclonedx"
+        }
+        if (!config.scanners) {
+            config.scanners = "vuln,config,secret,license"
+        }
+        if (!config.vulType) {
+            config.vulType = "os,library"
+        }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         // this.bitbucket = bitbucket

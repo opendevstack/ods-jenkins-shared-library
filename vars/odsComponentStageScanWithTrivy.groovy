@@ -10,7 +10,7 @@ import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 
 @SuppressWarnings('AbcMetric')
-def call(IContext context) {
+def call(IContext context, Map config = [:]) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     // this is only for testing, because we need access to the script context :(
     if (!logger) {
@@ -48,12 +48,22 @@ def call(IContext context) {
 
 
     String errorMessages = ''
+    def inheritedConfig = [:]
+    if (config.format) {
+        inheritedConfig.format = "cyclonedx"
+    }
+    if (config.scanners) {
+        inheritedConfig.scanners = "vuln,config,secret,license"
+    }
+    if (config.vulType) {
+        inheritedConfig.vulType = "os,library"
+    }
     try {
         //To Clean
         //Nexus report
         new ScanWithTrivyStage(this,
             context,
-        //    inheritedConfig,
+           inheritedConfig,
             trivyService,
         //    bitbucketService,
         //    nexusService,
