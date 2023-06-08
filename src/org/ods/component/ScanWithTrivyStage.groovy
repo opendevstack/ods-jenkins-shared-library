@@ -34,6 +34,9 @@ class ScanWithTrivyStage extends Stage {
         if (!config.vulType) {
             config.vulType = 'os,library'
         }
+        if (!config.additionalFlags) {
+            config.additionalFlags = ''
+        }
         // make this param not configurable by user ?
         if (!config.nexusRepository) {
             config.nexusRepository = 'leva-documentation'
