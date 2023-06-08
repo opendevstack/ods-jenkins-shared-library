@@ -56,7 +56,7 @@ class ScanWithTrivyStage extends Stage {
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
                 createBitbucketCodeInsightReport(options.nexusRepository ? reportUriNexus.toString() : null,
-                    , errorMessages)
+                    returnCode, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Trivy reports due to: ${err}")
@@ -99,7 +99,7 @@ class ScanWithTrivyStage extends Stage {
     }
 
     @SuppressWarnings('ParameterCount')
-    private createBitbucketCodeInsightReport(String nexusUrlReport, String messages) {
+    private createBitbucketCodeInsightReport(String nexusUrlReport, int returnCode, String messages) {
         String title = "Trivy Security"
         String details = "Please visit the following link to review the Trivy Security scan report:"
 
