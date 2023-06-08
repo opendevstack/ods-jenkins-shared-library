@@ -6,19 +6,19 @@ import groovy.transform.TypeChecked
 class ScanWithTrivyOptions extends Options {
 
     /**
-     * Name of component that we want to scan (defaults to `context.componentId`). */
+     * Name of component that we want to scan. Defaults to `context.componentId`. */
     String resourceName
 
     /**
-     * Set the format for the generated report. */
+     * Set the format for the generated report. Defaults to `cyclonedx`. */
     String format
 
     /**
-     * Comma-separated list of what security issues to detect. */
+     * Comma-separated list of what security issues to detect. Defaults to `vuln,config,secret,license`. */
     String scanners
 
     /**
-     * Comma-separated list of vulnerability types to scan. */
+     * Comma-separated list of vulnerability types to scan. Defaults to `os,library`. */
     String vulType
 
     /**

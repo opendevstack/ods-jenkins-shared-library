@@ -1,4 +1,4 @@
-The "Trivy Security Scan" stage scans the filesystem of the cloned repository.
+The "Trivy Security Scan" stage scans the filesystem of the cloned repository using https://github.com/aquasecurity/trivy[Trivy].
 
 As a result, a Bitbucket Code Insight entry is added to the git commit (in Bitbucket) that basically
 contains a link to the scan report stored in Nexus. The Bitbucket Code Insight entry can be seen in a pull request.
@@ -12,3 +12,16 @@ To get started, edit your `Jenkinsfile` and add the Trivy stage:
     ...
 }
 ----
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===

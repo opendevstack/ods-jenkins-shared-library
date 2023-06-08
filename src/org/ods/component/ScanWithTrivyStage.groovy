@@ -65,7 +65,7 @@ class ScanWithTrivyStage extends Stage {
             errorMessages += "<li>Error executing Trivy CLI</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
-        notifyTrivyProblem(alertEmails, errorMessages)
+        // notifyTrivyProblem(alertEmails, errorMessages)
         return
     }
 
@@ -191,18 +191,18 @@ class ScanWithTrivyStage extends Stage {
         context.addArtifactURI('SCSR', targetReport)
     }
 
-    private void notifyTrivyProblem(String recipients = '', String message = '') {
-        String subject = "Build $context.componentId on project $context.projectId had some problems with Trivy!"
-        String body = "<p>$subject</p> " +
-            "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
+    // private void notifyTrivyProblem(String recipients = '', String message = '') {
+    //     String subject = "Build $context.componentId on project $context.projectId had some problems with Trivy!"
+    //     String body = "<p>$subject</p> " +
+    //         "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
 
-        if (message) {
-            steps.emailext(
-                body: body, mimeType: 'text/html',
-                replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
-                to: recipients
-            )
-        }
-    }
+    //     if (message) {
+    //         steps.emailext(
+    //             body: body, mimeType: 'text/html',
+    //             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+    //             to: recipients
+    //         )
+    //     }
+    // }
 
 }
