@@ -75,6 +75,7 @@ class ScanWithTrivyStage extends Stage {
         String flags = ""
         additionalFlags.each { flag ->
             flags += " " + flag
+        }
         int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
