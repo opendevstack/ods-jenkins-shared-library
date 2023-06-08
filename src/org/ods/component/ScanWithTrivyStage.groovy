@@ -35,7 +35,7 @@ class ScanWithTrivyStage extends Stage {
             config.vulType = 'os,library'
         }
         if (!config.additionalFlags) {
-            config.additionalFlags = ""
+            config.additionalFlags = []
         }
         // make this param not configurable by user ?
         if (!config.nexusRepository) {
@@ -72,7 +72,10 @@ class ScanWithTrivyStage extends Stage {
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String scanners, String vulType, String format, List<String> additionalFlags, String reportFile) {
         logger.startClocked(options.resourceName)
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, additionalFlags, reportFile)
+        String flags = ""
+        additionalFlags.each { flag ->
+            flags += " " + flag
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"

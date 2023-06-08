@@ -19,7 +19,7 @@ class TrivyService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int scanViaCli(String scanners, String vulType, String format, List<String> additionalFlags, String reportFile) {
+    int scanViaCli(String scanners, String vulType, String format, String flags, String reportFile) {
         logger.info "Starting to scan via Trivy CLI..."
         int status = TRIVY_SUCCESS
         status = steps.sh(
@@ -36,7 +36,7 @@ class TrivyService {
                 --format ${format} \
                 --output ${reportFile} \
                 --license-full \
-                ${additionalFlags} \
+                ${flags} \
                 . && \
                 set -e
             """
