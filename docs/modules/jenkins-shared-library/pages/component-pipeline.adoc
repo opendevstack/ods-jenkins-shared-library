@@ -58,6 +58,10 @@ include::partial$odsComponentStageScanWithSonar.adoc[leveloffset=+2]
 
 include::partial$odsComponentStageScanWithAqua.adoc[leveloffset=+2]
 
+=== odsComponentStageScanWithTrivy
+
+include::partial$odsComponentStageScanWithTrivy.adoc[leveloffset=+2]
+
 === odsComponentStageScanWithSnyk
 
 include::partial$odsComponentStageScanWithSnyk.adoc[leveloffset=+2]
