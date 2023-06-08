@@ -19,12 +19,14 @@ class TrivyService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int scanViaCli(String scanners, String vulType, String format, String reportFile) {
+    int scanViaCli(String scanners, String vulType, String format, List<String> additionalFlags, String reportFile) {
         logger.info "Starting to scan via Trivy CLI..."
         int status = TRIVY_SUCCESS
         status = steps.sh(
             label: 'Scan via Trivy CLI',
             returnStatus: true,
+            // Check flags used and what it is scanned (fs, rootfs, etc) and maybe add posibility to add aditional flags
+            // Make the folder to scan parametrizable ?
             script: """
                 set +e && \
                 trivy fs  \
@@ -34,6 +36,7 @@ class TrivyService {
                 --format ${format} \
                 --output ${reportFile} \
                 --license-full \
+                ${additionalFlags} \
                 . && \
                 set -e
             """

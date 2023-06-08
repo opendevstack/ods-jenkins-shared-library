@@ -5,15 +5,32 @@ import groovy.transform.TypeChecked
 @TypeChecked
 class ScanWithTrivyOptions extends Options {
 
-    //Add proper exlanation and more options for trivy
-
+    /**
+     * Name of component that we want to scan (defaults to `context.componentId`). */
     String resourceName
 
+    /**
+     * Set the format for the generated report. */
     String format
 
+    /**
+     * Comma-separated list of what security issues to detect. */
     String scanners
 
+    /**
+     * Comma-separated list of vulnerability types to scan. */
     String vulType
 
+    /**
+     * Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`. */
     String nexusRepository
+
+    /**
+     * Additional flags for the Trivy CLI. Please refer to the official Trivy CLI
+     * reference for possible options and don't forget to take the CLI version
+     * of your ODS installation into account. The value of `additionalFlags`
+     * must be a list in which the entries have the official flag name and a
+     * possible value.
+     * Example: `['--debug', '--timeout=10m']` */
+    List<String> additionalFlags
 }

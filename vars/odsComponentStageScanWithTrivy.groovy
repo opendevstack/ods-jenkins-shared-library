@@ -28,7 +28,6 @@ def call(IContext context, Map config = [:]) {
         trivyService = new TrivyService(steps, logger)
         registry.add(TrivyService, trivyService)
     }
-    //Needed for Trivy ?
     BitbucketService bitbucketService = registry.get(BitbucketService)
     if (!bitbucketService) {
         bitbucketService = new BitbucketService(
@@ -47,39 +46,10 @@ def call(IContext context, Map config = [:]) {
     }
 
     String errorMessages = ''
-    def inheritedConfig = [:]
-    if (!config.resourceName) {
-        inheritedConfig.resourceName = context.componentId
-    }else{
-        inheritedConfig.resourceName = config.resourceName
-    }
-    if (!config.format) {
-        inheritedConfig.format = 'cyclonedx'
-    }else{
-        inheritedConfig.format = config.format
-    }
-    if (!config.scanners) {
-        inheritedConfig.scanners = 'vuln,config,secret,license'
-    }else{
-        inheritedConfig.scanners = config.scanners
-    }
-    if (!config.vulType) {
-        inheritedConfig.vulType = 'os,library'
-    }else{
-        inheritedConfig.vulType = config.vulType
-    }
-    // make this param not configurable by user ?
-    if (!config.nexusRepository) {
-        inheritedConfig.nexusRepository = 'leva-documentation'
-    }else{
-        inheritedConfig.nexusRepository = config.nexusRepository
-    }    
     try {
-        //To Clean
-        //Nexus report
         new ScanWithTrivyStage(this,
             context,
-            inheritedConfig,
+            config,
             trivyService,
             bitbucketService,
             nexusService,

@@ -22,6 +22,22 @@ class ScanWithTrivyStage extends Stage {
     ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
                       NexusService nexusService, ILogger logger) {
         super(script, context, logger)
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
+        }
+        if (!config.format) {
+            config.format = 'cyclonedx'
+        }
+        if (!config.scanners) {
+            config.scanners = 'vuln,config,secret,license'
+        }
+        if (!config.vulType) {
+            config.vulType = 'os,library'
+        }
+        // make this param not configurable by user ?
+        if (!config.nexusRepository) {
+            config.nexusRepository = 'leva-documentation'
+        }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         this.bitbucket = bitbucket
@@ -31,29 +47,9 @@ class ScanWithTrivyStage extends Stage {
     protected run() {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
-        // remove checks
-        logger.info "format: ${options.format}, scanners: ${options.scanners}, vulType: ${options.vulType}, resourceName: ${options.resourceName}, nexusRepository: ${options.nexusRepository}"
-        logger.info "1º check"
-        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, reportFile)
-        // remove check
-        logger.info "2º check"
-        if (![TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
-            errorMessages += "<li>Error executing Trivy CLI</li>"
-        }
-        // remove check
-        logger.info "3º check"
-
-        //If report exists
+        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, options.additionalFlags, reportFile)
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
-        //         def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
-        //         Map vulnerabilities = resultInfo.vulnerability_summary as Map
-        //         // returnCode is 0 --> Success or 4 --> Error policies
-        //         // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
-        //         def errorCodes = [returnCode,
-        //                           vulnerabilities.critical ?: 0,
-        //                           vulnerabilities.malware ?: 0]
-
                 URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
                 createBitbucketCodeInsightReport(options.nexusRepository ? reportUriNexus.toString() : null,
                     returnCode, errorMessages)
@@ -63,22 +59,17 @@ class ScanWithTrivyStage extends Stage {
                 errorMessages += "<li>Error archiving Trivy reports</li>"
             }
         } else {
+            errorMessages += "<li>Error executing Trivy CLI</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
-
-        // notifyAquaProblem(alertEmails, errorMessages)
+        notifyTrivyProblem(alertEmails, errorMessages)
         return
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners, String vulType, String format, String reportFile) {
+    private int scanViaCli(String scanners, String vulType, String format, List<String> additionalFlags, String reportFile) {
         logger.startClocked(options.resourceName)
-        // remove check
-        logger.info "1.1º check"
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, reportFile)
-        //Check return code for Trivy cli and adjust bellow
-        // remove check
-        logger.info "1.2º check"
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, additionalFlags, reportFile)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
@@ -90,11 +81,7 @@ class ScanWithTrivyStage extends Stage {
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
-        // remove check
-        logger.info "1.3º check"
         logger.infoClocked(options.resourceName,"Trivy scan (via CLI)")
-        // remove check
-        logger.info "1.4º check"
         return returnCode
     }
 
@@ -102,9 +89,7 @@ class ScanWithTrivyStage extends Stage {
     private createBitbucketCodeInsightReport(String nexusUrlReport, int returnCode, String messages) {
         String title = "Trivy Security"
         String details = "Please visit the following link to review the Trivy Security scan report:"
-
         String result = returnCode == 0 ? "PASS" : "FAIL"
-        
         def data = [
             key: BITBUCKET_TRIVY_REPORT_KEY,
             title: title,
@@ -199,18 +184,18 @@ class ScanWithTrivyStage extends Stage {
         context.addArtifactURI('SCSR', targetReport)
     }
 
-    // private void notifyAquaProblem(String recipients = '', String message = '') {
-    //     String subject = "Build $context.componentId on project $context.projectId had some problems with Aqua!"
-    //     String body = "<p>$subject</p> " +
-    //         "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
+    private void notifyTrivyProblem(String recipients = '', String message = '') {
+        String subject = "Build $context.componentId on project $context.projectId had some problems with Trivy!"
+        String body = "<p>$subject</p> " +
+            "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
 
-    //     if (message) {
-    //         steps.emailext(
-    //             body: body, mimeType: 'text/html',
-    //             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
-    //             to: recipients
-    //         )
-    //     }
-    // }
+        if (message) {
+            steps.emailext(
+                body: body, mimeType: 'text/html',
+                replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+                to: recipients
+            )
+        }
+    }
 
 }
