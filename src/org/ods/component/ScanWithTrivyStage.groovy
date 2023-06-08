@@ -31,7 +31,7 @@ class ScanWithTrivyStage extends Stage {
     protected run() {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
-        // remove check
+        // remove checks
         logger.info "format: ${options.format}, scanners: ${options.scanners}, vulType: ${options.vulType}, resourceName: ${options.resourceName}, nexusRepository: ${options.nexusRepository}"
         logger.info "1º check"
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format, reportFile)
@@ -55,15 +55,15 @@ class ScanWithTrivyStage extends Stage {
         //                           vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
-        //         createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
-        //             registry, imageRef, errorCodes.sum() as int, errorMessages)
+                createBitbucketCodeInsightReport(nexusRepository ? reportUriNexus.toString() : null,
+                    , errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Trivy reports due to: ${err}")
                 errorMessages += "<li>Error archiving Trivy reports</li>"
             }
-        // } else {
-        //     createBitbucketCodeInsightReport(errorMessages)
+        } else {
+            createBitbucketCodeInsightReport(errorMessages)
         }
 
         // notifyAquaProblem(alertEmails, errorMessages)
@@ -98,70 +98,61 @@ class ScanWithTrivyStage extends Stage {
         return returnCode
     }
 
-    // @SuppressWarnings('ParameterCount')
-    // private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
-    //                                          String registry, String imageRef, int returnCode, String messages) {
-    //     String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
-    //     String title = "Aqua Security"
-    //     String details = "Please visit the following links to review the Aqua Security scan report:"
+    @SuppressWarnings('ParameterCount')
+    private createBitbucketCodeInsightReport(String nexusUrlReport, String messages) {
+        String title = "Trivy Security"
+        String details = "Please visit the following link to review the Trivy Security scan report:"
 
-    //     String result = returnCode == 0 ? "PASS" : "FAIL"
+        String result = returnCode == 0 ? "PASS" : "FAIL"
 
-    //     def data = [
-    //         key: BITBUCKET_AQUA_REPORT_KEY,
-    //         title: title,
-    //         link: nexusUrlReport,
-    //         otherLinks: [
-    //             [
-    //                 title: "Report",
-    //                 text: "Result in Aqua",
-    //                 link: aquaScanUrl
-    //             ]
-    //         ],
-    //         details: details,
-    //         result: result,
-    //     ]
-    //     if (nexusUrlReport) {
-    //         ((List)data.otherLinks).add([
-    //             title: "Report",
-    //             text: "Result in Nexus",
-    //             link: nexusUrlReport,
-    //         ])
-    //     }
-    //     if (messages) {
-    //         data.put("messages",[
-    //             [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
-    //         ])
-    //     }
+        def data = [
+            key: BITBUCKET_TRIVY_REPORT_KEY,
+            title: title,
+            link: nexusUrlReport,
+            details: details,
+            result: result,
+        ]
+        if (nexusUrlReport) {
+            ((List)data.otherLinks).add([
+                title: "Report",
+                text: "Result in Nexus",
+                link: nexusUrlReport,
+            ])
+        }
+        if (messages) {
+            data.put("messages",[
+                [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
+            ])
+        }
 
-    //     bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
-    // }
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
+    }
 
-    // private createBitbucketCodeInsightReport(String messages) {
-    //     String title = "Aqua Security"
-    //     String details = "There was some problems with Aqua:"
+    private createBitbucketCodeInsightReport(String messages) {
+        String title = "Trivy Security"
+        String details = "There was some problems with Trivy:"
 
-    //     String result = "FAIL"
+        String result = "FAIL"
 
-    //     def data = [
-    //         key: BITBUCKET_AQUA_REPORT_KEY,
-    //         title: title,
-    //         messages: [
-    //             [
-    //                 title: "Messages",
-    //                 value: prepareMessageToBitbucket(messages)
-    //             ]
-    //         ],
-    //         details: details,
-    //         result: result,
-    //     ]
+        def data = [
+            key: BITBUCKET_TRIVY_REPORT_KEY,
+            title: title,
+            messages: [
+                [
+                    title: "Messages",
+                    value: prepareMessageToBitbucket(messages)
+                ]
+            ],
+            details: details,
+            result: result,
+        ]
 
-    //     bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
-    // }
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
+    }
 
-    // private String prepareMessageToBitbucket(String message = "") {
-    //     return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
-    // }
+    private String prepareMessageToBitbucket(String message = "") {
+        return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
+    }
 
     @SuppressWarnings('ReturnNullFromCatchBlock')
     private URI archiveReportInNexus(String reportFile, nexusRepository) {
