@@ -104,21 +104,22 @@ class ScanWithTrivyStage extends Stage {
         String details = "Please visit the following link to review the Trivy Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
-
+        
         def data = [
             key: BITBUCKET_TRIVY_REPORT_KEY,
             title: title,
             link: nexusUrlReport,
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: nexusUrlReport
+                ]
+            ],
             details: details,
             result: result,
         ]
-        if (nexusUrlReport) {
-            ((List)data.otherLinks).add([
-                title: "Report",
-                text: "Result in Nexus",
-                link: nexusUrlReport,
-            ])
-        }
+
         if (messages) {
             data.put("messages",[
                 [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
