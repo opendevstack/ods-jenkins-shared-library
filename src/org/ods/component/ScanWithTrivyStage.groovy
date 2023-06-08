@@ -35,7 +35,7 @@ class ScanWithTrivyStage extends Stage {
             config.vulType = 'os,library'
         }
         if (!config.additionalFlags) {
-            config.additionalFlags = []
+            config.additionalFlags = ""
         }
         // make this param not configurable by user ?
         if (!config.nexusRepository) {
