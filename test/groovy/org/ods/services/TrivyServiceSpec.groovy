@@ -15,7 +15,7 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
 
         when:
         def result = service.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-            "trivy-sbom.json", "--debug --timeout=10m")
+           "--debug --timeout=10m", "trivy-sbom.json")
 
         then:
         1 * steps.sh(_) >> {
@@ -24,12 +24,12 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('set +e &&')
             assert it.script.toString().contains('trivy fs')
             assert it.script.toString().contains('--cache-dir /tmp/.cache')
-            assert it.script.toString().contains('--scanners \'vuln,config,secret,license\'')
-            assert it.script.toString().contains('--vuln-type \'os,library\'')
-            assert it.script.toString().contains('--format \'cyclonedx\'')
-            assert it.script.toString().contains('--output \'trivy-sbom.json\'')
+            assert it.script.toString().contains('--scanners vuln,config,secret,license')
+            assert it.script.toString().contains('--vuln-type os,library')
+            assert it.script.toString().contains('--format cyclonedx')
+            assert it.script.toString().contains('--output trivy-sbom.json')
             assert it.script.toString().contains('--license-full')
-            assert it.script.toString().contains('\'--debug --timeout=10m\'')
+            assert it.script.toString().contains('--debug --timeout=10m')
             assert it.script.toString().contains('. &&')
             assert it.script.toString().contains('set -e')
 
