@@ -50,7 +50,8 @@ class ScanWithTrivyStage extends Stage {
     protected run() {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
-        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, options.additionalFlags, reportFile)
+        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, 
+            options.additionalFlags, reportFile)
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
                 URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
@@ -65,12 +66,12 @@ class ScanWithTrivyStage extends Stage {
             errorMessages += "<li>Error executing Trivy CLI</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
-        // notifyTrivyProblem(alertEmails, errorMessages)
         return
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners, String vulType, String format, List<String> additionalFlags, String reportFile) {
+    private int scanViaCli(String scanners, String vulType, String format, 
+        List<String> additionalFlags, String reportFile) {
         logger.startClocked(options.resourceName)
         String flags = ""
         additionalFlags.each { flag ->
@@ -190,19 +191,5 @@ class ScanWithTrivyStage extends Stage {
         )
         context.addArtifactURI('SCSR', targetReport)
     }
-
-    // private void notifyTrivyProblem(String recipients = '', String message = '') {
-    //     String subject = "Build $context.componentId on project $context.projectId had some problems with Trivy!"
-    //     String body = "<p>$subject</p> " +
-    //         "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
-
-    //     if (message) {
-    //         steps.emailext(
-    //             body: body, mimeType: 'text/html',
-    //             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
-    //             to: recipients
-    //         )
-    //     }
-    // }
 
 }
