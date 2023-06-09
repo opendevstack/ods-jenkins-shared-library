@@ -50,7 +50,7 @@ class ScanWithTrivyStage extends Stage {
     protected run() {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
-        int returnCode = scanViaCli(options.scanners, options.vulType, options.format, 
+        int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
             options.additionalFlags, reportFile)
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
@@ -70,7 +70,7 @@ class ScanWithTrivyStage extends Stage {
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners, String vulType, String format, 
+    private int scanViaCli(String scanners, String vulType, String format,
         List<String> additionalFlags, String reportFile) {
         logger.startClocked(options.resourceName)
         String flags = ""
