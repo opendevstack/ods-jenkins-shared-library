@@ -79,7 +79,7 @@ class ScanWithTrivyStage extends Stage {
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        def test = openShift.getApplicationDomain(project)
+        def test = openShift.getApplicationDomain(context.cdProject)
         logger.info "SHOW APP Domain: ${test}"
 
         int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile)
