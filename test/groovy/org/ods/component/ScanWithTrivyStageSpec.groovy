@@ -4,6 +4,7 @@ import org.ods.PipelineScript
 import org.ods.services.TrivyService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
@@ -30,6 +31,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger))
         def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
+        def openShift = Spy(new OpenShiftService (steps, logger))
         def stage = new ScanWithTrivyStage(
             script,
             context,
@@ -37,6 +39,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
             trivy,
             bitbucket,
             nexus,
+            openShift,
             logger
         )
 
