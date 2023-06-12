@@ -73,107 +73,96 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
 
     }
 
-//     def "archive report in Jenkins if stage launched by orchestration pipeline"() {
-//         given:
-//         def stage = createStage()
+    def "archive report in Jenkins if stage launched by orchestration pipeline"() {
+        given:
+        def stage = createStage()
 
-//         when:
-//         stage.archiveReportInJenkins(false, "trivy-sbom.json")
+        when:
+        stage.archiveReportInJenkins(false, "trivy-sbom.json")
 
-//         then:
-//         1 * stage.script.sh(_) >> {
-//             assert it.label == ['Create artifacts dir']
-//             assert it.script == ['mkdir -p artifacts']
-//         }
-//         1 * stage.script.sh(_) >> {
-//             assert it.label == ['Rename report to SCSR']
-//             assert it.script == ['mv trivy-sbom.json artifacts/SCSR-prj1-component1-trivy-sbom.json']
-//         }
-//         0 * stage.script.archiveArtifacts(_) >> {
-//             assert it.artifacts == ['artifacts/SCSR*']
-//         }
-//         1 * stage.script.stash(_) >> {
-//             assert it.name == ['scsr-report-component1-56']
-//             assert it.includes == ['artifacts/SCSR*']
-//             assert it.allowEmpty == [true]
-//         }
+        then:
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Create artifacts dir']
+            assert it.script == ['mkdir -p artifacts']
+        }
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Rename report to SCSR']
+            assert it.script == ['mv trivy-sbom.json artifacts/SCSR-prj1-component1-trivy-sbom.json']
+        }
+        0 * stage.script.archiveArtifacts(_) >> {
+            assert it.artifacts == ['artifacts/SCSR*']
+        }
+        1 * stage.script.stash(_) >> {
+            assert it.name == ['scsr-report-component1-56']
+            assert it.includes == ['artifacts/SCSR*']
+            assert it.allowEmpty == [true]
+        }
 
-//     }
+    }
 
-//     def "archive report in Nexus"() {
-//         given:
-//         def stage = createStage()
+    def "archive report in Nexus"() {
+        given:
+        def stage = createStage()
 
-//         when:
-//         stage.archiveReportInNexus("trivy-sbom.json", "leva-documentation")
+        when:
+        stage.archiveReportInNexus("trivy-sbom.json", "leva-documentation")
 
-//         then:
-//         1 * stage.script.readFile([file: "trivy-sbom.json"]) >> "Cool report"
-//         1 * stage.nexus.storeArtifact("leva-documentation", _, "trivy-sbom.json", _, "text/html") >>
-//             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/trivy-sbom.json")
-//         1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/aqua/trivy-sbom.json")
-//     }
+        then:
+        1 * stage.script.readFile([file: "trivy-sbom.json"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "trivy-sbom.json", _, "json") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/trivy/trivy-sbom.json")
+        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/trivy/trivy-sbom.json")
+    }
 
-//     def "create Bitbucket Insight report - PASS"() {
-//         given:
-//         def stage = createStage()
-//         def data = [
-//             key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-//             title: "Aqua Security",
-//             link: "http://nexus",
-//             otherLinks: [
-//                 [
-//                     title: "Report",
-//                     text: "Result in Aqua",
-//                     link: "http://aqua/#/images/internal/12345/vulns"
-//                 ],
-//                 [
-//                     title: "Report",
-//                     text: "Result in Nexus",
-//                     link: "http://nexus"
-//                 ]
-//             ],
-//             details: "Please visit the following links to review the Aqua Security scan report:",
-//             result: "PASS"
-//         ]
+    def "create Bitbucket Insight report - PASS"() {
+        given:
+        def stage = createStage()
+        def data = [
+            key: ScanWithTrivyStage.BITBUCKET_TRIVY_REPORT_KEY,
+            title: "Trivy Security",
+            link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
+            details: "Please visit the following link to review the Trivy Security scan report:",
+            result: "PASS"
+        ]
 
-//         when:
-//         stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0, null)
+        when:
+        stage.createBitbucketCodeInsightReport("http://nexus", 0, null)
 
-//         then:
-//         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
-//     }
+        then:
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+    }
 
-//     def "create Bitbucket Insight report - FAIL"() {
-//         given:
-//         def stage = createStage()
-//         def data = [
-//             key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-//             title: "Aqua Security",
-//             link: "http://nexus",
-//             otherLinks: [
-//                 [
-//                     title: "Report",
-//                     text: "Result in Aqua",
-//                     link: "http://aqua/#/images/internal/12345/vulns"
-//                 ],
-//                 [
-//                     title: "Report",
-//                     text: "Result in Nexus",
-//                     link: "http://nexus"
-//                 ]
-//             ],
-//             details: "Please visit the following links to review the Aqua Security scan report:",
-//             result: "FAIL"
-//         ]
+    def "create Bitbucket Insight report - FAIL"() {
+        given:
+        def stage = createStage()
+        def data = [
+            key: ScanWithTrivyStage.BITBUCKET_TRIVY_REPORT_KEY,
+            title: "Trivy Security",
+            link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
+            details: "Please visit the following link to review the Trivy Security scan report:",
+            result: "FAIL"
+        ]
 
-//         when:
-//         stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1, null)
+        when:
+        stage.createBitbucketCodeInsightReport("http://nexus", 1, null)
 
-//         then:
-//         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
-
-//     }
+        then:
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+    }
 
 //     def "create Bitbucket Insight report - Messages"() {
 //         given:
