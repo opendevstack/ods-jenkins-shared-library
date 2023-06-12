@@ -51,7 +51,13 @@ _String_
 |Set the format for the generated report. Defaults to `cyclonedx`.
 
 
-| *nexusRepository* +
+| *nexusDataBaseRepository* +
+_String_
+|Name of the Nexus repository used to proxy the location of the database of vulnerabilities located in GitHub.
+ Defaults to `docker-group-ods`.
+
+
+| *nexusReportRepository* +
 _String_
 |Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`.
 
