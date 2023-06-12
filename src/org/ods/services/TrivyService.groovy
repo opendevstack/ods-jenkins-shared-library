@@ -31,8 +31,8 @@ class TrivyService {
             script: """
                 set +e && \
                 trivy fs  \
-                --db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-db
-                --java-db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-java-db
+                --db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-db \
+                --java-db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-java-db \
                 --cache-dir /tmp/.cache \
                 --scanners ${scanners} \
                 --vuln-type ${vulType} \
