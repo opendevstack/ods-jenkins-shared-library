@@ -4,6 +4,7 @@ import org.ods.component.IContext
 import org.ods.services.TrivyService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -44,6 +45,11 @@ def call(IContext context, Map config = [:]) {
         nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
         registry.add(NexusService, nexusService)
     }
+    OpenShiftService openShiftService = registry.get(OpenShiftService)
+    if (!openShiftService) {
+        openShiftService = new OpenShiftService(steps, logger)
+        registry.add(OpenShiftService, openShiftService)
+    }
 
     String errorMessages = ''
     try {
@@ -53,6 +59,7 @@ def call(IContext context, Map config = [:]) {
             trivyService,
             bitbucketService,
             nexusService,
+            openShiftService,
             logger
         ).execute()
     } catch (err) {
