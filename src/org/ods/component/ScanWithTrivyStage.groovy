@@ -60,7 +60,6 @@ class ScanWithTrivyStage extends Stage {
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Trivy reports due to: ${err}")
-                errorMessages += "<li>Error archiving Trivy reports</li>"
             }
         } else {
             errorMessages += "<li>Error executing Trivy CLI</li>"
