@@ -23,7 +23,12 @@ class ScanWithTrivyOptions extends Options {
 
     /**
      * Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`. */
-    String nexusRepository
+    String nexusReportRepository
+
+    /**
+     * Name of the Nexus repository used to proxy the location of the database of vulnerabilities located in GitHub.
+     * Defaults to `docker-group-ods`. */
+    String nexusDataBaseRepository
 
     /**
      * Additional flags for the Trivy CLI. Please refer to the official Trivy CLI
