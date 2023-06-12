@@ -5,6 +5,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.TrivyService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 
 @TypeChecked
@@ -15,12 +16,13 @@ class ScanWithTrivyStage extends Stage {
     private final TrivyService trivy
     private final BitbucketService bitbucket
     private final NexusService nexus
+    private final OpenShiftService openShift
     private final ScanWithTrivyOptions options
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithTrivyStage(def script, IContext context, Map config, TrivyService trivy, BitbucketService bitbucket,
-                      NexusService nexusService, ILogger logger) {
+                      NexusService nexusService, OpenShiftService openShift, ILogger logger) {
         super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
@@ -45,6 +47,7 @@ class ScanWithTrivyStage extends Stage {
         this.trivy = trivy
         this.bitbucket = bitbucket
         this.nexus = nexusService
+        this.openShift = openShift
     }
 
     protected run() {
@@ -76,10 +79,10 @@ class ScanWithTrivyStage extends Stage {
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        def test = context.getOpenshiftApplicationDomain
+        def test = openShift.getApplicationDomain(project)
         logger.info "SHOW APP Domain: ${test}"
 
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile, context.getOpenshiftApplicationDomain)
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
