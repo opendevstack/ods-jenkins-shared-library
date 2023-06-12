@@ -40,8 +40,11 @@ class ScanWithTrivyStage extends Stage {
             config.additionalFlags = []
         }
         // make this param not configurable by user ?
-        if (!config.nexusRepository) {
-            config.nexusRepository = 'leva-documentation'
+        if (!config.nexusReportRepository) {
+            config.nexusReportRepository = 'leva-documentation'
+        }
+        if (!config.nexusDataBaseRepository) {
+            config.nexusDataBaseRepository = 'docker-group-ods'
         }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
@@ -54,11 +57,11 @@ class ScanWithTrivyStage extends Stage {
         String errorMessages = ''
         String reportFile = "trivy-sbom.json"
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
-            options.additionalFlags, reportFile)
+            options.additionalFlags, reportFile, options.nexusDataBaseRepository)
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
-                URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusRepository)
-                createBitbucketCodeInsightReport(options.nexusRepository ? reportUriNexus.toString() : null,
+                URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusReportRepository)
+                createBitbucketCodeInsightReport(options.nexusReportRepository ? reportUriNexus.toString() : null,
                     returnCode, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
@@ -73,16 +76,14 @@ class ScanWithTrivyStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String scanners, String vulType, String format,
-        List<String> additionalFlags, String reportFile) {
+        List<String> additionalFlags, String reportFile, String nexusDataBaseRepository) {
         logger.startClocked(options.resourceName)
         String flags = ""
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        def test = openShift.getApplicationDomain(context.cdProject)
-        logger.info "SHOW APP Domain: ${test}"
-
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile)
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile,
+        openShift.getApplicationDomain(context.cdProject), nexusDataBaseRepository)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
@@ -154,10 +155,10 @@ class ScanWithTrivyStage extends Stage {
     }
 
     @SuppressWarnings('ReturnNullFromCatchBlock')
-    private URI archiveReportInNexus(String reportFile, nexusRepository) {
+    private URI archiveReportInNexus(String reportFile, nexusReportRepository) {
         try {
             URI report = nexus.storeArtifact(
-                "${nexusRepository}",
+                "${nexusReportRepository}",
                 "${context.projectId}/${this.options.resourceName}/" +
                     "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/trivy",
                 "${reportFile}",

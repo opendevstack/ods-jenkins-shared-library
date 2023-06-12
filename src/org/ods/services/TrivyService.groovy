@@ -19,17 +19,20 @@ class TrivyService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int scanViaCli(String scanners, String vulType, String format, String flags, String reportFile) {
+    int scanViaCli(String scanners, String vulType, String format, String flags,
+        String reportFile, String openshiftDomain, String nexusRepository ) {
         logger.info "Starting to scan via Trivy CLI..."
         int status = TRIVY_SUCCESS
         status = steps.sh(
             label: 'Scan via Trivy CLI',
             returnStatus: true,
-            // Check flags used and what it is scanned (fs, rootfs, etc) and maybe add posibility to add aditional flags
+            // Check flags used and what it is scanned (fs, rootfs, etc)
             // Make the folder to scan parametrizable ?
             script: """
                 set +e && \
                 trivy fs  \
+                --db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-db
+                --java-db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-java-db
                 --cache-dir /tmp/.cache \
                 --scanners ${scanners} \
                 --vuln-type ${vulType} \
