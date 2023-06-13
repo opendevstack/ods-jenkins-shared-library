@@ -26,8 +26,6 @@ class TrivyService {
         status = steps.sh(
             label: 'Scan via Trivy CLI',
             returnStatus: true,
-            // Check flags used and what it is scanned (fs, rootfs, etc)
-            // Make the folder to scan parametrizable ?
             script: """
                 set +e && \
                 trivy fs  \
@@ -44,6 +42,16 @@ class TrivyService {
                 set -e
             """
         ) as int
+        steps.sh(
+            label: 'Read SBOM with Trivy CLI',
+            returnStatus: true,
+            script: """
+                set +e && \
+                trivy sbom ${reportFile} \
+                set -e
+            """
+        )
+
         return status
     }
 

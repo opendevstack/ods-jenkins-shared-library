@@ -27,6 +27,7 @@ class ScanWithTrivyStage extends Stage {
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
+        // check format
         if (!config.format) {
             config.format = 'cyclonedx'
         }
@@ -39,7 +40,6 @@ class ScanWithTrivyStage extends Stage {
         if (!config.additionalFlags) {
             config.additionalFlags = []
         }
-        // make this param not configurable by user ?
         if (!config.nexusReportRepository) {
             config.nexusReportRepository = 'leva-documentation'
         }
@@ -183,7 +183,6 @@ class ScanWithTrivyStage extends Stage {
             label: 'Rename report to SCSR',
             script: "mv ${reportFile} artifacts/${targetReport}"
         )
-        //why arhive all artifacts and not only the specific file ?
         if (archive) {
             steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
         }
