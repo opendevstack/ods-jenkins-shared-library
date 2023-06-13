@@ -372,7 +372,7 @@ class JiraUseCase {
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
 
         logger.startClocked("jira-update-release-${releaseStatusIssueKey}")
-        addCommentInReleaseStatus(message)
+        addCommentInReleaseStatus("updateJiraReleaseStatusResult: " + message)
         logger.debugClocked("jira-update-release-${releaseStatusIssueKey}")
     }
 

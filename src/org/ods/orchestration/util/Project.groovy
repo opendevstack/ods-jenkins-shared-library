@@ -398,7 +398,7 @@ class Project {
             }
 
             this.logger.debug "addCommentInJiraReleaseStatus: ${message}"
-            this.addCommentInReleaseStatus(message)
+            this.addCommentInReleaseStatus("Project.load: " + message)
         }
 
         if (this.jiraUseCase.jira) {
