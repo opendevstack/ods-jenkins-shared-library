@@ -51,7 +51,6 @@ class TrivyService {
                 --cache-dir /tmp/.cache \
                 --scanners ${scanners} \
                 --vuln-type ${vulType} \
-                --license-full \
                 ${reportFile} && \
                 set -e
             """
