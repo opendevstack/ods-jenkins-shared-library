@@ -47,7 +47,7 @@ class TrivyService {
             returnStatus: true,
             script: """
                 set +e && \
-                trivy sbom ${reportFile} \
+                trivy sbom ${reportFile} && \
                 set -e
             """
         )
