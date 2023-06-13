@@ -49,8 +49,6 @@ class TrivyService {
                 set +e && \
                 trivy sbom \
                 --cache-dir /tmp/.cache \
-                --scanners ${scanners} \
-                --vuln-type ${vulType} \
                 ${reportFile} && \
                 set -e
             """

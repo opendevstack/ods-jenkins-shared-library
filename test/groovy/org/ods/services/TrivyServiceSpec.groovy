@@ -37,6 +37,18 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
 
             return 0
         }
+        1 * steps.sh(_) >> {
+            assert it.label == ['Read SBOM with Trivy CLI']
+            assert it.returnStatus == [true]
+            assert it.script.toString().contains('set +e &&')
+            assert it.script.toString().contains('trivy sbom')
+            assert it.script.toString().contains('--cache-dir /tmp/.cache')
+            assert it.script.toString().contains('trivy-sbom.json &&')
+            assert it.script.toString().contains('set -e')
+
+            return 0
+        }    
+
         0 == result
     }
 
