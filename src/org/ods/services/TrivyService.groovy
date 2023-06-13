@@ -47,7 +47,12 @@ class TrivyService {
             returnStatus: true,
             script: """
                 set +e && \
-                trivy sbom ${reportFile} && \
+                trivy sbom \
+                --cache-dir /tmp/.cache \
+                --scanners ${scanners} \
+                --vuln-type ${vulType} \
+                --license-full \
+                ${reportFile} && \
                 set -e
             """
         )
