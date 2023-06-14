@@ -372,7 +372,7 @@ class JiraUseCase {
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
 
         logger.startClocked("jira-update-release-${releaseStatusIssueKey}")
-        addCommentInReleaseStatus("updateJiraReleaseStatusResult: " + message)
+        addCommentInReleaseStatus(message)
         logger.debugClocked("jira-update-release-${releaseStatusIssueKey}")
     }
 
@@ -380,9 +380,6 @@ class JiraUseCase {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         if (message) {
             String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
-            if (this.project.hasWipJiraIssues()) {
-                commentToAdd += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
-            }
             logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
             this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
             logger.info("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
