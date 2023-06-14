@@ -849,6 +849,7 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
         }
+        expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
 
         project = createProject([
             "loadJiraData": {
@@ -964,6 +965,7 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
         }
+        expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
 
         project = createProject([
             "loadJiraData"    : {
@@ -1023,6 +1025,8 @@ class ProjectSpec extends SpecHelper {
         def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
 
         expectedMessage += "\n\nDocs: docs-1"
+
+        expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
         project = createProject([
             "loadJiraData"    : {
                 return data

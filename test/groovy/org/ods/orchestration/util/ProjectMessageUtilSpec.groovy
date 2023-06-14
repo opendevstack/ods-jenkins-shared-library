@@ -94,6 +94,8 @@ class ProjectMessageUtilSpec extends SpecHelper  {
         TechSpecs: NET-128
 
         Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
+
+        Please note that for a successful Deploy to D, the above-mentioned issues need to be in status Done.
         """.stripIndent().replaceAll("[\\t\\n\\r  ]+"," ").trim()
 
         when:
@@ -121,6 +123,8 @@ class ProjectMessageUtilSpec extends SpecHelper  {
         TechSpecs: NET-128
 
         Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
+
+        Please note that for a successful Deploy to D, the above-mentioned issues need to be in status Done.
         """.stripIndent().replaceAll("[\\t\\n\\r  ]+"," ").trim()
 
         when:
