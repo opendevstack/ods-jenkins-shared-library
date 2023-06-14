@@ -17,7 +17,8 @@ class ProjectMessagesUtil {
                 message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
             }
         }
-        message += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
+        message += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be " +
+            "in status Done."
         return message
     }
 }
