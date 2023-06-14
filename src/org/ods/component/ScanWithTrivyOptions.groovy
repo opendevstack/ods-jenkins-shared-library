@@ -31,6 +31,11 @@ class ScanWithTrivyOptions extends Options {
     String nexusDataBaseRepository
 
     /**
+     * Name of the file that will be archived in Jenkins and uploaded in Nexus.
+     * Defaults to `trivy-sbom.json`. */
+    String reportFile
+
+    /**
      * Additional flags for the Trivy CLI. Please refer to the official Trivy CLI
      * reference for possible options and don't forget to take the CLI version
      * of your ODS installation into account. The value of `additionalFlags`

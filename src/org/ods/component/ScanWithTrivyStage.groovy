@@ -46,6 +46,9 @@ class ScanWithTrivyStage extends Stage {
         if (!config.nexusDataBaseRepository) {
             config.nexusDataBaseRepository = 'docker-group-ods'
         }
+        if (!config.reportFile) {
+            config.reportFile = 'trivy-sbom.json'
+        }
         this.options = new ScanWithTrivyOptions(config)
         this.trivy = trivy
         this.bitbucket = bitbucket
@@ -55,15 +58,14 @@ class ScanWithTrivyStage extends Stage {
 
     protected run() {
         String errorMessages = ''
-        String reportFile = "trivy-sbom.json"
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
-            options.additionalFlags, reportFile, options.nexusDataBaseRepository)
+            options.additionalFlags, options.reportFile, options.nexusDataBaseRepository)
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
-                URI reportUriNexus = archiveReportInNexus(reportFile, options.nexusReportRepository)
+                URI reportUriNexus = archiveReportInNexus(options.reportFile, options.nexusReportRepository)
                 createBitbucketCodeInsightReport(options.nexusReportRepository ? reportUriNexus.toString() : null,
                     returnCode, errorMessages)
-                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
+                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, options.reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Trivy reports due to: ${err}")
             }

@@ -62,6 +62,12 @@ _String_
 |Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`.
 
 
+| *reportFile* +
+_String_
+|Name of the file that will be archived in Jenkins and uploaded in Nexus.
+ Defaults to `trivy-sbom.json`.
+
+
 | *resourceName* +
 _String_
 |Name of component that we want to scan. Defaults to `context.componentId`.
