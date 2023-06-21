@@ -15,7 +15,7 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
 
         when:
         def result = service.scanViaCli("vuln,config,secret,license", "os,library",
-           "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "openshift-domain.com", "docker-group-ods")
+           "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
         1 * steps.sh(_) >> {

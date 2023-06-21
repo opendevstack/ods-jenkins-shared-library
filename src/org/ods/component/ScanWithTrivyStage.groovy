@@ -92,7 +92,7 @@ class ScanWithTrivyStage extends Stage {
                 break
             case TrivyService.TRIVY_OPERATIONAL_ERROR:
                 logger.info "An error occurred in processing the scan request " +
-                    "(e.g. invalid command line options, image not pulled, operational error)."
+                    "(e.g. invalid command line options, operational error)."
                 break
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"

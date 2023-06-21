@@ -188,54 +188,50 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
     }
 
-    // def "scan with CLI - SUCCESS"() {
-    //     given:
-    //     def stage = createStage()
-    //     OpenShiftService openShift = Mock(OpenShiftService.class) 
-    //     ServiceRegistry.instance.add(OpenShiftService, openShift)
-    //     openShift.getApplicationDomain("foo-cd") >> "openshift-domain.com"
+    def "scan with CLI - SUCCESS"() {
+        given:
+        def stage = createStage()
 
-    //     when:
-    //     def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-    //         ["--debug", "--timeout=10m"], "trivy-sbom.json", "docker-group-ods")
+        when:
+        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
+            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
-    //     then:
-    //     1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
-    //        "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "openshift-domain.com", "docker-group-ods") >> TrivyService.TRIVY_SUCCESS
-    //     1 * stage.logger.info("Finished scan via Trivy CLI successfully!")
-    //     TrivyService.TRIVY_SUCCESS == result
-    // }
+        then:
+        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> TrivyService.TRIVY_SUCCESS
+        1 * stage.logger.info("Finished scan via Trivy CLI successfully!")
+        TrivyService.TRIVY_SUCCESS == result
+    }
 
-    // def "scan with CLI - Operational Error"() {
-    //     given:
-    //     def stage = createStage()
-    //     OpenShiftService openShift = Mock(OpenShiftService.class)
+    def "scan with CLI - Operational Error"() {
+        given:
+        def stage = createStage()
 
-    //     when:
-    //     def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-    //         ["--debug", "--timeout=10m"], "trivy-sbom.json", "docker-group-ods")
+        when:
+        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
+            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
-    //     then:
-    //     1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
-    //        "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "openshift-domain.com", "docker-group-ods") >> TrivyService.TRIVY_OPERATIONAL_ERROR
-    //     1 * stage.logger.info("An error occurred in processing the scan request " +
-    //         "(e.g. invalid command line options, image not pulled, operational error).")
-    //     TrivyService.TRIVY_OPERATIONAL_ERROR == result
-    // }
+        then:
+        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> TrivyService.TRIVY_OPERATIONAL_ERROR
+        1 * stage.logger.info("An error occurred in processing the scan request " +
+            "(e.g. invalid command line options, operational error).")
+        TrivyService.TRIVY_OPERATIONAL_ERROR == result
+    }
 
-//     def "scan with CLI - Error"() {
-//         given:
-//         def stage = createStage()
+    def "scan with CLI - Error"() {
+        given:
+        def stage = createStage()
 
-//         when:
-//         def result = stage.scanViaCli("http://aqua", "internal", "12345",
-//             "cd-user", "trivy-sbom.json", "report.json")
+        when:
+        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
+            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
-//         then:
-//         1 * stage.aqua.scanViaCli("http://aqua", "internal", "12345",
-//             "cd-user", "trivy-sbom.json", "report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
-//         1 * stage.logger.info("An unknown return code was returned: 127")
-//         127 == result
-//     }
+        then:
+        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> 127
+        1 * stage.logger.info("An unknown return code was returned: 127")
+        127 == result
+    }
 
 }
