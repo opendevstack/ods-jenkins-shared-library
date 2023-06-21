@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix typos in `build.gradle` ([#1012](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1012))
 - Show warn in Jira comment only if WIP issues exist ([#1010](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1010))
 - Change initial project validation to take into account non GxP requirement ([#1007](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1007))
 - Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
