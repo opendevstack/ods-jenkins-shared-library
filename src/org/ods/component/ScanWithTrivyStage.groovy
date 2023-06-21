@@ -59,7 +59,8 @@ class ScanWithTrivyStage extends Stage {
     protected run() {
         String errorMessages = ''
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
-            options.additionalFlags, options.reportFile, options.nexusDataBaseRepository)
+            options.additionalFlags, options.reportFile, options.nexusDataBaseRepository,
+            openShift.getApplicationDomain(context.cdProject))
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
                 URI reportUriNexus = archiveReportInNexus(options.reportFile, options.nexusReportRepository)
@@ -78,14 +79,13 @@ class ScanWithTrivyStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String scanners, String vulType, String format,
-        List<String> additionalFlags, String reportFile, String nexusDataBaseRepository) {
+        List<String> additionalFlags, String reportFile, String nexusDataBaseRepository, String openshiftAppDomain) {
         logger.startClocked(options.resourceName)
         String flags = ""
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile,
-        openShift.getApplicationDomain(context.cdProject), nexusDataBaseRepository)
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile, nexusDataBaseRepository, openshiftAppDomain)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
                 logger.info "Finished scan via Trivy CLI successfully!"
