@@ -275,7 +275,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":true}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, project, resource)
         })
 
@@ -284,7 +284,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":true}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, null, resource)
         })
 
@@ -293,7 +293,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":true}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, null, resource)
         })
 
@@ -324,7 +324,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":false}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, project, resource)
         })
 
@@ -333,7 +333,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":false}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, null, resource)
         })
 
@@ -342,7 +342,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh({
-            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+            it.script =~ /^\s*oc\s+patch\s+-p\s'\{"spec":\{"paused":false}}'/ &&
                 OpenShiftHelper.validateResourceParams(it.script, null, resource)
         })
 
