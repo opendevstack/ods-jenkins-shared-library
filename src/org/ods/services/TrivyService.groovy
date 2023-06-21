@@ -20,7 +20,7 @@ class TrivyService {
 
     @SuppressWarnings('ParameterCount')
     int scanViaCli(String scanners, String vulType, String format, String flags,
-        String reportFile, String openshiftDomain, String nexusRepository ) {
+        String reportFile, String nexusRepository, String openshiftDomain ) {
         logger.info "Starting to scan via Trivy CLI..."
         int status = TRIVY_SUCCESS
         status = steps.sh(
