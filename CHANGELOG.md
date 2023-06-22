@@ -8,6 +8,7 @@
 - Update Reference Documents & Base Documents sections ([#994](https://github.com/opendevstack/ods-jenkins-shared-library/issues/994))
 - Updated functional tests after fix SSDS appendix per gamp and RA chapter 5 ([#103](https://github.com/opendevstack/ods-document-generation-templates/issues/103))
 - Fix helm release - Check pod status after deployment ([#1005](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1005))
+- Add Trivy stage for security scanning ([#1008](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1008))
 
 
 ### Fixed
