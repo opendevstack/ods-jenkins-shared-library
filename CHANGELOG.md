@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Moving from rollout pause/resume to patching resources to avoid errors in case of inconsistent state ([#1013](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1013))
 - Show warn in Jira comment only if WIP issues exist ([#1010](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1010))
 - Change initial project validation to take into account non GxP requirement ([#1007](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1007))
 - Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
