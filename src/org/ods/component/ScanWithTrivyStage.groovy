@@ -85,7 +85,7 @@ class ScanWithTrivyStage extends Stage {
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile, 
+        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile,
             nexusDataBaseRepository, openshiftAppDomain)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:
