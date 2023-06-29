@@ -1,0 +1,27 @@
+The "Trivy Security Scan" stage scans the filesystem of the cloned repository using https://github.com/aquasecurity/trivy[Trivy] and generates a https://cyclonedx.org/capabilities/sbom[SBOM] report, with https://cyclonedx.org/specification/overview/[CycloneDX] format by default. Check Trivy supported formats https://aquasecurity.github.io/trivy/latest/docs/supply-chain/sbom/[here].
+
+As a result, a Bitbucket Code Insight entry is added to the git commit (in Bitbucket) that basically
+contains a link to the scan report stored in Nexus. The Bitbucket Code Insight entry can be seen in a pull request.
+The pull request in Bitbucket shows the Code Insight of the latest commit of the PR.
+
+To get started, edit your `Jenkinsfile` and add the Trivy stage:
+----
+) { context ->
+    ...
+    odsComponentStageScanWithTrivy(context)
+    ...
+}
+----
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===
