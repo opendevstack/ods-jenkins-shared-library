@@ -1,12 +1,27 @@
 # Changelog
 
 ## Unreleased
-- Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
-- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+
+## [4.3.0] - 2023-07-03
+### Added
+- Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
+- Add Trivy stage for security scanning ([#1008](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1008))
+
+### Changed
+- Use a consistent notion of document version and remove header ([#987](https://github.com/opendevstack/ods-jenkins-shared-library/issues/987))
+- Improve Document Generation Experience ([#991](https://github.com/opendevstack/ods-jenkins-shared-library/issues/991))
+- Update Reference Documents & Base Documents sections ([#994](https://github.com/opendevstack/ods-jenkins-shared-library/issues/994))
+- Updated functional tests after fix SSDS appendix per gamp and RA chapter 5 ([#103](https://github.com/opendevstack/ods-document-generation-templates/issues/103))
+- Change initial project validation to take into account non GxP requirement ([#1007](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1007))
+- Show warn in Jira comment only if WIP issues exist ([#1010](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1010))
+- Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
 
 ### Fixed
+- Fix helm release - Check pod status after deployment ([#1005](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1005))
+- Moving from rollout pause/resume to patching resources to avoid errors in case of inconsistent state ([#1013](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1013))
 - Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
-- Change default registry to match Openshift 4 ([#983] (https://github.com/opendevstack/ods-jenkins-shared-library/issues/983))
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+- Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
 
 ## [4.2.0] - 2023-02-21
 

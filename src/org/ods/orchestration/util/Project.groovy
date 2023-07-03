@@ -27,9 +27,26 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
+    static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
+    static final boolean IS_GXP_PROJECT_DEFAULT = true
+    static final Map<String, List<String>> MANDATORY_CHAPTERS =
+        [
+            'CSD': ['1', '3.1'],
+            'SSDS': ['1', '2.1', '3.1', '5.4'],
+        ]
+    private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+    static {
+        def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
+        MANDATORY_CHAPTERS.each { document, headingNumbers ->
+            headingNumbers.each { headingNumber ->
+                index[headingNumber] << document
+            }
+        }
+    }
 
     class JiraDataItem implements Map, Serializable {
+
         static final String TYPE_BUGS = 'bugs'
         static final String TYPE_COMPONENTS = 'components'
         static final String TYPE_EPICS = 'epics'
@@ -64,23 +81,24 @@ class Project {
             TYPE_DOCS,
         ]
 
-        static final List TYPES_TO_BE_CLOSED = [
+        static final List REGULAR_ISSUE_TYPES = [
+            TYPE_BUGS,
             TYPE_EPICS,
             TYPE_MITIGATIONS,
             TYPE_REQUIREMENTS,
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
         ]
 
+        static final String ISSUE_STATUS_TODO = 'to do'
         static final String ISSUE_STATUS_DONE = 'done'
         static final String ISSUE_STATUS_CANCELLED = 'cancelled'
 
         static final String ISSUE_TEST_EXECUTION_TYPE_AUTOMATED = 'automated'
 
         private final String type
-        private HashMap delegate
+        private final HashMap delegate
 
         JiraDataItem(Map map, String type) {
             this.delegate = new HashMap(map)
@@ -245,9 +263,11 @@ class Project {
     }
 
     class LogReportType {
+
         static final String CHANGES = 'changes'
         static final String TARGET = 'target'
         static final String STATE = 'state'
+
      }
 
     class GampTopic {
@@ -373,7 +393,7 @@ class Project {
             this.logger.warn "WIP_Jira_Issues: ${this.data.jira.undone}"
             String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
-            if(!this.isWorkInProgress){
+            if (!this.isWorkInProgress) {
                 throw new OpenIssuesException(message)
             }
 
@@ -381,17 +401,17 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira) {
+        if (this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
                 .findAll { it.value.get("testType") == "Unit" }
                 .each { entry ->
-                    if(entry.value.get("components").size() != 1) {
+                    if (entry.value.get("components").size() != 1) {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0) {
+            if (faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
                     .collect { key -> key + ": " + faultMap.get(key) + "; " }
                     .inject("") { temp, val -> temp + val }
@@ -420,24 +440,18 @@ class Project {
     }
 
     @NonCPS
-    boolean isProjectReadyToFreeze(Map data) {
-        def result = true
-        JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
-            if (data.containsKey(type)) {
-                result = result & (data[type].find { k, v -> issueIsWIP(v) } == null)
-            }
-        }
-        return result
-    }
-
-    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:]
-        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Map<String, List> result = [:]
+        JiraDataItem.REGULAR_ISSUE_TYPES.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+                result[type] = data[type].findAll { k, v -> isIssueWIP(v) }.keySet() as List<String>
             }
         }
+        def docs = computeWIPDocChapters(data)
+        if (docs != null) {
+            result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+        }
+
         return result
     }
 
@@ -448,24 +462,48 @@ class Project {
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
     @NonCPS
-    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-        (data[JiraDataItem.TYPE_DOCS] ?: [:])
-            .values()
-            .findAll { issueIsWIP(it) }
-            .collect { chapter ->
-                chapter.documents.collect { [doc: it, key: chapter.key] }
-            }.flatten()
-            .groupBy { it.doc }
-            .collectEntries { doc, issues ->
-                [(doc as String): issues.collect { it.key } as List<String>]
+    protected Map<String,List<String>> computeWipDocChapterPerDocument(Map data) {
+        Map <String, List<String>> docChaptersPerDocument = [:]
+        def defaultingWrapper = docChaptersPerDocument.withDefault { [] }
+        Map <String, Map> wipDocs = computeWIPDocChapters(data)
+
+        wipDocs?.each {chapterKey, docChapter ->
+            docChapter.documents.each { document ->
+                defaultingWrapper[document] << chapterKey
             }
+        }
+        return docChaptersPerDocument
     }
 
     @NonCPS
-    protected boolean issueIsWIP(Map issue) {
-        issue.status != null &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+    private Map<String, Map> computeWIPDocChapters(Map data) {
+        def docs = data[JiraDataItem.TYPE_DOCS]
+        return docs?.findAll { k, v -> isDocChapterMandatory(v) && !isIssueDone(v) }
+    }
+
+    @NonCPS
+    protected boolean isIssueWIP(Map issue) {
+        return (!issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED))
+    }
+
+    @NonCPS
+    boolean isIssueDone(Map issue) {
+        return issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
+    }
+
+    @NonCPS
+    boolean isDocChapterMandatory(Map doc) {
+        if (this.isGxp()) {
+            return true
+        }
+
+        def documents = MANDATORY_CHAPTER_INDEX[doc.number]
+        if (documents == null) {
+            return false
+        }
+
+        return !documents.disjoint(doc.documents)
     }
 
     @NonCPS
@@ -524,6 +562,7 @@ class Project {
         return this.data.jira.project.enumDictionary[name]
     }
 
+    @NonCPS
     Map getProjectProperties() {
         return this.data.jira.project.projectProperties
     }
@@ -587,6 +626,12 @@ class Project {
 
     static String envStateFileName(String targetEnvironment) {
         "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
+    }
+
+    @NonCPS
+    boolean isGxp() {
+        String isGxp = projectProperties?."PROJECT.IS_GXP"
+        return isGxp != null ? isGxp.toBoolean() : IS_GXP_PROJECT_DEFAULT
     }
 
     String getEnvStateFileName() {
@@ -1580,7 +1625,6 @@ class Project {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
 
-
     /**
      * Saves the project data to the
      * @return filenames saved
@@ -1676,7 +1720,7 @@ class Project {
 
         def updateIssueLinks = { issue, index ->
             issue.collectEntries { String type, value ->
-                if(JiraDataItem.TYPES.contains(type)) {
+                if (JiraDataItem.TYPES.contains(type)) {
                     def newLinks = value.collect { link ->
                         def newLink = index[link]
                         newLink?:link
@@ -1690,7 +1734,7 @@ class Project {
 
         def updateLinks = { data, index ->
             data.collectEntries { issueType, content ->
-                if(JiraDataItem.TYPES.contains(issueType)) {
+                if (JiraDataItem.TYPES.contains(issueType)) {
                     def updatedIssues = content.collectEntries { String issueKey, Map issue ->
                         def updatedIssue = updateIssueLinks(issue, index)
                         [(issueKey): updatedIssue]
@@ -1784,7 +1828,7 @@ class Project {
     @NonCPS
     void clear() {
         this.data = null
-  	}
+    }
 
     @NonCPS
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {

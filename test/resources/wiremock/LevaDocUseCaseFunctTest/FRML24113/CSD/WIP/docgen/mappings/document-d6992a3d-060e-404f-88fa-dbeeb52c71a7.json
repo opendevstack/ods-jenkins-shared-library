@@ -17,7 +17,7 @@
                             "name": "Project frml24113",
                             "description": "Description of frml24113.",
                             "type": "Combined Specification Document",
-                            "version": "3.0",
+                            "version": "4.0",
                             "date_created": "${json-unit.any-string}",
                             "buildParameter": {
                                 "projectKey": "FRML24113",
@@ -45,20 +45,29 @@
                                 "jobName": "ofi2004-cd/ofi2004-cd-release-master"
                             },
                             "referencedDocs": {
-                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
-                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
-                                "RA": "BI-IT-DEVSTACK / 5-WIP",
-                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
-                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
-                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
-                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
-                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
                             },
                             "header": [
-                                "Combined Specification Document, Config Item: BI-IT-DEVSTACK",
-                                "Doc ID/Version: see auto-generated cover page"
+                                "Combined Specification Document, Config Item: BI-IT-DEVSTACK"
                             ]
                         },
                         "data": {
@@ -76,7 +85,7 @@
                                         "2.0"
                                     ],
                                     "section": "sec2",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184817/184817_image-2021-11-24-15-19-10-531.png\" height=\"193\" width=\"616\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" height=\"193\" width=\"616\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-190",
                                     "expandedPredecessors": [
                                         {
@@ -91,7 +100,7 @@
                                 "sec5s1": {
                                     "number": "5.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Definitions",
                                     "documents": [
@@ -108,7 +117,7 @@
                                 "sec6": {
                                     "number": "6",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Reference Documents",
                                     "documents": [
@@ -125,7 +134,7 @@
                                 "sec1": {
                                     "number": "1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Introduction and Purpose",
                                     "documents": [
@@ -135,14 +144,14 @@
                                         "1.0"
                                     ],
                                     "section": "sec1",
-                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184800/184800_image-2021-11-24-15-18-44-538.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://avatars.githubusercontent.com/u/38974438?s=200&v=4\" style=\"border: 0px solid black\" /></span></p>",
                                     "key": "FRML24113-43",
                                     "status": "Done"
                                 },
                                 "sec3s1": {
                                     "number": "3.1",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Related Business / GxP Process",
                                     "documents": [
@@ -159,7 +168,7 @@
                                 "sec3s2": {
                                     "number": "3.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Operational Requirements",
                                     "documents": [
@@ -176,7 +185,7 @@
                                 "sec5s2": {
                                     "number": "5.2",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Abbreviations",
                                     "documents": [
@@ -193,7 +202,7 @@
                                 "sec7": {
                                     "number": "7",
                                     "predecessors": [
-                                        
+
                                     ],
                                     "heading": "Document History",
                                     "documents": [
@@ -227,7 +236,7 @@
                                         }
                                     ],
                                     "epics": [
-                                        
+
                                     ]
                                 },
                                 "availabilityrequirements": {
@@ -248,12 +257,12 @@
                                         }
                                     ],
                                     "epics": [
-                                        
+
                                     ]
                                 },
                                 "regulatoryrequirements": {
                                     "noepics": [
-                                        
+
                                     ],
                                     "epics": [
                                         {
@@ -283,7 +292,7 @@
                                 },
                                 "compatibility": {
                                     "noepics": [
-                                        
+
                                     ],
                                     "epics": [
                                         {
@@ -313,21 +322,23 @@
                                 },
                                 "uncategorized": {
                                     "noepics": [
-                                        
+
                                     ],
                                     "epics": [
-                                        
+
                                     ]
                                 }
                             },
                             "documentHistory": [
                                 {
                                     "entryId": 1,
-                                    "rational": "Initial document version."
+                                    "rational": "Initial document version.",
+                                    "docVersion": 1
                                 },
                                 {
                                     "entryId": 2,
                                     "rational": "Modifications for project version '2.0'.",
+                                    "docVersion": 2,
                                     "issueType": [
                                         {
                                             "type": "epics",
@@ -338,10 +349,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -353,16 +364,16 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
                                                 {
@@ -373,7 +384,7 @@
                                                 }
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -381,11 +392,12 @@
                                 {
                                     "entryId": 3,
                                     "rational": "Modifications for project version '3.0'.",
+                                    "docVersion": 3,
                                     "issueType": [
                                         {
                                             "type": "requirements",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
                                                 {
@@ -403,13 +415,13 @@
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
@@ -417,6 +429,7 @@
                                 {
                                     "entryId": 4,
                                     "rational": "Modifications for project version '4.0'.",
+                                    "docVersion": "4.0/4",
                                     "issueType": [
                                         {
                                             "type": "epics",
@@ -427,10 +440,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -442,29 +455,30 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 },
                                 {
                                     "entryId": 5,
-                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4.0/4'.",
+                                    "docVersion": "4.0/5",
                                     "issueType": [
                                         {
                                             "type": "epics",
@@ -475,10 +489,10 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
@@ -490,27 +504,28 @@
                                                 }
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         },
                                         {
                                             "type": "documentation chapters",
                                             "added": [
-                                                
+
                                             ],
                                             "changed": [
-                                                
+
                                             ],
                                             "discontinued": [
-                                                
+
                                             ]
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+                            "documentHistoryLatestVersionId" : 5
                         }
                     }
                 },

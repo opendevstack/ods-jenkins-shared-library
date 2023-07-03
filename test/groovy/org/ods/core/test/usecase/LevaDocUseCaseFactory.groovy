@@ -116,7 +116,7 @@ class LevaDocUseCaseFactory {
         steps.env.RUN_DISPLAY_URL =""
         steps.env.version = buildParams.version
         steps.env.configItem = "Functional-Test"
-        steps.env.RELEASE_PARAM_VERSION = "3.0"
+        steps.env.RELEASE_PARAM_VERSION = "4.0"
         steps.env.BUILD_NUMBER = "666"
         steps.env.BUILD_URL = "https://jenkins-sample"
         steps.env.JOB_NAME = "ofi2004-cd/ofi2004-cd-release-master"

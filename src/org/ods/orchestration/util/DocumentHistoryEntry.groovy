@@ -8,16 +8,18 @@ class DocumentHistoryEntry implements Map, Serializable {
     private final Map delegate
     private final String projectVersion
     private final String previousProjectVersion
+    private final String docVersion
     String rational
 
     DocumentHistoryEntry(Map map, Long entryId, String projectVersion,
-                         String previousProjectVersion, String rational) {
+                         String previousProjectVersion, String docVersion, String rational) {
         def delegate = (Map) map.clone()
-        delegate.keySet().removeAll(['entryId', 'projectVersion', 'previousProjectVersion', 'rational'])
+        delegate.keySet().removeAll(['entryId', 'projectVersion', 'previousProjectVersion', 'docVersion', 'rational'])
         this.delegate = delegate
         this.entryId = entryId
         this.projectVersion = projectVersion
         this.previousProjectVersion = previousProjectVersion
+        this.docVersion = docVersion
         this.rational = rational
     }
 
@@ -82,6 +84,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             id: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
+            docVersion: docVersion,
             rational: rational,
         ]).keySet()
     }
@@ -93,6 +96,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             entryId: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
+            docVersion: docVersion,
             rational: rational,
         ]).values()
     }
@@ -104,6 +108,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             entryId: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
+            docVersion: docVersion,
             rational: rational,
         ]).entrySet()
     }
@@ -129,6 +134,11 @@ class DocumentHistoryEntry implements Map, Serializable {
     }
 
     @NonCPS
+    String getDocVersion() {
+        return docVersion
+    }
+
+    @NonCPS
     Map getDelegate() {
         return delegate
     }
@@ -142,7 +152,7 @@ class DocumentHistoryEntry implements Map, Serializable {
 
         def newDelegate = ois.readObject()
         DocumentHistoryEntry result = new DocumentHistoryEntry(newDelegate,
-            entryId, projectVersion, previousProjectVersion)
+            entryId, projectVersion, previousProjectVersion, docVersion)
         result.rational = this.rational
         return result
     }

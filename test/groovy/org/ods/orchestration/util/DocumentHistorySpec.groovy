@@ -89,7 +89,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks                 : [[key: rsk1.key, action: 'add']],
             tests                 : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
             techSpecs             : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
-            "Initial document version.")]
+            "1.0/1", "Initial document version.")]
 
         this.jiraData11_first = [
             bugs        : [:],
@@ -115,8 +115,8 @@ class DocumentHistorySpec extends SpecHelper {
             requirements: [[key: req2.key, action: 'add']],
             risks       : [],
             tests       : [[key: tst2.key, action: 'discontinue']],
-            techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
-            "Modifications for project version '${secondProjectVersion}'.")] + entries10
+            techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion,
+            "1.1/2", "Modifications for project version '${secondProjectVersion}'.")] + entries10
 
         this.jiraDataFix = [
             bugs        : [:],
@@ -143,8 +143,8 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
-            "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the changes done in document version '2'.")] + entries11_first
+            "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
+                " This document version invalidates the changes done in document version '${bugfixProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -172,7 +172,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : [],
         ], 4L, secondProjectVersion, bugfixProjectVersion,
-            "Modifications for project version '${secondProjectVersion}'.")] + entriesFix
+            "1.1/4", "Modifications for project version '${secondProjectVersion}'.")] + entriesFix
 
         this.jiraData20 = [
             bugs        : [:],
@@ -203,7 +203,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
-            "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
+            "2.0/5", "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
 
         this.entries20Alt = [new DocumentHistoryEntry([
             bugs        : [],
@@ -215,7 +215,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '5'.")] + entries20
+            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
     }
 
     protected List<String> computeIssuesDoc(List<DocumentHistoryEntry> dhe) {
@@ -485,7 +485,7 @@ class DocumentHistorySpec extends SpecHelper {
 
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'doc1'])
-        history.loadSavedDocHistoryData() >> [new DocumentHistoryEntry([:], 1L, '1.0', '', 'Initial document version.')]
+        history.loadSavedDocHistoryData() >> [new DocumentHistoryEntry([:], 1L, '1.0', '', null, 'Initial document version.')]
         history.load(base_saved_data, ['added1', 'added2', 'otherDocCh', 'changed1', 'discontinued'])
 
         when:
@@ -564,6 +564,7 @@ class DocumentHistorySpec extends SpecHelper {
             entry.entryId,
             entry.projectVersion,
             entry.previousProjectVersion,
+            entry.docVersion,
             entry.rational
         )}
 
@@ -621,7 +622,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries10
         def docContent = computeIssuesDoc(entries10)
         def versionEntries = [new DocumentHistoryEntry(entries10.first().getDelegate(), 2L, firstProjectVersion, '',
-            "Modifications for project version '${firstProjectVersion}'. This document version invalidates the changes done in document version '1'.")] + entries10
+            "1.0/2", "Modifications for project version '${firstProjectVersion}'. This document version invalidates the changes done in document version '${firstProjectVersion}/1'.")] + entries10
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
@@ -682,7 +683,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks                 : [],
             tests                 : [[key: tst1.key, action: 'add']],
             techSpecs             : []], 1L, firstProjectVersion, '',
-            "Initial document version.")]
+            null, "Initial document version.")]
 
         def compareItems = ['bugs', 'components', 'epics', 'mitigations', 'requirements', 'risks',
                             'tests', 'techSpecs', Project.JiraDataItem.TYPE_DOCS]
@@ -754,7 +755,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks                 : [],
             tests                 : [[key: tst1.key, action: 'add']],
             techSpecs             : []], 1L, firstProjectVersion, '',
-            "Initial document version.")]
+            null, "Initial document version.")]
 
         def result = new DocumentHistoryEntry([
             bugs        : [],
@@ -766,7 +767,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst1.key, action: 'discontinue']],
             techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
-            "Modifications for project version '${secondProjectVersion}'.")
+            null, "Modifications for project version '${secondProjectVersion}'.")
 
         def issuesToInclude = [req1.key, req2.key]
 
@@ -846,6 +847,7 @@ class DocumentHistorySpec extends SpecHelper {
         if (a.getEntryId() != b.getEntryId()) return false
         if (a.getProjectVersion() != b.getProjectVersion()) return false
         if (a.getPreviousProjectVersion() != b.getPreviousProjectVersion()) return false
+        if (a.getDocVersion() != b.getDocVersion()) return false
         if (a.getRational() != b.getRational()) return false
         if (a.getDelegate() != b.getDelegate()) return false
         return a == b

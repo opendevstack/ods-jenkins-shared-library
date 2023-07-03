@@ -702,7 +702,7 @@ class OpenShiftService {
         if (logger.getDebugMode()) {
             logger.debug("Pausing ${resource}")
         }
-        def script = "oc rollout pause ${resource}"
+        def script = "oc patch -p '{\"spec\":{\"paused\":true}}' ${resource}"
         if (project) {
             script += " -n ${project} "
         }
@@ -758,7 +758,7 @@ class OpenShiftService {
         if (logger.getDebugMode()) {
             logger.debug("Resuming ${resource}")
         }
-        def script = "oc rollout resume ${resource}"
+        def script = "oc patch -p '{\"spec\":{\"paused\":false}}' ${resource}"
         if (project) {
             script += " -n ${project} "
         }
