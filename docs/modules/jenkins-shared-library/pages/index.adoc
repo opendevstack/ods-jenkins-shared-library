@@ -1,5 +1,4 @@
 = Jenkins Shared Library
-:page-aliases: latest@ods-jenkins-shared-library:ROOT:index.adoc
 
 OpenDevStack provides a https://jenkins.io/doc/book/pipeline/shared-libraries/[Jenkins Shared Library] which offers three pipelines:
 
