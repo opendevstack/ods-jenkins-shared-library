@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+### Changed
+
+### Fixed
+- Fix SonarQube quality gate report to use the pull request or branch in scope ([#1016](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1016))
+
 ## [4.3.0] - 2023-07-03
 ### Added
 - Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
@@ -22,7 +29,6 @@
 - Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
 - Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981))
 - Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
-- Fix SonarQube quality gate report to use the pull request or branch in scope ([#1016](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1016))
 
 ## [4.2.0] - 2023-02-21
 
