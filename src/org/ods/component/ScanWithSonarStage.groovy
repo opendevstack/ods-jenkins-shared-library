@@ -80,8 +80,10 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.projectName'] = sonarProjectKey
         sonarProperties['sonar.branch.name'] = context.gitBranch
 
+        def pullRequestInfo = assemblePullRequestInfo()
+
         logger.startClocked("${sonarProjectKey}-sq-scan")
-        scan(sonarProperties)
+        scan(sonarProperties, pullRequestInfo)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
         retryComputeEngineStatusCheck()
 
@@ -94,7 +96,12 @@ class ScanWithSonarStage extends Stage {
         )
 
         // We need always the QG to put in insight report in Bitbucket
-        def qualityGateResult = getQualityGateResult(sonarProjectKey)
+        def qualityGateResult = getQualityGateResult(
+            sonarProjectKey,
+            context.sonarQubeEdition,
+            context.gitBranch,
+            pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null
+        )
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         if (options.requireQualityGatePass) {
             if (qualityGateResult == 'ERROR') {
@@ -111,8 +118,7 @@ class ScanWithSonarStage extends Stage {
         createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey)
     }
 
-    private void scan(Map sonarProperties) {
-        def pullRequestInfo = assemblePullRequestInfo()
+    private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
         def doScan = { Map<String, Object> prInfo ->
             sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition)
         }
@@ -197,8 +203,16 @@ class ScanWithSonarStage extends Stage {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String getQualityGateResult(String sonarProjectKey) {
-        def qualityGateJSON = sonarQube.getQualityGateJSON(sonarProjectKey)
+    private String getQualityGateResult(
+        String sonarProjectKey,
+        String sonarQubeEdition,
+        String gitBranch,
+        String bitbucketPullRequestKey) {
+        def qualityGateJSON = sonarQube.getQualityGateJSON(
+            sonarProjectKey,
+            sonarQubeEdition,
+            gitBranch,
+            bitbucketPullRequestKey)
         try {
             def qualityGateResult = steps.readJSON(text: qualityGateJSON)
             def status = qualityGateResult?.projectStatus?.status ?: 'UNKNOWN'

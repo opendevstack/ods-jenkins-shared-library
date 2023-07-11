@@ -2,10 +2,12 @@
 
 ## Unreleased
 
+### Added
+
 ### Changed
-- Remove latest tag in docs ([#1015](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1015))
 
 ### Fixed
+- Fix SonarQube quality gate report to use the pull request or branch in scope ([#1016](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1016))
 - Fix typos in `build.gradle` ([#1012](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1012))
 
 ## [4.3.0] - 2023-07-03
@@ -26,7 +28,7 @@
 - Fix helm release - Check pod status after deployment ([#1005](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1005))
 - Moving from rollout pause/resume to patching resources to avoid errors in case of inconsistent state ([#1013](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1013))
 - Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
-- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981))
 - Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
 
 ## [4.2.0] - 2023-02-21
