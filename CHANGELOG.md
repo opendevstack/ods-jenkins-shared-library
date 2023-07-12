@@ -7,6 +7,10 @@
 ### Changed
 
 ### Fixed
+
+## [4.3.1] - 2023-07-12
+
+### Fixed
 - Fix SonarQube quality gate report to use the pull request or branch in scope ([#1016](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1016))
 - Fix typos in `build.gradle` ([#1012](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1012))
 
