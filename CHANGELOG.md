@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added
+
+### Changed
+
+### Fixed
+
+## [4.3.1] - 2023-07-12
+
+### Fixed
+- Fix SonarQube quality gate report to use the pull request or branch in scope ([#1016](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1016))
+- CURL command fix for the sonarqube quality gate report retrieval ([#1020](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1020))
+- Fix typos in `build.gradle` ([#1012](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1012))
+
 ## [4.3.0] - 2023-07-03
 ### Added
 - Make IS_GXP property available for CFTP documents ([#996](https://github.com/opendevstack/ods-jenkins-shared-library/issues/996))
@@ -20,7 +33,7 @@
 - Fix helm release - Check pod status after deployment ([#1005](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1005))
 - Moving from rollout pause/resume to patching resources to avoid errors in case of inconsistent state ([#1013](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1013))
 - Memory leak fixes for component pipeline ([#857](https://github.com/opendevstack/ods-jenkins-shared-library/issues/857))
-- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981)) 
+- Fix Component fails to deploy with more than one DeploymentConfig([#981](https://github.com/opendevstack/ods-jenkins-shared-library/issues/981))
 - Fix errors when the templatesVersion is not set or set as number ([#1000](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1000))
 
 ## [4.2.0] - 2023-02-21
