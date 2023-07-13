@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Fix blurred images retrieved from Jira in the document chapters ([1022](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1022))
 ### Added
 
 ### Changed

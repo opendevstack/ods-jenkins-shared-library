@@ -990,4 +990,18 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         result == "<img src=\"data:${contentType};base64,${binaryDataCoded}\" imagetext=\"something.png\">aaa<img src=\"data:${contentType};base64,${binaryDataCoded}\" imagetext=\"something2.png\">"
     }
+
+    def "remove thumbnail from image urls"() {
+        given:
+        def usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
+        def initialHtml = "<p><span class=\"image-wrap\" style=\"\"><a id=\"10007_thumb\" href=\"https://jira-url/secure/attachment/10007/10007_file-name.png\" title=\"file-name.png\" file-preview-type=\"image\" file-preview-id=\"10007\" file-preview-title=\"file-name.png\"><img src=\"https://jira-url/secure/thumbnail/10007/_thumb_10007.png\" style=\"border: 0px solid black\" role=\"presentation\"/></a></span></p>"
+        def finalHtml = "<p><span class=\"image-wrap\" style=\"\"><a id=\"10007_thumb\" href=\"https://jira-url/secure/attachment/10007/10007_file-name.png\" title=\"file-name.png\" file-preview-type=\"image\" file-preview-id=\"10007\" file-preview-title=\"file-name.png\"><img src=\"https://jira-url/secure/attachment/10007/10007_file-name.png\" style=\"border: 0px solid black\" role=\"presentation\"/></a></span></p>"
+
+        when: 'we replace the thumbnail image for the good one'
+        def result = usecase.thumbnailImageReplacement(initialHtml)
+
+        then: 'the result if the snippet with the good url'
+        result == finalHtml
+
+    }
 }
