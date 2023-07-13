@@ -87,15 +87,16 @@ class SonarQubeService {
         String gitBranch,
         String bitbucketPullRequestKey) {
         withSonarServerConfig { hostUrl, authToken ->
-            def getStatusUrl = "${hostUrl}/api/qualitygates/project_status?projectKey=${projectKey}"
+            def getStatusUrl = "${hostUrl}/api/qualitygates/project_status"
+            def urlEncodingFlags = "--data-urlencode projectKey=${projectKey}"
             if (bitbucketPullRequestKey && (sonarQubeEdition != 'community')) {
-                getStatusUrl += "&pullRequest=" << bitbucketPullRequestKey
+                urlEncodingFlags += " --data-urlencode pullRequest=${bitbucketPullRequestKey}"
             } else if (sonarQubeEdition != 'community') {
-                getStatusUrl += "&branch=" << gitBranch
+                urlEncodingFlags += " --data-urlencode branch=${gitBranch}"
             }
             script.sh(
                 label: 'Get status of quality gate',
-                script: "curl -s -u ${authToken}: ${getStatusUrl}",
+                script: "curl -s -u ${authToken}: --url ${getStatusUrl} ${urlEncodingFlags}",
                 returnStdout: true
             )
         }
