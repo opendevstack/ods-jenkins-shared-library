@@ -226,7 +226,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             resourceNames.each { resourceName ->
 
                 def podData = [:]
-                podData = openShift.checkForPodData(context.targetProject, options.selector)
+                podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
                 context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                     [
                         'type': 'helm',

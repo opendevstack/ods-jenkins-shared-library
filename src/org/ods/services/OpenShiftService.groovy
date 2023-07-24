@@ -1024,7 +1024,7 @@ class OpenShiftService {
     // checkForPodData returns a subset of information from every pod, once
     // all pods matching the label are "running". If this is not the case,
     // it returns an empty list.
-    List<PodData> checkForPodData(String project, String label) {
+    List<PodData> checkForPodData(String project, String label, String resourceName=null) {
         List<PodData> pods = []
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l ${label} -o json",
@@ -1033,7 +1033,11 @@ class OpenShiftService {
         ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
-            pods = extractPodData(podJson)
+            if (podJson && resourceName && podJson.items.collect { it.metadata.name }.every { it.startsWith(resourceName) }) {
+                    pods = extractPodData(podJson)
+            }else{
+                pods = extractPodData(podJson)
+            }
         }
         pods
     }
