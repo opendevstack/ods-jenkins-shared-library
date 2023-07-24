@@ -1033,9 +1033,10 @@ class OpenShiftService {
         ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
-            if (podJson && resourceName && podJson.items.collect { it.metadata.name }.every { it.startsWith(resourceName) }) {
-                    pods = extractPodData(podJson)
-            }else{
+            if (podJson && resourceName && podJson.items.collect { it.metadata.name }.every {
+                it.startsWith(resourceName) }) {
+                pods = extractPodData(podJson)
+            } else {
                 pods = extractPodData(podJson)
             }
         }
