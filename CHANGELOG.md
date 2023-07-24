@@ -2,6 +2,7 @@
 
 ## Unreleased
 - Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+- Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
 
 ### Added
 
