@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
 
 ### Added
 
