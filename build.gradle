@@ -121,7 +121,6 @@ test {
     systemProperty 'com.athaydes.spockframework.report.projectName', 'ods-jenkins-shared-library'
     systemProperty 'com.athaydes.spockframework.report.projectVersion', version
     maxHeapSize = "2048m"
-    jvmArgs "-XX:MaxPermSize=256m"
     systemProperty "testRecordMode", project.findProperty('testRecordMode')?: false
     systemProperty "generateExpectedPdfFiles", project.findProperty('generateExpectedPdfFiles')?: false
     systemProperty "nexusURL", project.findProperty('nexusURL')?: "http://nexus.odsbox.lan:7990"
