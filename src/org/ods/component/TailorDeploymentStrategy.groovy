@@ -139,6 +139,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     private void tailorApply(String targetProject) {
+        options.tailorVerify = true
         logger.info("tailorApply options: " + groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(options)))
         steps.dir(options.openshiftDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.tailorPrivateKeyCredentialsId) { String pkeyFile ->
