@@ -117,7 +117,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
         logger.info("isHelmDeployment: ${isHelmDeployment}")
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
-        logger.info("options.openshiftDir: ${options.openshiftDir}")
         logger.info("isTailorDeployment: ${isTailorDeployment}")
 
         if (isTailorDeployment && isHelmDeployment){

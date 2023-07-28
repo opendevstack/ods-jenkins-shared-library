@@ -1291,14 +1291,18 @@ class OpenShiftService {
     }
 
     private void doTailorApply(String project, String tailorParams) {
-        steps.sh(
-            script: """tailor \
+        try {
+            steps.sh(
+                script: """tailor \
               ${tailorVerboseFlag()} \
               --non-interactive \
               -n ${project} \
               apply ${tailorParams}""",
-            label: "tailor apply for ${project} (${tailorParams})"
-        )
+                label: "tailor apply for ${project} (${tailorParams})"
+            )
+        } catch (ex) {
+            logger.info("Error while tailor apply: " + ex)
+        }
     }
 
     private void doTailorExport(
