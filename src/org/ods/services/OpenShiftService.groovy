@@ -26,9 +26,12 @@ class OpenShiftService {
     private final IPipelineSteps steps
     private final ILogger logger
 
+    private MROPipelineUtil pipelineUtil
+
     OpenShiftService(IPipelineSteps steps, ILogger logger) {
         this.steps = steps
         this.logger = logger
+        this.pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
     }
 
     static void createProject(IPipelineSteps steps, String name) {
@@ -1303,11 +1306,12 @@ class OpenShiftService {
                 label: "tailor apply for ${project} (${tailorParams})"
             )
         } catch (ex) {
-            logger.info("Error while tailor apply: " + ex)
-            def util = ServiceRegistry.instance.get(MROPipelineUtil)
-            util.warnBuild("Build unstable because of the tailor deploy failure")
-            def myProject = ServiceRegistry.instance.get(Project)
-            logger.info("MyPreoject: " + myProject.name + ", isWIP: " + myProject.isWorkInProgress)
+            logger.info("pipelineUtil.isWorkInProgressProject(): " + pipelineUtil.workInProgressProject)
+            if (pipelineUtil.workInProgressProject) {
+                pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure caused most likely by a drift.")
+            } else {
+                throw ex
+            }
         }
     }
 
