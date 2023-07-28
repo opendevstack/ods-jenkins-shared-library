@@ -1304,9 +1304,9 @@ class OpenShiftService {
             )
         } catch (ex) {
             def pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
-            logger.info("pipelineUtil: " + pipelineUtil)
+            logger.info("pipelineUtil.workInProgressProject: " + pipelineUtil.workInProgressProject)
             if (pipelineUtil.workInProgressProject) {
-                pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure caused most likely by a drift.")
+                pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure caused most likely by a state drift.")
             } else {
                 throw ex
             }
