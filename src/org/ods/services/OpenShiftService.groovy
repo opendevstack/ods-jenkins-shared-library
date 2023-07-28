@@ -5,6 +5,8 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -1302,6 +1304,10 @@ class OpenShiftService {
             )
         } catch (ex) {
             logger.info("Error while tailor apply: " + ex)
+            def util = ServiceRegistry.instance.get(MROPipelineUtil)
+            util.warnBuild("Build unstable because of the tailor deploy failure")
+            def myProject = ServiceRegistry.instance.get(Project)
+            logger.info("MyPreoject: " + myProject.name)
         }
     }
 
