@@ -1307,7 +1307,7 @@ class OpenShiftService {
             def util = ServiceRegistry.instance.get(MROPipelineUtil)
             util.warnBuild("Build unstable because of the tailor deploy failure")
             def myProject = ServiceRegistry.instance.get(Project)
-            logger.info("MyPreoject: " + myProject.name + ", isWIP: " + myProject.isWorkInProgress())
+            logger.info("MyPreoject: " + myProject.name + ", isWIP: " + myProject.isWorkInProgress)
         }
     }
 
