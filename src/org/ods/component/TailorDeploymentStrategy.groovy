@@ -54,7 +54,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
             config.tailorSelector = config.selector
         }
         if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = false
+            config.tailorVerify = true
         }
         if (!config.containsKey('tailorExclude')) {
             config.tailorExclude = 'bc,is'
@@ -139,9 +139,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     private void tailorApply(String targetProject) {
-        //TODO remove this
-        options.tailorVerify = true
-
         logger.info("tailorApply options: " + groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(options)))
         steps.dir(options.openshiftDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.tailorPrivateKeyCredentialsId) { String pkeyFile ->
