@@ -31,6 +31,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         ILogger logger) {
         super(script, context, logger)
 
+        logger.info("RolloutOpenShiftDeploymentStage Config: " + groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config)))
+
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -82,7 +84,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.tailorSelector = config.selector
         }
         if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = false
+            config.tailorVerify = true
         }
         if (!config.containsKey('tailorExclude')) {
             config.tailorExclude = 'bc,is'
