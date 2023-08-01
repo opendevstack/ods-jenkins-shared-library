@@ -1308,7 +1308,7 @@ class OpenShiftService {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure.")
             } else {
-                logger.warn("Tailor apply failure occurred, throwing error.")
+                logger.warn("Tailor apply failure occurred.")
                 // Let the error bubble up so that the pipeline will fail.
                 throw ex
             }
