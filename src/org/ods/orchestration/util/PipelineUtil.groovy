@@ -182,7 +182,8 @@ class PipelineUtil {
         return this.steps.load(path)
     }
 
-    public boolean isWorkInProgressProject() {
+    boolean isWorkInProgressProject() {
         return project.isWorkInProgress
     }
+
 }
