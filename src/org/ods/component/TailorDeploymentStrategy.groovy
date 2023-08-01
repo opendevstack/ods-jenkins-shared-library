@@ -31,6 +31,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         JenkinsService jenkins,
         ILogger logger
     ) {
+        logger.info("Tailor Config: " + groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config)))
         if (!config.selector) {
             config.selector = context.selector
         }
