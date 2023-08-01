@@ -171,8 +171,6 @@ class DeployOdsComponent {
             def applyFunc = { String pkeyFile ->
                 // @ FIXME - which params should we take from the deploymentMean?
                 if (startDir.startsWith('openshift')) {
-                    logger.info("applyTemplates verify true, deploymentMean: " +
-                        groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(deploymentMean)))
                     os.tailorApply(
                         project.targetProject,
                         deploymentMean.tailorSelectors as Map<String, String>,
