@@ -90,4 +90,14 @@ class Logger implements ILogger, Serializable {
         dumpCurrentStopwatchSize()
     }
 
+    @Override
+    String error(String message) {
+        message = "ERROR: ${message}"
+        info(message)
+    }
+
+    @Override
+    String errorClocked(String component, String message = null) {
+        error(timedCall(component, message))
+    }
 }
