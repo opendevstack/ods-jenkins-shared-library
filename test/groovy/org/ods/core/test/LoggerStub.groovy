@@ -78,4 +78,13 @@ class LoggerStub implements ILogger, Serializable {
         }
     }
 
+    @Override
+    String error(String message) {
+        info ("ERROR: ${message}")
+    }
+
+    @Override
+    String errorClocked(String component, String message = null) {
+        error(timedCall(component, message))
+    }
 }
