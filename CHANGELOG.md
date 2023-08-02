@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Align tailor drift check for D, Q envs ([#1024](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1024))
 
 ## [4.3.1] - 2023-07-12
 
