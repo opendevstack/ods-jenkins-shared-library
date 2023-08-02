@@ -38,16 +38,18 @@ class LoggerSpec extends PipelineSpockTestBase {
         String logMessage = logger.debug("testDebug")
         String infoMessage = logger.info("testInfo")
         String warnMessage = logger.warn("testWarn")
-        
+        String errorMessage = logger.error("testError")
+
         then:
         logMessage == expectedLogDebug
         infoMessage == expectedInfo
         warnMessage == expectedWarn
+        errorMessage == expectedError
 
         where:
-        debug  || expectedLogDebug        | expectedInfo | expectedWarn
-        true   || 'DEBUG: testDebug'      | 'testInfo'   | 'WARN: testWarn'
-        false  || ''                      | 'testInfo'   | 'WARN: testWarn'
+        debug  || expectedLogDebug        | expectedInfo | expectedWarn      | expectedError
+        true   || 'DEBUG: testDebug'      | 'testInfo'   | 'WARN: testWarn'  | 'ERROR: testError'
+        false  || ''                      | 'testInfo'   | 'WARN: testWarn'  | 'ERROR: testError'
     }
 
     def "verify clocked logging functionality"() {
@@ -59,7 +61,7 @@ class LoggerSpec extends PipelineSpockTestBase {
         String startDebugLogMessage = logger.debugClocked('testDebugComponent')
         String endDebugLogMessage = logger.debugClocked('testDebugComponent', 'hehehhehe')
         String noStartDebugLogMessage = logger.debugClocked('testComponent')
-        
+
         then:
         startDebugLogMessage.startsWith('DEBUG: [testDebugComponent]')
         !startDebugLogMessage.contains('took')
