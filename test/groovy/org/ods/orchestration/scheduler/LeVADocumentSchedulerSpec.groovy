@@ -6287,6 +6287,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         1 * usecase.invokeMethod('createTIP', [null, null] as Object[])
         1 * usecase.invokeMethod('createSSDS', [null, null] as Object[])
+        1 * usecase.invokeMethod('createTRC', [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -7083,7 +7084,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             DocumentType.IVR as String,
             DocumentType.CFTR as String,
             DocumentType.TCR as String,
-            DocumentType.TRC as String,
             DocumentType.DIL as String,
         ]
 
