@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Generate TRC document in D environment instead of Q ([#1029](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1029))
 - Align tailor drift check for D, Q envs ([#1024](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1024))
 
 ## [4.3.1] - 2023-07-12
