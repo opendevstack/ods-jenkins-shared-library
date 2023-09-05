@@ -10,7 +10,6 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
 import spock.lang.*
