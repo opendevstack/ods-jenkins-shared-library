@@ -290,7 +290,7 @@ class JiraUseCase {
         }
 
         if (checkDuplicateTestResults && duplicatesKeys) {
-            throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.");
+            throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
     }
 
@@ -385,7 +385,6 @@ class JiraUseCase {
         } else {
             logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
-
     }
 
     Long getLatestDocVersionId(List<Map> trackingIssues) {
