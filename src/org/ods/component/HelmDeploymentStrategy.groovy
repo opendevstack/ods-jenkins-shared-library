@@ -224,9 +224,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
-
-                def podData = [:]
-                podData = openShift.checkForPodData(context.targetProject, options.selector)
+                def podData = []
+                for (def i = 0; i < options.deployTimeoutRetries; i++) {
+                    podData = openShift.checkForPodData(context.targetProject, options.selector)
+                    if (!podData.isEmpty()) {
+                        break
+                    }
+                    steps.echo("Could not find 'running' pod(s) with label '${options.selector}' - waiting")
+                    steps.sleep(12)
+                }
                 context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
                     [
                         'type': 'helm',
