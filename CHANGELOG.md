@@ -1,12 +1,14 @@
 # Changelog
 
 ## Unreleased
-- Fix blurred images retrieved from Jira in the document chapters ([1022](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1022))
+
 ### Added
 
 ### Changed
 
 ### Fixed
+- Fix slow helm component deployments sometimes fail at the finalize step ([1031](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1031))
+- Fix blurred images retrieved from Jira in the document chapters ([1022](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1022))
 - Align tailor drift check for D, Q envs ([#1024](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1024))
 
 ## [4.3.1] - 2023-07-12
