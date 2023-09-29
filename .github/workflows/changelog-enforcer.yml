@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.0
-      - uses: dangoslen/changelog-enforcer@v2
+      - uses: dangoslen/changelog-enforcer@v3
         with:
           changeLogPath: 'CHANGELOG.md'
           skipLabels: 'skip changelog'
