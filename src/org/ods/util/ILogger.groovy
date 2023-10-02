@@ -13,6 +13,9 @@ interface ILogger {
     String warn(String message)
     String warnClocked(String component, String message)
 
+    String error(String message)
+    String errorClocked(String component, String message)
+
     boolean getDebugMode ()
 
     String getOcDebugFlag ()
