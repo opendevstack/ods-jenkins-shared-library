@@ -103,7 +103,7 @@ class RolloutOpenShiftDeploymentOptions extends Options {
 
     /**
      * Whether Tailor verifies the live configuration against the desired state
-     * after application (defaults to `false`). Only relevant if the directory
+     * after application (defaults to `true`). Only relevant if the directory
      * referenced by `openshiftDir` exists. */
     boolean tailorVerify
 

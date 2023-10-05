@@ -1703,7 +1703,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             RA: 'ConfigItem / See version created within this change',
             RA_version: 'WIP/2',
             TRC: 'ConfigItem / See version created within this change',
-            TRC_version: 'WIP/1',
+            TRC_version: 'WIP/2',
             DTP: 'ConfigItem / See version created within this change',
             DTP_version: 'WIP/2',
             DTR: 'ConfigItem / See version created within this change',

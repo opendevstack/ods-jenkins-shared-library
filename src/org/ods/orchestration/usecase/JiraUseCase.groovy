@@ -95,7 +95,7 @@ class JiraUseCase {
     @NonCPS
     String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
-
+        html = this.thumbnailImageReplacement(html)
         def pattern = ~/src="(${server}.*?\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/
         def result = html.replaceAll(pattern) { match ->
             def src = match[1]
@@ -201,7 +201,6 @@ class JiraUseCase {
                 contentField == field.key && field.value
             }
             content = content ? content.getValue() : ""
-
             this.thumbnailImageReplacement(content)
 
             def documentTypes = (issue.fields.labels ?: [])
@@ -291,7 +290,7 @@ class JiraUseCase {
         }
 
         if (checkDuplicateTestResults && duplicatesKeys) {
-            throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.");
+            throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
     }
 
@@ -386,7 +385,6 @@ class JiraUseCase {
         } else {
             logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
-
     }
 
     Long getLatestDocVersionId(List<Map> trackingIssues) {
@@ -431,12 +429,13 @@ class JiraUseCase {
     }
 
     @NonCPS
-    private thumbnailImageReplacement(content) {
+    def thumbnailImageReplacement(content) {
         def matcher = content =~ /<a.*id="(.*)_thumb".*href="(.*?)"/
         matcher.each {
             def imageMatcher = content =~ /<a.*id="${it[1]}_thumb".*src="(.*?)"/
             content = content.replace(imageMatcher[0][1], it[2])
         }
+        return content
     }
 
 }
