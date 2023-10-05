@@ -1293,14 +1293,16 @@ class OpenShiftService {
 
     private void doTailorApply(String project, String tailorParams) {
         try {
-            steps.sh(
+            int status = steps.sh(
                 script: """tailor \
               ${tailorVerboseFlag()} \
               --non-interactive \
               -n ${project} \
               apply ${tailorParams}""",
+                returnStatus: true,
                 label: "tailor apply for ${project} (${tailorParams})"
-            )
+            ) as int
+            logger.error("Tailor status: " + status)
         } catch (ex) {
             logger.error("Tailor failure: " + ex.getMessage())
             def pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
