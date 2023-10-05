@@ -104,7 +104,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(deploymentResources)))
 
-
         Map<String,String> labels = showMandatoryLabels()
         applyMandatoryLabels(labels, deploymentResources)
 
@@ -233,8 +232,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     steps.echo("Could not find 'running' pod(s) with label '${options.selector}' - waiting")
                     steps.sleep(12)
                 }
-                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-                    [
+                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean", [
                         'type': 'helm',
                         'selector': options.selector,
                         'chartDir': options.chartDir,
@@ -255,4 +253,5 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         rolloutData
     }
+
 }

@@ -182,7 +182,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                         'tailorParamFile': options.tailorParamFile,
                         'tailorParams': options.tailorParams,
                         'tailorPreserve': options.tailorPreserve,
-                        'tailorVerify': options.tailorVerify
+                        'tailorVerify': options.tailorVerify,
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,

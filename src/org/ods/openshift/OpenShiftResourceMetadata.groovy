@@ -174,6 +174,47 @@ class OpenShiftResourceMetadata {
     }
 
     /**
+     * Provides mandatory metadata that should not be overridden by the user.
+     * This metadata is expected, instead, to override user metadata.
+     *
+     * @return a <code>Map</code> with mandatory metadata for the component.
+     * @throws IllegalArgumentException if a invalid chart file is found.
+     */
+    def getMandatoryMetadata() {
+        def metadata = [
+            componentId:         context.componentId,
+            managedBy:           'tailor',
+            chartNameAndVersion: null as Object,
+            projectId:           context.projectId,
+        ]
+
+        // Find out whether this component is managed by helm
+        def chart = getChartNameAndVersion()
+        if (chart) {
+            metadata.managedBy = 'Helm'
+            metadata.chartNameAndVersion = chart
+        }
+
+        // When triggered by the release manager, it provides some of the metadata.
+        if (context.triggeredByOrchestrationPipeline) {
+            metadata.putAll([
+                systemName:     steps.env?.BUILD_PARAM_CONFIGITEM,
+                projectVersion: steps.env?.BUILD_PARAM_CHANGEID,
+                workInProgress: steps.env?.BUILD_PARAM_VERSION == 'WIP',
+            ])
+        } else {
+            // For the moment, we don't allow the users to customize these labels
+            metadata.putAll([
+                systemName:     null,
+                projectVersion: null,
+                workInProgress: null,
+            ])
+        }
+
+        return metadata
+    }
+
+    /**
      * Sanitize all metadata values to make sure they are valid label values.
      * Valid label values must be 63 characters or less and must be empty
      * or begin and end with an alphanumeric character ([a-z0-9A-Z])
@@ -310,47 +351,6 @@ class OpenShiftResourceMetadata {
             metadata = getMetadataFromQuickStarter()
         }
         return metadata ?: [:]
-    }
-
-    /**
-     * Provides mandatory metadata that should not be overridden by the user.
-     * This metadata is expected, instead, to override user metadata.
-     *
-     * @return a <code>Map</code> with mandatory metadata for the component.
-     * @throws IllegalArgumentException if a invalid chart file is found.
-     */
-    public getMandatoryMetadata() {
-        def metadata = [
-            componentId:         context.componentId,
-            managedBy:           'tailor',
-            chartNameAndVersion: null as Object,
-            projectId:           context.projectId,
-        ]
-
-        // Find out whether this component is managed by helm
-        def chart = getChartNameAndVersion()
-        if (chart) {
-            metadata.managedBy = 'Helm'
-            metadata.chartNameAndVersion = chart
-        }
-
-        // When triggered by the release manager, it provides some of the metadata.
-        if (context.triggeredByOrchestrationPipeline) {
-            metadata.putAll([
-                systemName:     steps.env?.BUILD_PARAM_CONFIGITEM,
-                projectVersion: steps.env?.BUILD_PARAM_CHANGEID,
-                workInProgress: steps.env?.BUILD_PARAM_VERSION == 'WIP',
-            ])
-        } else {
-            // For the moment, we don't allow the users to customize these labels
-            metadata.putAll([
-                systemName:     null,
-                projectVersion: null,
-                workInProgress: null,
-            ])
-        }
-
-        return metadata
     }
 
     /**
