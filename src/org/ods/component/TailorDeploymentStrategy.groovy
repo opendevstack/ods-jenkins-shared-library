@@ -99,8 +99,8 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def refreshResources = false
         def paused = false
         try {
-//            openShift.bulkPause(context.targetProject, deploymentResources)
-//            paused = true
+            openShift.bulkPause(context.targetProject, deploymentResources)
+            paused = true
 
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
@@ -116,14 +116,14 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 )
             }
 
-//            def metadata = new OpenShiftResourceMetadata(
-//                steps,
-//                context.properties,
-//                options.properties,
-//                logger,
-//                openShift
-//            )
-//            metadata.updateMetadata(true, deploymentResources)
+            def metadata = new OpenShiftResourceMetadata(
+                steps,
+                context.properties,
+                options.properties,
+                logger,
+                openShift
+            )
+            metadata.updateMetadata(true, deploymentResources)
 
             def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
             // FIXME: this is fugly as rollout(..) above will resume anyways and this leaks heavily
@@ -132,9 +132,9 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
             return rolloutData
 
         } finally {
-//            if (paused) {
-//                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
-//            }
+            if (paused) {
+                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
+            }
         }
     }
 
