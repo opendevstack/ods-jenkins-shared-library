@@ -6,6 +6,7 @@ import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -1304,6 +1305,8 @@ class OpenShiftService {
             )
         } catch (ex) {
             def pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
+            def projectObj = ServiceRegistry.instance.get(Project)
+            logger.error("ProjectObj: " + projectObj)
             if (pipelineUtil.workInProgressProject) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure.")
