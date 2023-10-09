@@ -1305,7 +1305,7 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObj = ServiceRegistry.instance.get(Project)
-            logger.error("ProjectObj: " + projectObj)
+            logger.error("ProjectObj: " + projectObj.isWorkInProgress + ", " + projectObj)
             if (projectObj.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 steps.currentBuild.result = 'UNSTABLE'
