@@ -1293,7 +1293,7 @@ class OpenShiftService {
 
     private void doTailorApply(String project, String tailorParams) {
         try {
-            String result = steps.sh(
+            steps.sh(
                 script: """tailor \
               ${tailorVerboseFlag()} \
               --non-interactive \
@@ -1301,10 +1301,8 @@ class OpenShiftService {
               apply ${tailorParams}""",
                 returnStdout: true,
                 label: "tailor apply for ${project} (${tailorParams})"
-            ).toString().trim()
-            logger.error("Tailor result: " + result)
+            )
         } catch (ex) {
-            logger.error("Tailor failure: " + ex.getMessage())
             def pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
             if (pipelineUtil.workInProgressProject) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
