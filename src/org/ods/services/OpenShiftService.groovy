@@ -1304,12 +1304,12 @@ class OpenShiftService {
                 label: "tailor apply for ${project} (${tailorParams})"
             )
         } catch (ex) {
-            def pipelineUtil = ServiceRegistry.instance.get(MROPipelineUtil)
             def projectObj = ServiceRegistry.instance.get(Project)
             logger.error("ProjectObj: " + projectObj)
-            if (pipelineUtil.workInProgressProject) {
+            if (projectObj.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
-                pipelineUtil.warnBuild("Set build UNSTABLE due to tailor apply failure.")
+                steps.currentBuild.result = 'UNSTABLE'
+                logger.warn("Set build UNSTABLE due to tailor apply failure.")
             } else {
                 logger.error("Tailor apply failure occurred.")
                 // Let the error bubble up so that the pipeline will fail.
