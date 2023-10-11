@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
 ### Added
 
