@@ -1688,14 +1688,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 'Could not obtain document chapter data from Jira.')
         }
 
+        return addDoneFlag(sections)
+    }
+
+    private Map<Object, Object> addDoneFlag(List<Project.JiraDataItem> sections) {
         def sectionCollection = sections.collectEntries { sec ->
-            String content = sec.content
-            if (!this.project.isDocChapterMandatory(sec) && !this.project.isIssueDone(sec)) {
-                content = NOT_MANDATORY_CONTENT
-            } else {
-                content = this.convertImages(content)
-            }
-            [(sec.section): sec + [content: content]]
+            [(sec.section): sec + [content: this.convertImages(sec.content), done: this.project.isIssueDone(sec)]]
         }
 
         // Extract-out the section, as needed for the DocGen interface
@@ -1704,19 +1702,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
-        sections = sections?.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content)]]
-        }
+
         if (!sections || sections.isEmpty() ) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
             if (!this.project.data.jira.undoneDocChapters) {
                 this.project.data.jira.undoneDocChapters = [:]
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
-            sections = sections?.collectEntries { key, sec ->
-                [(key): sec + [content: this.convertImages(sec.content)]]
-            }
         }
+        sections = addDoneFlag(sections)
 
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
