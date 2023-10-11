@@ -173,7 +173,10 @@ class OpenShiftService {
         params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
         def paramFlags = params.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
-        doTailorApply(project, "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
+        doTailorApply(project,
+            "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}",
+            target
+        )
     }
 
     void tailorExport(String project, String selector, Map<String, String> envParams, String targetFile) {
@@ -1292,23 +1295,26 @@ class OpenShiftService {
         steps.env.DEBUG ? '--verbose' : ''
     }
 
-    private void doTailorApply(String project, String tailorParams) {
+    private void doTailorApply(String project, String tailorParamsString, Map<String, String> target) {
         try {
             steps.sh(
                 script: """tailor \
               ${tailorVerboseFlag()} \
               --non-interactive \
               -n ${project} \
-              apply ${tailorParams}""",
+              apply ${tailorParamsString}""",
                 returnStdout: true,
-                label: "tailor apply for ${project} (${tailorParams})"
+                label: "tailor apply for ${project} (${tailorParamsString})"
             )
         } catch (ex) {
-            def projectObj = ServiceRegistry.instance.get(Project)
-            if (projectObj.isWorkInProgress) {
+            def projectObject = ServiceRegistry.instance.get(Project)
+            if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 steps.currentBuild.result = 'UNSTABLE'
-                logger.warn("Set build UNSTABLE due to tailor apply failure.")
+                logger.warn("Set build UNSTABLE due to a Tailor failure. The component \"" + target  + "\" " +
+                    "configuration in Openshift does not correspond with the component configuration " +
+                    "stored in the repository.  In order to solve the problem, ensure the component " +
+                    "in Openshift is aligned with the component configuration stored in the repository.")
             } else {
                 logger.error("Tailor apply failure occurred.")
                 // Let the error bubble up so that the pipeline will fail.
