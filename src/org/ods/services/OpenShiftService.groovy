@@ -1311,7 +1311,7 @@ class OpenShiftService {
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 steps.currentBuild.result = 'UNSTABLE'
-                logger.warn("Set build UNSTABLE due to a Tailor failure. The component \"" + target  + "\" " +
+                logger.warn("Set build UNSTABLE due to a Tailor failure. The component \"${extractAppNameFromTarget(target)}\" " +
                     "configuration in Openshift does not correspond with the component configuration " +
                     "stored in the repository.  In order to solve the problem, ensure the component " +
                     "in Openshift is aligned with the component configuration stored in the repository.")
@@ -1321,6 +1321,16 @@ class OpenShiftService {
                 throw ex
             }
         }
+    }
+
+    private extractAppNameFromTarget(Map<String, String> target) {
+        if (target.selector) {
+            String appSelector = target.selector;
+            if (appSelector && appSelector.contains("app=")) {
+                return appSelector.trim().replace("app=", "")
+            }
+        }
+        return "N/A"
     }
 
     private void doTailorExport(
