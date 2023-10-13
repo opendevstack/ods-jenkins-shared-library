@@ -50,8 +50,6 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    private static final String NOT_MANDATORY_CONTENT = '<p><em>Not mandatory.</em></p>'
-
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
