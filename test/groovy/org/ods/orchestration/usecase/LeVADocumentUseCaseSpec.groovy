@@ -1002,7 +1002,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             expectedModules = null
         }
 
-        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
+        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent", "done": false]
 
         log.info "Using temporal folder:${tempFolder.getRoot()}"
         steps.env.BUILD_ID = "1"
