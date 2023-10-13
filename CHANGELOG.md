@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 ### Added
 
 ### Changed
