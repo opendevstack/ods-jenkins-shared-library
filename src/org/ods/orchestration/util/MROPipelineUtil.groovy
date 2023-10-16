@@ -119,6 +119,7 @@ class MROPipelineUtil extends PipelineUtil {
 
             if (buildArtifacts.failedStage) {
                 repo.data << ['failedStage': buildArtifacts.failedStage]
+                repo.data << ['myKey': 'MyValue']
                 if (failfast) {
                     throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
                 } else {
