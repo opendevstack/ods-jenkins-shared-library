@@ -5,7 +5,6 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -1322,7 +1321,7 @@ class OpenShiftService {
                     "in the repository. In order to solve the problem, ensure the component in Openshift is " +
                     "aligned with the component configuration stored in the repository.")
                 // Let the error bubble up so that the pipeline will fail.
-                throw ex
+                throw new TailorDeploymentException(ex)
             }
         }
     }

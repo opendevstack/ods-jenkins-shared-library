@@ -7,6 +7,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.TailorDeploymentException
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -273,7 +274,9 @@ class Pipeline implements Serializable {
                             if (notifyNotGreen) {
                                 doNotifyNotGreen(context.emailextRecipients)
                             }
-                            context.addArtifactURI('tailorFailure', 'true')
+                            if (err instanceof TailorDeploymentException) {
+                                context.addArtifactURI('tailorFailure', 'true')
+                            }
                             if (!!script.env.MULTI_REPO_BUILD) {
                                 context.addArtifactURI('failedStage', script.env.STAGE_NAME)
                                 // this is the case on a parallel node to be interrupted

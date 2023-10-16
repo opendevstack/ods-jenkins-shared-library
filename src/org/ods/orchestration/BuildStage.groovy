@@ -89,12 +89,27 @@ class BuildStage extends Stage {
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
+            def tailorDeployFailedRepos = findAllReposWithTailorDeploymentFailure(failedRepos)
+            if (tailorDeployFailedRepos?.size() > 0) {
+                errMessage += "\nTailor apply failure occured: The component[s] \"" + tailorDeployFailedRepos  + "\" " +
+                    "configuration in Openshift does not correspond with the component configuration stored in the " +
+                    "repository.  In order to solve the problem, ensure the component in Openshift is aligned " +
+                    "with the component configuration stored in the repository."
+            }
+
             util.failBuild(errMessage)
             // If we are not in Developer Preview raise a exception
             if (!project.isWorkInProgress) {
                 throw new IllegalStateException(errMessage)
             }
         }
+    }
+
+    List<String> findAllReposWithTailorDeploymentFailure(def allFailedRepos) {
+        def tailorDeploymentFailedRepos = allFailedRepos
+            .findAll {it -> it.data.openshift.tailorFailure}
+            .collect {it -> it.id}
+        return tailorDeploymentFailedRepos
     }
 
 }
