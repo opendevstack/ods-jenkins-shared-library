@@ -10,6 +10,8 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
+import org.ods.services.TailorDeploymentException;
+
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
