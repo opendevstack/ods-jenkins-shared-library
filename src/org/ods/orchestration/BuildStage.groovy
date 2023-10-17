@@ -99,7 +99,9 @@ class BuildStage extends Stage {
             if (!project.isWorkInProgress) {
                 throw new IllegalStateException(errMessage)
             } else {
-                project.addCommentInReleaseStatus(tailorFailureMessage)
+                if (tailorFailureMessage) {
+                    project.addCommentInReleaseStatus(tailorFailureMessage)
+                }
             }
         }
     }
