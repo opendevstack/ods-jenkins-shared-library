@@ -360,7 +360,7 @@ class BitbucketService {
             payload += "]" +
                 "}"
             try {
-                def authHeader = '\"Authorization: Bearer \${TOKEN}\"' // codenarc-disable GStringExpressionWithinString
+                def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
                 script.sh(
                     label: 'Create Bitbucket Code Insight report via API',
                     script: """curl \\
