@@ -110,7 +110,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
             // sh will not run and hence not replace the value with the token from an env var
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
@@ -158,7 +158,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--fail')
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
@@ -204,7 +205,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--fail')
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
@@ -243,7 +245,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--fail')
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
@@ -300,7 +303,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--fail')
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
@@ -347,7 +351,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--fail')
             assert it.script.toString().contains('-sS')
             assert it.script.toString().contains('--request PUT')
-            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
