@@ -1310,11 +1310,17 @@ class OpenShiftService {
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 steps.currentBuild.result = 'UNSTABLE'
+                def componentName = extractAppNameFromTarget(target)
                 logger.warn("Set build UNSTABLE due to a Tailor failure. The component " +
-                    "\"${extractAppNameFromTarget(target)}\" configuration in Openshift does " +
+                    "\"${componentName}\" configuration in Openshift does " +
                     "not correspond with the component configuration stored in the repository. " +
                     "In order to solve the problem, ensure the component in Openshift is aligned " +
                     "with the component configuration stored in the repository.")
+                projectObject.addCommentInReleaseStatus("WARN: Set build UNSTABLE due to a Tailor " +
+                    "failure. The component \"${componentName}\" configuration in " +
+                    "Openshift does not correspond with the component configuration stored in the repository.  " +
+                    "In order to solve the problem, ensure the component in Openshift is aligned with the " +
+                    "component configuration stored in the repository. ")
             } else {
                 logger.error("Tailor apply failure occured: The component \"${extractAppNameFromTarget(target)}\" " +
                     "configuration in Openshift does not correspond with the component configuration stored " +

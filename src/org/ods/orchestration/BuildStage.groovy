@@ -100,9 +100,6 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(errMessage)
             }
         }
-        if (project.isWorkInProgress) {
-            project.addCommentInReleaseStatus(buildTailorDeploymentWarningMessage())
-        }
     }
 
     String findAllReposWithTailorDeploymentFailureCommaSeparated(def allFailedRepos) {
@@ -125,12 +122,4 @@ class BuildStage extends Stage {
         }
         return errMessage
     }
-
-    String buildTailorDeploymentWarningMessage() {
-        return "WARN: Set build UNSTABLE due to a Tailor failure. The component \"..\" (add component name) configuration" +
-            " in Openshift does not correspond with the component configuration stored in the repository.  In order to " +
-            "solve the problem, ensure the component in Openshift is aligned with the component configuration stored " +
-            "in the repository."
-    }
-
 }
