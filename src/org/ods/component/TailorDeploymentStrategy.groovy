@@ -2,7 +2,6 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -116,14 +115,14 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
                 )
             }
 
-            def metadata = new OpenShiftResourceMetadata(
-                steps,
-                context.properties,
-                options.properties,
-                logger,
-                openShift
-            )
-            metadata.updateMetadata(true, deploymentResources)
+//            def metadata = new OpenShiftResourceMetadata(
+//                steps,
+//                context.properties,
+//                options.properties,
+//                logger,
+//                openShift
+//            )
+//            metadata.updateMetadata(true, deploymentResources)
 
             def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
             // FIXME: this is fugly as rollout(..) above will resume anyways and this leaks heavily

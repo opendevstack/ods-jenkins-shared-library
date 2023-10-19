@@ -3,7 +3,6 @@ package org.ods.component
 import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -105,8 +104,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 JsonOutput.toJson(deploymentResources)))
 
 
-        Map<String,String> labels = showMandatoryLabels()
-        applyMandatoryLabels(labels, deploymentResources)
+//        Map<String,String> labels = showMandatoryLabels()
+//        applyMandatoryLabels(labels, deploymentResources)
 
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
@@ -154,24 +153,24 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     }
 
-    private def showMandatoryLabels() {
-        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks
-        //  This happens because it, unconditionally, tries to reset some fields
-        def metadataSvc = new OpenShiftResourceMetadata(
-            steps,
-            context.properties,
-            options.properties,
-            logger,
-            openShift
-        )
-
-        // DEBUG what we consider "mandatory"
-        def metadata = metadataSvc.getMandatoryMetadata()
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(metadata)))
-        return metadata
-    }
+//    private def showMandatoryLabels() {
+//        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks
+//        //  This happens because it, unconditionally, tries to reset some fields
+//        def metadataSvc = new OpenShiftResourceMetadata(
+//            steps,
+//            context.properties,
+//            options.properties,
+//            logger,
+//            openShift
+//        )
+//
+//        // DEBUG what we consider "mandatory"
+//        def metadata = metadataSvc.getMandatoryMetadata()
+//        logger.debug(
+//            JsonOutput.prettyPrint(
+//                JsonOutput.toJson(metadata)))
+//        return metadata
+//    }
 
     private void helmUpgrade(String targetProject) {
         steps.dir(options.chartDir) {

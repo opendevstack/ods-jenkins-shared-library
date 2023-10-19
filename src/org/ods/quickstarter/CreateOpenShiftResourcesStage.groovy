@@ -1,7 +1,6 @@
 package org.ods.quickstarter
 
 
-import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.util.PipelineSteps
 
 class CreateOpenShiftResourcesStage extends Stage {
@@ -49,9 +48,9 @@ class CreateOpenShiftResourcesStage extends Stage {
 
             options.environment = env
             def steps = new PipelineSteps(script)
-            def metadata = new OpenShiftResourceMetadata(steps, context.properties, options, logger)
-            //TODO Should this also be removed?
-            metadata.updateMetadata()
+//            def metadata = new OpenShiftResourceMetadata(steps, context.properties, options, logger)
+//            //TODO Should this also be removed?
+//            metadata.updateMetadata()
         }
     }
 
