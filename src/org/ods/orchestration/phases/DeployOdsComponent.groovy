@@ -127,11 +127,14 @@ class DeployOdsComponent {
             }
         }
     }
+
+    // FIXME: This method does not support multiple deployment descriptors.
     @TypeChecked(TypeCheckingMode.SKIP)
     private String computeStartDir() {
         List<File> files = steps.findFiles(glob: "**/${DeploymentDescriptor.FILE_NAME}")
         logger.debug("DeploymentDescriptors: ${files}")
-        if (!files || files.size() == 0) {
+        // If we find anything but _exactly_ one deployment descriptor, we fail.
+        if (!files || files.size() != 1) {
             throw new RuntimeException("Error: Could not determine starting directory. " +
                 "Neither of [chart, openshift, openshift-exported] found.")
         } else {
