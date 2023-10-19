@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix Helm deployment issues with custom chartDir ([#1038](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1038))
 * Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 * Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
