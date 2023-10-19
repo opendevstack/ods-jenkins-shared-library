@@ -11,6 +11,7 @@ class DocumentHistoryEntry implements Map, Serializable {
     private final String docVersion
     String rational
 
+    @SuppressWarnings('ParameterCount')
     DocumentHistoryEntry(Map map, Long entryId, String projectVersion,
                          String previousProjectVersion, String docVersion, String rational) {
         def delegate = (Map) map.clone()
