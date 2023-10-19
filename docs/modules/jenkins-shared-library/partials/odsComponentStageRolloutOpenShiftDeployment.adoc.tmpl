@@ -1,9 +1,56 @@
+Rolls out the current resources as defined in the component.
+
+Without any configuration the stage tries to guess what a user expects.
+If the component contains a directory name `chart`, a Helm deployment is assumed.
+If the component contains a directory name `openshift`, a Tailor deployment is assumed.
+If neither exists a Tailor deployment is assumed.
+
+== Helm
+
+Triggers a release or update of an release with Helm.
+
+The stage will use the `helm` command to trigger the release.
+The command will be executed in the directory referenced by `chartDir`.
+If the directory does not exist, the stage will fail.
+
+The images used in the deployment will not be tagged or otherwise modified.
+
+[source,shell]
+----
+HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n play-dev secrets diff upgrade \
+  --install --atomic --force \
+  -f values.yaml \
+  --set registry=registry.example.com \
+  --set componentId=example-helm-chart \
+  --set imageNamespace=example-dev \
+  --set imageTag=deadbeef69cafebabe \
+  --no-color --three-way-merge --normalize-manifests \
+  example-release . || true
+
+# run the upgrade
+helm -n play-dev secrets upgrade \
+  --install --atomic --force \
+  -f values.yaml \
+  --set registry=registry.example.com \
+  --set componentId=example-helm-chart \
+  --set imageNamespace=play-dev \
+  --set imageTag=deadbeef69cafebabe \
+  example-release .
+----
+
+== Tailor
+
 Triggers (and follows) a rollout of the `DeploymentConfig` related to the repository
 being built.
 
-It achieves this by tagging the image built in `odsComponentStageBuildOpenShiftImage` with `latest`. This might already trigger a rollout based on an existing `ImageTrigger`. If none is set, the stage will start a manual rollout.
+It achieves this by tagging the image built in `odsComponentStageBuildOpenShiftImage` with `latest`.
+This might already trigger a rollout based on an existing `ImageTrigger`.
+If none is set, the stage will start a manual rollout.
 
-If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor]. In this case, it is recommended to remove any image triggers to avoid duplicate rollouts (one when configuration changes due to a config trigger and one when the image is tagged to `latest`). In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
+If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor].
+In this case, it is recommended to remove any image triggers to avoid duplicate rollouts
+(one when configuration changes due to a config trigger and one when the image is tagged to `latest`).
+In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
 
 == Options
 
@@ -18,7 +65,7 @@ _{{.Type}}_
 {{end}}
 |===
 
-== Differences between tailor and helm deployments
+== Notable Differences between tailor and helm deployments
 
 When tailor does the rollout, all the created or updated OpenShift resources are automatically labeled to ease their management.
 This is in contrast to helm rollouts which rely on the chart providing the desired labels.
