@@ -128,7 +128,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
-            def msg = "" + //codenarc-disable AddEmptyString
+            def msg = "" + /* codenarc-disable-line AddEmptyString */
                 """
 ********************************************************************************
 Detected Tailor deployment
