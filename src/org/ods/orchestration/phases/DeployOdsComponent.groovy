@@ -135,7 +135,7 @@ class DeployOdsComponent {
         logger.debug("DeploymentDescriptors: ${files}")
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
-            def msg = "" + /* codenarc-disable-line AddEmptyString */
+            def msg =
 """
 ********************************************************************************
 Error: Could not determine starting directory.
