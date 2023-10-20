@@ -129,6 +129,32 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            def msg = "" +
+                """
+********************************************************************************
+Detected Tailor deployment
+
+Tailor is deprecated and might be removed in the future.
+
+Please migrate to Helm based deployments.
+
+See:
+
+* https://helm.sh
+* https://github.com/opendevstack/tailor/blob/master/README.md
+
+********************************************************************************
+
+> The main target of Tailor is OpenShift 3.11.
+> Tailor also works against OpenShift 4,
+> but it is recommended to transition to other tools,
+> such as Helm or kustomize,
+> which have become popular and work well against OpenShift 4.
+
+********************************************************************************
+"""
+
+            logger.warn(msg)
         }
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
