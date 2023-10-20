@@ -103,10 +103,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(deploymentResources)))
 
-
-//        Map<String,String> labels = showMandatoryLabels()
-//        applyMandatoryLabels(labels, deploymentResources)
-
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
@@ -152,25 +148,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
 
     }
-
-//    private def showMandatoryLabels() {
-//        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks
-//        //  This happens because it, unconditionally, tries to reset some fields
-//        def metadataSvc = new OpenShiftResourceMetadata(
-//            steps,
-//            context.properties,
-//            options.properties,
-//            logger,
-//            openShift
-//        )
-//
-//        // DEBUG what we consider "mandatory"
-//        def metadata = metadataSvc.getMandatoryMetadata()
-//        logger.debug(
-//            JsonOutput.prettyPrint(
-//                JsonOutput.toJson(metadata)))
-//        return metadata
-//    }
 
     private void helmUpgrade(String targetProject) {
         steps.dir(options.chartDir) {
