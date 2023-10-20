@@ -89,9 +89,12 @@ class BuildStage extends Stage {
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
-            def tailorFailureMessage = buildTailorDeploymentFailureMessage(failedRepos)
-            if (tailorFailureMessage) {
-                errMessage += "\n\n" + tailorFailureMessage;
+            def tailorFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(failedRepos)
+            if (tailorFailedReposCommaSeparated?.length() > 0) {
+                errMessage += "\n\nTailor apply failure occured: The component[s] " + tailorFailedReposCommaSeparated +
+                    " configuration in Openshift does not correspond with the component configuration stored in the " +
+                    "repository.  In order to solve the problem, ensure the component in Openshift is aligned " +
+                    "with the component configuration stored in the repository.";
             }
 
             util.failBuild(errMessage)
@@ -109,17 +112,5 @@ class BuildStage extends Stage {
             .join(", ")
 
         return tailorDeploymentFailedReposString
-    }
-
-    String buildTailorDeploymentFailureMessage(def allFailedRepos) {
-        def tailorDeployFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(allFailedRepos)
-        def errMessage = null;
-        if (tailorDeployFailedReposCommaSeparated?.length() > 0) {
-            errMessage = "Tailor apply failure occured: The component[s] " + tailorDeployFailedReposCommaSeparated +
-                " configuration in Openshift does not correspond with the component configuration stored in the " +
-                "repository.  In order to solve the problem, ensure the component in Openshift is aligned " +
-                "with the component configuration stored in the repository."
-        }
-        return errMessage
     }
 }

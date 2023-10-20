@@ -566,4 +566,40 @@ class OpenShiftServiceSpec extends SpecHelper {
           'Deployment'      |   'rs'
     }
 
+    def "warn build"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        steps.currentBuild >> [result:'UNSTABLE']
+        def logger = Mock(ILogger)
+        def openShift = new OpenShiftService(steps, logger)
+        def message = "Test"
+
+        when:
+        openShift.warnBuild(message)
+
+        then:
+        1 * openShift.logger.warn(message)
+        openShift.steps.currentBuild.result == 'UNSTABLE'
+    }
+
+    def "extract app name from target"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        def logger = Mock(ILogger)
+        def openShift = new OpenShiftService(steps, logger)
+
+        when:
+        def result = openShift.extractAppNameFromTarget(target)
+
+        then:
+        result == expected
+
+        where:
+        target                      |       expected
+        null                        |       "N/A"
+        [:]                         |       "N/A"
+        [selector:null]             |       "N/A"
+        [selector:"app="]           |       ""
+        [selector:"app=Test"]       |       "Test"
+    }
 }

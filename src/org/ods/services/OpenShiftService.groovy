@@ -1337,12 +1337,9 @@ class OpenShiftService {
         logger.warn(message)
     }
 
-    private extractAppNameFromTarget(Map<String, String> target) {
-        if (target.selector) {
-            String appSelector = target.selector;
-            if (appSelector && appSelector.contains("app=")) {
-                return appSelector.trim().replace("app=", "")
-            }
+    def extractAppNameFromTarget(Map<String, String> target) {
+        if (target?.selector?.contains("app=")) {
+            return target.selector.trim().replace("app=", "")
         }
         return "N/A"
     }

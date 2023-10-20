@@ -89,4 +89,30 @@ class BuildStageSpec extends SpecHelper {
         ex.message == 'Failing build as repositories contain errors!\nFailed: []'
     }
 
+    def "find all repos with tailor deployment failure comma separated"() {
+        given:
+        def allFailedRepos = [
+            [id:"golang", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"other", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:],
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"third", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true]]
+
+        when:
+        def result = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(allFailedRepos)
+
+        then:
+        result == "\"golang\", \"third\""
+    }
+
 }
