@@ -135,8 +135,23 @@ class DeployOdsComponent {
         logger.debug("DeploymentDescriptors: ${files}")
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
-            throw new RuntimeException("Error: Could not determine starting directory. " +
-                "Neither of [chart, openshift, openshift-exported] found.")
+            def msg = "" +
+                """********************************************************************************
+                "Error: Could not determine starting directory.
+
+                Possible reasons:
+                * Neither of [chart, openshift, openshift-exported] found.
+                * More than one deployment descriptor found.
+                * No deployment descriptor found.
+
+                Deployment descriptors found: ${files}
+                \n
+                Please make sure that you have exactly one deployment descriptor. Try to clean up your repository.
+                ********************************************************************************"""
+
+            logger.error(msg)
+
+            throw new RuntimeException("Error: Could not determine starting directory.")
         } else {
             return files[0].path.split('/')[0]
         }
