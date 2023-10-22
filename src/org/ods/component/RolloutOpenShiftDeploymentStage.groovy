@@ -128,7 +128,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
-            final String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-helm.GString.txt'
+            final String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
             def msg =steps.libraryResource(resourcePath)
             logger.warn(msg)
         }

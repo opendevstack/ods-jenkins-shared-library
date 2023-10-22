@@ -136,8 +136,8 @@ class DeployOdsComponent {
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
             final String resourcePath = 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt'
-            def msg = steps.libraryResource(resourcePath)
-            logger.error(msg)
+            def msg = steps.libraryResource(resourcePath )
+            logger.error(msg as GString)
 
             throw new RuntimeException("Error: Could not determine starting directory.")
         } else {
