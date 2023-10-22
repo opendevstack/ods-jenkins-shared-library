@@ -135,7 +135,7 @@ class DeployOdsComponent {
         logger.debug("DeploymentDescriptors: ${files}")
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
-            final String resourcePath = 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt'
+            String resourcePath = 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt'
             def msg = steps.libraryResource(resourcePath )
             logger.error(msg as GString)
 
