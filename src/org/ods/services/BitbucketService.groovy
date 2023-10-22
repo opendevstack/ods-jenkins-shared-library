@@ -288,6 +288,37 @@ class BitbucketService {
         }
     }
 
+    @NonCPS
+    void setBuildStatus_(String buildUrl, String gitCommit, String state, String buildName) {
+
+        // see: https://developer.atlassian.com/server/bitbucket/rest/v808/api-group-builds-and-deployments/#api-api-latest-projects-projectkey-repos-repositoryslug-commits-commitid-builds-post
+        def payload = [
+            // key: The string referring to this branch plan/job
+            key  : "...",
+            // state: The build status state, one of: "SUCCESSFUL", "FAILED", "INPROGRESS"
+            state: state,
+            // url: URL referring to the build result page in the CI tool.
+            url  : buildUrl
+        ]
+
+        def json = new groovy.json.JsonBuilder(payload)
+        def headers = buildHeaders(token)
+        def httpRequest = Unirest.get(request).headers(headers)
+
+        def url = "${bitbucketUrl}/rest/api/latest/projects/${project}/repos/${repo}/commits/${gitCommit}/builds"
+        def req = Unirest.post(url.toString())
+        req.body(json.toString())
+
+        def response = httpRequest.asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get data from Bitbucket, responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+            logger.warn(message)
+            throw new RuntimeException(message)
+        }
+    }
+
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
