@@ -1,12 +1,10 @@
 package org.ods.services
 
-@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
-
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import kong.unirest.Unirest
-import org.ods.util.ILogger
-import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
+import org.ods.util.ILogger
 
 @SuppressWarnings(['PublicMethodsBeforeNonPublicMethods', 'ParameterCount'])
 class BitbucketService {
@@ -16,7 +14,7 @@ class BitbucketService {
 
     private final def script
 
-    // Bae URL of Bitbucket server, such as "https://bitbucket.example.com".
+    // Base URL of Bitbucket server, such as "https://bitbucket.example.com".
     private final String bitbucketUrl
 
     // Name of Bitbucket project, such as "foo".
@@ -44,6 +42,7 @@ class BitbucketService {
 
     private final ILogger logger
 
+    private HttpRequestService httpRequestService
     BitbucketService(def script, String bitbucketUrl, String project,
                      String passwordCredentialsId, ILogger logger) {
         this.script = script
@@ -52,6 +51,20 @@ class BitbucketService {
         this.openShiftCdProject = "${project}-cd"
         this.passwordCredentialsId = passwordCredentialsId
         this.tokenSecretName = 'cd-user-bitbucket-token'
+        this.logger = logger
+        this.httpRequestService = new HttpRequestService(script, logger)
+    }
+
+    BitbucketService(def script, String bitbucketUrl, String project,
+                     String passwordCredentialsId, HttpRequestService httpRequestSvc,ILogger logger) {
+
+        this.script = script
+        this.bitbucketUrl = bitbucketUrl
+        this.project = project
+        this.openShiftCdProject = "${project}-cd"
+        this.passwordCredentialsId = passwordCredentialsId
+        this.tokenSecretName = 'cd-user-bitbucket-token'
+        this.httpRequestService = httpRequestSvc
         this.logger = logger
     }
 
@@ -102,21 +115,13 @@ class BitbucketService {
     }
 
     String getDefaultReviewerConditions(String repo) {
-        String res
-        withTokenCredentials { username, token ->
-            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-            res = script.sh(
-                label: 'Get default reviewer conditions via API',
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --request GET \\
-                  --header ${authHeader} \\
-                  ${bitbucketUrl}/rest/default-reviewers/1.0/projects/${project}/repos/${repo}/conditions""",
-                returnStdout: true
-            ).trim()
+        return withTokenCredentials { username, token ->
+            def url = "${bitbucketUrl}/rest/default-reviewers/1.0/projects/${project}/repos/${repo}/conditions"
+            return this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_GET,
+                HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                token as String, url)
         }
-        return res
     }
 
     // Returns a list of bitbucket user names (not display names)
@@ -142,7 +147,6 @@ class BitbucketService {
     // Creates pull request in "repo" from branch "fromRef" to "toRef". "reviewers" is a list of bitbucket user names.
     String createPullRequest(String repo, String fromRef, String toRef, String title, String description,
                              List<String> reviewers) {
-        String res
         def payload = """{
                 "title": "${title}",
                 "description": "${description}",
@@ -172,40 +176,24 @@ class BitbucketService {
                 "locked": false,
                 "reviewers": [${reviewers ? reviewers.collect { "{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
             }"""
-        withTokenCredentials { username, token ->
-            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-            res = script.sh(
-                label: 'Create pull request via API',
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --request POST \\
-                  --header ${authHeader} \\
-                  --header \"Content-Type: application/json\" \\
-                  --data '${payload}' \\
-                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests""",
-                returnStdout: true
-            ).trim()
+        return withTokenCredentials { _, token ->
+            def url = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests"
+            return this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_POST,
+                HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                token as String, url, payload as String)
         }
-        res
     }
 
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
-        String res
-        withTokenCredentials { username, token ->
-            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-            res = script.sh(
-                label: 'Get pullrequests via API',
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --header ${authHeader} \\
-                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
-                returnStdout: true
-            ).trim()
+        return withTokenCredentials { username, token ->
+            def url = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}"
+            return this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_GET,
+                HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                token as String, url)
         }
-        res
     }
 
     Map findPullRequest(String repo, String branch, String state = 'OPEN') {
@@ -243,18 +231,11 @@ class BitbucketService {
     void postComment(String repo, int pullRequestId, String comment) {
         withTokenCredentials { username, token ->
             def payload = """{"text":"${comment}"}"""
-            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-            script.sh(
-                label: "Post comment to PR#${pullRequestId}",
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --request POST \\
-                  --header ${authHeader} \\
-                  --header \"Content-Type: application/json\" \\
-                  --data '${payload}' \\
-                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/comments"""
-            )
+            def url = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/comments"
+            return this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_POST,
+                HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                token as String, url, payload as String)
         }
     }
 
@@ -273,49 +254,11 @@ class BitbucketService {
                                      "startPoint": "${startPoint}",
                                      "type": ${message == '' ? 'LIGHTWEIGHT' : 'ANNOTATED'}
                                  }"""
-            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-            script.sh(
-                label: "Post git tag to branch",
-                script: """curl \\
-                      --fail \\
-                      -sS \\
-                      --request POST \\
-                      --header ${authHeader} \\
-                      --header \"Content-Type: application/json\" \\
-                      --data '${payload}' \\
-                      ${bitbucketUrl}/api/1.0/projects/${project}/repos/${repo}/tags"""
-            )
-        }
-    }
-
-    @NonCPS
-    void setBuildStatus_(String buildUrl, String gitCommit, String state, String buildName) {
-
-        // see: https://developer.atlassian.com/server/bitbucket/rest/v808/api-group-builds-and-deployments/#api-api-latest-projects-projectkey-repos-repositoryslug-commits-commitid-builds-post
-        def payload = [
-            // key: The string referring to this branch plan/job
-            key  : "...",
-            // state: The build status state, one of: "SUCCESSFUL", "FAILED", "INPROGRESS"
-            state: state,
-            // url: URL referring to the build result page in the CI tool.
-            url  : buildUrl
-        ]
-
-        def json = new groovy.json.JsonBuilder(payload)
-        def headers = buildHeaders(token)
-        def httpRequest = Unirest.get(request).headers(headers)
-
-        def url = "${bitbucketUrl}/rest/api/latest/projects/${project}/repos/${repo}/commits/${gitCommit}/builds"
-        def req = Unirest.post(url.toString())
-        req.body(json.toString())
-
-        def response = httpRequest.asString()
-
-        response.ifFailure {
-            def message = 'Error: unable to get data from Bitbucket, responded with code: ' +
-                "'${response.getStatus()}' and message: '${response.getBody()}'."
-            logger.warn(message)
-            throw new RuntimeException(message)
+            def url = "${bitbucketUrl}/api/1.0/projects/${project}/repos/${repo}/tags"
+            return this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_POST,
+                HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                token as String, url, payload as String)
         }
     }
 
@@ -327,20 +270,13 @@ class BitbucketService {
             def maxAttempts = 3
             def retries = 0
             def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
+            def url = "${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"
             while (retries++ < maxAttempts) {
                 try {
-                    def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-                    script.sh(
-                        label: 'Set bitbucket build status via API',
-                        script: """curl \\
-                                --fail \\
-                                -sS \\
-                                --request POST \\
-                                --header ${authHeader} \\
-                                --header \"Content-Type: application/json\" \\
-                                --data '${payload}' \\
-                                ${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"""
-                    )
+                    this.httpRequestService.asString(
+                        HttpRequestService.HTTP_METHOD_POST,
+                        HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                        token as String, url, payload as String)
                     return
                 } catch (err) {
                     logger.warn("Could not set Bitbucket build status to '${state}' due to: ${err}")
@@ -391,20 +327,11 @@ class BitbucketService {
             payload += "]" +
                 "}"
             try {
-                def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-                script.sh(
-                    label: 'Create Bitbucket Code Insight report via API',
-                    script: """curl \\
-                        --fail \\
-                        -sS \\
-                        --request PUT \\
-                        --header ${authHeader} \\
-                        --header \"Content-Type: application/json\" \\
-                        --data '${payload}' \\
-                        ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
-repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
-                )
-                return
+                def url = "${bitbucketUrl}/rest/insights/1.0/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${data.key}"
+                this.httpRequestService.asString(
+                    HttpRequestService.HTTP_METHOD_PUT,
+                    HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                    token as String, url, payload as String)
             } catch (err) {
                 logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
             }
@@ -483,19 +410,11 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
             tokenMap['username'] = username
             String password = script.env.PASSWORD
             String url = "${bitbucketUrl}/rest/access-tokens/1.0/users/${username.replace('@', '_')}"
-            script.echo "Requesting token via PUT ${url} with payload=${payload}"
-            res = script.sh(
-                returnStdout: true,
-                script: """set +x; curl \\
-                  --fail \\
-                  -sS \\
-                  --request PUT \\
-                  --header \"Content-Type: application/json\" \\
-                  --header \"${AuthUtil.header(AuthUtil.SCHEME_BASIC, username, password)}\" \\
-                  --data '${payload}' \\
-                  ${url}
-                """
-            ).trim()
+
+            res = this.httpRequestService.asString(
+                HttpRequestService.HTTP_METHOD_PUT,
+                HttpRequestService.AUTHORIZATION_SCHEME_BASIC,
+                AuthUtil.base64("${username}:${password}"), url, payload as String)
             try {
                 // call readJSON inside of withCredentials block,
                 // otherwise token will be displayed in output

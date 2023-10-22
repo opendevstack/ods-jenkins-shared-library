@@ -67,6 +67,46 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     }
 
+    // FIXME: mock example here
+    def "XXX create code insight report"() {
+        given:
+        def httpRequestSvc = Mock(HttpRequestService)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            httpRequestSvc,
+            new Logger(steps, false)
+        ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            link: "http://link-nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://link"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://link-nexus"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
+
+        when:
+        service.createCodeInsightReport(data, "repo-name", "123456")
+
+        then:
+        // ???
+        assert true
+    }
+
     def "create code insight report"() {
         given:
         def steps = Spy(util.PipelineSteps)
