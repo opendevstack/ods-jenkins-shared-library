@@ -135,8 +135,8 @@ class DeployOdsComponent {
         logger.debug("DeploymentDescriptors: ${files}")
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
-            // org/ods/orchestration/phases/DeployOdsComponent.groovy:
-            def msg = steps.libraryResource( 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt')
+            final String resourcePath = 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt'
+            def msg = steps.libraryResource(resourcePath)
             logger.error(msg)
 
             throw new RuntimeException("Error: Could not determine starting directory.")
