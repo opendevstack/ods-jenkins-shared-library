@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Add done boolean flag to data passed to the document template service ([#1049](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1049))
 * Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 * Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
