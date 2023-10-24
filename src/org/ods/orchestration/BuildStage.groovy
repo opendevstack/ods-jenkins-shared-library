@@ -90,6 +90,8 @@ class BuildStage extends Stage {
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def errMessage = "Failing build as repositories contain errors!" +
                 "\nFailed repositories: \n${sanitizeFailedRepos(failedRepos)}"
+            util.failBuild(errMessage)
+
             def tailorFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(failedRepos)
             if (tailorFailedReposCommaSeparated?.length() > 0) {
                 errMessage += "\n\nERROR: We detected an undesired configuration drift. A drift occurs when " +
@@ -106,8 +108,6 @@ class BuildStage extends Stage {
                     "\t2. Please update your configuration stored in Bitbucket or the configuration " +
                     "in the target environment as needed so that they match.";
             }
-
-            util.failBuild(errMessage)
             // If we are not in Developer Preview raise a exception
             if (!project.isWorkInProgress) {
                 throw new IllegalStateException(errMessage)
