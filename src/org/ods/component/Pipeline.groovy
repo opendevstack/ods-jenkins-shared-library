@@ -8,6 +8,7 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.TailorDeploymentException
+import org.ods.services.TailorDeploymentWarning
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -265,6 +266,10 @@ class Pipeline implements Serializable {
                         }
                         return this
                     } catch (err) {
+                        if (err instanceof TailorDeploymentWarning) {
+                            context.addArtifactURI('tailorWarning', 'true')
+                            return this
+                        }
                         script.stage('odsPipeline error') {
                             logger.warnClocked("${context.componentId}",
                                 "***** Finished ODS Pipeline for ${context.componentId} (with error) *****")

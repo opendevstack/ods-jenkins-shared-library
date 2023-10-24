@@ -1315,11 +1315,7 @@ class OpenShiftService {
                     "not correspond with the component configuration stored in the repository. " +
                     "In order to solve the problem, ensure the component in Openshift is aligned " +
                     "with the component configuration stored in the repository.")
-                projectObject.addCommentInReleaseStatus("WARN: Set build UNSTABLE due to a Tailor " +
-                    "failure. The component \"${componentName}\" configuration in " +
-                    "Openshift does not correspond with the component configuration stored in the repository.  " +
-                    "In order to solve the problem, ensure the component in Openshift is aligned with the " +
-                    "component configuration stored in the repository. ")
+                throw new TailorDeploymentWarning(ex)
             } else {
                 logger.error("Tailor apply failure occured: The component \"${extractAppNameFromTarget(target)}\" " +
                     "configuration in Openshift does not correspond with the component configuration stored " +

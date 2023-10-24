@@ -69,12 +69,10 @@ class BuildStage extends Stage {
             }
         }
 
-        logger.info("Before levaDocScheduler")
         // (cut) the reason to NOT go parallel here is a jenkins feature with too many
         // parallels causing arraylist$itr serioalouation errors
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
 
-        logger.info("Before prepareExecutePhaseForReposNamedJob")
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
                 // FailFast only if not WIP
@@ -82,14 +80,12 @@ class BuildStage extends Stage {
                 script.parallel(group)
             }
 
-        logger.info("Before levaDocScheduler.run")
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
-        logger.info("Before failedRepos")
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
@@ -107,15 +103,31 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(errMessage)
             }
         }
-        logger.info("After failedRepos")
+        def tailorWarnReposCommaSeparated = findAllReposWithTailorDeploymentWarnCommaSeparated(repos)
+        if (tailorWarnReposCommaSeparated.length() > 0) {
+            project.addCommentInReleaseStatus("WARN: Set build UNSTABLE due to a Tailor " +
+                "failure. The component[s] \"${tailorWarnReposCommaSeparated}\" configuration in " +
+                "Openshift does not correspond with the component configuration stored in the repository.  " +
+                "In order to solve the problem, ensure the component in Openshift is aligned with the " +
+                "component configuration stored in the repository.")
+        }
     }
 
     String findAllReposWithTailorDeploymentFailureCommaSeparated(def allFailedRepos) {
         def tailorDeploymentFailedReposString = allFailedRepos
-            .findAll {it -> it.data.openshift.tailorFailure}
+            .findAll {it -> it.data?.openshift?.tailorFailure}
             .collect {it -> "\"" + it.id + "\""}
             .join(", ")
 
         return tailorDeploymentFailedReposString
+    }
+
+    String findAllReposWithTailorDeploymentWarnCommaSeparated(def allFailedRepos) {
+        def tailorDeploymentWarnReposString = allFailedRepos
+            .findAll {it -> it.data?.openshift?.tailorWarning}
+            .collect {it -> "\"" + it.id + "\""}
+            .join(", ")
+
+        return tailorDeploymentWarnReposString
     }
 }
