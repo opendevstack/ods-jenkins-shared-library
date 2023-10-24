@@ -88,7 +88,8 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
-            def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
+            def errMessage = "Failing build as repositories contain errors!" +
+                "\nFailed: ${sanitizeFailedRepos(failedRepos)}"
             def tailorFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(failedRepos)
             if (tailorFailedReposCommaSeparated?.length() > 0) {
                 errMessage += "\n\nERROR: We detected an undesired configuration drift. A drift occurs when " +
@@ -131,6 +132,14 @@ class BuildStage extends Stage {
                 "\t2. Please update your configuration stored in Bitbucket or the configuration " +
                 "in the target environment as needed so that they match.")
         }
+    }
+
+    String sanitizeFailedRepos(def failedRepos) {
+        def sanitizedRepos = failedRepos.collect {it -> "Repository id: " + it.id + "\nBranch: " + it.branch
+                                                + "\nRepository type: " + it.type
+                                            }
+                                        .join("\n");
+        return sanitizedRepos
     }
 
     String findAllReposWithTailorDeploymentFailureCommaSeparated(def allFailedRepos) {
