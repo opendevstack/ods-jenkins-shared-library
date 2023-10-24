@@ -1307,6 +1307,8 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObject = ServiceRegistry.instance.get(Project)
+            logger.info("===Project: " + projectObject)
+            logger.info("===Steps: " + steps)
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 def componentName = extractAppNameFromTarget(target)
@@ -1315,7 +1317,7 @@ class OpenShiftService {
                     "not correspond with the component configuration stored in the repository. " +
                     "In order to solve the problem, ensure the component in Openshift is aligned " +
                     "with the component configuration stored in the repository.")
-                throw new TailorDeploymentWarning(ex)
+                //TODO do something
             } else {
                 logger.error("Tailor apply failure occured: The component \"${extractAppNameFromTarget(target)}\" " +
                     "configuration in Openshift does not correspond with the component configuration stored " +
