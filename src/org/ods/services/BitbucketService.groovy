@@ -55,19 +55,6 @@ class BitbucketService {
         this.httpRequestService = new HttpRequestService(script, logger)
     }
 
-    BitbucketService(def script, String bitbucketUrl, String project,
-                     String passwordCredentialsId, HttpRequestService httpRequestSvc,ILogger logger) {
-
-        this.script = script
-        this.bitbucketUrl = bitbucketUrl
-        this.project = project
-        this.openShiftCdProject = "${project}-cd"
-        this.passwordCredentialsId = passwordCredentialsId
-        this.tokenSecretName = 'cd-user-bitbucket-token'
-        this.httpRequestService = httpRequestSvc
-        this.logger = logger
-    }
-
     static BitbucketService newFromEnv(
         def script,
         def env,
