@@ -75,11 +75,6 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     def "create code insight report"() {
         given:
-
-        // FIXME: just an example for later!!
-        // FixtureHelper fh = new FixtureHelper()
-        // def expected = fh.getResource("project-jira-data.json")
-
         String project = "FOO"
         String gitCommit = "123456"
         String repo = "repo-name"
