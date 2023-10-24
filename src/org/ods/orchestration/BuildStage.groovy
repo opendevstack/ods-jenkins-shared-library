@@ -69,10 +69,12 @@ class BuildStage extends Stage {
             }
         }
 
+        logger.info("Before levaDocScheduler")
         // (cut) the reason to NOT go parallel here is a jenkins feature with too many
         // parallels causing arraylist$itr serioalouation errors
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
 
+        logger.info("Before prepareExecutePhaseForReposNamedJob")
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
                 // FailFast only if not WIP
@@ -80,12 +82,14 @@ class BuildStage extends Stage {
                 script.parallel(group)
             }
 
+        logger.info("Before levaDocScheduler.run")
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
+        logger.info("Before failedRepos")
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
