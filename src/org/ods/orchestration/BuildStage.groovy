@@ -105,7 +105,7 @@ class BuildStage extends Stage {
         }
 
         if (project.isWorkInProgress) {
-            project.addCommentInReleaseStatus(project.toString())
+            project.addCommentInReleaseStatus(project.repositories.toString())
         }
     }
 
