@@ -37,22 +37,7 @@ class HttpRequestService {
     }
 
     @NonCPS
-    String asString(String httpMethod, String authScheme, String authParameter, String url, String body) {
-        def response = Unirest.request(httpMethod, url)
-            .header("Authorization", "${authScheme} ${authParameter}")
-            .body(body)
-            .asString()
-
-        response.ifFailure {
-            def message = "Could not send HTTP request ${response.getStatus()} ${response.getStatusText()} to ${url}"
-            logger.error(message)
-            throw new RuntimeException(message)
-        }
-        return response.body
-    }
-
-    @NonCPS
-    String asString(String httpMethod, String authScheme, String authParameter, String url, Map body) {
+    String asString(String httpMethod, String authScheme, String authParameter, String url, def body) {
         def response = Unirest.request(httpMethod, url)
             .header("Authorization", "${authScheme} ${authParameter}")
             .body(body)
