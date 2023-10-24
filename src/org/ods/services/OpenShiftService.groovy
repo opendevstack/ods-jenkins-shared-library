@@ -1318,6 +1318,7 @@ class OpenShiftService {
                     "In order to solve the problem, ensure the component in Openshift is aligned " +
                     "with the component configuration stored in the repository.")
                 //TODO do something
+                projectObject.repositories.get(0).tailorWarning = true
             } else {
                 logger.error("Tailor apply failure occured: The component \"${extractAppNameFromTarget(target)}\" " +
                     "configuration in Openshift does not correspond with the component configuration stored " +

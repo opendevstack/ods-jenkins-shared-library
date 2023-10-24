@@ -103,13 +103,9 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(errMessage)
             }
         }
-        def tailorWarnReposCommaSeparated = findAllReposWithTailorDeploymentWarnCommaSeparated(repos)
-        if (tailorWarnReposCommaSeparated.length() > 0) {
-            project.addCommentInReleaseStatus("WARN: Set build UNSTABLE due to a Tailor " +
-                "failure. The component[s] \"${tailorWarnReposCommaSeparated}\" configuration in " +
-                "Openshift does not correspond with the component configuration stored in the repository.  " +
-                "In order to solve the problem, ensure the component in Openshift is aligned with the " +
-                "component configuration stored in the repository.")
+
+        if (project.isWorkInProgress) {
+            project.addCommentInReleaseStatus(project.toString())
         }
     }
 
@@ -120,14 +116,5 @@ class BuildStage extends Stage {
             .join(", ")
 
         return tailorDeploymentFailedReposString
-    }
-
-    String findAllReposWithTailorDeploymentWarnCommaSeparated(def allFailedRepos) {
-        def tailorDeploymentWarnReposString = allFailedRepos
-            .findAll {it -> it.data?.openshift?.tailorWarning}
-            .collect {it -> "\"" + it.id + "\""}
-            .join(", ")
-
-        return tailorDeploymentWarnReposString
     }
 }
