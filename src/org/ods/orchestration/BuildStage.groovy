@@ -91,10 +91,19 @@ class BuildStage extends Stage {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
             def tailorFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(failedRepos)
             if (tailorFailedReposCommaSeparated?.length() > 0) {
-                errMessage += "\n\nTailor apply failure occured: The component[s] " + tailorFailedReposCommaSeparated +
-                    " configuration in Openshift does not correspond with the component configuration stored in the " +
-                    "repository.  In order to solve the problem, ensure the component in Openshift is aligned " +
-                    "with the component configuration stored in the repository.";
+                errMessage += "\n\nERROR: We detected an undesired configuration drift. A drift occurs when " +
+                    "changes in a target environment are not covered by configuration files in Git " +
+                    "(regarded as the source of truth). Resulting differences may be due to manual " +
+                    "changes in the configuration of the target environment or automatic changes " +
+                    "performed by OpenShift/Kubernetes.\n" +
+                    "\n" +
+                    "We found drifts for the following components: ${tailorFailedReposCommaSeparated}.\n" +
+                    "\n" +
+                    "Please follow these steps to resolve and restart your deployment:\n" +
+                    "\n" +
+                    "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+                    "in the target environment as needed so that they match.";
             }
 
             util.failBuild(errMessage)
@@ -105,7 +114,22 @@ class BuildStage extends Stage {
         }
 
         if (project.isWorkInProgress) {
-            project.addCommentInReleaseStatus(project.repositories.toString())
+            def reposWithTailorDeploymentWarnCommaSeparated = findAllReposWithTailorDeploymentWarningCommaSeparated(project.repositories)
+            project.addCommentInReleaseStatus("WARNING: We detected an undesired configuration drift. " +
+                "A drift occurs when " +
+                "changes in a target environment are not covered by configuration files in Git " +
+                "(regarded as the source of truth). Resulting differences may be due to manual " +
+                "changes in the configuration of the target environment or automatic changes " +
+                "performed by OpenShift/Kubernetes.\n" +
+                "\n" +
+                "We found drifts for the following components: " +
+                "${reposWithTailorDeploymentWarnCommaSeparated}.\n" +
+                "\n" +
+                "Please follow these steps to resolve and restart your deployment:\n" +
+                "\n" +
+                "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+                "in the target environment as needed so that they match.")
         }
     }
 
@@ -116,5 +140,14 @@ class BuildStage extends Stage {
             .join(", ")
 
         return tailorDeploymentFailedReposString
+    }
+
+    String findAllReposWithTailorDeploymentWarningCommaSeparated(def repositories) {
+        def tailorDeploymentWarnReposString = repositories
+            .findAll {it -> it.tailorWarning}
+            .collect {it -> "\"" + it.id + "\""}
+            .join(", ")
+
+        return tailorDeploymentWarnReposString
     }
 }

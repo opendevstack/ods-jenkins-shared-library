@@ -1307,24 +1307,38 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObject = ServiceRegistry.instance.get(Project)
-            logger.info("===Project: " + projectObject)
-            logger.info("===Steps: " + steps)
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
-                def componentName = extractAppNameFromTarget(target)
-                warnBuild("Set build UNSTABLE due to a Tailor failure. The component " +
-                    "\"${componentName}\" configuration in Openshift does " +
-                    "not correspond with the component configuration stored in the repository. " +
-                    "In order to solve the problem, ensure the component in Openshift is aligned " +
-                    "with the component configuration stored in the repository.")
-                //TODO do something
+                warnBuild("WARNING: We detected an undesired configuration drift. A drift occurs when " +
+                    "changes in a target environment are not covered by configuration files in Git " +
+                    "(regarded as the source of truth). Resulting differences may be due to manual " +
+                    "changes in the configuration of the target environment or automatic changes " +
+                    "performed by OpenShift/Kubernetes.\n" +
+                    "\n" +
+                    "We found drifts for the following components: ${extractAppNameFromTarget(target)}.\n" +
+                    "\n" +
+                    "Please follow these steps to resolve and restart your deployment:\n" +
+                    "\n" +
+                    "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+                    "in the target environment as needed so that they match.")
                 projectObject.repositories.get(0).tailorWarning = true
             } else {
-                logger.error("Tailor apply failure occured: The component \"${extractAppNameFromTarget(target)}\" " +
-                    "configuration in Openshift does not correspond with the component configuration stored " +
-                    "in the repository. In order to solve the problem, ensure the component in Openshift is " +
-                    "aligned with the component configuration stored in the repository.")
-                // Let the error bubble up so that the pipeline will fail.
+                logger.error("ERROR: We detected an undesired configuration drift. " +
+                    "A drift occurs when " +
+                    "changes in a target environment are not covered by configuration files in Git " +
+                    "(regarded as the source of truth). Resulting differences may be due to manual " +
+                    "changes in the configuration of the target environment or automatic changes " +
+                    "performed by OpenShift/Kubernetes.\n" +
+                    "\n" +
+                    "We found drifts for the following components: " +
+                    "${extractAppNameFromTarget(target)}.\n" +
+                    "\n" +
+                    "Please follow these steps to resolve and restart your deployment:\n" +
+                    "\n" +
+                    "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+                    "in the target environment as needed so that they match.")
                 throw new TailorDeploymentException(ex)
             }
         }
