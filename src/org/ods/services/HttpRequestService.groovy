@@ -20,7 +20,6 @@ class HttpRequestService {
     HttpRequestService(def script, ILogger logger) {
         this.script = script
         this.logger = logger
-
     }
 
     @NonCPS
@@ -51,4 +50,5 @@ class HttpRequestService {
         }
         return response.body
     }
+
 }

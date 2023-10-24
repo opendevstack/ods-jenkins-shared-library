@@ -176,7 +176,7 @@ class BitbucketService {
                 "locked": false,
                 "reviewers": [${reviewers ? reviewers.collect { "{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
             }"""
-        return withTokenCredentials { _, token ->
+        return withTokenCredentials { username, token ->
             def url = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests"
             return this.httpRequestService.asString(
                 HttpRequestService.HTTP_METHOD_POST,
@@ -327,7 +327,8 @@ class BitbucketService {
             payload += "]" +
                 "}"
             try {
-                def url = "${bitbucketUrl}/rest/insights/1.0/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${data.key}"
+                def url = "${bitbucketUrl}" +
+                    "/rest/insights/1.0/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${data.key}"
                 this.httpRequestService.asString(
                     HttpRequestService.HTTP_METHOD_PUT,
                     HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
@@ -429,11 +430,11 @@ class BitbucketService {
     }
 
     String getToken() {
-        withTokenCredentials { username, token -> return token}
+        withTokenCredentials { username, token -> return token }
     }
 
     @NonCPS
-    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
+    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart) {
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
         return queryRepo(token, request, limit, nextPageStart)
     }
@@ -449,10 +450,10 @@ class BitbucketService {
     private Map queryRepo(String token, String request, int limit, int nextPageStart) {
         Map<String, String> headers = buildHeaders(token)
         def httpRequest = Unirest.get(request).headers(headers)
-        if (limit>0) {
+        if (limit > 0) {
             httpRequest.queryString("limit", limit)
         }
-        if (nextPageStart>0) {
+        if (nextPageStart > 0) {
             httpRequest.queryString("start", nextPageStart)
         }
         def response = httpRequest.asString()
