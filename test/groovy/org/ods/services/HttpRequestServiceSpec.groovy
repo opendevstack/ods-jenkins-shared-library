@@ -54,7 +54,7 @@ class HttpRequestServiceSpec extends PipelineSpockTestBase {
         def payload = [key: "value"]
 
         when:
-        def result = service.asString(HttpRequestService.HTTP_METHOD_PUT,
+        def result = service.asString(HttpRequestService.HTTP_METHOD_POST,
             HttpRequestService.AUTHORIZATION_SCHEME_BASIC,
             AuthUtil.base64("${username}:${password}"), server.baseUrl(), payload as String)
 
