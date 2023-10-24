@@ -350,15 +350,9 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     def "create code insight report with error in call"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def logger = Spy(new Logger(steps, false))
-        def service = Spy(BitbucketService, constructorArgs: [
-            steps,
-            'https://bitbucket.example.com',
-            'FOO',
-            'foo-cd-cd-user-with-password',
-            logger
-        ])
+        String project = "FOO"
+        String gitCommit = "123456"
+        String repo = "repo-name"
         def data = [
             key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
             title: "Title",
@@ -385,15 +379,29 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             result: "PASS"
         ]
 
+        def url = "/rest/insights/1.0/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${data.key}"
+        def server = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+        server.stubFor(put(url)
+            .willReturn(WireMock.badRequest()))
+        server.start()
+        WireMock.configureFor(server.port())
+
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            server.baseUrl(),
+            project,
+            'foo-cd-cd-user-with-password',
+            logger
+        ])
+
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_) >> {
-            throw new Exception ("Error with curl")
-        }
-        1 * logger.warn("Could not create Bitbucket Code Insight report due to: java.lang.Exception: Error with curl")
+        1 * logger.warn( { it.matches ~/Could not create Bitbucket Code Insight report due to: java.lang.RuntimeException: .*/ } )
     }
 
     protected String readResource(String name) {
