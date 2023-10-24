@@ -86,7 +86,7 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed: []'
+        ex.message == 'Failing build as repositories contain errors!\nFailed repositories: \n'
     }
 
     def "find all repos with tailor deployment failure comma separated"() {
@@ -109,10 +109,99 @@ class BuildStageSpec extends SpecHelper {
              doInstall:true]]
 
         when:
-        def result = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(allFailedRepos)
+        def nominalResult = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(allFailedRepos)
 
         then:
-        result == "\"golang\", \"third\""
+        nominalResult == "\"golang\", \"third\""
+
+        when:
+        def result = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(testRepos)
+
+        then:
+        result == expected
+
+        where:
+        testRepos           |           expected
+        null                |           ""
+        []                  |           ""
     }
 
+    def "find all repos with tailor deployment warning comma separated"() {
+        given:
+        def repos = [
+            [id:"golang", branch:"master", type:"ods",
+             doInstall:true,
+             tailorWarning: true],
+            [id:"other", branch:"master", type:"ods",
+             doInstall:true,
+             tailorWarning: true],
+            [id:"third", branch:"master", type:"ods",
+             doInstall:true]
+        ]
+
+        when:
+        def nominalResult = buildStage.findAllReposWithTailorDeploymentWarningCommaSeparated(repos)
+
+        then:
+        nominalResult == "\"golang\", \"other\""
+
+        when:
+        def result = buildStage.findAllReposWithTailorDeploymentWarningCommaSeparated(testRepos)
+
+        then:
+        result == expected
+
+        where:
+        testRepos           |           expected
+        null                |           ""
+        []                  |           ""
+
+    }
+
+    def "sanitize failed repositories"() {
+        given:
+        def allFailedRepos = [
+            [id:"golang", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"other", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:],
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"third", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true]]
+
+        when:
+        def allResult = buildStage.sanitizeFailedRepos(allFailedRepos)
+
+        then:
+        allResult == "1.\tRepository id: golang\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods\n" +
+            "\n" +
+            "2.\tRepository id: other\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods\n" +
+            "\n" +
+            "3.\tRepository id: third\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods"
+
+        when:
+        def result = buildStage.sanitizeFailedRepos(testRepos)
+
+        then:
+        result == expected
+
+        where:
+        testRepos           |           expected
+        null                |           ""
+        []                  |           ""
+    }
 }

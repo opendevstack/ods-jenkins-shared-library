@@ -601,5 +601,6 @@ class OpenShiftServiceSpec extends SpecHelper {
         [selector:null]             |       "N/A"
         [selector:"app="]           |       ""
         [selector:"app=Test"]       |       "Test"
+        [selector:"app=Proj-Test"]  |       "Test"
     }
 }

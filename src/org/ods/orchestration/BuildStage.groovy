@@ -136,8 +136,8 @@ class BuildStage extends Stage {
 
     String sanitizeFailedRepos(def failedRepos) {
         def index = 1
-        def sanitizedRepos = failedRepos.collect {it -> (index++) + ".\tRepository id: " + it.id + "\n\tBranch: " + it.branch +
-            "\n\tRepository type: " + it.type }
+        def sanitizedRepos = failedRepos.collect {it -> (index++) + ".\tRepository id: " + it.id +
+            "\n\tBranch: " + it.branch + "\n\tRepository type: " + it.type }
             .join("\n\n");
         return sanitizedRepos
     }

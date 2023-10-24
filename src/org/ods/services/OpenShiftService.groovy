@@ -1307,8 +1307,7 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObject = ServiceRegistry.instance.get(Project)
-            def repoName = extractRepoNameFromTarget(target);
-            def componentName = extractComponentNameFromRepoName(repoName)
+            def componentName = extractRepoNameFromTarget(target)
             def logMessage = "We detected an undesired configuration drift. A drift occurs when " +
                 "changes in a target environment are not covered by configuration files in Git " +
                 "(regarded as the source of truth). Resulting differences may be due to manual " +
@@ -1341,16 +1340,13 @@ class OpenShiftService {
 
     def extractRepoNameFromTarget(Map<String, String> target) {
         if (target?.selector?.contains("app=")) {
-            return target.selector.trim().replace("app=", "")
+            def componentName = target.selector.trim().replace("app=", "")
+            if (componentName.contains("-")) {
+                return componentName.substring(componentName.indexOf("-") + 1)
+            }
+            return componentName
         }
         return "N/A"
-    }
-
-    def extractComponentNameFromRepoName(String repoName) {
-        if (repoName.contains("-")) {
-            return repoName.substring(repoName.indexOf("-") + 1)
-        }
-        return repoName
     }
 
     private void doTailorExport(
