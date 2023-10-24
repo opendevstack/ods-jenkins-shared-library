@@ -582,14 +582,14 @@ class OpenShiftServiceSpec extends SpecHelper {
         openShift.steps.currentBuild.result == 'UNSTABLE'
     }
 
-    def "extract app name from target"() {
+    def "extract repo name from target"() {
         given:
         def steps = Mock(IPipelineSteps)
         def logger = Mock(ILogger)
         def openShift = new OpenShiftService(steps, logger)
 
         when:
-        def result = openShift.extractAppNameFromTarget(target)
+        def result = openShift.extractRepoNameFromTarget(target)
 
         then:
         result == expected

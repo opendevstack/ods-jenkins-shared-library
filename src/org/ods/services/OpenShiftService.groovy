@@ -1307,38 +1307,27 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObject = ServiceRegistry.instance.get(Project)
+            def repoName = extractRepoNameFromTarget(target);
+            def componentName = extractComponentNameFromRepoName(repoName)
+            def logMessage = "We detected an undesired configuration drift. A drift occurs when " +
+                "changes in a target environment are not covered by configuration files in Git " +
+                "(regarded as the source of truth). Resulting differences may be due to manual " +
+                "changes in the configuration of the target environment or automatic changes " +
+                "performed by OpenShift/Kubernetes.\n" +
+                "\n" +
+                "We found drifts for the following components: ${componentName}.\n" +
+                "\n" +
+                "Please follow these steps to resolve and restart your deployment:\n" +
+                "\n" +
+                "\t1. See the logs above to review the differences we found.\n" +
+                "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+                "in the target environment as needed so that they match."
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
-                warnBuild("WARNING: We detected an undesired configuration drift. A drift occurs when " +
-                    "changes in a target environment are not covered by configuration files in Git " +
-                    "(regarded as the source of truth). Resulting differences may be due to manual " +
-                    "changes in the configuration of the target environment or automatic changes " +
-                    "performed by OpenShift/Kubernetes.\n" +
-                    "\n" +
-                    "We found drifts for the following components: ${extractAppNameFromTarget(target)}.\n" +
-                    "\n" +
-                    "Please follow these steps to resolve and restart your deployment:\n" +
-                    "\n" +
-                    "\t1. See the logs above to review the differences we found.\n" +
-                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-                    "in the target environment as needed so that they match.")
-                projectObject.repositories.get(0).tailorWarning = true
+                warnBuild(logMessage)
+                projectObject.repositories.each {it -> if (it.id == componentName) it.tailorWarning = true}
             } else {
-                logger.error("ERROR: We detected an undesired configuration drift. " +
-                    "A drift occurs when " +
-                    "changes in a target environment are not covered by configuration files in Git " +
-                    "(regarded as the source of truth). Resulting differences may be due to manual " +
-                    "changes in the configuration of the target environment or automatic changes " +
-                    "performed by OpenShift/Kubernetes.\n" +
-                    "\n" +
-                    "We found drifts for the following components: " +
-                    "${extractAppNameFromTarget(target)}.\n" +
-                    "\n" +
-                    "Please follow these steps to resolve and restart your deployment:\n" +
-                    "\n" +
-                    "\t1. See the logs above to review the differences we found.\n" +
-                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-                    "in the target environment as needed so that they match.")
+                logger.error(logMessage)
                 throw new TailorDeploymentException(ex)
             }
         }
@@ -1350,11 +1339,18 @@ class OpenShiftService {
         logger.warn(message)
     }
 
-    def extractAppNameFromTarget(Map<String, String> target) {
+    def extractRepoNameFromTarget(Map<String, String> target) {
         if (target?.selector?.contains("app=")) {
             return target.selector.trim().replace("app=", "")
         }
         return "N/A"
+    }
+
+    def extractComponentNameFromRepoName(String repoName) {
+        if (repoName.contains("-")) {
+            return repoName.substring(repoName.indexOf("-") + 1)
+        }
+        return repoName
     }
 
     private void doTailorExport(
