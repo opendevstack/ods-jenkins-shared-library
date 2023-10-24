@@ -107,6 +107,7 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(errMessage)
             }
         }
+        logger.info("After failedRepos")
     }
 
     String findAllReposWithTailorDeploymentFailureCommaSeparated(def allFailedRepos) {
