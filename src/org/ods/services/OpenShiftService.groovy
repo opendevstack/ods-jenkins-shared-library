@@ -1319,7 +1319,7 @@ class OpenShiftService {
                     "\n" +
                     "Please follow these steps to resolve and restart your deployment:\n" +
                     "\n" +
-                    "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                    "\t1. See the logs above to review the differences we found.\n" +
                     "\t2. Please update your configuration stored in Bitbucket or the configuration " +
                     "in the target environment as needed so that they match.")
                 projectObject.repositories.get(0).tailorWarning = true
@@ -1336,7 +1336,7 @@ class OpenShiftService {
                     "\n" +
                     "Please follow these steps to resolve and restart your deployment:\n" +
                     "\n" +
-                    "\t1. See the logs above/follow the link below to review the differences we found.\n" +
+                    "\t1. See the logs above to review the differences we found.\n" +
                     "\t2. Please update your configuration stored in Bitbucket or the configuration " +
                     "in the target environment as needed so that they match.")
                 throw new TailorDeploymentException(ex)
