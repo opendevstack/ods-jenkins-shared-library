@@ -1704,7 +1704,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
             sections = sections.collectEntries { key, sec ->
-                [(key): sec + [content: this.convertImages(sec.content), done: this.project.isIssueDone(sec)]]
+                [(key): sec + [content: this.convertImages(sec.content), done: true]]
             }
         }
 
