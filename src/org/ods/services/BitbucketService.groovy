@@ -262,6 +262,36 @@ class BitbucketService {
         }
     }
 
+    // https://docs.atlassian.com/bitbucket-server/rest/7.21.0/bitbucket-rest.html#idp228
+    void setBuildStatus(String buildUrl, String repo, String gitCommit, String state, String buildName) {
+        logger.debugClocked("buildstatus-${buildName}-${state}",
+            "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            def payload = [
+                key: repo,
+                state: state,
+                url: buildUrl,
+                name: buildName]
+            def url = "${bitbucketUrl}" +
+                "/rest/api/1.0/projects/${this.project}/repos/${repo}/commits/${gitCommit}/builds"
+            while (retries++ < maxAttempts) {
+                try {
+                    this.httpRequestService.asString(
+                        HttpRequestService.HTTP_METHOD_POST,
+                        HttpRequestService.AUTHORIZATION_SCHEME_BEARER,
+                        token as String, url, payload)
+                    return
+                } catch (err) {
+                    logger.warn("Could not set Bitbucket build status to '${state}' due to: ${err}")
+                }
+            }
+        }
+        logger.debugClocked("buildstatus-${buildName}-${state}")
+    }
+
+    @Deprecated
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",

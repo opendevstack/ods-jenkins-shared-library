@@ -73,7 +73,6 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     }
 
-
     def "create code insight report"() {
         given:
 
