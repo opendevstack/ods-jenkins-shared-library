@@ -175,14 +175,9 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     def "create code insight report without Nexus link"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
-            steps,
-            'https://bitbucket.example.com',
-            'FOO',
-            'foo-cd-cd-user-with-password',
-            new Logger(steps, false)
-        ])
+        String project = "FOO"
+        String gitCommit = "123456"
+        String repo = "repo-name"
         def data = [
             key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
             title: "Title",
@@ -197,27 +192,28 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             result: "PASS"
         ]
 
+        def url = "/rest/insights/1.0/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${data.key}"
+        def server = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+        server.stubFor(put(url)
+            .willReturn(ok("OK")))
+        server.start()
+        WireMock.configureFor(server.port())
+
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(Logger, constructorArgs: [steps, false])
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            server.baseUrl(),
+            project,
+            'foo-cd-cd-user-with-password',
+            logger
+        ])
+
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
-            assert it.label == ['Create Bitbucket Code Insight report via API']
-            assert it.script.toString().contains('curl')
-            assert it.script.toString().contains('--fail')
-            assert it.script.toString().contains('-sS')
-            assert it.script.toString().contains('--request PUT')
-            // sh will not run and hence not replace the value with the token from an env var
-            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
-            assert it.script.toString().contains('--header "Content-Type: application/json"')
-            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
-            // Avoid timestamp of creation
-            assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
-                '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"}]}\'')
-            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
-        }
+        0 * logger.warn(_)
     }
 
     def "create code insight report without Nexus and Aqua link"() {
