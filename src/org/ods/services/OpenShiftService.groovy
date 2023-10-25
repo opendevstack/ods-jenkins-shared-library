@@ -1340,7 +1340,11 @@ class OpenShiftService {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     def markRepoWithTailorWarn(def project, def repoName) {
-        project?.repositories?.each {it -> if (it?.id == repoName) it.tailorWarning = true}
+        project?.repositories?.each {
+            it -> if (it?.id == repoName) {
+                it.tailorWarning = true
+            }
+        }
     }
 
     def extractRepoNameFromTarget(Map<String, String> target) {

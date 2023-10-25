@@ -103,8 +103,10 @@ class BuildStage extends Stage {
         }
 
         if (project.isWorkInProgress) {
-            def reposWithTailorDeploymentWarnCommaSeparated = findReposWithTailorWarnCommaSeparated(project.repositories)
-            project.addCommentInReleaseStatus("WARNING: " + buildTailorMessageForJira(reposWithTailorDeploymentWarnCommaSeparated))
+            def reposWithTailorDeploymentWarnCommaSeparated =
+                findReposWithTailorWarnCommaSeparated(project.repositories)
+            project.addCommentInReleaseStatus("WARNING: " +
+                buildTailorMessageForJira(reposWithTailorDeploymentWarnCommaSeparated))
         }
     }
 

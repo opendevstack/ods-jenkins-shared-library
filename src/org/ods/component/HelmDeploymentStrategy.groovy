@@ -112,43 +112,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         return rolloutData
     }
 
-    private void applyMandatoryLabels(Map<String, String> labels, Map<String, List<String>> deploymentResources) {
-        logger.debug("${this.class.name} -- MANDATORY LABELS")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        logger.debug("${this.class.name} -- MANDATORY LABELS (cleaned)")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        labels.remove { it -> it.value == null }
-        def resourcesToLabel = deploymentResources.collectMany { entry ->
-            entry.value.collect {
-                "${entry.key}/${it}"
-            }
-        }
-        logger.debug("${this.class.name} -- RESOURCE TO LABEL")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(resourcesToLabel)))
-        resourcesToLabel.each { resourceToLabel ->
-            openShift.labelResources(context.targetProject, resourceToLabel, labels, null)
-        }
-
-        // Add OpenShiftResouceMetadata.strictEntries here to be sure we have them
-        if (context.triggeredByOrchestrationPipeline) {
-            def additionalLabels = [
-                'app.opendevstack.org/system-name': steps.env?.BUILD_PARAM_CONFIGITEM ?: null,
-                'app.opendevstack.org/project-version': steps.env?.BUILD_PARAM_CHANGEID ?: null,
-                'app.opendevstack.org/work-in-progress': steps.env?.BUILD_PARAM_VERSION == 'WIP' ?: null,
-            ]
-            resourcesToLabel.each { resourceToLabel ->
-                openShift.labelResources(context.targetProject, resourceToLabel, additionalLabels, null)
-            }
-        }
-
-    }
-
     private void helmUpgrade(String targetProject) {
         steps.dir(options.chartDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->

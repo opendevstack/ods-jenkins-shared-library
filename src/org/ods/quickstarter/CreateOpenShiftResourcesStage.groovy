@@ -45,9 +45,6 @@ class CreateOpenShiftResourcesStage extends Stage {
                     label: "Create component ${context.componentId} in namespace ${namespace}"
                 )
             }
-
-            options.environment = env
-            def steps = new PipelineSteps(script)
         }
     }
 
