@@ -194,4 +194,5 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         rolloutData
     }
+
 }

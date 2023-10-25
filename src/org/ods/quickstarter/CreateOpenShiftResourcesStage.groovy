@@ -1,8 +1,5 @@
 package org.ods.quickstarter
 
-
-import org.ods.util.PipelineSteps
-
 class CreateOpenShiftResourcesStage extends Stage {
 
     protected String STAGE_NAME = 'Create OpenShift resources'
@@ -21,7 +18,6 @@ class CreateOpenShiftResourcesStage extends Stage {
     }
 
     def run() {
-        def options = config.clone()
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 

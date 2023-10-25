@@ -94,7 +94,7 @@ class BuildStage extends Stage {
 
             def tailorFailedReposCommaSeparated = findReposWithTailorFailureCommaSeparated(failedRepos)
             if (tailorFailedReposCommaSeparated?.length() > 0) {
-                errMessage += "\n\nERROR: " + buildTailorMessageForJira(tailorFailedReposCommaSeparated);
+                errMessage += "\n\nERROR: " + buildTailorMessageForJira(tailorFailedReposCommaSeparated)
             }
             // If we are not in Developer Preview raise a exception
             if (!project.isWorkInProgress) {

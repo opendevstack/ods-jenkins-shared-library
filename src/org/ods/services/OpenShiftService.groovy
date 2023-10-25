@@ -153,7 +153,7 @@ class OpenShiftService {
             label: "Upgrade Helm release ${release} in ${project}",
             returnStatus: true
         )
-        if (failed){
+        if (failed) {
             throw new RuntimeException(
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
@@ -820,7 +820,7 @@ class OpenShiftService {
      * @param patch a <code>Map</code> specifying the patch to apply.
      * @param path the optional absolute path at which to apply the patch.
      * @param project the namespace of the resource. Default: null (the current project).
-     * @return
+     * @return the script execution result
      */
     String patch(String resource, Map<String, ?> patch, String path = null, String project = null) {
         if (!resource) {
@@ -1484,4 +1484,5 @@ class OpenShiftService {
 
         extractPodData(podJson)
     }
+
 }
