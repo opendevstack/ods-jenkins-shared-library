@@ -1307,14 +1307,14 @@ class OpenShiftService {
             )
         } catch (ex) {
             def projectObject = ServiceRegistry.instance.get(Project)
-            def componentName = extractRepoNameFromTarget(target)
+            def repositoryName = extractRepoNameFromTarget(target)
             def logMessage = "We detected an undesired configuration drift. A drift occurs when " +
                 "changes in a target environment are not covered by configuration files in Git " +
                 "(regarded as the source of truth). Resulting differences may be due to manual " +
                 "changes in the configuration of the target environment or automatic changes " +
                 "performed by OpenShift/Kubernetes.\n" +
                 "\n" +
-                "We found drifts for the following components: ${componentName}.\n" +
+                "We found drifts for the following components: ${repositoryName}.\n" +
                 "\n" +
                 "Please follow these steps to resolve and restart your deployment:\n" +
                 "\n" +
@@ -1324,7 +1324,7 @@ class OpenShiftService {
             if (projectObject.isWorkInProgress) {
                 // In this dev preview case set the build unstable but don't fail the pipeline
                 warnBuild(logMessage)
-                projectObject.repositories.each {it -> if (it.id == componentName) it.tailorWarning = true}
+                markRepoWithTailorWarn(projectObject, repositoryName)
             } else {
                 logger.error(logMessage)
                 throw new TailorDeploymentException(ex)
@@ -1336,6 +1336,11 @@ class OpenShiftService {
     def warnBuild(String message) {
         steps.currentBuild.result = 'UNSTABLE'
         logger.warn(message)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    def markRepoWithTailorWarn(def project, def repoName) {
+        project?.repositories?.each {it -> if (it?.id == repoName) it.tailorWarning = true}
     }
 
     def extractRepoNameFromTarget(Map<String, String> target) {

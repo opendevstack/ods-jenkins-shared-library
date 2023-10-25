@@ -603,4 +603,32 @@ class OpenShiftServiceSpec extends SpecHelper {
         [selector:"app=Test"]       |       "Test"
         [selector:"app=Proj-Test"]  |       "Test"
     }
+
+    def "mark repo with tailor warning"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        def logger = Mock(ILogger)
+        def openShift = new OpenShiftService(steps, logger)
+        def testProject =
+            [repositories:
+                 [
+                    [id:"golang", branch:"master", type:"ods",
+                     doInstall:true],
+                    [id:"other", branch:"master", type:"ods",
+                     doInstall:true],
+                    [id:"third", branch:"master", type:"ods",
+                     doInstall:true]
+                 ]
+            ]
+
+
+        when:
+        openShift.markRepoWithTailorWarn(testProject, "third")
+
+        then:
+        println testProject
+        testProject.repositories.get(0).tailorWarning == null
+        testProject.repositories.get(1).tailorWarning == null
+        testProject.repositories.get(2).tailorWarning == true
+    }
 }
