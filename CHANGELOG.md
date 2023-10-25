@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Fix tailor deplyment drift ([1051](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1051))
 - Fix slow helm component deployments sometimes fail at the finalize step ([1031](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1031))
 - Fix blurred images retrieved from Jira in the document chapters ([1022](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1022))
 - Generate TRC document in D environment instead of Q ([#1029](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1029))
