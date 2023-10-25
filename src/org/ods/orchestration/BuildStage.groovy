@@ -92,21 +92,9 @@ class BuildStage extends Stage {
                 "\nFailed repositories: \n${sanitizeFailedRepos(failedRepos)}"
             util.failBuild(errMessage)
 
-            def tailorFailedReposCommaSeparated = findAllReposWithTailorDeploymentFailureCommaSeparated(failedRepos)
+            def tailorFailedReposCommaSeparated = findReposWithTailorFailureCommaSeparated(failedRepos)
             if (tailorFailedReposCommaSeparated?.length() > 0) {
-                errMessage += "\n\nERROR: We detected an undesired configuration drift. A drift occurs when " +
-                    "changes in a target environment are not covered by configuration files in Git " +
-                    "(regarded as the source of truth). Resulting differences may be due to manual " +
-                    "changes in the configuration of the target environment or automatic changes " +
-                    "performed by OpenShift/Kubernetes.\n" +
-                    "\n" +
-                    "We found drifts for the following components: ${tailorFailedReposCommaSeparated}.\n" +
-                    "\n" +
-                    "Please follow these steps to resolve and restart your deployment:\n" +
-                    "\n" +
-                    "\t1. Follow the link below to review the differences we found.\n" +
-                    "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-                    "in the target environment as needed so that they match.";
+                errMessage += "\n\nERROR: " + buildTailorMessageForJira(tailorFailedReposCommaSeparated);
             }
             // If we are not in Developer Preview raise a exception
             if (!project.isWorkInProgress) {
@@ -115,23 +103,27 @@ class BuildStage extends Stage {
         }
 
         if (project.isWorkInProgress) {
-            def reposWithTailorDeploymentWarnCommaSeparated = findAllReposWithTailorDeploymentWarningCommaSeparated(project.repositories)
-            project.addCommentInReleaseStatus("WARNING: We detected an undesired configuration drift. " +
-                "A drift occurs when " +
-                "changes in a target environment are not covered by configuration files in Git " +
-                "(regarded as the source of truth). Resulting differences may be due to manual " +
-                "changes in the configuration of the target environment or automatic changes " +
-                "performed by OpenShift/Kubernetes.\n" +
-                "\n" +
-                "We found drifts for the following components: " +
-                "${reposWithTailorDeploymentWarnCommaSeparated}.\n" +
-                "\n" +
-                "Please follow these steps to resolve and restart your deployment:\n" +
-                "\n" +
-                "\t1. Follow the link below to review the differences we found.\n" +
-                "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-                "in the target environment as needed so that they match.")
+            def reposWithTailorDeploymentWarnCommaSeparated = findReposWithTailorWarnCommaSeparated(project.repositories)
+            project.addCommentInReleaseStatus("WARNING: " + buildTailorMessageForJira(reposWithTailorDeploymentWarnCommaSeparated))
         }
+    }
+
+    String buildTailorMessageForJira(def failedRepoNamesCommaSeparated) {
+        "We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "${failedRepoNamesCommaSeparated}.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. Follow the link below to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
     }
 
     String sanitizeFailedRepos(def failedRepos) {
@@ -142,7 +134,7 @@ class BuildStage extends Stage {
         return sanitizedRepos
     }
 
-    String findAllReposWithTailorDeploymentFailureCommaSeparated(def allFailedRepos) {
+    String findReposWithTailorFailureCommaSeparated(def allFailedRepos) {
         def tailorDeploymentFailedReposString = allFailedRepos
             .findAll {it -> it.data?.openshift?.tailorFailure}
             .collect {it -> "\"" + it.id + "\""}
@@ -151,7 +143,7 @@ class BuildStage extends Stage {
         return tailorDeploymentFailedReposString
     }
 
-    String findAllReposWithTailorDeploymentWarningCommaSeparated(def repositories) {
+    String findReposWithTailorWarnCommaSeparated(def repositories) {
         def tailorDeploymentWarnReposString = repositories
             .findAll {it -> it.tailorWarning}
             .collect {it -> "\"" + it.id + "\""}

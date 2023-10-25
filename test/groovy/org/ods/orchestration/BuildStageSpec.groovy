@@ -109,13 +109,13 @@ class BuildStageSpec extends SpecHelper {
              doInstall:true]]
 
         when:
-        def nominalResult = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(allFailedRepos)
+        def nominalResult = buildStage.findReposWithTailorFailureCommaSeparated(allFailedRepos)
 
         then:
         nominalResult == "\"golang\", \"third\""
 
         when:
-        def result = buildStage.findAllReposWithTailorDeploymentFailureCommaSeparated(testRepos)
+        def result = buildStage.findReposWithTailorFailureCommaSeparated(testRepos)
 
         then:
         result == expected
@@ -140,13 +140,13 @@ class BuildStageSpec extends SpecHelper {
         ]
 
         when:
-        def nominalResult = buildStage.findAllReposWithTailorDeploymentWarningCommaSeparated(repos)
+        def nominalResult = buildStage.findReposWithTailorWarnCommaSeparated(repos)
 
         then:
         nominalResult == "\"golang\", \"other\""
 
         when:
-        def result = buildStage.findAllReposWithTailorDeploymentWarningCommaSeparated(testRepos)
+        def result = buildStage.findReposWithTailorWarnCommaSeparated(testRepos)
 
         then:
         result == expected
@@ -203,5 +203,29 @@ class BuildStageSpec extends SpecHelper {
         testRepos           |           expected
         null                |           ""
         []                  |           ""
+    }
+
+    def "build tailor message for Jira"() {
+        given:
+
+        when:
+        def result = buildStage.buildTailorMessageForJira("test")
+
+        then:
+        result == "We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "test.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. Follow the link below to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
     }
 }
