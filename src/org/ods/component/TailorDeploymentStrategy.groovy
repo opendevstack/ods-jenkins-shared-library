@@ -112,7 +112,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         }
 
         def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
-        // FIXME: this is fugly as rollout(..) above will resume anyways and this leaks heavily
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
     }
