@@ -1,9 +1,5 @@
 package org.ods.quickstarter
 
-
-import org.ods.openshift.OpenShiftResourceMetadata
-import org.ods.util.PipelineSteps
-
 class CreateOpenShiftResourcesStage extends Stage {
 
     protected String STAGE_NAME = 'Create OpenShift resources'
@@ -22,7 +18,6 @@ class CreateOpenShiftResourcesStage extends Stage {
     }
 
     def run() {
-        def options = config.clone()
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 
@@ -46,11 +41,6 @@ class CreateOpenShiftResourcesStage extends Stage {
                     label: "Create component ${context.componentId} in namespace ${namespace}"
                 )
             }
-
-            options.environment = env
-            def steps = new PipelineSteps(script)
-            def metadata = new OpenShiftResourceMetadata(steps, context.properties, options, logger)
-            metadata.updateMetadata()
         }
     }
 
