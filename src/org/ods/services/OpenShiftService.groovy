@@ -152,7 +152,7 @@ class OpenShiftService {
             label: "Upgrade Helm release ${release} in ${project}",
             returnStatus: true
         )
-        if (failed){
+        if (failed) {
             throw new RuntimeException(
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
@@ -1427,4 +1427,5 @@ class OpenShiftService {
 
         extractPodData(podJson)
     }
+
 }

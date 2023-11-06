@@ -60,7 +60,7 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
     }
 
-    def "unit test errors in WIP version doesn't break the stage"() {
+    def "unit test errors in WIP version breaks the stage"() {
         given:
         project.hasFailingTests = true
         project.data.buildParams.version = project.BUILD_PARAM_VERSION_DEFAULT
@@ -72,6 +72,8 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
+        IllegalStateException ex = thrown()
+        ex.message == 'Failing build as repositories contain errors!\nFailed repositories: \n'
     }
 
     def "unit test errors in X version break the stage"() {
@@ -86,7 +88,139 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed: []'
+        ex.message == 'Failing build as repositories contain errors!\nFailed repositories: \n'
+    }
+
+    def "find all repos with tailor deployment failure comma separated"() {
+        given:
+        def allFailedRepos = [
+            [id:"golang", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"other", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:],
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"third", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true]]
+
+        when:
+        def nominalResult = buildStage.findReposWithTailorFailureCommaSeparated(allFailedRepos)
+
+        then:
+        nominalResult == "\"golang\", \"third\""
+
+        when:
+        def result = buildStage.findReposWithTailorFailureCommaSeparated(testRepos)
+
+        then:
+        result == expected
+
+        where:
+        testRepos           |           expected
+        null                |           ""
+        []                  |           ""
+    }
+
+    def "sanitize failed repositories"() {
+        given:
+        def allFailedRepos = [
+            [id:"golang", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"other", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:],
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true],
+            [id:"third", branch:"master", type:"ods",
+             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
+                              documents:[:]],
+                   failedStage:"odsPipeline error"],
+             doInstall:true]]
+
+        when:
+        def allResult = buildStage.sanitizeFailedRepos(allFailedRepos)
+
+        then:
+        allResult == "1.\tRepository id: golang\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods\n" +
+            "\n" +
+            "2.\tRepository id: other\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods\n" +
+            "\n" +
+            "3.\tRepository id: third\n" +
+            "\tBranch: master\n" +
+            "\tRepository type: ods"
+
+        when:
+        def result = buildStage.sanitizeFailedRepos(testRepos)
+
+        then:
+        result == expected
+
+        where:
+        testRepos           |           expected
+        null                |           ""
+        []                  |           ""
+    }
+
+    def "build tailor message for Jira"() {
+        given:
+
+        when:
+        def result = buildStage.buildTailorMessage("test", BuildStage.JIRA_CUSTOM_PART)
+
+        then:
+        result == "\n\nERROR: We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "test.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. Follow the link below to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
+    }
+
+    def "build tailor message for Log"() {
+        given:
+
+        when:
+        def result = buildStage.buildTailorMessage("test", BuildStage.LOG_CUSTOM_PART)
+
+        then:
+        result == "\n\nERROR: We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "test.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. See the logs above to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
     }
 
 }

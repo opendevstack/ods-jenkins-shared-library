@@ -12,6 +12,10 @@ import org.ods.util.ILogger
 
 class BuildStage extends Stage {
 
+    public static final String LOG_CUSTOM_PART = 'See the logs above'
+
+    public static final String JIRA_CUSTOM_PART = 'Follow the link below'
+
     public final String STAGE_NAME = 'Build'
 
     BuildStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
@@ -88,13 +92,55 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
-            def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
-            util.failBuild(errMessage)
-            // If we are not in Developer Preview raise a exception
-            if (!project.isWorkInProgress) {
-                throw new IllegalStateException(errMessage)
+            def baseErrMsg = "Failing build as repositories contain errors!" +
+                "\nFailed repositories: \n${sanitizeFailedRepos(failedRepos)}"
+
+            def tailorFailedReposCommaSeparated = findReposWithTailorFailureCommaSeparated(failedRepos)
+            def jiraMessage = baseErrMsg
+            def logMessage = baseErrMsg
+            if (tailorFailedReposCommaSeparated?.length() > 0) {
+                logMessage += buildTailorMessage(tailorFailedReposCommaSeparated, LOG_CUSTOM_PART)
+                jiraMessage += buildTailorMessage(tailorFailedReposCommaSeparated, JIRA_CUSTOM_PART)
             }
+            util.failBuild(logMessage)
+            throw new IllegalStateException(jiraMessage)
         }
+    }
+
+    String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {
+        return "\n\nERROR: We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "${failedRepoNamesCommaSeparated}.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. " + customPart +
+            " to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
+    }
+
+    String sanitizeFailedRepos(def failedRepos) {
+        def index = 1
+        def sanitizedRepos = failedRepos.collect {it -> (index++) + ".\tRepository id: " + it.id +
+            "\n\tBranch: " + it.branch + "\n\tRepository type: " + it.type }
+            .join("\n\n");
+        return sanitizedRepos
+    }
+
+    String findReposWithTailorFailureCommaSeparated(def repos) {
+        def tailorDeploymentFailedReposString = repos?.flatten()
+            .findAll {it -> it.data?.openshift?.tailorFailure}
+            .collect {it -> "\"" + it.id + "\""}
+            .join(", ")
+
+        return tailorDeploymentFailedReposString
     }
 
 }
