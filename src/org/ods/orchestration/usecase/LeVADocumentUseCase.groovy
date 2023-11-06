@@ -1687,14 +1687,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content), done: this.project.isIssueDone(sec)]]
+            [(sec.section): sec + [content: this.convertImages(sec.content), show: this.project.isIssueToBeShown(sec)]]
         }
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
         sections = sections?.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content), done: this.project.isIssueDone(sec)]]
+            [(sec.section): sec + [content: this.convertImages(sec.content), show: this.project.isIssueToBeShown(sec)]]
         }
 
         if (!sections || sections.isEmpty() ) {
@@ -1703,8 +1703,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 this.project.data.jira.undoneDocChapters = [:]
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
-            sections = sections.collectEntries { key, sec ->
-                [(key): sec + [content: this.convertImages(sec.content), done: true]]
+            sections = sections?.collectEntries { key, sec ->
+                [(key): sec + [content: this.convertImages(sec.content), show: true]]
             }
         }
 
