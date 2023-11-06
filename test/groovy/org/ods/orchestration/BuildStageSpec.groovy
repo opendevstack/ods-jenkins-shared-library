@@ -60,7 +60,7 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
     }
 
-    def "unit test errors in WIP version breaks the stage"() {
+    def "unit test errors in WIP version doesn't break the stage"() {
         given:
         project.hasFailingTests = true
         project.data.buildParams.version = project.BUILD_PARAM_VERSION_DEFAULT
@@ -72,8 +72,6 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
-        IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed repositories: \n'
     }
 
     def "unit test errors in X version break the stage"() {
