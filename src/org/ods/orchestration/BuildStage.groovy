@@ -103,8 +103,8 @@ class BuildStage extends Stage {
                 jiraMessage += buildTailorMessage(tailorFailedReposCommaSeparated, JIRA_CUSTOM_PART)
             }
             util.failBuild(logMessage)
-            // If we are not in Developer Preview raise a exception
-            if (!project.isWorkInProgress) {
+            // If we are not in Developer Preview or we have a Tailor failure raise an exception
+            if (!project.isWorkInProgress || tailorFailedReposCommaSeparated?.length() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
         }
