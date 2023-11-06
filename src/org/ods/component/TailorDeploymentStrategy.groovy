@@ -96,36 +96,24 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
         def refreshResources = false
-        def paused = false
-        try {
-            openShift.bulkPause(context.targetProject, deploymentResources)
-            paused = true
 
-            // Tag images which have been built in this pipeline from cd project into target project
-            retagImages(context.targetProject, getBuiltImages())
+        // Tag images which have been built in this pipeline from cd project into target project
+        retagImages(context.targetProject, getBuiltImages())
 
-            if (steps.fileExists(options.openshiftDir)) {
-                refreshResources = true
-                tailorApply(context.targetProject)
-            }
-
-            if (refreshResources) {
-                deploymentResources = openShift.getResourcesForComponent(
-                    context.targetProject, DEPLOYMENT_KINDS, options.selector
-                )
-            }
-
-            def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
-            // FIXME: this is fugly as rollout(..) above will resume anyways and this leaks heavily
-            paused = false
-            logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
-            return rolloutData
-
-        } finally {
-            if (paused) {
-                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
-            }
+        if (steps.fileExists(options.openshiftDir)) {
+            refreshResources = true
+            tailorApply(context.targetProject)
         }
+
+        if (refreshResources) {
+            deploymentResources = openShift.getResourcesForComponent(
+                context.targetProject, DEPLOYMENT_KINDS, options.selector
+            )
+        }
+
+        def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
+        return rolloutData
     }
 
     private void tailorApply(String targetProject) {
