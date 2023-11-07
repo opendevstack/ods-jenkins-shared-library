@@ -7,7 +7,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2.0.0
+              uses: actions/checkout@v4.1.0
 
             - name: check the value of github.workspace and runner.temp
               run: |
@@ -22,7 +22,7 @@ jobs:
                 check-latest: true
 
             - name: Cache
-              uses: actions/cache@v1
+              uses: actions/cache@v3
               with:
                   path: ~/.gradle/caches
                   key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
@@ -41,14 +41,14 @@ jobs:
                   NO_NEXUS: true
 
             - name: CodeNarc Report
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               if: ${{ always() }}
               with:
                   name: CodeNarc Report
                   path: build/reports/codenarc/main.html
 
             - name: Test Report
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               if: ${{ always() }}
               with:
                   name: Test Report

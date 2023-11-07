@@ -2,12 +2,18 @@
 
 ## Unreleased
 
+## [4.3.3] - 2023-11-07
+
 ### Added
+* Add done boolean flag to data passed to the document template service ([#1048](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1048))
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 
 ### Changed
+* Remove drift alignment code and pause deploy mechanism ([#1054](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1054))
 
 ### Fixed
 - Generate TRC document in D environment instead of Q ([#1029](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1029))
+* Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
 ## [4.3.2] - 2023-10-02
 

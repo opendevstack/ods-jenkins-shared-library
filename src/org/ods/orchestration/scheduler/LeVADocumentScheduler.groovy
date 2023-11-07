@@ -187,6 +187,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (DocumentType.DTP as String)    : ["${DocumentType.DTP}"],
             (DocumentType.DTR as String)    : ["${DocumentType.DTR}"],
             (DocumentType.OVERALL_DTR as String)    : ["${DocumentType.DTR}"],
+            (DocumentType.TRC as String)    : ["${DocumentType.TRC}"]
         ],
         "Q": [
             (DocumentType.TIR as String)    : ["${DocumentType.TIR}_Q"],
@@ -195,7 +196,6 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_Q"],
             (DocumentType.CFTR as String)   : ["${DocumentType.CFTR}"],
             (DocumentType.TCR as String)    : ["${DocumentType.TCR}"],
-            (DocumentType.TRC as String)    : ["${DocumentType.TRC}"],
             (DocumentType.DIL as String)    : ["${DocumentType.DIL}_Q"]
         ],
         "P": [

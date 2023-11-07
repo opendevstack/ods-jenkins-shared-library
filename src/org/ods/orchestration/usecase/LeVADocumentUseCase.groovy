@@ -50,8 +50,6 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
-    private static final String NOT_MANDATORY_CONTENT = '<p><em>Not mandatory.</em></p>'
-
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
@@ -1688,25 +1686,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 'Could not obtain document chapter data from Jira.')
         }
 
-        def sectionCollection = sections.collectEntries { sec ->
-            String content = sec.content
-            if (!this.project.isDocChapterMandatory(sec) && !this.project.isIssueDone(sec)) {
-                content = NOT_MANDATORY_CONTENT
-            } else {
-                content = this.convertImages(content)
-            }
-            [(sec.section): sec + [content: content]]
+        return sections.collectEntries { sec ->
+            [(sec.section): sec + [content: this.convertImages(sec.content), show: this.project.isIssueToBeShown(sec)]]
         }
-
-        // Extract-out the section, as needed for the DocGen interface
-        return sectionCollection
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
         sections = sections?.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content)]]
+            [(sec.section): sec + [content: this.convertImages(sec.content), show: this.project.isIssueToBeShown(sec)]]
         }
+
         if (!sections || sections.isEmpty() ) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
             if (!this.project.data.jira.undoneDocChapters) {
@@ -1714,7 +1704,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
             sections = sections?.collectEntries { key, sec ->
-                [(key): sec + [content: this.convertImages(sec.content)]]
+                [(key): sec + [content: this.convertImages(sec.content), show: true]]
             }
         }
 

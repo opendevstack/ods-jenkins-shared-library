@@ -104,13 +104,14 @@ class BitbucketService {
     String getDefaultReviewerConditions(String repo) {
         String res
         withTokenCredentials { username, token ->
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             res = script.sh(
                 label: 'Get default reviewer conditions via API',
                 script: """curl \\
                   --fail \\
                   -sS \\
                   --request GET \\
-                  --header \"Authorization: Bearer ${token}\" \\
+                  --header ${authHeader} \\
                   ${bitbucketUrl}/rest/default-reviewers/1.0/projects/${project}/repos/${repo}/conditions""",
                 returnStdout: true
             ).trim()
@@ -172,13 +173,14 @@ class BitbucketService {
                 "reviewers": [${reviewers ? reviewers.collect { "{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
             }"""
         withTokenCredentials { username, token ->
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             res = script.sh(
                 label: 'Create pull request via API',
                 script: """curl \\
                   --fail \\
                   -sS \\
                   --request POST \\
-                  --header \"Authorization: Bearer ${token}\" \\
+                  --header ${authHeader} \\
                   --header \"Content-Type: application/json\" \\
                   --data '${payload}' \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests""",
@@ -192,12 +194,13 @@ class BitbucketService {
     String getPullRequests(String repo, String state = 'OPEN') {
         String res
         withTokenCredentials { username, token ->
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             res = script.sh(
                 label: 'Get pullrequests via API',
                 script: """curl \\
                   --fail \\
                   -sS \\
-                  --header \"Authorization: Bearer ${token}\" \\
+                  --header ${authHeader} \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
                 returnStdout: true
             ).trim()
@@ -240,13 +243,14 @@ class BitbucketService {
     void postComment(String repo, int pullRequestId, String comment) {
         withTokenCredentials { username, token ->
             def payload = """{"text":"${comment}"}"""
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             script.sh(
                 label: "Post comment to PR#${pullRequestId}",
                 script: """curl \\
                   --fail \\
                   -sS \\
                   --request POST \\
-                  --header \"Authorization: Bearer ${token}\" \\
+                  --header ${authHeader} \\
                   --header \"Content-Type: application/json\" \\
                   --data '${payload}' \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/comments"""
@@ -269,13 +273,14 @@ class BitbucketService {
                                      "startPoint": "${startPoint}",
                                      "type": ${message == '' ? 'LIGHTWEIGHT' : 'ANNOTATED'}
                                  }"""
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             script.sh(
                 label: "Post git tag to branch",
                 script: """curl \\
                       --fail \\
                       -sS \\
                       --request POST \\
-                      --header \"Authorization: Bearer ${token}\" \\
+                      --header ${authHeader} \\
                       --header \"Content-Type: application/json\" \\
                       --data '${payload}' \\
                       ${bitbucketUrl}/api/1.0/projects/${project}/repos/${repo}/tags"""
@@ -293,16 +298,17 @@ class BitbucketService {
             def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
             while (retries++ < maxAttempts) {
                 try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
                     script.sh(
                         label: 'Set bitbucket build status via API',
                         script: """curl \\
-                            --fail \\
-                            -sS \\
-                            --request POST \\
-                            --header \"Authorization: Bearer ${token}\" \\
-                            --header \"Content-Type: application/json\" \\
-                            --data '${payload}' \\
-                            ${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"""
+                                --fail \\
+                                -sS \\
+                                --request POST \\
+                                --header ${authHeader} \\
+                                --header \"Content-Type: application/json\" \\
+                                --data '${payload}' \\
+                                ${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"""
                     )
                     return
                 } catch (err) {
@@ -354,13 +360,14 @@ class BitbucketService {
             payload += "]" +
                 "}"
             try {
+                def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
                 script.sh(
                     label: 'Create Bitbucket Code Insight report via API',
                     script: """curl \\
                         --fail \\
                         -sS \\
                         --request PUT \\
-                        --header \"Authorization: Bearer ${token}\" \\
+                        --header ${authHeader} \\
                         --header \"Content-Type: application/json\" \\
                         --data '${payload}' \\
                         ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
