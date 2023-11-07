@@ -6,7 +6,7 @@
 
 ### Added
 * Add done boolean flag to data passed to the document template service ([#1048](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1048))
-* Add better docuentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 
 ### Changed
 * Remove drift alignment code and pause deploy mechanism ([#1054](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1054))
