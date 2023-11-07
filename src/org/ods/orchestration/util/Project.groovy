@@ -493,6 +493,15 @@ class Project {
     }
 
     @NonCPS
+    boolean isIssueToBeShown(Map issue) {
+        if (isGxp()) {
+            return !issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
+        } else {
+            return issue.status?.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
+        }
+    }
+
+    @NonCPS
     boolean isDocChapterMandatory(Map doc) {
         if (this.isGxp()) {
             return true
