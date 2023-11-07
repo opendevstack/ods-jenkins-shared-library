@@ -1002,7 +1002,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             expectedModules = null
         }
 
-        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
+        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent", "show": true]
 
         log.info "Using temporal folder:${tempFolder.getRoot()}"
         steps.env.BUILD_ID = "1"
@@ -1703,7 +1703,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             RA: 'ConfigItem / See version created within this change',
             RA_version: 'WIP/2',
             TRC: 'ConfigItem / See version created within this change',
-            TRC_version: 'WIP/1',
+            TRC_version: 'WIP/2',
             DTP: 'ConfigItem / See version created within this change',
             DTP_version: 'WIP/2',
             DTR: 'ConfigItem / See version created within this change',
@@ -1921,7 +1921,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     }
 
     @Unroll
-    def "replace content for non-mandatory open issues"() {
+    def "add correct show flag for issues"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
@@ -1937,24 +1937,24 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.getDocumentSections(documentType)
 
         then:
-        result["sec1"].content == expected
+        result["sec1"].show == expected
 
         where:
         isGxp | documentType   | status        | number || expected
-        false | CSD as String  | "IN PROGRESS" | "2"    || "<p><em>Not mandatory.</em></p>"
-        false | SSDS as String | "IN PROGRESS" | "2"    || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "DONE"        | "2"    || "Original content"
-        false | SSDS as String | "DONE"        | "2"    || "Original content"
-        false | CSD as String  | "DONE"        | "1"    || "Original content"
-        false | CSD as String  | "CANCELLED"   | "2"    || "<p><em>Not mandatory.</em></p>"
-        false | SSDS as String | "CANCELLED"   | "2"    || "<p><em>Not mandatory.</em></p>"
-        false | CSD as String  | "IN PROGRESS" | "1"    || "Original content"
-        false | CSD as String  | "IN PROGRESS" | "3.1"  || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "1"    || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "2.1"  || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "3.1"  || "Original content"
-        false | SSDS as String | "IN PROGRESS" | "5.4"  || "Original content"
-        true  | CSD as String  | "IN PROGRESS" | "2"    || "Original content"
+        false | CSD as String  | "IN PROGRESS" | "2"    || false
+        false | SSDS as String | "IN PROGRESS" | "2"    || false
+        false | CSD as String  | "DONE"        | "2"    || true
+        false | SSDS as String | "DONE"        | "2"    || true
+        false | CSD as String  | "DONE"        | "1"    || true
+        false | CSD as String  | "CANCELLED"   | "2"    || false
+        false | SSDS as String | "CANCELLED"   | "2"    || false
+        false | CSD as String  | "IN PROGRESS" | "1"    || false
+        false | CSD as String  | "IN PROGRESS" | "3.1"  || false
+        false | SSDS as String | "IN PROGRESS" | "1"    || false
+        false | SSDS as String | "IN PROGRESS" | "2.1"  || false
+        false | SSDS as String | "IN PROGRESS" | "3.1"  || false
+        false | SSDS as String | "IN PROGRESS" | "5.4"  || false
+        true  | CSD as String  | "IN PROGRESS" | "2"    || true
     }
 
 }
