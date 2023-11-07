@@ -50,6 +50,8 @@ import java.time.LocalDateTime
     'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
+    private static final String NOT_MANDATORY_CONTENT = '<p><em>Not mandatory.</em></p>'
+
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
@@ -1686,9 +1688,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 'Could not obtain document chapter data from Jira.')
         }
 
-        return sections.collectEntries { sec ->
-            [(sec.section): sec + [content: this.convertImages(sec.content), show: this.project.isIssueToBeShown(sec)]]
+        def sectionCollection = sections.collectEntries { sec ->
+            String content = sec.content
+            if (!this.project.isDocChapterMandatory(sec) && !this.project.isIssueDone(sec)) {
+                content = NOT_MANDATORY_CONTENT
+            } else {
+                content = this.convertImages(content)
+            }
+            [(sec.section): sec + [content: content]]
         }
+
+        // Extract-out the section, as needed for the DocGen interface
+        return sectionCollection
     }
 
     protected Map getDocumentSectionsFileOptional(String documentType) {

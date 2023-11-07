@@ -213,12 +213,12 @@ _String_
 | *tailorVerify* +
 _boolean_
 |Whether Tailor verifies the live configuration against the desired state
- after application (defaults to `false`). Only relevant if the directory
+ after application (defaults to `true`). Only relevant if the directory
  referenced by `openshiftDir` exists.
 
 |===
 
-== Notable Differences between tailor and helm deployments
+== Differences between tailor and helm deployments
 
 When tailor does the rollout, all the created or updated OpenShift resources are automatically labeled to ease their management.
 This is in contrast to helm rollouts which rely on the chart providing the desired labels.
