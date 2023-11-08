@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
 
 ## [4.3.3] - 2023-11-07
 
