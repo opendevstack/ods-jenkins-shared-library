@@ -143,7 +143,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
       [],
       [],
       '/tmp/file',
-      true
+      false
     )
   }
 
