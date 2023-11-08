@@ -3,7 +3,6 @@ package org.ods.component
 import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -104,9 +103,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             JsonOutput.prettyPrint(
                 JsonOutput.toJson(deploymentResources)))
 
-        Map<String,String> labels = showMandatoryLabels()
-        applyMandatoryLabels(labels, deploymentResources)
-
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
@@ -114,62 +110,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def rolloutData = getRolloutData(deploymentResources) ?: [:]
         logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
         return rolloutData
-    }
-
-    private void applyMandatoryLabels(Map<String, String> labels, Map<String, List<String>> deploymentResources) {
-        logger.debug("${this.class.name} -- MANDATORY LABELS")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        logger.debug("${this.class.name} -- MANDATORY LABELS (cleaned)")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(labels)))
-        labels.remove { it -> it.value == null }
-        def resourcesToLabel = deploymentResources.collectMany { entry ->
-            entry.value.collect {
-                "${entry.key}/${it}"
-            }
-        }
-        logger.debug("${this.class.name} -- RESOURCE TO LABEL")
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(resourcesToLabel)))
-        resourcesToLabel.each { resourceToLabel ->
-            openShift.labelResources(context.targetProject, resourceToLabel, labels, null)
-        }
-
-        // Add OpenShiftResouceMetadata.strictEntries here to be sure we have them
-        if (context.triggeredByOrchestrationPipeline) {
-            def additionalLabels = [
-                'app.opendevstack.org/system-name': steps.env?.BUILD_PARAM_CONFIGITEM ?: null,
-                'app.opendevstack.org/project-version': steps.env?.BUILD_PARAM_CHANGEID ?: null,
-                'app.opendevstack.org/work-in-progress': steps.env?.BUILD_PARAM_VERSION == 'WIP' ?: null,
-            ]
-            resourcesToLabel.each { resourceToLabel ->
-                openShift.labelResources(context.targetProject, resourceToLabel, additionalLabels, null)
-            }
-        }
-
-    }
-
-    private def showMandatoryLabels() {
-        // FIXME: OpenShiftResourceMetadata.updateMetadata breaks
-        //  This happens because it, unconditionally, tries to reset some fields
-        def metadataSvc = new OpenShiftResourceMetadata(
-            steps,
-            context.properties,
-            options.properties,
-            logger,
-            openShift
-        )
-
-        // DEBUG what we consider "mandatory"
-        def metadata = metadataSvc.getMandatoryMetadata()
-        logger.debug(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(metadata)))
-        return metadata
     }
 
     private void helmUpgrade(String targetProject) {
@@ -225,14 +165,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             resourceNames.each { resourceName ->
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
+                    podData = openShift.checkForPodData(context.targetProject, options.selector)
                     if (!podData.isEmpty()) {
                         break
                     }
                     steps.echo("Could not find 'running' pod(s) with label '${options.selector}' - waiting")
                     steps.sleep(12)
                 }
-                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean", [
+                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
+                    [
                         'type': 'helm',
                         'selector': options.selector,
                         'chartDir': options.chartDir,

@@ -79,7 +79,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.tailorSelector = config.selector
         }
         if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = true
+            config.tailorVerify = false
         }
         if (!config.containsKey('tailorExclude')) {
             config.tailorExclude = 'bc,is'

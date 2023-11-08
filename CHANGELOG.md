@@ -4,12 +4,19 @@
 - Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
 - Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
 - Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
+
+## [4.3.3] - 2023-11-07
+
 ### Added
+* Add done boolean flag to data passed to the document template service ([#1048](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1048))
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
 
 ### Changed
+* Remove drift alignment code and pause deploy mechanism ([#1054](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1054))
 
 ### Fixed
 - Generate TRC document in D environment instead of Q ([#1029](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1029))
+* Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
 ## [4.3.2] - 2023-10-02
 
