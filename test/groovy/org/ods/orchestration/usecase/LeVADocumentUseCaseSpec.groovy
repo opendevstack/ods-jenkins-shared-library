@@ -1002,7 +1002,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             expectedModules = null
         }
 
-        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent", "done": false]
+        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent", "show": true]
 
         log.info "Using temporal folder:${tempFolder.getRoot()}"
         steps.env.BUILD_ID = "1"
@@ -1921,7 +1921,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     }
 
     @Unroll
-    def "add correct done flag for issues"() {
+    def "add correct show flag for issues"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
@@ -1937,7 +1937,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.getDocumentSections(documentType)
 
         then:
-        result["sec1"].done == expected
+        result["sec1"].show == expected
 
         where:
         isGxp | documentType   | status        | number || expected
@@ -1954,7 +1954,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         false | SSDS as String | "IN PROGRESS" | "2.1"  || false
         false | SSDS as String | "IN PROGRESS" | "3.1"  || false
         false | SSDS as String | "IN PROGRESS" | "5.4"  || false
-        true  | CSD as String  | "IN PROGRESS" | "2"    || false
+        true  | CSD as String  | "IN PROGRESS" | "2"    || true
     }
 
 }
