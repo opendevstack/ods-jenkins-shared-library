@@ -90,21 +90,22 @@ class BuildStage extends Stage {
         // failed unit tests as possible
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
-        def failedRepos = repos.flatten().findAll { it.data?.failedStage }
+        def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos.size > 0) {
             def baseErrMsg = "Failing build as repositories contain errors!" +
-                "\nFailed repositories: \n${sanitizeFailedRepos(failedRepos)}"
+                "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
 
-            def tailorFailedReposCommaSeparated = findReposWithTailorFailureCommaSeparated(failedRepos)
+            def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
             def logMessage = baseErrMsg
-            if (tailorFailedReposCommaSeparated?.length() > 0) {
-                logMessage += buildTailorMessage(tailorFailedReposCommaSeparated, LOG_CUSTOM_PART)
-                jiraMessage += buildTailorMessage(tailorFailedReposCommaSeparated, JIRA_CUSTOM_PART)
+            if (tailorFailedRepos?.size() > 0) {
+                String failedReposCommaSeparated = buildReposCommaSeparatedString(tailorFailedRepos)
+                logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
+                jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
             }
             util.failBuild(logMessage)
             // If we are not in Developer Preview or we have a Tailor failure raise an exception
-            if (!project.isWorkInProgress || tailorFailedReposCommaSeparated?.length() > 0) {
+            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
         }
@@ -137,13 +138,16 @@ class BuildStage extends Stage {
         return sanitizedRepos
     }
 
-    String findReposWithTailorFailureCommaSeparated(def repos) {
-        def tailorDeploymentFailedReposString = repos?.flatten()
-            .findAll {it -> it.data?.openshift?.tailorFailure}
+
+    List filterReposWithTailorFailure(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure}
+    }
+
+    String buildReposCommaSeparatedString(def tailorFailedRepos) {
+        def reposCommaSeparatedString = tailorFailedRepos
             .collect {it -> "\"" + it.id + "\""}
             .join(", ")
 
-        return tailorDeploymentFailedReposString
+        return reposCommaSeparatedString
     }
-
 }

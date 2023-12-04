@@ -16,6 +16,53 @@ import util.SpecHelper
 import static util.FixtureHelper.createProject
 
 class BuildStageSpec extends SpecHelper {
+
+    static String TAILOR_FAILURE_LOG_MESSAGE = """Failing build as repositories contain errors!
+Failed repositories:
+1.\tRepository id: golang
+\tBranch: master
+\tRepository type: ods
+
+2.\tRepository id: other
+\tBranch: master
+\tRepository type: ods
+
+3.\tRepository id: third
+\tBranch: master
+\tRepository type: ods
+
+ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
+
+We found drifts for the following components: "golang", "third".
+
+Please follow these steps to resolve and restart your deployment:
+
+\t1. See the logs above to review the differences we found.
+\t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
+
+    static String TAILOR_FAILURE_JIRA_COMMENT = """Failing build as repositories contain errors!
+Failed repositories:
+1.\tRepository id: golang
+\tBranch: master
+\tRepository type: ods
+
+2.\tRepository id: other
+\tBranch: master
+\tRepository type: ods
+
+3.\tRepository id: third
+\tBranch: master
+\tRepository type: ods
+
+ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
+
+We found drifts for the following components: "golang", "third".
+
+Please follow these steps to resolve and restart your deployment:
+
+\t1. Follow the link below to review the differences we found.
+\t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
+
     Project project
     BuildStage buildStage
     IPipelineSteps steps
@@ -86,139 +133,48 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed repositories: \n'
+        ex.message == 'Failing build as repositories contain errors!\nFailed repositories:\n'
     }
 
-    def "find all repos with tailor deployment failure comma separated"() {
+    def "tailor failure logs correct message and adds correct Jira comment"() {
         given:
-        def allFailedRepos = [
-            [id:"golang", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true],
-            [id:"other", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:],
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true],
-            [id:"third", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true]]
+        project.data.buildParams.version = testVersion
+        def testRepos = [
+            [id       : "golang", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true],
+            [id       : "other", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:],
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true],
+            [id       : "third", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true]]
+        buildStage = Spy(new BuildStage(script, project, testRepos, null))
 
         when:
-        def nominalResult = buildStage.findReposWithTailorFailureCommaSeparated(allFailedRepos)
+        buildStage.run()
 
         then:
-        nominalResult == "\"golang\", \"third\""
+        1 * util.failBuild(TAILOR_FAILURE_LOG_MESSAGE)
+        IllegalStateException ex = thrown()
+        ex.message == TAILOR_FAILURE_JIRA_COMMENT
 
         when:
-        def result = buildStage.findReposWithTailorFailureCommaSeparated(testRepos)
+        buildStage = Spy(new BuildStage(script, project, cornerCaseRepos, null))
+        buildStage.run()
 
         then:
-        result == expected
+        0 * util.failBuild(_)
 
         where:
-        testRepos           |           expected
-        null                |           ""
-        []                  |           ""
+        cornerCaseRepos     |   testVersion
+        []                  |   "1.0"
+        null                |   "WIP"
     }
-
-    def "sanitize failed repositories"() {
-        given:
-        def allFailedRepos = [
-            [id:"golang", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true],
-            [id:"other", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:],
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true],
-            [id:"third", branch:"master", type:"ods",
-             data:[openshift:[builds:[], deployments:[:], tailorFailure:true,
-                              documents:[:]],
-                   failedStage:"odsPipeline error"],
-             doInstall:true]]
-
-        when:
-        def allResult = buildStage.sanitizeFailedRepos(allFailedRepos)
-
-        then:
-        allResult == "1.\tRepository id: golang\n" +
-            "\tBranch: master\n" +
-            "\tRepository type: ods\n" +
-            "\n" +
-            "2.\tRepository id: other\n" +
-            "\tBranch: master\n" +
-            "\tRepository type: ods\n" +
-            "\n" +
-            "3.\tRepository id: third\n" +
-            "\tBranch: master\n" +
-            "\tRepository type: ods"
-
-        when:
-        def result = buildStage.sanitizeFailedRepos(testRepos)
-
-        then:
-        result == expected
-
-        where:
-        testRepos           |           expected
-        null                |           ""
-        []                  |           ""
-    }
-
-    def "build tailor message for Jira"() {
-        given:
-
-        when:
-        def result = buildStage.buildTailorMessage("test", BuildStage.JIRA_CUSTOM_PART)
-
-        then:
-        result == "\n\nERROR: We detected an undesired configuration drift. " +
-            "A drift occurs when " +
-            "changes in a target environment are not covered by configuration files in Git " +
-            "(regarded as the source of truth). Resulting differences may be due to manual " +
-            "changes in the configuration of the target environment or automatic changes " +
-            "performed by OpenShift/Kubernetes.\n" +
-            "\n" +
-            "We found drifts for the following components: " +
-            "test.\n" +
-            "\n" +
-            "Please follow these steps to resolve and restart your deployment:\n" +
-            "\n" +
-            "\t1. Follow the link below to review the differences we found.\n" +
-            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-            "in the target environment as needed so that they match."
-    }
-
-    def "build tailor message for Log"() {
-        given:
-
-        when:
-        def result = buildStage.buildTailorMessage("test", BuildStage.LOG_CUSTOM_PART)
-
-        then:
-        result == "\n\nERROR: We detected an undesired configuration drift. " +
-            "A drift occurs when " +
-            "changes in a target environment are not covered by configuration files in Git " +
-            "(regarded as the source of truth). Resulting differences may be due to manual " +
-            "changes in the configuration of the target environment or automatic changes " +
-            "performed by OpenShift/Kubernetes.\n" +
-            "\n" +
-            "We found drifts for the following components: " +
-            "test.\n" +
-            "\n" +
-            "Please follow these steps to resolve and restart your deployment:\n" +
-            "\n" +
-            "\t1. See the logs above to review the differences we found.\n" +
-            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
-            "in the target environment as needed so that they match."
-    }
-
 }
