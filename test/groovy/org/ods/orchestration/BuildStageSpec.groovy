@@ -165,16 +165,25 @@ Please follow these steps to resolve and restart your deployment:
         IllegalStateException ex = thrown()
         ex.message == TAILOR_FAILURE_JIRA_COMMENT
 
-        when:
+        where:
+        testVersion     |   _
+        "1.0"           |   _
+        "WIP"           |   _
+    }
+
+    def "tailor failure repositories corner cases do not fail the build"() {
+        given:
         buildStage = Spy(new BuildStage(script, project, cornerCaseRepos, null))
+
+        when:
         buildStage.run()
 
         then:
         0 * util.failBuild(_)
 
         where:
-        cornerCaseRepos     |   testVersion
-        []                  |   "1.0"
-        null                |   "WIP"
+        cornerCaseRepos     |   _
+        []                  |   _
+        null                |   _
     }
 }
