@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix Helm deployment issues with custom chartDir ([#1038](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1038))
 
 ## [4.3.3] - 2023-11-07

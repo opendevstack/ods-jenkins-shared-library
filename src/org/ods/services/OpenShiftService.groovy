@@ -152,7 +152,7 @@ class OpenShiftService {
             label: "Upgrade Helm release ${release} in ${project}",
             returnStatus: true
         )
-        if (failed){
+        if (failed) {
             throw new RuntimeException(
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
@@ -1291,14 +1291,20 @@ class OpenShiftService {
     }
 
     private void doTailorApply(String project, String tailorParams) {
-        steps.sh(
-            script: """tailor \
-          ${tailorVerboseFlag()} \
-          --non-interactive \
-          -n ${project} \
-          apply ${tailorParams}""",
-            label: "tailor apply for ${project} (${tailorParams})"
-        )
+        try {
+            steps.sh(
+                script: """tailor \
+              ${tailorVerboseFlag()} \
+              --non-interactive \
+              -n ${project} \
+              apply ${tailorParams}""",
+                returnStdout: true,
+                label: "tailor apply for ${project} (${tailorParams})"
+            )
+        } catch (ex) {
+            throw new TailorDeploymentException(ex)
+        }
+
     }
 
     private void doTailorExport(
@@ -1427,4 +1433,5 @@ class OpenShiftService {
 
         extractPodData(podJson)
     }
+
 }

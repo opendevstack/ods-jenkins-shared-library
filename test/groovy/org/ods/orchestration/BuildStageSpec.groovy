@@ -16,6 +16,53 @@ import util.SpecHelper
 import static util.FixtureHelper.createProject
 
 class BuildStageSpec extends SpecHelper {
+
+    static String TAILOR_FAILURE_LOG_MESSAGE = """Failing build as repositories contain errors!
+Failed repositories:
+1.\tRepository id: golang
+\tBranch: master
+\tRepository type: ods
+
+2.\tRepository id: other
+\tBranch: master
+\tRepository type: ods
+
+3.\tRepository id: third
+\tBranch: master
+\tRepository type: ods
+
+ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
+
+We found drifts for the following components: "golang", "third".
+
+Please follow these steps to resolve and restart your deployment:
+
+\t1. See the logs above to review the differences we found.
+\t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
+
+    static String TAILOR_FAILURE_JIRA_COMMENT = """Failing build as repositories contain errors!
+Failed repositories:
+1.\tRepository id: golang
+\tBranch: master
+\tRepository type: ods
+
+2.\tRepository id: other
+\tBranch: master
+\tRepository type: ods
+
+3.\tRepository id: third
+\tBranch: master
+\tRepository type: ods
+
+ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
+
+We found drifts for the following components: "golang", "third".
+
+Please follow these steps to resolve and restart your deployment:
+
+\t1. Follow the link below to review the differences we found.
+\t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
+
     Project project
     BuildStage buildStage
     IPipelineSteps steps
@@ -86,7 +133,57 @@ class BuildStageSpec extends SpecHelper {
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed: []'
+        ex.message == 'Failing build as repositories contain errors!\nFailed repositories:\n'
     }
 
+    def "tailor failure logs correct message and adds correct Jira comment"() {
+        given:
+        project.data.buildParams.version = testVersion
+        def testRepos = [
+            [id       : "golang", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true],
+            [id       : "other", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:],
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true],
+            [id       : "third", branch: "master", type: "ods",
+             data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
+                                       documents: [:]],
+                         failedStage: "odsPipeline error"],
+             doInstall: true]]
+        buildStage = Spy(new BuildStage(script, project, testRepos, null))
+
+        when:
+        buildStage.run()
+
+        then:
+        1 * util.failBuild(TAILOR_FAILURE_LOG_MESSAGE)
+        IllegalStateException ex = thrown()
+        ex.message == TAILOR_FAILURE_JIRA_COMMENT
+
+        where:
+        testVersion     |   _
+        "1.0"           |   _
+        "WIP"           |   _
+    }
+
+    def "tailor failure repositories corner cases do not fail the build"() {
+        given:
+        buildStage = Spy(new BuildStage(script, project, cornerCaseRepos, null))
+
+        when:
+        buildStage.run()
+
+        then:
+        0 * util.failBuild(_)
+
+        where:
+        cornerCaseRepos     |   _
+        []                  |   _
+        null                |   _
+    }
 }
