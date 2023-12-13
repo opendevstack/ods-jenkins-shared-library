@@ -1,9 +1,10 @@
 # Changelog
 
 ## Unreleased
-- Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
-- Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
-- Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
+* Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
 
 ## [4.3.3] - 2023-11-07
 
