@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix type warnings in `OpenShiftService` ([#1061](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1061))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.3.3] - 2023-11-07
