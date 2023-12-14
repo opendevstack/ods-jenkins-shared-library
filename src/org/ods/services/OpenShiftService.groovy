@@ -376,7 +376,7 @@ class OpenShiftService {
             buildArgsItems << """{"name": "${key}", "value": "${val}"}"""
         }
         if (buildArgsItems.size() > 0) {
-            def buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy/buildArgs", "value": [${buildArgsItems.join(',')}]}"""
+            String buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy/buildArgs", "value": [${buildArgsItems.join(',')}]}"""
             patches << buildArgsPatch
         }
 
@@ -488,7 +488,7 @@ class OpenShiftService {
     // - repository (= OpenShift project in case of image from ImageStream)
     // - name (= ImageStream name in case of image from ImageStream)
     Map<String, String> imageInfoForImageUrl(String url) {
-        def imageInfo = [:]
+        Map <String,String> imageInfo = [:]
         def urlParts = url.split('/').toList()
 
         if (urlParts.size() < 2) {
@@ -1383,7 +1383,7 @@ class OpenShiftService {
     }
 
     private Map<String, String> imageInfoWithSha(List<String> urlParts) {
-        def imageInfo = [:]
+        Map<String,String> imageInfo = [:]
         def url = urlParts.join('/')
         if (urlParts.size() < 2 || !urlParts[-1].contains('@sha256:')) {
             throw new RuntimeException(
