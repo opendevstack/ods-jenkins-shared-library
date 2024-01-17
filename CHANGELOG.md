@@ -2,6 +2,7 @@
 
 ## Unreleased
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Aqua scanner and Helm deployment conflict fix for jenkins shared library ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
 
 ## [4.3.3] - 2023-11-07
 
