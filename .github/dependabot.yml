@@ -8,3 +8,6 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "skip changelog"
