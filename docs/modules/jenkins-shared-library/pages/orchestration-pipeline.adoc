@@ -69,7 +69,7 @@ If you use this type ODS expects to find JUnit XML test results. If you do not h
 
 ==== Repository Type: ods-infra
 
-This type designates ODS components designed for _consuming on-prem or cloud services_ of arbitrary type using infrastructure as code. Such components are based on quickstarters whose names start with `infra-`.
+This type designates ODS components designed for _consuming on-prem or cloud services_ of arbitrary type using infrastructure as code. Such components are based on quickstarters whose names start with `inf-`.
 
 ==== Repository Type: ods-saas-service
 
@@ -159,7 +159,7 @@ alwaysPullImage: true
 ----
 
 By default the orchestration pipeline will create a pod based on the jenkins-base-agent image to do much of its work.
-In seldom cases, ususally with a lot of repositories, one may hit an out of memory error on the pod named 'mro-XX'. In this case the below 
+In seldom cases, ususally with a lot of repositories, one may hit an out of memory error on the pod named 'mro-XX'. In this case the below
 memory limit should be adjusted (defaulting to '1Gi')
 ----
 mroAgentMemoryLimit = "1Gi"
