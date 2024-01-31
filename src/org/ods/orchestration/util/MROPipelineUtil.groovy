@@ -378,8 +378,8 @@ class MROPipelineUtil extends PipelineUtil {
                         preExecute(this.steps, repo)
                     }
                     repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
-                    def include = repo.include ?: true
-                    if (include) {
+                    repo.doInclude = repo.containsKey('include') ? repo.include : true
+                    if (repo.doInclude) {
                         if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                             if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir, false)
