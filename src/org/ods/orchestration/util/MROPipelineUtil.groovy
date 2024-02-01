@@ -377,6 +377,7 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
+                    this.logger.debug("Print Repo: ${repo}")
                     repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     repo.doInclude = repo.containsKey('include') ? repo.include : true
                     if (repo.doInclude) {
@@ -457,6 +458,8 @@ class MROPipelineUtil extends PipelineUtil {
                                 this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
                         }
+                    } else {
+                        this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Include flag is set to false so nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                     }
 
                     if (postExecute) {
