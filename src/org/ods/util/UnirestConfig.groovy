@@ -9,7 +9,9 @@ class UnirestConfig {
 
     @NonCPS
     static void init() {
-        Unirest.config().socketTimeout(6000000).connectTimeout(600000)
+        Unirest.config()
+            .socketTimeout(6_000_000) // 6_000 sec, 100 min
+            .connectTimeout(600_000) // 600 sec, 10 min
     }
 
     @NonCPS

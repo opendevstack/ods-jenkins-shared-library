@@ -351,7 +351,7 @@ class Pipeline implements Serializable {
         }
 
         def buildName = "${context.gitCommit.take(8)}"
-        bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
+        bitbucketService.setBuildStatus(context.buildUrl, "${context.projectId}-${context.componentId}", context.gitCommit, state, buildName)
     }
 
     private void doNotifyNotGreen(List<String> emailextRecipients) {

@@ -25,11 +25,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
              credentialsId: "cd-user"], logger)
         def config = [:]
         def aqua = Spy(new AquaService(steps, logger))
-        def bitbucket = Spy(new BitbucketService (steps,
-            'https://bitbucket.example.com',
-            'FOO',
-            'foo-cd-cd-user-with-password',
-            logger))
+        BitbucketService bitbucket = Mock(BitbucketService)
         def openShift = Spy(new OpenShiftService (steps, logger))
         def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
         def stage = new ScanWithAquaStage(
