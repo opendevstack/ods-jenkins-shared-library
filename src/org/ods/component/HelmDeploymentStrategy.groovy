@@ -127,8 +127,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 Map mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
                 mergedHelmValues['imageNamespace'] = targetProject
-                imageSha = openShift.getImageSha(context.cdProject, context.componentId, options.imageTag)
-                mergedHelmValues['imageTag'] = imageSha
+                mergedHelmValues['imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
