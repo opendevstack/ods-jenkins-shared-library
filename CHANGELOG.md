@@ -1,8 +1,10 @@
 # Changelog
 
 ## Unreleased
+* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix Helm deployment issues with custom chartDir ([#1038](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1038))
+* Aqua scanner and Helm deployment conflict fix for jenkins shared library ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
 
 ## [4.3.3] - 2023-11-07
 * Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
