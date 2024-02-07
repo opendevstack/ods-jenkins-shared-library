@@ -102,8 +102,10 @@ class InitStage extends Stage {
         //Check Jira components matches metadata components
         def mismatchedComponents = project.checkComponentsMismatch()
         if (mismatchedComponents.size() != 0) {
-            util.failBuild("There is a mismatch between the components in Jira and the rm metadata.yml: $mismatchedComponents")
-            throw new ComponentMismatchException('There is a mismatch between the components in Jira and the rm metadata.yml', mismatchedComponents)
+            def message = "There is a mismatch between the components in Jira and the rm metadata.yml: $mismatchedComponents"
+            project.addCommentInReleaseStatus(message)
+            util.failBuild(message)
+            throw new ComponentMismatchException(message, mismatchedComponents)
         }
 
         if (project.isPromotionMode && !project.buildParams.rePromote) {
