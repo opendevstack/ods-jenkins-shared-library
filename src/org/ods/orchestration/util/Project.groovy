@@ -1156,6 +1156,30 @@ class Project {
         return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
     }
 
+    /**
+     * Checks if the JIRA components match the repositories
+     * If jira or JiraUsecase is not enabled -> no check
+     * Otherwise, check from Jira
+     * @result the list of mismatched components
+     */
+    List<String> checkComponentsMismatch() {
+        if (!this.jiraUseCase) return []
+        if (!this.jiraUseCase.jira) return []
+
+        def components = jiraUseCase.jira.getProjectComponents(this.key)
+        logger.info("Jira components found: $components")
+        def results = [] as List<String>
+        for (repo in this.getRepositories()){
+            logger.info("Repository: $repo")
+            String repoName = repo.containsKey('name') ? repo.name : repo.id
+            if (!components.any { component -> component.name == "Technology-$repoName" }) {
+                results.add(repoName)
+            }
+        }
+
+        return results
+    }
+
     protected Map loadJiraData(String projectKey) {
         def result = [
                 components: [:],

@@ -461,6 +461,31 @@ class JiraService {
     }
 
     @NonCPS
+    List<Map> getProjectComponents(String projectKey) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to get project components from Jira. \'projectKey\' is undefined.')
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/components")
+            .routeParam('projectKey', projectKey.toUpperCase())
+            .basicAuth(this.username, this.password)
+            .header('Accept', 'application/json')
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get project components. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get project components. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody()) ?: []
+    }
+
+    @NonCPS
     List<String> getLabelsFromIssue(String issueIdOrKey) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to remove labels from Jira issue. \'issueIdOrKey\' is undefined.')

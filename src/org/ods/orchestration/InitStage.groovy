@@ -6,6 +6,7 @@ import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.service.JiraZephyrService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JiraUseCaseSupport
@@ -96,6 +97,13 @@ class InitStage extends Stage {
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
+        }
+
+        //Check Jira components matches metadata components
+        def mismatchedComponents = project.checkComponentsMismatch()
+        if (mismatchedComponents.size() != 0) {
+            util.failBuild("There is a mismatch between the components in Jira and the rm metadata.yml: $mismatchedComponents")
+            throw new ComponentMismatchException('There is a mismatch between the components in Jira and the rm metadata.yml', mismatchedComponents)
         }
 
         if (project.isPromotionMode && !project.buildParams.rePromote) {
