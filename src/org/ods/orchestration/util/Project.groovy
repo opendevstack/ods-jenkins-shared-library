@@ -1167,10 +1167,8 @@ class Project {
         if (!this.jiraUseCase.jira) return []
 
         def components = jiraUseCase.jira.getProjectComponents(this.key)
-        logger.info("Jira components found: $components")
         def results = [] as List<String>
         for (repo in this.getRepositories()){
-            logger.info("Repository: $repo")
             String repoName = repo.containsKey('name') ? repo.name : repo.id
             if (!components.any { component -> component.name == "Technology-$repoName" }) {
                 results.add(repoName)

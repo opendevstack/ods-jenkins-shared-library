@@ -377,7 +377,6 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
-                    this.logger.debug("Print Repo: ${repo}")
                     repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     repo.doInclude = repo.containsKey('include') ? repo.include : true
                     if (repo.doInclude) {
