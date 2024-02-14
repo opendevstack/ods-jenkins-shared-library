@@ -80,6 +80,7 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
+        MROPipelineUtil util = registry.get(MROPipelineUtil)
 
         //Check Jira components matches metadata components
         if (project.checkComponentsMismatch()) {
@@ -94,7 +95,6 @@ class InitStage extends Stage {
         }
 
         def repos = project.repositories
-        MROPipelineUtil util = registry.get(MROPipelineUtil)
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {
