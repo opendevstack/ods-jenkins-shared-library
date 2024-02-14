@@ -81,6 +81,18 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
 
+        //Check Jira components matches metadata components
+        if (project.checkComponentsMismatch()) {
+            def message = "The Release Manager configuration includes a [ component1, component2 ] which does not belong to the EDP project in the rm metadata.yml"
+            logger.info("The Release Manager configuration includes a component V /components V, X, Z ... which does not belong to the EDP project. Please correct this by either removing the component or denoting it with include: false in the configuration. If you want to get in touch with our Support team, you can do so here: https://confluence.biscrum.com/pages/viewpage.action?spaceKey=EDPON&title=Support")
+            util.failBuild(message)
+            throw new ComponentMismatchException(message)
+        }
+
+        if (project.isPromotionMode && !project.buildParams.rePromote) {
+            checkReposContainEnvCommits(repos, steps, git, logger, util)
+        }
+
         def repos = project.repositories
         MROPipelineUtil util = registry.get(MROPipelineUtil)
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
@@ -97,18 +109,6 @@ class InitStage extends Stage {
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
-        }
-
-        //Check Jira components matches metadata components
-        def mismatchedComponents = project.checkComponentsMismatch()
-        if (mismatchedComponents.size() != 0) {
-            def message = "There is a mismatch between the components in Jira and the rm metadata.yml: $mismatchedComponents"
-            util.failBuild(message)
-            throw new ComponentMismatchException(message, mismatchedComponents)
-        }
-
-        if (project.isPromotionMode && !project.buildParams.rePromote) {
-            checkReposContainEnvCommits(repos, steps, git, logger, util)
         }
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)

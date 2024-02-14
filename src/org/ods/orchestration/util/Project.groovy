@@ -1162,20 +1162,22 @@ class Project {
      * Otherwise, check from Jira
      * @result the list of mismatched components
      */
-    List<String> checkComponentsMismatch() {
-        if (!this.jiraUseCase) return []
-        if (!this.jiraUseCase.jira) return []
+    boolean checkComponentsMismatch() {
+        if (!this.jiraUseCase) return true
+        if (!this.jiraUseCase.jira) return true
 
-        def components = jiraUseCase.jira.getProjectComponents(this.key)
+        //TODO: change call
+        boolean result = true
+        /*def components = jiraUseCase.jira.getProjectComponents(this.key)
         def results = [] as List<String>
         for (repo in this.getRepositories()){
             String repoName = repo.containsKey('name') ? repo.name : repo.id
             if (!components.any { component -> component.name == "Technology-$repoName" }) {
                 results.add(repoName)
             }
-        }
+        }*/
 
-        return results
+        return result
     }
 
     protected Map loadJiraData(String projectKey) {

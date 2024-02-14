@@ -377,10 +377,10 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
-                    repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     repo.doInclude = repo.containsKey('include') ? repo.include : true
                     if (repo.doInclude) {
                         if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
+                            repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                             if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir, false)
                             } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
@@ -458,6 +458,7 @@ class MROPipelineUtil extends PipelineUtil {
                             }
                         }
                     } else {
+                        repo.doInstall = false
                         this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Include flag is set to false so nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                     }
 
