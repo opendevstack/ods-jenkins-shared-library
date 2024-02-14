@@ -1160,7 +1160,7 @@ class Project {
      * Checks if the JIRA components match the repositories
      * If jira or JiraUsecase is not enabled -> no check
      * Otherwise, check from Jira
-     * @result the list of mismatched components
+     * @result true if there is no mismatch
      */
     boolean checkComponentsMismatch() {
         if (!this.jiraUseCase) return true
