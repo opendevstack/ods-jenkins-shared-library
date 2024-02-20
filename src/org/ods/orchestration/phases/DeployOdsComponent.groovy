@@ -188,7 +188,10 @@ class DeployOdsComponent {
                     Map<String, String> helmMergedValues = [
                         "imageTag": project.targetTag,
                         "imageNamespace": project.targetProject,
-                        "componentId": deploymentMean.repoId
+                        "componentId": deploymentMean.repoId,
+                        "global.imageTag": project.targetTag,
+                        "global.imageNamespace": project.targetProject,
+                        "global.componentId": deploymentMean.repoId
                     ]
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues
