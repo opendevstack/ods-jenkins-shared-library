@@ -84,10 +84,7 @@ class InitStage extends Stage {
 
         //Check Jira components matches metadata components
         if (!project.checkComponentsMismatch()) {
-            def message = "The Release Manager configuration includes a [ component1, component2 ] which does not belong to the EDP project in the rm metadata.yml"
-            logger.info("The Release Manager configuration includes a component V /components V, X, Z ... which does not belong to the EDP project. Please correct this by either removing the component or denoting it with include: false in the configuration. If you want to get in touch with our Support team, you can do so here: https://confluence.biscrum.com/pages/viewpage.action?spaceKey=EDPON&title=Support")
-            util.failBuild(message)
-            throw new ComponentMismatchException(message)
+            logger.debug('Jira disabled, no component match check')
         }
 
         if (project.isPromotionMode && !project.buildParams.rePromote) {

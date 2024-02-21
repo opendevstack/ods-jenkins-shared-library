@@ -753,4 +753,31 @@ class JiraService {
         return true
     }
 
+    @NonCPS
+    Map checkComponentsMismatch(String projectKey) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
+                '\'projectKey\' is undefined.')
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/components/check-jira-vs-bitbucket-mismatch/{projectKey}")
+            .routeParam('projectKey', projectKey.toUpperCase())
+            .basicAuth(this.username, this.password)
+            .header('Accept', 'application/json')
+            .asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get component match check in url ' +
+                "${this.baseURL}/rest/platform/1.1/components/check-jira-vs-bitbucket-mismatch/${projectKey.toUpperCase()}" +
+                ' Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get component match check. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
 }

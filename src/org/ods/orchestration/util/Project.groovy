@@ -4,6 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
@@ -1158,9 +1159,10 @@ class Project {
 
     /**
      * Checks if the JIRA components match the repositories
-     * If jira or JiraUsecase is not enabled -> no check
+     * If jira or JiraUsecase is not enabled -> false
      * Otherwise, check from Jira
-     * @result true if there is no mismatch
+     * @result true if jira is enabled and there is no mismatch, and false if not enabled
+     * @throw ComponentMismatchException if there is a component mismatch
      */
     boolean checkComponentsMismatch() {
         if (!this.jiraUseCase) return true
@@ -1168,16 +1170,12 @@ class Project {
 
         //TODO: change call
         boolean result = true
-        /*def components = jiraUseCase.jira.getProjectComponents(this.key)
-        def results = [] as List<String>
-        for (repo in this.getRepositories()){
-            String repoName = repo.containsKey('name') ? repo.name : repo.id
-            if (!components.any { component -> component.name == "Technology-$repoName" }) {
-                results.add(repoName)
-            }
-        }*/
+        def match = jiraUseCase.jira.checkComponentsMismatch(this.key)
+        if (!match.isDeployable) {
+            throw new ComponentMismatchException(match.message)
+        }
 
-        return result
+        return true
     }
 
     protected Map loadJiraData(String projectKey) {
