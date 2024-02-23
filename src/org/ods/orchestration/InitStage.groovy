@@ -82,11 +82,6 @@ class InitStage extends Stage {
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        //Check Jira components matches metadata components
-        if (!project.checkComponentsMismatch()) {
-            logger.debug('Jira disabled, no component match check')
-        }
-
         if (project.isPromotionMode && !project.buildParams.rePromote) {
             checkReposContainEnvCommits(repos, steps, git, logger, util)
         }
@@ -108,6 +103,11 @@ class InitStage extends Stage {
             throw openDocumentsException
         }
 
+        //Check Jira components matches metadata components
+        if (!project.checkComponentsMismatch()) {
+            logger.debug('Jira disabled, no component match check')
+        }
+        
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 
         // Compute target project. For now, the existance of DEV on the same cluster is verified.
