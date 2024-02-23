@@ -1170,10 +1170,7 @@ class Project {
 
         boolean result = true
         def match = jiraUseCase.jira.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
-        logger.debug("map: $match")
-        match.each{ k, v -> logger.debug("$k:$v - value type ${v.class}") }
-        logger.debug("check: ${match.deployableState.equals("DEPLOYABLE")}")
-        if (match.deployableState.equals("DEPLOYABLE")) {
+        if (!match.deployableState.equals("DEPLOYABLE")) {
             throw new ComponentMismatchException(match.message)
         }
 
