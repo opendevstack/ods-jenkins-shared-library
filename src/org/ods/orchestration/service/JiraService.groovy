@@ -756,8 +756,12 @@ class JiraService {
     @NonCPS
     Map checkComponentsMismatch(String projectKey, String version) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
+            throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'projectKey\' is undefined.')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
+                '\'version\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/platform/1.1/components/{projectKey}/{version}")
