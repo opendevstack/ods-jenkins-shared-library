@@ -107,7 +107,7 @@ class InitStage extends Stage {
         if (!project.checkComponentsMismatch()) {
             logger.debug('Jira disabled, no component match check')
         }
-        
+
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 
         // Compute target project. For now, the existance of DEV on the same cluster is verified.

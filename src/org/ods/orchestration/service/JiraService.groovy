@@ -773,7 +773,7 @@ class JiraService {
 
         response.ifFailure {
             def message = 'Error: unable to get component match check in url ' +
-                "${this.baseURL}/rest/platform/1.1/components/check-jira-vs-bitbucket-mismatch/${projectKey.toUpperCase()}" +
+                "${this.baseURL}/rest/platform/1.1/components/${projectKey.toUpperCase()}/version" +
                 ' Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
