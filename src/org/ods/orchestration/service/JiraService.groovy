@@ -754,14 +754,15 @@ class JiraService {
     }
 
     @NonCPS
-    Map checkComponentsMismatch(String projectKey) {
+    Map checkComponentsMismatch(String projectKey, String version) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
                 '\'projectKey\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/components/check-jira-vs-bitbucket-mismatch/{projectKey}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/components/{projectKey}/{version}")
             .routeParam('projectKey', projectKey.toUpperCase())
+            .routeParam('version', version)
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
             .asString()
