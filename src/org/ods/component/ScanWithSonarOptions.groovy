@@ -42,4 +42,5 @@ class ScanWithSonarOptions extends Options {
      * In order to be able to receive the imageRef for scanning, the `resourceName` needs
      * to be the same as in BuildOpenShiftImageStage. */
     String resourceName
+
 }

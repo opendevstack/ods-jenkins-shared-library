@@ -1,0 +1,3624 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-adapter-5dc8d77dbd-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-adapter",
+                    "pod-template-hash": "5dc8d77dbd"
+                },
+                "name": "example-be-adapter-5dc8d77dbd-cns9z",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-adapter-5dc8d77dbd",
+                        "uid": "4688aab6-4625-4880-8c68-7952ce02e488"
+                    }
+                ],
+                "resourceVersion": "2974931132",
+                "uid": "4dd9db29-10ae-44f7-b88d-783212cbfda9"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "IN_HOSPITAL",
+                                "value": "False"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "REDIS_HOST",
+                                "value": "example-be-cache"
+                            },
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "example-be-adapter-db"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "db",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "user",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "JWK_DOMAIN",
+                                "value": "id.dev.example.com"
+                            },
+                            {
+                                "name": "JWK_AUDIENCE",
+                                "value": "https://adapter-dev.tools.example.com"
+                            },
+                            {
+                                "name": "AUDIT_LOG_PATH",
+                                "value": "/var/log/proj/audit"
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-adapter:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-adapter",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/log/proj/audit",
+                                "name": "audit-logs"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-qmg7v",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-10-150.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "emptyDir": {},
+                        "name": "audit-logs"
+                    },
+                    {
+                        "name": "kube-api-access-qmg7v",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://1d871617b8908332ec103daa5e438cb130f110cd4b6debe008d86858ccdd1c69",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-adapter:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-adapter@sha256:d043df9c66af57297f7ff2157f9c2f801e16122649830e4fbf8e09237a8ccc82",
+                        "lastState": {},
+                        "name": "be-adapter",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:34Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.150",
+                "phase": "Running",
+                "podIP": "192.0.2.100",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.100"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-08T00:16:00Z",
+                "generateName": "example-be-adapter-db-5cdd4dddd9-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-adapter-db",
+                    "pod-template-hash": "5cdd4dddd9"
+                },
+                "name": "example-be-adapter-db-5cdd4dddd9-4v4wn",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-adapter-db-5cdd4dddd9",
+                        "uid": "7a3b5fd4-3857-4739-ace6-767a4a72a2cf"
+                    }
+                ],
+                "resourceVersion": "2992434762",
+                "uid": "e7b23a00-dd94-4b58-84fd-23153c13d454"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "POSTGRESQL_DATABASE",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "db",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRESQL_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "user",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRESQL_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-adapter-db"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "registry.redhat.io/rhscl/postgresql-13-rhel7",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/usr/libexec/check-container",
+                                    "--live"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 120,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "name": "be-adapter-db",
+                        "ports": [
+                            {
+                                "containerPort": 5432,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/usr/libexec/check-container"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 5,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "400m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "200m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/lib/pgsql/data",
+                                "name": "db-data"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-9nrsm",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-8-151.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "db-data",
+                        "persistentVolumeClaim": {
+                            "claimName": "be-adapter-db"
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-9nrsm",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T00:16:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-26T00:15:28Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-26T00:15:28Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T00:16:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://7d5a9e964043054ea340f38c4e801a257d06a5cf1fbe2c05179e5121e21bfe32",
+                        "image": "registry.redhat.io/rhscl/postgresql-13-rhel7:latest",
+                        "imageID": "registry.redhat.io/rhscl/postgresql-13-rhel7@sha256:c6fde1a8653a597c18b0326bc71ce4a614273be74b9aef3ced83a1b11472687a",
+                        "lastState": {},
+                        "name": "be-adapter-db",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-08T00:18:30Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.151",
+                "phase": "Running",
+                "podIP": "192.0.2.42",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.42"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-08T00:16:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-08T04:24:57Z",
+                "generateName": "example-be-cache-58d6d45c57-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-cache",
+                    "pod-template-hash": "58d6d45c57"
+                },
+                "name": "example-be-cache-58d6d45c57-99tvn",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-cache-58d6d45c57",
+                        "uid": "6de3561a-83b9-4369-84d4-a6a877da95d0"
+                    }
+                ],
+                "resourceVersion": "2793249305",
+                "uid": "17f7edb1-6570-44cb-b65b-6b3bc2e5e160"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "registry.redhat.io/rhscl/redis-5-rhel7",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 6379
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "be-cache",
+                        "ports": [
+                            {
+                                "containerPort": 6379,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/bin/sh",
+                                    "-i",
+                                    "-c",
+                                    "test \"$(redis-cli -h 127.0.0.1 -a $REDIS_PASSWORD ping)\" == \"PONG\""
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 5,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "300m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "150m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/lib/redis/data",
+                                "name": "redis-data"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-6zmtb",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-116.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "redis-data",
+                        "persistentVolumeClaim": {
+                            "claimName": "be-cache"
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-6zmtb",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T04:24:57Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T04:27:12Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T04:27:12Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-08T04:24:57Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://ddd3dc07dc7a3c03ba90721d812c57caf4947438b59e179837f9a99be966bcda",
+                        "image": "registry.redhat.io/rhscl/redis-5-rhel7:latest",
+                        "imageID": "registry.redhat.io/rhscl/redis-5-rhel7@sha256:52ffb5bf944593c290c2de52db5117044e58633385dcbe70679ea69ff0c5ff01",
+                        "lastState": {},
+                        "name": "be-cache",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-08T04:27:04Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.116",
+                "phase": "Running",
+                "podIP": "192.0.2.34",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.34"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-08T04:24:57Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-datafeed-576bc779f8-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-datafeed",
+                    "pod-template-hash": "576bc779f8"
+                },
+                "name": "example-be-datafeed-576bc779f8-9tftp",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-datafeed-576bc779f8",
+                        "uid": "53a10d2d-d8f4-4bdc-a309-d7a2355528ee"
+                    }
+                ],
+                "resourceVersion": "2974932563",
+                "uid": "9341f96c-99a0-4526-b8d1-71a8f8f2b217"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "BE_TOKEN_HOST",
+                                "value": "example-be-token"
+                            },
+                            {
+                                "name": "BE_TOKEN_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-datafeed-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-datafeed",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-lnc7g",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-69.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-lnc7g",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://161070664dc57801717679f2a20225ae0537931c4ba9c3f810ba62b17edc6ed0",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed@sha256:4cb8d88d1ba4e71e20cc6b9a7e8563f5a3bdd9c3fd802c33420b58139d2a2170",
+                        "lastState": {},
+                        "name": "be-datafeed",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:39Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.69",
+                "phase": "Running",
+                "podIP": "192.0.2.173",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.173"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-datafeed-576bc779f8-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-datafeed",
+                    "pod-template-hash": "576bc779f8"
+                },
+                "name": "example-be-datafeed-576bc779f8-m6vxf",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-datafeed-576bc779f8",
+                        "uid": "53a10d2d-d8f4-4bdc-a309-d7a2355528ee"
+                    }
+                ],
+                "resourceVersion": "2974932607",
+                "uid": "abc6ba6a-95ef-4aa6-b35c-af5e819e8460"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "BE_TOKEN_HOST",
+                                "value": "example-be-token"
+                            },
+                            {
+                                "name": "BE_TOKEN_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-datafeed-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-datafeed-db"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-datafeed",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-wm8s8",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-8-176.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-wm8s8",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://e3c9220831c7b5476e47b3c32f436f2c97ccd9860a44339137ca24d65322e188",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed@sha256:4cb8d88d1ba4e71e20cc6b9a7e8563f5a3bdd9c3fd802c33420b58139d2a2170",
+                        "lastState": {},
+                        "name": "be-datafeed",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:37Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.176",
+                "phase": "Running",
+                "podIP": "192.0.2.158",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.158"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-gateway-7c7d8cc68b-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-gateway",
+                    "pod-template-hash": "7c7d8cc68b"
+                },
+                "name": "example-be-gateway-7c7d8cc68b-p9skv",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-gateway-7c7d8cc68b",
+                        "uid": "2e543097-6651-4697-bca3-33d70378e497"
+                    }
+                ],
+                "resourceVersion": "2974931853",
+                "uid": "390bfda4-7d7e-4b7c-86dd-4e8ff1561ac6"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-gateway:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 1,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "256Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g2z8c",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-10-154.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-g2z8c",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:49Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:49Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://0107046a70727ef3ab156a3494e1a5c82edcb15814ab9cd69e5f06f6b469d7a2",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-gateway:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-gateway@sha256:94dd09c933f2b202dd629c8048e534c6b84b3cfc38cd1ef8553ac51de91fb11f",
+                        "lastState": {},
+                        "name": "be-gateway",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:37Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.154",
+                "phase": "Running",
+                "podIP": "192.0.2.171",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.171"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-main-5ffddb5dc9-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-main",
+                    "pod-template-hash": "5ffddb5dc9"
+                },
+                "name": "example-be-main-5ffddb5dc9-hn24m",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-main-5ffddb5dc9",
+                        "uid": "acbed48a-39d1-403d-ad5a-4905d4d10088"
+                    }
+                ],
+                "resourceVersion": "2974931408",
+                "uid": "2e4de421-e96b-4ff2-a8eb-1af7aca7df9f"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "AUTH0_JWT_ISS",
+                                "value": "https://id.dev.example.com/"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "BE_TOKEN_HOST",
+                                "value": "example-be-token"
+                            },
+                            {
+                                "name": "BE_TOKEN_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "BE_DATAFEED_HOST",
+                                "value": "example-be-datafeed"
+                            },
+                            {
+                                "name": "BE_DATAFEED_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "REDIS_HOST",
+                                "value": "example-be-cache"
+                            },
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-main-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SERVER_PUBLIC_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_SERVER_PUBLIC_KEY",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SERVER_SECRET_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_SERVER_SECRET_KEY",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "REGION_NAME",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "REGION_NAME",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_S3_BUCKET",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_S3_BUCKET",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AUDIT_LOG_PATH",
+                                "value": "/var/log/proj/audit"
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "secretRef": {
+                                    "name": "auth0-m2m"
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-main",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/log/proj/audit",
+                                "name": "audit-logs"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g5kkh",
+                                "readOnly": true
+                            }
+                        ]
+                    },
+                    {
+                        "args": [
+                            "/fluent-bit/bin/fluent-bit",
+                            "-c",
+                            "/fluentbit/fluentbit.toml"
+                        ],
+                        "env": [
+                            {
+                                "name": "AWS_ACCESS_KEY_ID",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "key",
+                                        "name": "cloudwatch-audit-logs"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SECRET_ACCESS_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "secret",
+                                        "name": "cloudwatch-audit-logs"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "fluent-bit-be-main",
+                        "resources": {
+                            "limits": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/fluentbit",
+                                "name": "fluentbit",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/log/proj/audit",
+                                "name": "audit-logs"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g5kkh",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-69.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "fluentbit",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "fluentbit.toml",
+                                                "path": "fluentbit.toml"
+                                            }
+                                        ],
+                                        "name": "example-be-main-fluentbit"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "audit-logs"
+                    },
+                    {
+                        "name": "kube-api-access-g5kkh",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:46Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:46Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://f6ccc5e4b878cb00c2097723d25575747a501d5a6fc91c1b997477d53e226006",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main@sha256:45dcb5214ff20b6374a502e9bd1bba0657073210e38eba0cbd1d9f5ddfa27c67",
+                        "lastState": {},
+                        "name": "be-main",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:36Z"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "cri-o://e1aac82330d6a119da83270b80dda2ea2ff3661e52e5ac9ab8155ac0daaff859",
+                        "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest",
+                        "imageID": "public.ecr.aws/aws-observability/aws-for-fluent-bit@sha256:741c65dc7fa8383c5517886e73b2740e52d2e69bf62f26fac17059144c9a6a54",
+                        "lastState": {},
+                        "name": "fluent-bit-be-main",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:45Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.69",
+                "phase": "Running",
+                "podIP": "192.0.2.172",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.172"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-main-5ffddb5dc9-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-main",
+                    "pod-template-hash": "5ffddb5dc9"
+                },
+                "name": "example-be-main-5ffddb5dc9-xjb2n",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-main-5ffddb5dc9",
+                        "uid": "acbed48a-39d1-403d-ad5a-4905d4d10088"
+                    }
+                ],
+                "resourceVersion": "2974932551",
+                "uid": "1ffc3565-2b30-41f4-a719-93e776940a2e"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "AUTH0_JWT_ISS",
+                                "value": "https://id.dev.example.com/"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "BE_TOKEN_HOST",
+                                "value": "example-be-token"
+                            },
+                            {
+                                "name": "BE_TOKEN_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "BE_DATAFEED_HOST",
+                                "value": "example-be-datafeed"
+                            },
+                            {
+                                "name": "BE_DATAFEED_PORT",
+                                "value": "8080"
+                            },
+                            {
+                                "name": "REDIS_HOST",
+                                "value": "example-be-cache"
+                            },
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-main-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-main-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SERVER_PUBLIC_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_SERVER_PUBLIC_KEY",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SERVER_SECRET_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_SERVER_SECRET_KEY",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "REGION_NAME",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "REGION_NAME",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_S3_BUCKET",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "AWS_S3_BUCKET",
+                                        "name": "aws-s3-profile-photo"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AUDIT_LOG_PATH",
+                                "value": "/var/log/proj/audit"
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "secretRef": {
+                                    "name": "auth0-m2m"
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-main",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/log/proj/audit",
+                                "name": "audit-logs"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-2w544",
+                                "readOnly": true
+                            }
+                        ]
+                    },
+                    {
+                        "args": [
+                            "/fluent-bit/bin/fluent-bit",
+                            "-c",
+                            "/fluentbit/fluentbit.toml"
+                        ],
+                        "env": [
+                            {
+                                "name": "AWS_ACCESS_KEY_ID",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "key",
+                                        "name": "cloudwatch-audit-logs"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "AWS_SECRET_ACCESS_KEY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "secret",
+                                        "name": "cloudwatch-audit-logs"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "fluent-bit-be-main",
+                        "resources": {
+                            "limits": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/fluentbit",
+                                "name": "fluentbit",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/log/proj/audit",
+                                "name": "audit-logs"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-2w544",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-10-154.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "fluentbit",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "fluentbit.toml",
+                                                "path": "fluentbit.toml"
+                                            }
+                                        ],
+                                        "name": "example-be-main-fluentbit"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "audit-logs"
+                    },
+                    {
+                        "name": "kube-api-access-2w544",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:54Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://a7c58695e81ff7453a492ccd467faa5f3c1550060a87b343be798528ab7ee14c",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main@sha256:45dcb5214ff20b6374a502e9bd1bba0657073210e38eba0cbd1d9f5ddfa27c67",
+                        "lastState": {},
+                        "name": "be-main",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:37Z"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "cri-o://e7a01d883566ffbe05c311c329a74b9d750bfc4385e33a04360b6ccde80c566c",
+                        "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest",
+                        "imageID": "public.ecr.aws/aws-observability/aws-for-fluent-bit@sha256:741c65dc7fa8383c5517886e73b2740e52d2e69bf62f26fac17059144c9a6a54",
+                        "lastState": {},
+                        "name": "fluent-bit-be-main",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:51Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.154",
+                "phase": "Running",
+                "podIP": "192.0.2.173",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.173"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-token-6fcb4d85d6-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-token",
+                    "pod-template-hash": "6fcb4d85d6"
+                },
+                "name": "example-be-token-6fcb4d85d6-7jr2r",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-token-6fcb4d85d6",
+                        "uid": "46c997f5-cdd0-4aea-8379-52287670e564"
+                    }
+                ],
+                "resourceVersion": "2974931101",
+                "uid": "e3e48fb8-3957-4571-9691-e764cca0227e"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "REDIS_HOST",
+                                "value": "example-be-cache"
+                            },
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-token-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "secretRef": {
+                                    "name": "auth0-config"
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-token",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-q6vlb",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-10-30.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-q6vlb",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://517accf70fd9bd559cff5ad0c9541a3e7386abd49912a414612a56318e1fcddd",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e",
+                        "lastState": {},
+                        "name": "be-token",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:33Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.30",
+                "phase": "Running",
+                "podIP": "192.0.2.172",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.172"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2023-07-24T11:58:29Z",
+                "generateName": "example-be-token-6fcb4d85d6-",
+                "labels": {
+                    "app.kubernetes.io/instance": "example",
+                    "app.kubernetes.io/name": "proj-example",
+                    "example.service": "be-token",
+                    "pod-template-hash": "6fcb4d85d6"
+                },
+                "name": "example-be-token-6fcb4d85d6-ndp8x",
+                "namespace": "proj-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "example-be-token-6fcb4d85d6",
+                        "uid": "46c997f5-cdd0-4aea-8379-52287670e564"
+                    }
+                ],
+                "resourceVersion": "2974931066",
+                "uid": "c599d0e3-b525-469e-b30e-46d8c2de7cda"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ENVIRONMENT",
+                                "value": "dev"
+                            },
+                            {
+                                "name": "LOG_LEVEL",
+                                "value": "DEBUG"
+                            },
+                            {
+                                "name": "LOAD_TEST_DATA",
+                                "value": "True"
+                            },
+                            {
+                                "name": "REDIS_HOST",
+                                "value": "example-be-cache"
+                            },
+                            {
+                                "name": "REDIS_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password",
+                                        "name": "be-cache"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_TOKEN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "token",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DYNATRACE_URL",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "url",
+                                        "name": "dynatrace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_HOST",
+                                "value": "be-token-da66e7be.cpn9bbolsmod.eu-west-1.rds.amazonaws.com"
+                            },
+                            {
+                                "name": "POSTGRES_DB",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-name",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_USER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-user",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POSTGRES_PASSWORD",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "database-password",
+                                        "name": "be-token-db"
+                                    }
+                                }
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "secretRef": {
+                                    "name": "auth0-config"
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token:cd1efdaf",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "name": "be-token",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1002380000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pem/private",
+                                "name": "pem-keys",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-jgxhm",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-5ggw9"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-69.eu-west-1.compute.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1002380000,
+                    "seLinuxOptions": {
+                        "level": "s0:c49,c14"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "pem-keys",
+                        "projected": {
+                            "defaultMode": 440,
+                            "sources": [
+                                {
+                                    "secret": {
+                                        "items": [
+                                            {
+                                                "key": "pem1",
+                                                "path": "rsa.key"
+                                            },
+                                            {
+                                                "key": "pem2",
+                                                "path": "rsa-previous.key"
+                                            }
+                                        ],
+                                        "name": "pem-secret"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-jgxhm",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:44Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-07-24T11:58:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://66cb6dd771d0e72b13074969b1e06f185e8dcb13e3920b447f2740a303d45880",
+                        "image": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token:cd1efdaf",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e",
+                        "lastState": {},
+                        "name": "be-token",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-07-24T11:58:34Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.0.2.69",
+                "phase": "Running",
+                "podIP": "192.0.2.171",
+                "podIPs": [
+                    {
+                        "ip": "192.0.2.171"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-07-24T11:58:29Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": "",
+        "selfLink": ""
+    }
+}

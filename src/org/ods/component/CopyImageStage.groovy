@@ -103,4 +103,5 @@ class CopyImageStage extends Stage {
             "(${context.componentId}) " +
             "${this.options.registry}/${this.options.repo}/${this.options.image}'"
     }
+
 }

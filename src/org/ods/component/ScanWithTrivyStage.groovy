@@ -98,7 +98,7 @@ class ScanWithTrivyStage extends Stage {
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
-        logger.infoClocked(options.resourceName,"Trivy scan (via CLI)")
+        logger.infoClocked(options.resourceName, "Trivy scan (via CLI)")
         return returnCode
     }
 
@@ -123,7 +123,7 @@ class ScanWithTrivyStage extends Stage {
         ]
 
         if (messages) {
-            data.put("messages",[
+            data.put("messages", [
                 [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
             ])
         }
