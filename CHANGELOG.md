@@ -1,8 +1,9 @@
 # Changelog
 
 ## Unreleased
-
+* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix Helm deployment issues with custom chartDir ([#1038](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1038))
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 
 ## [4.3.4] - 2024-02-20
@@ -12,6 +13,8 @@
 * Fix ods-infra components require OpenShift projects in Deploy stage ([#1047](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1047))
 
 ## [4.3.3] - 2023-11-07
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
+* Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
 ### Added
 * Add done boolean flag to data passed to the document template service ([#1048](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1048))

@@ -16,6 +16,10 @@ class PipelineSteps implements IPipelineSteps {
         env.WORKSPACE = System.getProperty("java.io.tmpdir")
     }
 
+    String libraryResource(String path) {
+        return ""
+    }
+
     void archiveArtifacts(String artifacts) {
     }
 
