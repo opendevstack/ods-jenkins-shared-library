@@ -948,7 +948,7 @@ class OpenShiftService {
     @NonCPS
     private String buildConfigBinaryYml(String name, Map<String,String> labels, String tag) {
         """\
-          apiVersion: v1
+          apiVersion: build.openshift.io/v1
           kind: BuildConfig
           metadata:
             labels: {${labels.collect { k, v -> "${k}: '${v}'" }.join(', ')}}
@@ -982,7 +982,7 @@ class OpenShiftService {
     @NonCPS
     private String imageStreamYml(String name, Map<String,String> labels) {
         """\
-          apiVersion: v1
+          apiVersion: image.openshift.io/v1
           kind: ImageStream
           metadata:
             labels: {${labels.collect { k, v -> "${k}: '${v}'" }.join(', ')}}
