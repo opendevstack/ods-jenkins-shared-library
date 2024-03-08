@@ -45,6 +45,10 @@ class InfrastructureStage extends Stage {
     // called from odsComponentStageInfrustructure execute
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
+        if (!context.environment) {
+            logger.warn('Skipping image import because of empty (target) environment ...')
+            return
+        }
         if (runMakeStage("test", this.options.cloudProvider,
                           environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("IaC - Testing stage failed!")
