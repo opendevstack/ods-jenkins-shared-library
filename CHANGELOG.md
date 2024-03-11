@@ -4,6 +4,7 @@
 
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
+* Add Openshift appDomain context value in Quickstarter pipeline ([#997](https://github.com/opendevstack/ods-quickstarters/issues/997))
 
 ## [4.3.4] - 2024-02-20
 
