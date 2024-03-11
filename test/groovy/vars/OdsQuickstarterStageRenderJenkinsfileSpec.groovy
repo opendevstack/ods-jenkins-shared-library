@@ -2,10 +2,13 @@ package vars
 
 import org.ods.quickstarter.Context
 import org.ods.quickstarter.IContext
+import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 
 class OdsQuickstarterStageRenderJenkinsfileSpec extends PipelineSpockTestBase {
+
+  private Logger logger = new Logger (new PipelineSteps(), true)
 
   def "run successfully"() {
     given:
@@ -18,7 +21,7 @@ class OdsQuickstarterStageRenderJenkinsfileSpec extends PipelineSpockTestBase {
         odsImageTag: '2.x',
         odsGitRef: '2.x'
     ]
-    IContext context = new Context(config)
+    IContext context = new Context(null, config, logger)
 
     when:
     def script = loadScript('vars/odsQuickstarterStageRenderJenkinsfile.groovy')
