@@ -4,6 +4,7 @@ import org.ods.quickstarter.Context
 import org.ods.quickstarter.IContext
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
+import util.PipelineSteps
 import spock.lang.*
 
 class OdsQuickstarterStageRenderJenkinsfileSpec extends PipelineSpockTestBase {
