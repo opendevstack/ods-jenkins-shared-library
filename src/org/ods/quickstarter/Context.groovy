@@ -1,5 +1,7 @@
 package org.ods.quickstarter
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import org.ods.util.Logger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
@@ -9,6 +11,7 @@ import org.ods.services.ServiceRegistry
 
 class Context implements IContext {
 
+    private final Map config
     private final Logger logger
     private IPipelineSteps steps
     private final def script
