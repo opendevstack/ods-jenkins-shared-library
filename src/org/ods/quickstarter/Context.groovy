@@ -176,14 +176,13 @@ class Context implements IContext {
     void getOpenshiftApplicationDomain () {
         if (!config.projectId) {
             logger.debug('Could not get application domain, as no projectId is available')
-            return ''
+        }else{
+            logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+            this.openShiftService = new OpenShiftService(steps, logger)
+            config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
+
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")    
         }
-        logger.startClocked("${config.componentId}-get-oc-app-domain")
-
-        this.openShiftService = new OpenShiftService(steps, logger)
-        config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
-
-        logger.debugClocked("${config.componentId}-get-oc-app-domain")            
-
     }
 }
