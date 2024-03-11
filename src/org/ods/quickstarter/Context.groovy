@@ -12,7 +12,7 @@ class Context implements IContext {
 
     private final Map config
     private final Logger logger
-    private IPipelineSteps steps
+    private final IPipelineSteps steps
     private final def script
     private OpenShiftService openShiftService
 
@@ -163,15 +163,16 @@ class Context implements IContext {
     }
 
     void setAppDomain() {
-        if (!config.projectId) {
-            logger.debug('Could not get application domain, as no projectId is available')
-        }else{
+        if (config.projectId) {
             logger.startClocked("${config.componentId}-get-oc-app-domain")
 
             this.openShiftService = new OpenShiftService(steps, logger)
             config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
 
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
+        } else {
+            logger.debug('Could not get application domain, as no projectId is available')
         }
     }
+
 }

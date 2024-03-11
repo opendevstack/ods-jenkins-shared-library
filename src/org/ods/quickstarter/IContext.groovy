@@ -76,5 +76,4 @@ interface IContext {
 
     // set app domain of the Openshift cluster
     void setAppDomain()
-
 }
