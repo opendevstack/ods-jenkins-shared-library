@@ -17,7 +17,7 @@ class OdsQuickstarterStageCopyFilesSpec extends PipelineSpockTestBase {
         sourceDir: 'be-golang-plain',
         targetDir: 'out'
     ]
-    IContext context = new Context(null, config, logger)
+    IContext context = new Context(config, logger, null)
 
     when:
     def script = loadScript('vars/odsQuickstarterStageCopyFiles.groovy')

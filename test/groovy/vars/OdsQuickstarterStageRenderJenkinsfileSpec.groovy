@@ -22,7 +22,7 @@ class OdsQuickstarterStageRenderJenkinsfileSpec extends PipelineSpockTestBase {
         odsImageTag: '2.x',
         odsGitRef: '2.x'
     ]
-    IContext context = new Context(null, config, logger)
+    IContext context = new Context(config, logger, null)
 
     when:
     def script = loadScript('vars/odsQuickstarterStageRenderJenkinsfile.groovy')

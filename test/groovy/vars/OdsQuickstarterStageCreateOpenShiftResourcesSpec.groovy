@@ -21,7 +21,7 @@ class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTest
         projectId: 'foo',
         componentId: 'bar'
     ]
-    IContext context = new Context(null, config, logger)
+    IContext context = new Context(config, logger, null)
     helper.registerAllowedMethod('fileExists', [ String ]) { String file ->
         file == "${config.sourceDir}/ocp.env" || file == "${config.componentId}/metadata.yml"
     }
