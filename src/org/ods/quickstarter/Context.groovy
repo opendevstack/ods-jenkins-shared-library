@@ -7,7 +7,6 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
 import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
 
 class Context implements IContext {
 
@@ -182,7 +181,7 @@ class Context implements IContext {
             this.openShiftService = new OpenShiftService(steps, logger)
             config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
 
-            logger.debugClocked("${config.componentId}-get-oc-app-domain")    
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
     }
 }

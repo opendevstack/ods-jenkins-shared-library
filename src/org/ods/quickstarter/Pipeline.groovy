@@ -149,7 +149,7 @@ class Pipeline implements Serializable {
         ) {
             script.node(podLabel) {
                 IContext context = new Context(config, logger, script)
-                context.assemble()
+                context.setAppDomain()
                 block(context)
             }
         }
