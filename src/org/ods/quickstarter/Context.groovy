@@ -22,11 +22,11 @@ class Context implements IContext {
         this.steps = new PipelineSteps(script)
     }
 
-    def assemble() {
-        if (!config.containsKey('appDomain')) {
-            getOpenshiftApplicationDomain()
-        }
-    }
+    // def assemble() {
+    //     if (!config.containsKey('appDomain')) {
+    //         getOpenshiftApplicationDomain()
+    //     }
+    // }
 
     @NonCPS
     String getJobName() {
@@ -169,10 +169,6 @@ class Context implements IContext {
     }
 
     void setAppDomain() {
-        getOpenshiftApplicationDomain()
-    }
-
-    void getOpenshiftApplicationDomain () {
         if (!config.projectId) {
             logger.debug('Could not get application domain, as no projectId is available')
         }else{
@@ -184,4 +180,17 @@ class Context implements IContext {
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
     }
+
+    // void getOpenshiftApplicationDomain () {
+    //     if (!config.projectId) {
+    //         logger.debug('Could not get application domain, as no projectId is available')
+    //     }else{
+    //         logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+    //         this.openShiftService = new OpenShiftService(steps, logger)
+    //         config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
+
+    //         logger.debugClocked("${config.componentId}-get-oc-app-domain")
+    //     }
+    // }
 }
