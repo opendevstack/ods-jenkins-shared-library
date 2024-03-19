@@ -46,8 +46,10 @@ class FakeProject extends Project {
                 name       : "Sock Shop: ${repo.id}",
                 description: "Some description for ${repo.id}",
                 supplier   : "https://github.com/microservices-demo/",
-                version    : "1.0"
+                version    : "1.0",
             ]
+
+            repo.doInclude = true
         }
 
         return this
