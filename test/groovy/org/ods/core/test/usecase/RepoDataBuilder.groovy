@@ -62,7 +62,8 @@ class RepoDataBuilder {
                 description: 'OpenJDK is a free and open-source implementation of the Java Platform, Standard Edition. Technologies: Spring Boot 2.1, OpenJDK 11, supplier:https://adoptopenjdk.net',
                 version:     '3.x',
                 type:        'ods'
-            ]
+            ],
+            doInclude: true
         ]
         return repo
     }
