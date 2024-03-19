@@ -6,7 +6,6 @@ import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.service.JiraZephyrService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
-import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JiraUseCaseSupport

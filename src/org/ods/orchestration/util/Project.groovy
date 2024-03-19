@@ -1168,9 +1168,8 @@ class Project {
         if (!this.jiraUseCase) return true
         if (!this.jiraUseCase.jira) return true
 
-        boolean result = true
         def match = jiraUseCase.jira.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
-        if (!match.deployableState.equals("DEPLOYABLE")) {
+        if (match.deployableState != "DEPLOYABLE") {
             throw new ComponentMismatchException(match.message)
         }
 

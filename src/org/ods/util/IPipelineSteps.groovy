@@ -78,4 +78,5 @@ interface IPipelineSteps {
     def emailext(Map args)
 
     def findFiles (Map args)
+
 }

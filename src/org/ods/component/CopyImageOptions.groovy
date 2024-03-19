@@ -37,4 +37,5 @@ class CopyImageOptions extends Options {
     private String image
     @SuppressWarnings('UnusedPrivateField')
     private String imageTag
+
 }
