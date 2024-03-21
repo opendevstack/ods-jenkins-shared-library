@@ -311,6 +311,7 @@ class Project {
     Project init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+
         return this
     }
 
@@ -425,6 +426,21 @@ class Project {
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
+        logger.info("Checking Jira components against metadata.yml repositories")
+        if (this.jiraUseCase.jira) {
+            def components = this.jiraUseCase.jira.getProjectComponents(this.key)
+            logger.info("Jira components found: $components")
+            def repos = this.getRepositories()
+
+            for (component in components) {
+                logger.info("Component: $component")
+                def componentName = component.name.minus('Technology-')
+                if (!repos.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
+                    this.data.metadata.repositories << ['id': componentName, 'included': false]
+                    logger.info("Repository added: $componentName")
+                }
+            }
+        }
         return this
     }
 
@@ -1165,8 +1181,8 @@ class Project {
      * @throw ComponentMismatchException if there is a component mismatch
      */
     boolean checkComponentsMismatch() {
-        if (!this.jiraUseCase) return true
-        if (!this.jiraUseCase.jira) return true
+        if (!this.jiraUseCase) return false
+        if (!this.jiraUseCase.jira) return false
 
         def match = jiraUseCase.jira.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
         if (match.deployableState != "DEPLOYABLE") {

@@ -2146,7 +2146,6 @@ class JiraServiceSpec extends SpecHelper {
 
     def "update select list fields on issue"() {
         given:
-        given:
         def request = updateSelectListFieldsOnIssueRequestData()
         def response = updateSelectListFieldsOnIssueResponseData()
 
@@ -2201,6 +2200,82 @@ class JiraServiceSpec extends SpecHelper {
         then:
         def e = thrown(RuntimeException)
         e.message == "Error: unable to update select list fields on Jira issue JIRA-123. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    Map checkComponentMismatchRequestData(Map mixins = [:]) {
+        def result =  [
+            data: [
+                projectKey: "DEMO"
+            ],
+            headers: [
+                "Accept": "application/json"
+            ],
+            password: "password",
+            username: "username",
+            path: "/rest/platform/1.1/components/EDP/v1"
+        ]
+        return result << mixins
+    }
+
+    Map checkComponentMismatchResponeData(Map mixins = [:]) {
+        def result = [
+            body: '''{
+                "components": [
+                    {
+                        "branch": "release/6.0",
+                        "component": "edp-golang",
+                        "include": "true"
+                    },
+                    {
+                        "branch": "master",
+                        "component": "edp-spock",
+                        "include": "false"
+                    }
+                ],
+                "deployableState": "DEPLOYABLE",
+                "message": "no message"
+            }''',
+            status: 200
+        ]
+        return result << mixins
+    }
+
+    def "check component mismatch deployable"() {
+        given:
+        def request = checkComponentMismatchRequestData()
+        def response = checkComponentMismatchResponeData()
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.checkComponentsMismatch('EDP','v1')
+
+        then:
+        noExceptionThrown()
+        assert result.deployableState == 'DEPLOYABLE'
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "check component mismatch error"() {
+        given:
+        def request = checkComponentMismatchRequestData()
+        def response = checkComponentMismatchResponeData([status: 400])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.checkComponentsMismatch('EDP','v1')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/components/EDP/v1 Jira responded with code: '400'")
 
         cleanup:
         stopServer(server)

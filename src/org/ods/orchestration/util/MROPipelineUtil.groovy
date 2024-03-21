@@ -373,8 +373,10 @@ class MROPipelineUtil extends PipelineUtil {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
+                    //repo.doSkip = repo.containsKey('include') ? repo.skip : false
+                    //if (repo.doSkip) {
                     if (preExecute) {
-                        preExecute(this.steps, repo)
+                        preExecute(this.steps, repo) //TODO: Move inside if doinlcude?
                     }
                     repo.doInclude = repo.containsKey('include') ? repo.include : true
                     if (repo.doInclude) {
@@ -462,8 +464,9 @@ class MROPipelineUtil extends PipelineUtil {
                     }
 
                     if (postExecute) {
-                        postExecute(this.steps, repo)
+                        postExecute(this.steps, repo) //TODO: Move inside if doinlcude?
                     }
+                    //}
                 }
             }
         ]

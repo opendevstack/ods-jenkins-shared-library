@@ -3221,4 +3221,43 @@ class ProjectSpec extends SpecHelper {
         result == false
     }
 
+    def "check component mismatch with jira enabled"() {
+        given:
+        def jiraService = Mock(JiraService) {
+            checkComponentsMismatch(*_) >> { return [deployableState: 'DEPLOYABLE'] }
+        }
+        def jiraUC = Mock(JiraUseCase) {
+            getVersionFromReleaseStatusIssue() >> { return 1 }
+            jira << jiraService
+        }
+
+        def projectObj = new Project(steps, logger)
+        //projectObj.git = git
+        projectObj.jiraUseCase = jiraUC
+        /*projectObj.data.buildParams = FixtureHelper.createProjectBuildParams()
+        projectObj.data.jira = [issueTypes: [
+            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER): [ fields: [
+                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+                (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
+            ]],
+            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
+                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
+            ]]
+        ]]*/
+
+        when:
+        def result = projectObj.checkComponentsMismatch()
+
+        then:
+        result
+    }
+
+    def "check component mismatch with jira disabled"() {
+        when:
+        def result = project.checkComponentsMismatch()
+
+        then:
+        !result
+    }
+
 }
