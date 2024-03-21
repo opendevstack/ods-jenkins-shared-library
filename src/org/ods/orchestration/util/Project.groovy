@@ -425,22 +425,6 @@ class Project {
         this.data.openshift = [:]
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
-
-        logger.info("Checking Jira components against metadata.yml repositories")
-        if (this.jiraUseCase.jira) {
-            def components = this.jiraUseCase.jira.getProjectComponents(this.key)
-            logger.info("Jira components found: $components")
-            def repos = this.getRepositories()
-
-            for (component in components) {
-                logger.info("Component: $component")
-                def componentName = component.name.minus('Technology-')
-                if (!repos.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
-                    this.data.metadata.repositories << ['id': componentName, 'included': false]
-                    logger.info("Repository added: $componentName")
-                }
-            }
-        }
         return this
     }
 
@@ -1190,6 +1174,18 @@ class Project {
         }
 
         return true
+    }
+
+    /**
+     * Get jira components if enabled
+     * @result Map of jira components if jira is enabled, otherwise null
+     */
+    Map getJiraProjectComponents() {
+        if (this.jiraUseCase && this.jiraUseCase.jira) {
+            return this.jiraUseCase.jira.getProjectComponents(this.key)
+        } else {
+            return null
+        }
     }
 
     protected Map loadJiraData(String projectKey) {
