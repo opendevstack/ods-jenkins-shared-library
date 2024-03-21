@@ -2013,7 +2013,18 @@ class Project {
     }
 
     @NonCPS
-    void addRepository(Map repo) {
+    void addFakeRepository(String component) {
+        def repo = [
+            data: [
+                openshift: [:],
+                documents: [:],
+            ],
+            type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
+
+            url: gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString(),
+            branch: 'master'
+        ]
+
         this.data.metadata.repositories << repo
     }
 }

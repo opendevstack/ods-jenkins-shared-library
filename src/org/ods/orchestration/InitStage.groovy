@@ -94,7 +94,7 @@ class InitStage extends Stage {
                 logger.info("Component: $component")
                 def componentName = component.name.minus('Technology-')
                 if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
-                    project.addRepository(['id': componentName, 'included': false])
+                    project.addFakeRepository(componentName)
                     logger.info("Repository added: $componentName")
                 }
             }
