@@ -85,7 +85,6 @@ class InitStage extends Stage {
             checkReposContainEnvCommits(repos, steps, git, logger, util)
         }
 
-        def repos = project.repositories
         logger.info("Checking Jira components against metadata.yml repositories")
         def components = project.getJiraProjectComponents()
         if (components) {
@@ -94,12 +93,14 @@ class InitStage extends Stage {
             for (component in components) {
                 logger.info("Component: $component")
                 def componentName = component.name.minus('Technology-')
-                if (!repos.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
-                    this.data.metadata.repositories << ['id': componentName, 'included': false]
+                if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
+                    project.addRepository(['id': componentName, 'included': false])
                     logger.info("Repository added: $componentName")
                 }
             }
         }
+        def repos = project.repositories
+
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {

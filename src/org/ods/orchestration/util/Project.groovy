@@ -2012,4 +2012,8 @@ class Project {
         }
     }
 
+    @NonCPS
+    void addRepository(Map repo) {
+        this.data.metadata.repositories << repo
+    }
 }
