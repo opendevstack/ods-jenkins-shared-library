@@ -2014,14 +2014,13 @@ class Project {
 
     @NonCPS
     void addFakeRepository(String component) {
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         def repo = [
             data: [
                 openshift: [:],
                 documents: [:],
             ],
             type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-
-            def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
             url: gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString(),
             branch: 'master'
         ]
