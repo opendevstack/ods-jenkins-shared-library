@@ -2012,7 +2012,6 @@ class Project {
         }
     }
 
-    @NonCPS
     void addFakeRepository(String component) {
         def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         def repo = [
