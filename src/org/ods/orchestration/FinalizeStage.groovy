@@ -145,30 +145,29 @@ class FinalizeStage extends Stage {
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
             if (repo.doInclude) {
-                repoPushTasks << [(repo.id): this.&createTagAndPush(steps, git, repo)]
+                repoPushTasks << [(repo.id):  {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        if (project.isWorkInProgress) {
+                            String branchName = repo.data.git.branch ?: repo.branch
+                            git.pushRef(branchName)
+                        } else if (project.isAssembleMode) {
+                            if (!git.remoteTagExists(project.targetTag)) {
+                                git.createTag(project.targetTag)
+                            }
+                            git.pushBranchWithTags(project.gitReleaseBranch)
+                        } else {
+                            if (!git.remoteTagExists(project.targetTag)) {
+                                git.createTag(project.targetTag)
+                            }
+                            git.pushRef(project.targetTag)
+                        }
+                    }
+                }
+                ]
             }
         }
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
-    }
-
-    private void createTagAndPush(IPipelineSteps steps, GitService git, repo) {
-        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-            if (project.isWorkInProgress) {
-                String branchName = repo.data.git.branch ?: repo.branch
-                git.pushRef(branchName)
-            } else if (project.isAssembleMode) {
-                if (!git.remoteTagExists(project.targetTag)) {
-                    git.createTag(project.targetTag)
-                }
-                git.pushBranchWithTags(project.gitReleaseBranch)
-            } else {
-                if (!git.remoteTagExists(project.targetTag)) {
-                    git.createTag(project.targetTag)
-                }
-                git.pushRef(project.targetTag)
-            }
-        }
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
