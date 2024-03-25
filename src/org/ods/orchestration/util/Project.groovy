@@ -2016,6 +2016,7 @@ class Project {
     void addFakeRepository(String component) {
         def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         def repo = [
+            id: component,
             data: [
                 openshift: [:],
                 documents: [:],
