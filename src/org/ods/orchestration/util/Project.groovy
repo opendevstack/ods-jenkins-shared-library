@@ -318,6 +318,7 @@ class Project {
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
     Project initGitDataAndJiraUsecase(GitService git, JiraUseCase usecase) {
+        this.git = git
         if (usecase) {
             // add to notify jira back, even in this super early case
             this.jiraUseCase = usecase
