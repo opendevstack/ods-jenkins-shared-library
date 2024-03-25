@@ -100,6 +100,8 @@ class InitStage extends Stage {
             }
         }
         def repos = project.repositories
+        logger.debug("Printing repositories")
+        logger.debug(repos)
 
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
