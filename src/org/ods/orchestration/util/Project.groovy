@@ -2026,6 +2026,6 @@ class Project {
             branch: 'master'
         ]
 
-        this.data.metadata.repositories << repo
+        this.data.metadata.repositories.add(repo)
     }
 }
