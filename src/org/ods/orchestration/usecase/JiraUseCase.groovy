@@ -9,6 +9,8 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
 
+import java.util.concurrent.ConcurrentHashMap
+
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
 
@@ -35,6 +37,7 @@ class JiraUseCase {
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
     private ILogger logger
+    private final docVersions = new ConcurrentHashMap<String, Long>(64)
 
     JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira, ILogger logger) {
         this.project = project
@@ -393,24 +396,27 @@ class JiraUseCase {
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
-            def versionNumber = 0L
-
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
-            if (version) {
-                try {
-                    versionNumber = version.toLong()
-                } catch (NumberFormatException _) {
-                    this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        " version. It contains value '${version}'.")
+            def versionNumber = docVersions[issue.key]
+            if (null == versionNumber) {
+                logger.debug("Retrieving doc version from doc tracking issue: ${issue.key}")
+                versionNumber = 0L
+                def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
+                if (version) {
+                    try {
+                        versionNumber = version.toLong()
+                    } catch (NumberFormatException _) {
+                        this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
+                            " version. It contains value '${version}'.")
+                    }
                 }
+                docVersions[issue.key] = versionNumber
             }
-
             return versionNumber
         }
 
         def result = versionList.max()
         logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
-            "${trackingIssues.collect { it.key } }")
+            "${trackingIssues.collect { it.key }}")
 
         return result
     }
