@@ -2026,6 +2026,13 @@ class Project {
             branch: 'master'
         ]
 
-        this.data.metadata.repositories.add(repo)
+        logger.debug("repos before : ")
+        logger.debug("${this.data.metadata.repositories}")
+
+        def res = this.data.metadata.repositories.add(repo)
+        logger.debug("Repo $component added? : $res")
+
+        logger.debug("repos after : ")
+        logger.debug("${this.data.metadata.repositories}")
     }
 }
