@@ -140,6 +140,8 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         def repoSize = flattenedRepos.size()
+        steps.echo "Finalize: Push flattenede repos"
+        steps.echo "$flattenedRepos"
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
             if (repo.doInclude) {
