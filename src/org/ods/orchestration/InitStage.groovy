@@ -90,16 +90,12 @@ class InitStage extends Stage {
         if (components) {
             logger.info("Jira components found: $components")
 
-            def rm = project.projectProperties['RM.REPOSITORY'].minus("${project.key.toLowerCase()}-")
             for (component in components) {
                 logger.info("Component: $component")
                 def componentName = component.name.minus('Technology-')
-                //Don't add release manager
-                if ( rm != componentName ) {
-                    if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
-                        project.addFakeRepository(componentName)
-                        logger.info("Repository added: $componentName")
-                    }
+                if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
+                    project.addFakeRepository(componentName)
+                    logger.info("Repository added: $componentName")
                 }
             }
         }

@@ -2013,6 +2013,7 @@ class Project {
     }
 
     void addFakeRepository(String component) {
+        def rmURL = git.getOriginUrl()
         def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         def repo = [
             id: component,
@@ -2026,6 +2027,10 @@ class Project {
             branch: 'master'
         ]
 
-        this.data.metadata.repositories.add(repo)
+        if (rmURL == repo.url) {
+            logger.debug("Not adding release manager")
+        } else {
+            this.data.metadata.repositories.add(repo)
+        }
     }
 }
