@@ -49,7 +49,7 @@ class FakeProject extends Project {
                 version    : "1.0",
             ]
 
-            repo.doInclude = true
+            repo.include = true
         }
 
         return this

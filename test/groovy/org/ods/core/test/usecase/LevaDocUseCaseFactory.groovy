@@ -77,7 +77,7 @@ class LevaDocUseCaseFactory {
             project.repositories.each { repo ->
                 repo.metadata = loadMetadata(repo)
                 repo.doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
-                repo.doInclude = true
+                repo.include = true
             }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)

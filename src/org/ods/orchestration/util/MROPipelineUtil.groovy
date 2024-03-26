@@ -376,10 +376,9 @@ class MROPipelineUtil extends PipelineUtil {
                     //repo.doSkip = repo.containsKey('include') ? repo.skip : false
                     //if (repo.doSkip) {
                     if (preExecute) {
-                        preExecute(this.steps, repo) //TODO: Move inside if doinlcude?
+                        preExecute(this.steps, repo)
                     }
-                    repo.doInclude = repo.containsKey('include') ? repo.include : true
-                    if (repo.doInclude) {
+                    if (repo.include) {
                         repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                         if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                             if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {

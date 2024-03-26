@@ -775,7 +775,8 @@ class JiraService {
             def message = "Error: unable to get project components. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to get project components. Jira could not be found at: '${this.baseURL}'."
+                //In this case should be project not found
+                message = (new JsonSlurperClassic().parseText(response.getBody())).errorMessages[0]
             }
 
             throw new RuntimeException(message)

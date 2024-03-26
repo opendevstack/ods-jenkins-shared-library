@@ -1038,7 +1038,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
-        if (!repo.doInclude) {
+        if (!repo.include) {
             logger.debug("createTIR - Skipping repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
             return null
         }

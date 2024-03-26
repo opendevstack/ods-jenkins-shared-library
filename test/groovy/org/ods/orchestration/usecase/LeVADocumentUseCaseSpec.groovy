@@ -1252,7 +1252,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 ]
             ]
         ]
-        repo.doInclude = false
+        repo.include = false
         // Argument Constraints
         def documentType = TIR as String
 

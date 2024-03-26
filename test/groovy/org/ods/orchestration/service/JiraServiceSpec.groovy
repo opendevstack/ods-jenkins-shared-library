@@ -73,7 +73,6 @@ class JiraServiceSpec extends SpecHelper {
         e.message == "Error: unable to connect to Jira. 'password' is undefined."
     }
 
-
     Map addLabelsToIssueRequestData(Map mixins = [:]) {
         def result = [
             data: [
@@ -130,6 +129,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "add labels to issue with invalid names"() {
@@ -153,6 +155,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to add labels to Jira issue. 'names' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "add labels to issue"() {
@@ -269,6 +274,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "append comment to issue with invalid comment"() {
@@ -292,6 +300,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to append comment to Jira issue. 'comment' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "append comment to issue"() {
@@ -420,6 +431,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue link. 'linkType' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue link type with invalid inwardIssue"() {
@@ -443,6 +457,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue link. 'inwardIssue' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue link type with invalid outwardIssue"() {
@@ -466,6 +483,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue link. 'outwardIssue' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue link type"() {
@@ -700,6 +720,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'type' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue type with invalid projectKey"() {
@@ -723,6 +746,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue type with invalid summary"() {
@@ -746,6 +772,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'summary' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue type with invalid description"() {
@@ -769,6 +798,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'description' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "create issue type"() {
@@ -1007,7 +1039,6 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-
     Map getDocGenDataRequestData(Map mixins = [:]) {
         def result = [
             data: [
@@ -1199,6 +1230,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "get issues for JQL query"() {
@@ -1624,7 +1658,6 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-
     Map getProjectRequestData(Map mixins = [:]) {
         def result = [
             data: [
@@ -1734,7 +1767,6 @@ class JiraServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
-
 
     Map getProjectVersionsRequestData(Map mixins = [:]) {
         def result = [
@@ -1918,6 +1950,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "remove labels from issue with invalid names"() {
@@ -1941,6 +1976,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to remove labels from Jira issue. 'names' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "remove labels from issue"() {
@@ -2119,6 +2157,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to update select list fields on Jira issue. 'issueIdOrKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "update select list fields on issue with invalid fields"() {
@@ -2142,6 +2183,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to update select list fields on Jira issue. 'fields' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "update select list fields on issue"() {
@@ -2208,7 +2252,7 @@ class JiraServiceSpec extends SpecHelper {
     Map checkComponentMismatchRequestData(Map mixins = [:]) {
         def result =  [
             data: [
-                projectKey: "DEMO"
+                projectKey: "EDP"
             ],
             headers: [
                 "Accept": "application/json"
@@ -2257,6 +2301,28 @@ class JiraServiceSpec extends SpecHelper {
         then:
         noExceptionThrown()
         assert result.deployableState == 'DEPLOYABLE'
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "check component mismatch not deployable"() {
+        given:
+        def request = checkComponentMismatchRequestData()
+        def response = checkComponentMismatchResponeData([body: '''{
+                "deployableState": "MISCONFIGURED",
+                "message": "no message"
+            }'''])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.checkComponentsMismatch('EDP','v1')
+
+        then:
+        noExceptionThrown()
+        assert result.deployableState != 'DEPLOYABLE'
 
         cleanup:
         stopServer(server)
@@ -2342,6 +2408,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to update text fields on Jira issue. 'issueIdOrKey' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "update text fields on issue with invalid fields"() {
@@ -2365,6 +2434,9 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to update text fields on Jira issue. 'fields' is undefined."
+
+        cleanup:
+        stopServer(server)
     }
 
     def "update text fields on issue"() {
@@ -2428,4 +2500,177 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    Map getProjectComponentsRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                projectKey: "FELST",
+            ],
+            headers: [
+                "Accept": "application/json",
+            ],
+            password: "password",
+            username: "username"
+        ]
+
+        result.path = "/rest/api/2/project/${result.data.projectKey}/components"
+
+        return result << mixins
+    }
+
+    Map getProjectComponentsResponseData(Map mixins = [:]) {
+        def result = [
+            body: '''[
+  {
+    "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/component/10109",
+    "id": "10109",
+    "name": "Technology-docker",
+    "description": "Technology component felst-docker stored at https://bitbucket-felst-cd.apps.us-test.ocp.aws.boehringer.com/projects/FELST/repos/felst-docker/browse",
+    "assigneeType": "PROJECT_DEFAULT",
+    "assignee": {
+      "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/user?username=admin",
+      "key": "JIRAUSER10100",
+      "name": "admin",
+      "avatarUrls": {
+        "48x48": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=32"
+      },
+      "displayName": "Administrator EDP in a Project",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "realAssignee": {
+      "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/user?username=admin",
+      "key": "JIRAUSER10100",
+      "name": "admin",
+      "avatarUrls": {
+        "48x48": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=32"
+      },
+      "displayName": "Administrator EDP in a Project",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "FELST",
+    "projectId": 10100,
+    "archived": false,
+    "deleted": false
+  },
+  {
+    "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/component/10113",
+    "id": "10113",
+    "name": "Technology-releman",
+    "description": "Technology component felst-releman stored at https://bitbucket-felst-cd.apps.us-test.ocp.aws.boehringer.com/projects/FELST/repos/felst-releman/browse",
+    "assigneeType": "PROJECT_LEAD",
+    "assignee": {
+      "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/user?username=admin",
+      "key": "JIRAUSER10100",
+      "name": "admin",
+      "avatarUrls": {
+        "48x48": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=32"
+      },
+      "displayName": "Administrator EDP in a Project",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_LEAD",
+    "realAssignee": {
+      "self": "https://jira-felst-cd.apps.us-test.ocp.aws.boehringer.com/rest/api/2/user?username=admin",
+      "key": "JIRAUSER10100",
+      "name": "admin",
+      "avatarUrls": {
+        "48x48": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/3613085007988dc95647a684eacd9e1c?d=mm&s=32"
+      },
+      "displayName": "Administrator EDP in a Project",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "FELST",
+    "projectId": 10100,
+    "archived": false,
+    "deleted": false
+  }
+]''',
+            status: 200
+        ]
+
+        return result << mixins
+    }
+
+    def "get project components"() {
+        given:
+        def request = getProjectComponentsRequestData()
+        def response = getProjectComponentsResponseData()
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getProjectComponents('FELST')
+
+        then:
+        noExceptionThrown()
+        assert result[0].name == 'Technology-docker'
+
+        cleanup:
+        stopServer(server)
+    }
+
+    Map getWrongProjectComponentsRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                projectKey: "TEST",
+            ],
+            headers: [
+                "Accept": "application/json",
+            ],
+            password: "password",
+            username: "username"
+        ]
+
+        result.path = "/rest/api/2/project/${result.data.projectKey}/components"
+
+        return result << mixins
+    }
+
+    Map getWrongProjectComponentsResponseData(Map mixins = [:]) {
+        def result = [
+            body: '''{
+  "errorMessages": [
+    "No project could be found with key 'TEST'."
+  ],
+  "errors": {}
+}''',
+            status: 404
+        ]
+
+        return result << mixins
+    }
+
+    def "get wrong project components"() {
+        given:
+        def request = getWrongProjectComponentsRequestData()
+        def response = getWrongProjectComponentsResponseData()
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getProjectComponents('TEST')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "No project could be found with key 'TEST'."
+
+        cleanup:
+        stopServer(server)
+    }
 }

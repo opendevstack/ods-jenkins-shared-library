@@ -1178,13 +1178,13 @@ class Project {
 
     /**
      * Get jira components if enabled
-     * @result Map of jira components if jira is enabled, otherwise null
+     * @result List of jira components if jira is enabled, otherwise null
      */
-    Map getJiraProjectComponents() {
+    List<Map> getJiraProjectComponents() {
         if (this.jiraUseCase && this.jiraUseCase.jira) {
             return this.jiraUseCase.jira.getProjectComponents(this.key)
         } else {
-            return [:]
+            return []
         }
     }
 
@@ -1465,6 +1465,8 @@ class Project {
                 throw new IllegalArgumentException(
                         "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
+
+            repo.include = repo.containsKey('include') ? repo.include : true
 
             repo.data = [
                 openshift: [:],
