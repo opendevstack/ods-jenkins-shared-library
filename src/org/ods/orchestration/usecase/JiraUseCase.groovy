@@ -407,7 +407,7 @@ class JiraUseCase {
     Long getLatestDocVersionId(List<Map> trackingIssues) {
         logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
         def versionList = trackingIssues.collect { issue ->
-            retrieveDocIssueVersion(issue)
+            docVersions.get(issue.key)
         }
 
         // We will use the biggest ID available
@@ -416,11 +416,6 @@ class JiraUseCase {
             "${trackingIssues.collect { it.key }}")
 
         return result
-    }
-
-    @NonCPS
-    private retrieveDocIssueVersion(Map issue) {
-        docVersions.get(issue.key)
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
