@@ -48,6 +48,14 @@ class JiraUseCase {
         this.support = support
     }
 
+    void setJira(JiraService jira) {
+        this.jira = jira
+    }
+
+    JiraService getJira() {
+        return jira
+    }
+
     void applyXunitTestResultsAsTestIssueLabels(List testIssues, Map testResults) {
         if (!this.jira) return
 
@@ -436,6 +444,10 @@ class JiraUseCase {
             content = content.replace(imageMatcher[0][1], it[2])
         }
         return content
+    }
+
+    Map checkComponentsMismatch(String projectKey, String version) {
+        return jira.checkComponentsMismatch(projectKey, version)
     }
 
 }
