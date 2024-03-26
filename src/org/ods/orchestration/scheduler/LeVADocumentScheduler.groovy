@@ -253,9 +253,9 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     @NonCPS
     private boolean isProjectOneSAASRepoOnly () {
-        if (!(this.project.repositories.findAll{ repo ->
+        if (!(this.project.repositories.findAll { repo ->
             repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE}).isEmpty()) {
-            return (this.project.repositories.findAll{ repo ->
+            return (this.project.repositories.findAll { repo ->
                 (repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE &&
                 repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST)
             }).isEmpty()
@@ -407,4 +407,5 @@ class LeVADocumentScheduler extends DocGenScheduler {
             }
         }
     }
+
 }

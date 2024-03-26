@@ -480,7 +480,6 @@ class InitStage extends Stage {
             checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
-
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
@@ -503,7 +502,7 @@ class InitStage extends Stage {
                 git.checkoutNewLocalBranch(gitReleaseBranch)
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
-                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
                     "using master branch for developer preview.")
                 project.setGitReleaseBranch("master")
             }

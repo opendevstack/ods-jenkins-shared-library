@@ -8,8 +8,6 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.util.StringCleanup
 
-import java.net.URI
-
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -149,7 +147,7 @@ class JiraService {
                     ],
                     outwardIssue: [
                         key: outwardIssue.key
-                    ]
+                    ],
                 ]
             ))
             .asString()
@@ -710,7 +708,7 @@ class JiraService {
 
         response.ifFailure {
             if (response.getStatus() == 400) {
-                if(response.getBody().contains("Invalid project versionName.")) {
+                if (response.getBody().contains("Invalid project versionName.")) {
                     return false
                 }
             }
@@ -785,4 +783,5 @@ class JiraService {
 
         return new JsonSlurperClassic().parseText(response.getBody()) ?: []
     }
+
 }
