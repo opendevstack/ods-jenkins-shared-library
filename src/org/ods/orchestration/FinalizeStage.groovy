@@ -145,7 +145,7 @@ class FinalizeStage extends Stage {
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
             if (repo.doInclude) {
-                repoPushTasks << repoMap(repo, steps, git)
+                repoPushTasks << repoClosureMap(repo, steps, git)
             }
         }
         repoPushTasks.failFast = true
