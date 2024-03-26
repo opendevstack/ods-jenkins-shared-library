@@ -10,8 +10,6 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
 
-import java.util.concurrent.ConcurrentHashMap
-
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
 
@@ -46,7 +44,23 @@ class JiraUseCase {
         this.util = util
         this.jira = jira
         this.logger = logger
-        this.docVersions = new ConcurrentCache<String, Long>(new ConcurrentHashMap(64))
+
+        def computeIfAbsent = { key ->
+            def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
+            def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
+            def version = 0L
+            def versionField = this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
+            if (versionField) {
+                try {
+                    version = versionField.toLong()
+                } catch (NumberFormatException _) {
+
+                }
+            }
+            return version
+        }
+
+        this.docVersions = new ConcurrentCache<String, Long>(computeIfAbsent)
     }
 
     void setSupport(AbstractJiraUseCaseSupport support) {
@@ -390,13 +404,12 @@ class JiraUseCase {
 
 
     Long getLatestDocVersionId(List<Map> trackingIssues) {
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
-        def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
+
 
         logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
 
         def versionList = trackingIssues.collect { issue ->
-            retrieveDocIssueVersion(issue, documentVersionField)
+            retrieveDocIssueVersion(issue)
         }
 
         // We will use the biggest ID available
@@ -408,21 +421,8 @@ class JiraUseCase {
     }
 
     @NonCPS
-    private retrieveDocIssueVersion(Map issue, documentVersionField) {
-        def computeIfAbsent = { key ->
-            def version = 0L
-            def versionField = this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
-            if (versionField) {
-                try {
-                    version = versionField.toLong()
-                } catch (NumberFormatException _) {
-
-                }
-            }
-            return version
-        }
-
-        docVersions.get(issue.key, computeIfAbsent)
+    private retrieveDocIssueVersion(Map issue) {
+        docVersions.get(issue.key)
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
