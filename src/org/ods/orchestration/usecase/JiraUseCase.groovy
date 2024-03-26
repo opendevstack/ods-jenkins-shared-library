@@ -3,6 +3,7 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.util.ConcurrentCache
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -37,7 +38,7 @@ class JiraUseCase {
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
     private ILogger logger
-    private final docVersions = new ConcurrentHashMap<String, Long>(64)
+    private ConcurrentCache docVersions
 
     JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira, ILogger logger) {
         this.project = project
@@ -45,6 +46,7 @@ class JiraUseCase {
         this.util = util
         this.jira = jira
         this.logger = logger
+        this.docVersions = new ConcurrentCache<String, Long>(new ConcurrentHashMap(64))
     }
 
     void setSupport(AbstractJiraUseCaseSupport support) {
@@ -386,35 +388,41 @@ class JiraUseCase {
         }
     }
 
+
     Long getLatestDocVersionId(List<Map> trackingIssues) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
         def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
 
-        // We will use the biggest ID available
+        logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
+
         def versionList = trackingIssues.collect { issue ->
-            def versionNumber = docVersions[issue.key]
-            if (null == versionNumber) {
-                logger.debug("Retrieving doc version from doc tracking issue: ${issue.key}")
-                versionNumber = 0L
-                def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
-                if (version) {
-                    try {
-                        versionNumber = version.toLong()
-                    } catch (NumberFormatException _) {
-                        this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                            " version. It contains value '${version}'.")
-                    }
-                }
-                docVersions[issue.key] = versionNumber
-            }
-            return versionNumber
+            retrieveDocIssueVersion(issue, documentVersionField)
         }
 
+        // We will use the biggest ID available
         def result = versionList.max()
-        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
+        logger.debug("Retrieved max doc version ${result} from doc tracking issues " +
             "${trackingIssues.collect { it.key }}")
 
         return result
+    }
+
+    @NonCPS
+    private retrieveDocIssueVersion(Map issue, documentVersionField) {
+        def computeIfAbsent = { key ->
+            def version = 0L
+            def versionField = this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
+            if (versionField) {
+                try {
+                    version = versionField.toLong()
+                } catch (NumberFormatException _) {
+
+                }
+            }
+            return version
+        }
+
+        docVersions.get(issue.key, computeIfAbsent)
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
