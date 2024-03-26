@@ -11,7 +11,8 @@ class ConcurrentCache<K, V> {
     private final ConcurrentMap<K, V> cache
     private final Function<? super K, ? extends V> computeIfAbsent
 
-    ConcurrentCache(Function<? super K, ? extends V> computeIfAbsent, int initialCapacity = 16, float loadFactor = 0.75f, int concurrencyLevel = 1) {
+    ConcurrentCache(Function<? super K, ? extends V> computeIfAbsent,
+                    int initialCapacity = 16, float loadFactor = 0.75f, int concurrencyLevel = 1) {
         this.cache = new ConcurrentHashMap(initialCapacity, loadFactor, concurrencyLevel)
         this.computeIfAbsent = computeIfAbsent
     }
@@ -26,4 +27,5 @@ class ConcurrentCache<K, V> {
     String toString() {
         return cache.toString()
     }
+
 }

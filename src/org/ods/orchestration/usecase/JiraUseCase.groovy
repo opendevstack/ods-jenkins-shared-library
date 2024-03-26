@@ -46,15 +46,17 @@ class JiraUseCase {
         this.logger = logger
 
         def computeIfAbsent = { key ->
-            def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
+            def documentationTrackingIssueFields =
+                this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
             def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
             def version = 0L
-            def versionField = this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
+            def versionField =
+                this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
             if (versionField) {
                 try {
                     version = versionField.toLong()
                 } catch (NumberFormatException _) {
-
+                    version = 0L
                 }
             }
             return version
