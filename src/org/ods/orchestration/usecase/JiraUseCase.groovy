@@ -404,12 +404,8 @@ class JiraUseCase {
         }
     }
 
-
     Long getLatestDocVersionId(List<Map> trackingIssues) {
-
-
         logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
-
         def versionList = trackingIssues.collect { issue ->
             retrieveDocIssueVersion(issue)
         }

@@ -26,4 +26,5 @@ class ConcurrentCacheSpec extends SpecHelper {
         then:
             "{key=123456}" == result
     }
+
 }
