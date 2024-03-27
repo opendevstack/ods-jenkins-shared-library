@@ -4,6 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
@@ -310,12 +311,14 @@ class Project {
     Project init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+
         return this
     }
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
     Project initGitDataAndJiraUsecase(GitService git, JiraUseCase usecase) {
+        this.git = git
         if (usecase) {
             // add to notify jira back, even in this super early case
             this.jiraUseCase = usecase
@@ -423,7 +426,6 @@ class Project {
         this.data.openshift = [:]
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
-
         return this
     }
 
@@ -1156,6 +1158,36 @@ class Project {
         return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
     }
 
+    /**
+     * Checks if the JIRA components match the repositories
+     * If jira or JiraUsecase is not enabled -> false
+     * Otherwise, check from Jira
+     * @result true if jira is enabled and there is no mismatch, and false if not enabled
+     * @throw ComponentMismatchException if there is a component mismatch
+     */
+    boolean checkComponentsMismatch() {
+        if (!this.jiraUseCase) return false
+
+        def match = jiraUseCase.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
+        if (match.deployableState != "DEPLOYABLE") {
+            throw new ComponentMismatchException(match.message)
+        }
+
+        return true
+    }
+
+    /**
+     * Get jira components if enabled
+     * @result List of jira components if jira is enabled, otherwise null
+     */
+    List<Map> getJiraProjectComponents() {
+        if (this.jiraUseCase && this.jiraUseCase.jira) {
+            return this.jiraUseCase.jira.getProjectComponents(this.key)
+        } else {
+            return []
+        }
+    }
+
     protected Map loadJiraData(String projectKey) {
         def result = [
                 components: [:],
@@ -1433,6 +1465,8 @@ class Project {
                 throw new IllegalArgumentException(
                         "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
+
+            repo.include = repo.containsKey('include') ? repo.include : true
 
             repo.data = [
                 openshift: [:],
@@ -1980,4 +2014,25 @@ class Project {
         }
     }
 
+    void addFakeRepository(String component) {
+        def rmURL = git.getOriginUrl()
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+        def repo = [
+            id: component,
+            data: [
+                openshift: [:],
+                documents: [:],
+            ],
+            include: false,
+            type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
+            url: gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString(),
+            branch: 'master'
+        ]
+
+        if (rmURL == repo.url) {
+            logger.debug("Not adding release manager")
+        } else {
+            this.data.metadata.repositories.add(repo)
+        }
+    }
 }

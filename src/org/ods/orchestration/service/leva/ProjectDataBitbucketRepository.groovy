@@ -6,12 +6,11 @@ import org.ods.util.IPipelineSteps
 
 import java.nio.file.NoSuchFileException
 
-
 class ProjectDataBitbucketRepository {
 
     static final String BASE_DIR = 'projectData'
 
-    private IPipelineSteps steps
+    private final IPipelineSteps steps
 
     ProjectDataBitbucketRepository(IPipelineSteps steps) {
         this.steps = steps

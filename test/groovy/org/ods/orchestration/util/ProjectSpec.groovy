@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
@@ -1500,6 +1501,7 @@ class ProjectSpec extends SpecHelper {
         def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
             repo.branch = "master"
+            repo.include = true
             repo.data = [ documents: [:], openshift: [:] ]
             repo.url = "https://github.com/my-org/net-${repo.id}.git"
         }
@@ -3219,6 +3221,41 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == false
+    }
+
+    def "check component mismatch with jira enabled"() {
+        given:
+        jiraUseCase.checkComponentsMismatch('net', '1') >> { return [deployableState: 'DEPLOYABLE'] }
+        jiraUseCase.getVersionFromReleaseStatusIssue() >> { return '1' }
+
+        when:
+        def result = project.checkComponentsMismatch()
+
+        then:
+        result
+    }
+
+    def "check component mismatch fail with jira enabled"() {
+        given:
+        jiraUseCase.checkComponentsMismatch('net', '1') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
+        jiraUseCase.getVersionFromReleaseStatusIssue() >> { return '1' }
+
+        when:
+        project.checkComponentsMismatch()
+
+        then:
+        thrown(ComponentMismatchException)
+    }
+
+    def "check component mismatch with jira disabled"() {
+        given:
+        def projectObj = new Project(steps, logger)
+
+        when:
+        def result = projectObj.checkComponentsMismatch()
+
+        then:
+        !result
     }
 
 }

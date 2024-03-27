@@ -54,6 +54,5 @@ def call(IContext context, Map config = [:]) {
     def buildResourceName = "imported-${imageName}"
     odsComponentStageScanWithAqua(context,
         [resourceName: "${buildResourceName}", imageLabels: context.extensionImageLabels])
-
 }
 return this

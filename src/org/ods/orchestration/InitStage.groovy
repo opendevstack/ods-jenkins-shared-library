@@ -79,9 +79,30 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
-
-        def repos = project.repositories
         MROPipelineUtil util = registry.get(MROPipelineUtil)
+
+        if (project.isPromotionMode && !project.buildParams.rePromote) {
+            checkReposContainEnvCommits(repos, steps, git, logger, util)
+        }
+
+        logger.info("Checking Jira components against metadata.yml repositories")
+        def components = project.getJiraProjectComponents()
+        if (components) {
+            logger.info("Jira components found: $components")
+
+            for (component in components) {
+                logger.info("Component: $component")
+                def componentName = component.name.minus('Technology-')
+                if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
+                    project.addFakeRepository(componentName)
+                    logger.info("Repository added: $componentName")
+                }
+            }
+        }
+        def repos = project.repositories
+        logger.debug("Printing repositories")
+        logger.debug("$repos")
+
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {
@@ -98,8 +119,9 @@ class InitStage extends Stage {
             throw openDocumentsException
         }
 
-        if (project.isPromotionMode && !project.buildParams.rePromote) {
-            checkReposContainEnvCommits(repos, steps, git, logger, util)
+        //Check Jira components matches metadata components
+        if (!project.checkComponentsMismatch()) {
+            logger.debug('Jira disabled, no component match check')
         }
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
@@ -458,7 +480,6 @@ class InitStage extends Stage {
             checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
-
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
@@ -481,7 +502,7 @@ class InitStage extends Stage {
                 git.checkoutNewLocalBranch(gitReleaseBranch)
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
-                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
                     "using master branch for developer preview.")
                 project.setGitReleaseBranch("master")
             }

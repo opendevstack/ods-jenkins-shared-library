@@ -88,7 +88,7 @@ class DeployStage extends Stage {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
                 def installableRepos = this.project.repositories.findAll { repo ->
-                    if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA){
+                    if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
                         MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     }
                 }

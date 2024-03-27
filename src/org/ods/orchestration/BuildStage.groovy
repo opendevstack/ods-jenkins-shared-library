@@ -132,22 +132,23 @@ class BuildStage extends Stage {
 
     String sanitizeFailedRepos(def failedRepos) {
         def index = 1
-        def sanitizedRepos = failedRepos.collect {it -> (index++) + ".\tRepository id: " + it.id +
+        def sanitizedRepos = failedRepos.collect { it ->
+            (index++) + ".\tRepository id: " + it.id +
             "\n\tBranch: " + it.branch + "\n\tRepository type: " + it.type }
-            .join("\n\n");
+            .join("\n\n")
         return sanitizedRepos
     }
 
-
     List filterReposWithTailorFailure(def repos) {
-        return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure}
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
     }
 
     String buildReposCommaSeparatedString(def tailorFailedRepos) {
         def reposCommaSeparatedString = tailorFailedRepos
-            .collect {it -> "\"" + it.id + "\""}
+            .collect { it -> "\"" + it.id + "\"" }
             .join(", ")
 
         return reposCommaSeparatedString
     }
+
 }

@@ -15,4 +15,5 @@ class ScanWithAquaOptions extends Options {
     /**
      * Timeout of scan (defaults to 5 minutes - 300 seconds). */
     Integer scanTimeoutSeconds
+
 }

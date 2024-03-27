@@ -10,7 +10,6 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.ods.orchestration.phases.FinalizeNonOdsComponent
@@ -374,91 +373,99 @@ class MROPipelineUtil extends PipelineUtil {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
+                    //repo.doSkip = repo.containsKey('include') ? repo.skip : false
+                    //if (repo.doSkip) {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
-                    repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
-                    if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir, false)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_LIB) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE) {
-                        this.logger.debug("Repo '${repo.id}' is of type ODS SaaS Service Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir, false)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component, init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
-                            if (repo.pipelineConfig?.initJenkinsFile) {
-                                executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
-                                // hacky - but the only way possible - we know it's only one.
-                                Closure checkout = prepareCheckoutRepoNamedJob(repo, true).get(1)
-                                checkout()
-                                this.logger.debug("Got new git data for ${repo.id}: ${repo.data.git}")
+                    if (repo.include) {
+                        repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
+                        if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir, false)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
-                        } else if (name == PipelinePhases.TEST) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                            }
+                        } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_LIB) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                            }
+                        } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE) {
+                            this.logger.debug("Repo '${repo.id}' is of type ODS SaaS Service Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                        } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir, false)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                            }
+                        } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Test Component, init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
+                                if (repo.pipelineConfig?.initJenkinsFile) {
+                                    executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
+                                    // hacky - but the only way possible - we know it's only one.
+                                    Closure checkout = prepareCheckoutRepoNamedJob(repo, true).get(1)
+                                    checkout()
+                                    this.logger.debug("Got new git data for ${repo.id}: ${repo.data.git}")
+                                }
+                            } else if (name == PipelinePhases.TEST) {
+                                executeODSComponent(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                            }
                         } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                            def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
+                            if (phaseConfig) {
+                                def label = "${repo.id} (${repo.url})"
+
+                                if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                                    this.steps.dir(baseDir) {
+                                        def steps = "make ${phaseConfig.target}"
+                                        this.steps.sh script: steps, label: label
+                                    }
+                                } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                                    this.steps.dir(baseDir) {
+                                        def steps = "./scripts/${phaseConfig.steps}"
+                                        this.steps.sh script: steps, label: label
+                                    }
+                                }
+                            } else {
+                                this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                            }
                         }
                     } else {
-                        def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
-                        if (phaseConfig) {
-                            def label = "${repo.id} (${repo.url})"
-
-                            if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "make ${phaseConfig.target}"
-                                    this.steps.sh script: steps, label: label
-                                }
-                            } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "./scripts/${phaseConfig.steps}"
-                                    this.steps.sh script: steps, label: label
-                                }
-                            }
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
+                        repo.doInstall = false
+                        this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Include flag is set to false so nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                     }
 
                     if (postExecute) {
-                        postExecute(this.steps, repo)
+                        postExecute(this.steps, repo) //TODO: Move inside if doinlcude?
                     }
+                    //}
                 }
             }
         ]

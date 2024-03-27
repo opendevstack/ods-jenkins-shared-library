@@ -12,4 +12,5 @@ class StringCleanup {
         }
         return inputString.collectReplacements { replacements[it] }
     }
+
 }
