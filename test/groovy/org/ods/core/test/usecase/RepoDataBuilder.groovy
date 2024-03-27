@@ -63,7 +63,7 @@ class RepoDataBuilder {
                 version:     '3.x',
                 type:        'ods'
             ],
-            doInclude: true
+            include: true
         ]
         return repo
     }
