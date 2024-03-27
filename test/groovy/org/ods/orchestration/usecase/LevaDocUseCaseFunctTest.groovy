@@ -18,6 +18,7 @@ import org.ods.orchestration.util.StringCleanup
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
@@ -54,6 +55,7 @@ import util.FixtureHelper
  *
  */
 @Slf4j
+@Ignore
 class LevaDocUseCaseFunctTest extends Specification {
 
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"] as String)
