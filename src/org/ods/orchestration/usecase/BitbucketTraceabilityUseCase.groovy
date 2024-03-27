@@ -107,34 +107,49 @@ class BitbucketTraceabilityUseCase {
         boolean nextPage = true
         int nextPageStart = 0
         while (nextPage) {
-            Map commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
-            if (commits.isLastPage) {
+            Map pullRequests = bitbucketService.getMergedPullRequestsForIntegrationBranch(token, repo,
+                PAGE_LIMIT, nextPageStart)
+            if (pullRequests.isLastPage) {
                 nextPage = false
             } else {
-                nextPageStart = commits.nextPageStart
+                nextPageStart = pullRequests.nextPageStart
             }
-            records += processCommits(token, repo, commits)
+
+            records += pullRequests.values.collect { pullRequest ->
+                processPullRequest(token, repo, pullRequest)}
+                .flatten()
         }
         return records
     }
 
     @NonCPS
-    private List<Record> processCommits(String token, Map repo, Map commits) {
-        return commits.values.collect { commit ->
-            Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
-            // Only changes in PR and destiny integration branch
-            if (mergedPR.values
-                && mergedPR.values[0].toRef.displayId == repo.branch) {
-                def record = new Record(getDateWithFormat(commit.committerTimestamp),
-                    getAuthor(commit.author),
-                    getReviewers(mergedPR.values[0].reviewers),
-                    mergedPR.values[0].links.self[(0)].href,
-                    commit.id,
-                    repo.repo)
-                return record
+    private List<Record> processPullRequest(String token, Map repo, Map pullRequest) {
+        def records = []
+        boolean nextPage = true
+        int nextPageStart = 0
+        while (nextPage) {
+            Map commits = bitbucketService.getCommmitsForPullRequest(token, repo.repo, pullRequest.id,
+                PAGE_LIMIT, nextPageStart)
+            if (commits.isLastPage) {
+                nextPage = false
+            } else {
+                nextPageStart = commits.nextPageStart
             }
-            return null
-        }.findAll { it != null }
+            records += processCommits(repo, commits, pullRequest)
+        }
+        return records
+    }
+
+    @NonCPS
+    private List<Record> processCommits(Map repo, Map commits, Map pullRequest) {
+        return commits.values.collect { commit ->
+            return new Record(getDateWithFormat(commit.committerTimestamp),
+                getAuthor(commit.author),
+                getReviewers(pullRequest.reviewers),
+                pullRequest.links.self[(0)].href,
+                commit.id,
+                repo.repo)
+        }
     }
 
     @NonCPS
