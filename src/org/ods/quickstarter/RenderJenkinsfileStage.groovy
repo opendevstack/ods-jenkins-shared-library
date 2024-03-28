@@ -20,7 +20,7 @@ class RenderJenkinsfileStage extends Stage {
         def target = "${context.targetDir}/${config.target}"
         script.sh(
             script: """
-            sed 's|@project_id@|${context.projectId}|g; s|@component_id@|${context.componentId}|g; s|@component_type@|${context.sourceDir}|g; s|@git_url_http@|${context.gitUrlHttp}|g; s|@ods_namespace@|${context.odsNamespace}|g; s|@ods_image_tag@|${context.odsImageTag}|g; s|@ods_git_ref@|${context.odsGitRef}|g; s|@agent_image_tag@|${context.agentImageTag}|g; s|@shared_library_ref@|${context.sharedLibraryRef}|g' ${source} > ${target}
+            sed 's|@project_id@|${context.projectId}|g; s|@component_id@|${context.componentId}|g; s|@component_type@|${context.sourceDir}|g; s|@git_url_http@|${context.gitUrlHttp}|g; s|@ods_namespace@|${context.odsNamespace}|g; s|@ods_image_tag@|${context.odsImageTag}|g; s|@ods_git_ref@|${context.odsGitRef}|g; s|@agent_image_tag@|${context.agentImageTag}|g; s|@shared_library_ref@|${context.sharedLibraryRef}|g; s|@app_domain@|${context.appDomain}|g' ${source} > ${target}
             """,
             label: "Render '${config.source}' to '${config.target}'"
         )

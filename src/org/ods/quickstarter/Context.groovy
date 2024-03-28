@@ -2,12 +2,24 @@ package org.ods.quickstarter
 
 import com.cloudbees.groovy.cps.NonCPS
 
+import org.ods.util.Logger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
+
+import org.ods.services.OpenShiftService
+
 class Context implements IContext {
 
     private final Map config
+    private final Logger logger
+    private final IPipelineSteps steps
+    private final def script
+    private OpenShiftService openShiftService
 
-    Context(Map config) {
+    Context(Map config, Logger logger, def script) {
         this.config = config
+        this.logger = logger
+        this.steps = new PipelineSteps(script)
     }
 
     @NonCPS
@@ -143,6 +155,24 @@ class Context implements IContext {
     @NonCPS
     String getGitBranch() {
         config.odsGitRef
+    }
+
+    @NonCPS
+    String getAppDomain() {
+        config.appDomain
+    }
+
+    void setAppDomain() {
+        if (config.projectId) {
+            logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+            this.openShiftService = new OpenShiftService(steps, logger)
+            config.appDomain = openShiftService.getApplicationDomain("${config.projectId}-cd")
+
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")
+        } else {
+            logger.debug('Could not get application domain, as no projectId is available')
+        }
     }
 
 }
