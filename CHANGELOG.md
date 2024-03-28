@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Fix  InfrastructureStage (org.ods.component) does not honor branchToEnvironmentMapping ([#1076](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1076))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 * Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
