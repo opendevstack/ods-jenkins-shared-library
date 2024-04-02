@@ -48,29 +48,24 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
 
         then:
-        1 * jira.removeLabelsFromIssue("JIRA-1", { return it == TestIssueLabels.values()*.toString() })
-        1 * jira.addLabelsToIssue("JIRA-1", ["Succeeded"])
-        0 * jira.addLabelsToIssue("JIRA-1", _)
+        1 * jira.setIssueLabels("JIRA-1", ["Succeeded"])
+        0 * jira.setIssueLabels("JIRA-1", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("JIRA-2", { it == TestIssueLabels.values()*.toString() })
-        1 * jira.addLabelsToIssue("JIRA-2", ["Error"])
-        0 * jira.addLabelsToIssue("JIRA-2", _)
+        1 * jira.setIssueLabels("JIRA-2", ["Error"])
+        0 * jira.setIssueLabels("JIRA-2", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("JIRA-3", { it == TestIssueLabels.values()*.toString() })
-        1 * jira.addLabelsToIssue("JIRA-3", ["Failed"])
-        0 * jira.addLabelsToIssue("JIRA-3", _)
+        1 * jira.setIssueLabels("JIRA-3", ["Failed"])
+        0 * jira.setIssueLabels("JIRA-3", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("JIRA-4", { it == TestIssueLabels.values()*.toString() })
-        1 * jira.addLabelsToIssue("JIRA-4", ["Skipped"])
-        0 * jira.addLabelsToIssue("JIRA-4", _)
+        1 * jira.setIssueLabels("JIRA-4", ["Skipped"])
+        0 * jira.setIssueLabels("JIRA-4", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("JIRA-5", { it == TestIssueLabels.values()*.toString() })
-        1 * jira.addLabelsToIssue("JIRA-5", ["Missing"])
-        0 * jira.addLabelsToIssue("JIRA-5", _)
+        1 * jira.setIssueLabels("JIRA-5", ["Missing"])
+        0 * jira.setIssueLabels("JIRA-5", _)
     }
 
     def "check Jira issue matches test case"() {
