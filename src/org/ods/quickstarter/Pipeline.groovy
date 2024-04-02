@@ -2,6 +2,7 @@ package org.ods.quickstarter
 
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -11,6 +12,7 @@ class Pipeline implements Serializable {
     private final def script
     private final Map config
     private final ILogger logger
+    private OpenShiftService openShiftService
 
     Pipeline(def script, Map config) {
         this.script = script
@@ -66,6 +68,21 @@ class Pipeline implements Serializable {
                     )
                 ]
         }
+        logger.debug "Setting App Domain......."
+        if (!config.appDomain) {
+            if (config.openShiftProject) {
+                logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+                this.openShiftService = new OpenShiftService(steps, logger)
+                config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
+
+                logger.debugClocked("${config.componentId}-get-oc-app-domain")
+            } else {
+                logger.debug('Could not get application domain, as no openShiftProject is available')
+            }
+        }else {
+            logger.debug("Using application domain '${config.appDomain}'")
+        }
 
         // vars from jenkins master
         script.node {
@@ -98,6 +115,19 @@ class Pipeline implements Serializable {
             }
         }
     }
+
+    // private appDomain() {
+    //     if (config.openShiftProject) {
+    //         logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+    //         this.openShiftService = new OpenShiftService(steps, logger)
+    //         config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
+
+    //         logger.debugClocked("${config.componentId}-get-oc-app-domain")
+    //     } else {
+    //         logger.debug('Could not get application domain, as no openShiftProject is available')
+    //     }
+    // }
 
     private onAgentNode(Map config, Closure block) {
         if (!config.podContainers) {
@@ -148,8 +178,9 @@ class Pipeline implements Serializable {
             annotations: config.annotations,
         ) {
             script.node(podLabel) {
-                IContext context = new Context(config, logger, script)
-                context.setAppDomain()
+                // IContext context = new Context(config, logger, script)
+                IContext context = new Context(config)
+                // context.setAppDomain()
                 block(context)
             }
         }
