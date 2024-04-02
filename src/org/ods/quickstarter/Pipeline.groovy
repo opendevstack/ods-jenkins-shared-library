@@ -154,21 +154,6 @@ class Pipeline implements Serializable {
                     args: ''
                 )
             ]
-            logger.debug "Setting App Domain......."
-            if (!config.appDomain) {
-                if (config.openShiftProject) {
-                    logger.startClocked("${config.componentId}-get-oc-app-domain")
-
-                    this.openShiftService = new OpenShiftService(steps, logger)
-                    config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
-
-                    logger.debugClocked("${config.componentId}-get-oc-app-domain")
-                } else {
-                    logger.debug('Could not get application domain, as no openShiftProject is available')
-                }
-            }else {
-                logger.debug("Using application domain '${config.appDomain}'")
-            }
 
         }
 
@@ -186,6 +171,21 @@ class Pipeline implements Serializable {
                 // IContext context = new Context(config, logger, script)
                 IContext context = new Context(config)
                 // context.setAppDomain()
+                logger.debug "Setting App Domain......."
+                if (!config.appDomain) {
+                    if (config.openShiftProject) {
+                        logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+                        this.openShiftService = new OpenShiftService(steps, logger)
+                        config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
+
+                        logger.debugClocked("${config.componentId}-get-oc-app-domain")
+                    } else {
+                        logger.debug('Could not get application domain, as no openShiftProject is available')
+                    }
+                }else {
+                    logger.debug("Using application domain '${config.appDomain}'")
+                }
                 block(context)
             }
         }
