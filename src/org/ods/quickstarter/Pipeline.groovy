@@ -72,21 +72,6 @@ class Pipeline implements Serializable {
                     )
                 ]
         }
-        logger.debug "Setting App Domain......."
-        if (!config.appDomain) {
-            if (config.openShiftProject) {
-                logger.startClocked("${config.componentId}-get-oc-app-domain")
-
-                this.openShiftService = new OpenShiftService(steps, logger)
-                config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
-
-                logger.debugClocked("${config.componentId}-get-oc-app-domain")
-            } else {
-                logger.debug('Could not get application domain, as no openShiftProject is available')
-            }
-        }else {
-            logger.debug("Using application domain '${config.appDomain}'")
-        }
 
         // vars from jenkins master
         script.node {
@@ -169,6 +154,22 @@ class Pipeline implements Serializable {
                     args: ''
                 )
             ]
+            logger.debug "Setting App Domain......."
+            if (!config.appDomain) {
+                if (config.openShiftProject) {
+                    logger.startClocked("${config.componentId}-get-oc-app-domain")
+
+                    this.openShiftService = new OpenShiftService(steps, logger)
+                    config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
+
+                    logger.debugClocked("${config.componentId}-get-oc-app-domain")
+                } else {
+                    logger.debug('Could not get application domain, as no openShiftProject is available')
+                }
+            }else {
+                logger.debug("Using application domain '${config.appDomain}'")
+            }
+
         }
 
         def podLabel = "qs-${UUID.randomUUID()}"
