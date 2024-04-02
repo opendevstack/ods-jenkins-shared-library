@@ -105,18 +105,18 @@ class Pipeline implements Serializable {
         }
     }
 
-    // private appDomain() {
-    //     if (config.openShiftProject) {
-    //         logger.startClocked("${config.componentId}-get-oc-app-domain")
+    private appDomain() {
+        if (config.openShiftProject) {
+            logger.startClocked("${config.componentId}-get-oc-app-domain")
 
-    //         this.openShiftService = new OpenShiftService(steps, logger)
-    //         config.appDomain = openShiftService.getApplicationDomain("${config.projectId}")
+            this.openShiftService = new OpenShiftService(steps, logger)
+            config.appDomain = openShiftService.getApplicationDomain("${config.openShiftProject}")
 
-    //         logger.debugClocked("${config.componentId}-get-oc-app-domain")
-    //     } else {
-    //         logger.debug('Could not get application domain, as no openShiftProject is available')
-    //     }
-    // }
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")
+        } else {
+            logger.debug('Could not get application domain, as no openShiftProject is available')
+        }
+    }
 
     private onAgentNode(Map config, Closure block) {
         if (!config.podContainers) {
@@ -168,24 +168,8 @@ class Pipeline implements Serializable {
             annotations: config.annotations,
         ) {
             script.node(podLabel) {
-                // IContext context = new Context(config, logger, script)
                 IContext context = new Context(config)
-                // context.setAppDomain()
-                logger.debug "Setting App Domain......."
-                if (!config.appDomain) {
-                    if (config.openShiftProject) {
-                        logger.startClocked("${config.componentId}-get-oc-app-domain")
-
-                        this.openShiftService = new OpenShiftService(steps, logger)
-                        config.appDomain = openShiftService.getApplicationDomain("${config.openShiftProject}")
-
-                        logger.debugClocked("${config.componentId}-get-oc-app-domain")
-                    } else {
-                        logger.debug('Could not get application domain, as no openShiftProject is available')
-                    }
-                }else {
-                    logger.debug("Using application domain '${config.appDomain}'")
-                }
+                appDomain()
                 block(context)
             }
         }
