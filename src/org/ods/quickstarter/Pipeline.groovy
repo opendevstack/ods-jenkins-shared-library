@@ -3,6 +3,8 @@ package org.ods.quickstarter
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -12,12 +14,14 @@ class Pipeline implements Serializable {
     private final def script
     private final Map config
     private final ILogger logger
+    private final IPipelineSteps steps
     private OpenShiftService openShiftService
 
     Pipeline(def script, Map config) {
         this.script = script
         this.config = config
         this.logger = new Logger(script, false)
+        this.steps = new PipelineSteps(script)
     }
 
     @SuppressWarnings(['AbcMetric', 'UnnecessaryObjectReferences'])
