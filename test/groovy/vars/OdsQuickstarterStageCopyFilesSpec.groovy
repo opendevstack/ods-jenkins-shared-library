@@ -6,7 +6,7 @@ import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 
 class OdsQuickstarterStageCopyFilesSpec extends PipelineSpockTestBase {
- 
+
   def "run successfully"() {
     given:
     def config = [
