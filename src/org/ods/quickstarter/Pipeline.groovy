@@ -168,8 +168,8 @@ class Pipeline implements Serializable {
             annotations: config.annotations,
         ) {
             script.node(podLabel) {
-                IContext context = new Context(config)
                 appDomain()
+                IContext context = new Context(config)
                 block(context)
             }
         }

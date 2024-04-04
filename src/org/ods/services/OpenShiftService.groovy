@@ -76,23 +76,33 @@ class OpenShiftService {
                 ' does not exist - cannot create route to retrieve host / domain name!' +
                 ' If this is needed, please create project on cluster!')
         }
-        def routeName = 'test-route-' + (System.currentTimeMillis() +
-            new SecureRandom().nextInt(1000))
-        steps.sh (
-            script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
-            label: "create dummy route for extraction (${routeName})"
-        )
+        // def routeName = 'test-route-' + (System.currentTimeMillis() +
+        //     new SecureRandom().nextInt(1000))
+        // steps.sh (
+        //     script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
+        //     label: "create dummy route for extraction (${routeName})"
+        // )
+        // def routeUrl = steps.sh (
+        //     script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+        //     returnStdout: true,
+        //     label: 'get cluster route domain'
+        // ).toString().trim()
+        // def routePrefixLength = "${routeName}-${project}".length() + 1
+        // def openShiftPublicHost = routeUrl[routePrefixLength..-1]
+        // steps.sh (
+        //     script: "oc -n ${project} delete route ${routeName} | true",
+        //     label: "delete dummy route for extraction (${routeName})"
+        // )
         def routeUrl = steps.sh (
-            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+            script: "oc -n ${project} whoami --show-console",
             returnStdout: true,
-            label: 'get cluster route domain'
+            label: 'get cluster console route'
         ).toString().trim()
-        def routePrefixLength = "${routeName}-${project}".length() + 1
+
+        def prefix = routeUrl.split("\\.")
+        def routePrefixLength = prefix[1].length() + 1
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-        steps.sh (
-            script: "oc -n ${project} delete route ${routeName} | true",
-            label: "delete dummy route for extraction (${routeName})"
-        )
+
         return openShiftPublicHost
     }
 
