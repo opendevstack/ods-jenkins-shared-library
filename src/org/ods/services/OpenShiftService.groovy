@@ -94,14 +94,19 @@ class OpenShiftService {
         //     label: "delete dummy route for extraction (${routeName})"
         // )
         def routeUrl = steps.sh (
-            script: "oc -n ${project} whoami --show-console",
+            script: "oc -n ${project} whoami --show-console | cut -f3 -d '/'",
             returnStdout: true,
             label: 'get cluster console route'
         ).toString().trim()
 
+        logger.info "Console Route: ${routeUrl}"
+
         def prefix = routeUrl.split("\\.")
-        def routePrefixLength = prefix[1].length() + 1
+        logger.info "Route Prefix: ${prefix}"
+        def routePrefixLength = prefix[0].length() + 1
+        logger.info "Route Prefix Length: ${routePrefixLength}"
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
+        logger.info "Openshift Domain: ${openShiftPublicHost}"
 
         return openShiftPublicHost
     }
