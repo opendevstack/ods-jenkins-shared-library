@@ -84,11 +84,11 @@ class OpenShiftService {
             throw new RuntimeException ("Cannot get cluster console url!")
         }
 
-        def routePrefixLength = routeUrl.indexOf('.' as char ) 
+        def routePrefixLength = routeUrl.indexOf('.') 
         if (routePrefixLength < 0) {
             throw new RuntimeException ("Route does not contain a dot: ${routePrefixLength}")
         }
-        
+
         def openShiftPublicHost = routeUrl[routePrefixLength +1..-1]
         return openShiftPublicHost
     }
