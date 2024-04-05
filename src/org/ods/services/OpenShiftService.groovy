@@ -100,8 +100,10 @@ class OpenShiftService {
         ).toString().trim()
 
         logger.info "Console Route: ${routeUrl}"
-        def prefix = routeUrl.split("/")[2].split(".")[1]
-        logger.info "Route Prefix: ${prefix}"
+        def arrayprefix = routeUrl.split("/")[2]
+        logger.info "Route Prefix: ${arrayprefix}"
+        def prefix = arrayprefix.split(".")[1]
+        logger.info "Route Prefix: ${prefix}"        
         def routePrefixLength = prefix.length() + 1
         logger.info "Route Prefix Length: ${routePrefixLength}"
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
