@@ -139,7 +139,6 @@ class Pipeline implements Serializable {
                     args: ''
                 )
             ]
-
         }
 
         def podLabel = "qs-${UUID.randomUUID()}"
@@ -159,5 +158,4 @@ class Pipeline implements Serializable {
             }
         }
     }
-
 }

@@ -9,8 +9,6 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
-import java.security.SecureRandom
-
 @SuppressWarnings(['ClassSize', 'MethodCount'])
 @TypeChecked
 class OpenShiftService {
@@ -90,7 +88,7 @@ class OpenShiftService {
             throw new RuntimeException ("Route does not contain a dot: ${routePrefixLength}")
         }
 
-        def openShiftPublicHost = routeUrl[routePrefixLength +1..-1]
+        def openShiftPublicHost = routeUrl[routePrefixLength+1..-1]
         return openShiftPublicHost
     }
 
