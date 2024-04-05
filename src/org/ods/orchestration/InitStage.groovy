@@ -86,16 +86,15 @@ class InitStage extends Stage {
         }
 
         logger.info("Checking Jira components against metadata.yml repositories")
-        def components = project.getJiraProjectComponents()
-        if (components) {
-            logger.info("Jira components found: $components")
+        def check = project.checkComponentsMismatch()
+        if (check) {
+            logger.info("Jira components found: $check")
 
-            for (component in components) {
+            for (component in check.components) {
                 logger.info("Component: $component")
-                def componentName = component.name.minus('Technology-')
-                if (!project.repositories.any { it -> componentName == (it.containsKey('name') ? it.name : it.id) }) {
-                    project.addFakeRepository(componentName)
-                    logger.info("Repository added: $componentName")
+                if (!project.repositories.any { it -> component.name == (it.containsKey('name') ? it.name : it.id) }) {
+                    project.addFakeRepository(component.name)
+                    logger.info("Repository added: $component.name")
                 }
             }
         }
@@ -120,9 +119,9 @@ class InitStage extends Stage {
         }
 
         //Check Jira components matches metadata components
-        if (!project.checkComponentsMismatch()) {
-            logger.debug('Jira disabled, no component match check')
-        }
+        //if (!project.checkComponentsMismatch()) {
+        //    logger.debug('Jira disabled, no component match check')
+        //}
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 

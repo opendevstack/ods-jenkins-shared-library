@@ -1159,21 +1159,37 @@ class Project {
     }
 
     /**
-     * Checks if the JIRA components match the repositories
-     * If jira or JiraUsecase is not enabled -> false
+     * Checks if the JIRA components match the repositories, and return the status and component list:
+     * {
+         "deployableState": "DEPLOYABLE",
+         "message": "** For adding or removing components from the deployment, please denote them with a property <i>include: true</i> or <i>include: false</i> in your <a target=\"_blank\" href=\"https://bitbucket-felst-cd.apps.us-test.ocp.aws.boehringer.com/projects/FELST/repos/felst-releman/browse/metadata.yml?at=refs%2Fheads%2Fmaster\">Release Manager configuration</a>, respectively.",
+         "components": [
+             {
+                 "name": "docker",
+                 "branch": "master",
+                 "include": true
+             },
+             {
+                 "name": "flask",
+                 "branch": "master",
+                 "include": true
+             },
+             {
+                 "name": "spock",
+                 "branch": "master",
+                 "include": true
+             }
+         ]
+     }
+     * If jira or JiraUsecase is not enabled -> Empty map
      * Otherwise, check from Jira
-     * @result true if jira is enabled and there is no mismatch, and false if not enabled
+     * @result The call results, and empty if not enabled
      * @throw ComponentMismatchException if there is a component mismatch
      */
-    boolean checkComponentsMismatch() {
-        if (!this.jiraUseCase) return false
+    Map checkComponentsMismatch() {
+        if (!this.jiraUseCase) return [:]
 
-        def match = jiraUseCase.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
-        if (match.deployableState != "DEPLOYABLE") {
-            throw new ComponentMismatchException(match.message)
-        }
-
-        return true
+        return jiraUseCase.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
     }
 
     /**
