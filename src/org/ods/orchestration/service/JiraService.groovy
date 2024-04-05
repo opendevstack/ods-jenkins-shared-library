@@ -737,7 +737,7 @@ class JiraService {
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/components/{projectKey}/{version}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .routeParam('version', version)
             .basicAuth(this.username, this.password)
@@ -746,7 +746,7 @@ class JiraService {
 
         response.ifFailure {
             def message = 'Error: unable to get component match check in url ' +
-                "${this.baseURL}/rest/platform/1.1/components/${projectKey.toUpperCase()}/$version" +
+                "${this.baseURL}/rest/platform/1.1/projects/${projectKey.toUpperCase()}/components?changeId=$version" +
                 ' Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
@@ -758,31 +758,4 @@ class JiraService {
         }
         return new JsonSlurperClassic().parseText(response.getBody())
     }
-
-    @NonCPS
-    List<Map> getProjectComponents(String projectKey) {
-        if (!projectKey?.trim()) {
-            throw new IllegalArgumentException('Error: unable to get project components from Jira. \'projectKey\' is undefined.')
-        }
-
-        def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/components")
-            .routeParam('projectKey', projectKey.toUpperCase())
-            .basicAuth(this.username, this.password)
-            .header('Accept', 'application/json')
-            .asString()
-
-        response.ifFailure {
-            def message = "Error: unable to get project components. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
-
-            if (response.getStatus() == 404) {
-                //In this case should be project not found
-                message = (new JsonSlurperClassic().parseText(response.getBody())).errorMessages[0]
-            }
-
-            throw new RuntimeException(message)
-        }
-
-        return new JsonSlurperClassic().parseText(response.getBody()) ?: []
-    }
-
 }

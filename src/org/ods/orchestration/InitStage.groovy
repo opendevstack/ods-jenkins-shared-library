@@ -6,6 +6,7 @@ import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.service.JiraZephyrService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JiraUseCaseSupport
@@ -88,6 +89,9 @@ class InitStage extends Stage {
         logger.info("Checking Jira components against metadata.yml repositories")
         def check = project.getComponentsStatus()
         if (check) {
+            if (check.deployableState != 'DEPLOYABLE') {
+                new ComponentMismatchException(check.message)
+            }
             logger.info("Jira components found: $check")
 
             for (component in check.components) {
@@ -117,11 +121,6 @@ class InitStage extends Stage {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
         }
-
-        //Check Jira components matches metadata components
-        //if (!project.checkComponentsMismatch()) {
-        //    logger.debug('Jira disabled, no component match check')
-        //}
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 

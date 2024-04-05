@@ -1192,18 +1192,6 @@ class Project {
         return jiraUseCase.getComponentsStatus(this.key, this.data.buildParams.changeId)
     }
 
-    /**
-     * Get jira components if enabled
-     * @result List of jira components if jira is enabled, otherwise null
-     */
-    List<Map> getJiraProjectComponents() {
-        if (this.jiraUseCase && this.jiraUseCase.jira) {
-            return this.jiraUseCase.jira.getProjectComponents(this.key)
-        } else {
-            return []
-        }
-    }
-
     protected Map loadJiraData(String projectKey) {
         def result = [
                 components: [:],

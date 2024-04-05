@@ -3225,26 +3225,24 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch with jira enabled"() {
         given:
-        jiraUseCase.checkComponentsMismatch('net', '1') >> { return [deployableState: 'DEPLOYABLE'] }
-        jiraUseCase.getVersionFromReleaseStatusIssue() >> { return '1' }
+        jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
 
         when:
-        def result = project.checkComponentsMismatch()
+        def result = project.getComponentsStatus()
 
         then:
-        result
+        result.deployableState == 'DEPLOYABLE'
     }
 
     def "check component mismatch fail with jira enabled"() {
         given:
-        jiraUseCase.checkComponentsMismatch('net', '1') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
-        jiraUseCase.getVersionFromReleaseStatusIssue() >> { return '1' }
+        jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
 
         when:
-        project.checkComponentsMismatch()
+        def result = project.getComponentsStatus()
 
         then:
-        thrown(ComponentMismatchException)
+        result.deployableState != 'DEPLOYABLE'
     }
 
     def "check component mismatch with jira disabled"() {
@@ -3252,7 +3250,7 @@ class ProjectSpec extends SpecHelper {
         def projectObj = new Project(steps, logger)
 
         when:
-        def result = projectObj.checkComponentsMismatch()
+        def result = projectObj.getComponentsStatus()
 
         then:
         !result
