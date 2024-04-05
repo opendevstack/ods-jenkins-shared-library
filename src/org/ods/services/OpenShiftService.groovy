@@ -77,7 +77,7 @@ class OpenShiftService {
         exists
     }
 
-    static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
+    static String getApplicationDomain(IPipelineSteps steps) {
         def routeUrl = getConsoleUrl(steps)
 
         if (routeUrl == null) {
@@ -166,7 +166,7 @@ class OpenShiftService {
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
-        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
+        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}".toString()
         def paramFlags = params.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
         doTailorApply(project, "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
@@ -472,8 +472,8 @@ class OpenShiftService {
         m
     }
 
-    String getApplicationDomain(String project) {
-        getApplicationDomainOfProject(steps, project)
+    String getApplicationDomain() {
+        getApplicationDomain(steps)
     }
 
     // imageInfoForImageUrl expects an image URL like one of the following:
@@ -1336,7 +1336,7 @@ class OpenShiftService {
         }
 
         // Replace values from envParams with parameters, and add parameters into template.
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomain(project)
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomain()
         def templateParams = ''
         def sedReplacements = ''
         envParams.each { key, val ->

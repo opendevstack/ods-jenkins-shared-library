@@ -578,7 +578,7 @@ class Context implements IContext {
         if (!this.appDomain) {
             logger.startClocked("${config.componentId}-get-oc-app-domain")
             this.appDomain = ServiceRegistry.instance.get(OpenShiftService).
-                getApplicationDomain(config.targetProject)
+                getApplicationDomain()
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
         this.appDomain
