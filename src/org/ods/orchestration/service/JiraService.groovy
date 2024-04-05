@@ -727,7 +727,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map checkComponentsMismatch(String projectKey, String version) {
+    Map getComponentsStatus(String projectKey, String version) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'projectKey\' is undefined.')

@@ -446,8 +446,8 @@ class JiraUseCase {
         return content
     }
 
-    Map checkComponentsMismatch(String projectKey, String version) {
-        return jira.checkComponentsMismatch(projectKey, version)
+    Map getComponentsStatus(String projectKey, String version) {
+        return jira.getComponentsStatus(projectKey, version)
     }
 
 }

@@ -1186,10 +1186,10 @@ class Project {
      * @result The call results, and empty if not enabled
      * @throw ComponentMismatchException if there is a component mismatch
      */
-    Map checkComponentsMismatch() {
+    Map getComponentsStatus() {
         if (!this.jiraUseCase) return [:]
 
-        return jiraUseCase.checkComponentsMismatch(this.key, this.getVersionFromReleaseStatusIssue())
+        return jiraUseCase.getComponentsStatus(this.key, this.data.buildParams.changeId)
     }
 
     /**

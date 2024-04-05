@@ -2249,7 +2249,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    Map checkComponentMismatchRequestData(Map mixins = [:]) {
+    Map getComponentsStatusRequestData(Map mixins = [:]) {
         def result =  [
             data: [
                 projectKey: "EDP"
@@ -2264,7 +2264,7 @@ class JiraServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    Map checkComponentMismatchResponeData(Map mixins = [:]) {
+    Map getComponentsStatusResponeData(Map mixins = [:]) {
         def result = [
             body: '''{
                 "components": [
@@ -2289,14 +2289,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "check component mismatch deployable"() {
         given:
-        def request = checkComponentMismatchRequestData()
-        def response = checkComponentMismatchResponeData()
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponeData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.checkComponentsMismatch('EDP','v1')
+        def result = service.getComponentsStatus('EDP','v1')
 
         then:
         noExceptionThrown()
@@ -2308,8 +2308,8 @@ class JiraServiceSpec extends SpecHelper {
 
     def "check component mismatch not deployable"() {
         given:
-        def request = checkComponentMismatchRequestData()
-        def response = checkComponentMismatchResponeData([body: '''{
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponeData([body: '''{
                 "deployableState": "MISCONFIGURED",
                 "message": "no message"
             }'''])
@@ -2318,7 +2318,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.checkComponentsMismatch('EDP','v1')
+        def result = service.getComponentsStatus('EDP','v1')
 
         then:
         noExceptionThrown()
@@ -2330,14 +2330,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "check component mismatch error"() {
         given:
-        def request = checkComponentMismatchRequestData()
-        def response = checkComponentMismatchResponeData([status: 400])
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponeData([status: 400])
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.checkComponentsMismatch('EDP','v1')
+        def result = service.getComponentsStatus('EDP','v1')
 
         then:
         def e = thrown(RuntimeException)

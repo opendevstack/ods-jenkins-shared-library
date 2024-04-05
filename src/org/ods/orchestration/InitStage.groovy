@@ -86,7 +86,7 @@ class InitStage extends Stage {
         }
 
         logger.info("Checking Jira components against metadata.yml repositories")
-        def check = project.checkComponentsMismatch()
+        def check = project.getComponentsStatus()
         if (check) {
             logger.info("Jira components found: $check")
 
