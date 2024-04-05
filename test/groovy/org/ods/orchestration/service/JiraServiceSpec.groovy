@@ -2259,12 +2259,15 @@ class JiraServiceSpec extends SpecHelper {
             ],
             password: "password",
             username: "username",
-            path: "/rest/platform/1.1/projects/EDP/components?changeId=v1"
+            path: "/rest/platform/1.1/projects/EDP/components",
+            queryParams: [
+                changeId: "v1",
+            ]
         ]
         return result << mixins
     }
 
-    Map getComponentsStatusResponeData(Map mixins = [:]) {
+    Map getComponentsStatusResponseData(Map mixins = [:]) {
         def result = [
             body: '''{
                 "components": [
@@ -2290,7 +2293,7 @@ class JiraServiceSpec extends SpecHelper {
     def "check component mismatch deployable"() {
         given:
         def request = getComponentsStatusRequestData()
-        def response = getComponentsStatusResponeData()
+        def response = getComponentsStatusResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
@@ -2309,7 +2312,7 @@ class JiraServiceSpec extends SpecHelper {
     def "check component mismatch not deployable"() {
         given:
         def request = getComponentsStatusRequestData()
-        def response = getComponentsStatusResponeData([body: '''{
+        def response = getComponentsStatusResponseData([body: '''{
                 "deployableState": "MISCONFIGURED",
                 "message": "no message"
             }'''])
@@ -2331,7 +2334,7 @@ class JiraServiceSpec extends SpecHelper {
     def "check component mismatch error"() {
         given:
         def request = getComponentsStatusRequestData()
-        def response = getComponentsStatusResponeData([status: 400])
+        def response = getComponentsStatusResponseData([status: 400])
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
