@@ -56,7 +56,7 @@ class OpenShiftService {
             script: 'oc whoami --show-console',
             label: 'Get OpenShift Console URL',
             returnStdout: true
-        ).toString().trim()
+        )
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
@@ -78,16 +78,18 @@ class OpenShiftService {
     }
 
     static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
-        def routeUrl = getConsoleUrl(steps) ?: 'N/A'
+        def routeUrl = getConsoleUrl(steps)
 
-        if (routeUrl == 'N/A') {
-            throw new IOException ("Cannot get cluster console url!")
+        if (routeUrl == null) {
+            throw new RuntimeException ("Cannot get cluster console url!")
         }
 
-        def prefix = routeUrl.substring(0, routeUrl.indexOf('.'))
-        def routePrefixLength = prefix.length() + 1
-        def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-
+        def routePrefixLength = routeUrl.indexOf('.' as char ) 
+        if (routePrefixLength < 0) {
+            throw new RuntimeException ("Route does not contain a dot: ${routePrefixLength}")
+        }
+        
+        def openShiftPublicHost = routeUrl[routePrefixLength +1..-1]
         return openShiftPublicHost
     }
 
