@@ -107,7 +107,6 @@ class Pipeline implements Serializable {
 
     private appDomain() {
         if (config.openShiftProject) {
-            logger.info "GET DOMAIN"
             logger.startClocked("${config.componentId}-get-oc-app-domain")
 
             this.openShiftService = new OpenShiftService(steps, logger)
