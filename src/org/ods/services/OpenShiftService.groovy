@@ -69,7 +69,7 @@ class OpenShiftService {
         exists
     }
 
-    static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
+    String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
         if (!envExists(steps, project)) {
             String currentClusterUrl = getApiUrl(steps)
             throw new IOException ("OCP project ${project} on server ${currentClusterUrl}" +
@@ -99,9 +99,13 @@ class OpenShiftService {
             label: 'get cluster console route'
         ).toString().trim()
 
+        logger.info "Console Route: ${routeUrl}"
         def prefix = routeUrl.split("/")[2]
+        logger.info "Route Prefix: ${prefix}"
         def routePrefixLength = prefix.length() + 1
+        logger.info "Route Prefix Length: ${routePrefixLength}"
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
+        logger.info "Openshift Domain: ${openShiftPublicHost}"
 
         return openShiftPublicHost
     }
