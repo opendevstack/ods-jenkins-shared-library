@@ -101,7 +101,7 @@ class OpenShiftService {
 
         logger.info "Console Route: ${routeUrl}"
         //def prefix = routeUrl.split("//|\\.")[1]
-        def prefix = routeUrl.split("/")[2].split("\\.")[0]
+        def prefix = routeUrl.split("\\.")[0]
         logger.info "Route Prefix: ${prefix}"    
         def routePrefixLength = prefix.length() + 1
         logger.info "Route Prefix Length: ${routePrefixLength}"
