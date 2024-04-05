@@ -51,6 +51,14 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    static String getConsoleUrl(IPipelineSteps steps) {
+        steps.sh(
+            script: 'oc whoami --show-console',
+            label: 'Get OpenShift Console URL',
+            returnStdout: true
+        ).toString().trim()
+    }
+
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
         steps.sh(
             returnStdout: true,
@@ -69,44 +77,16 @@ class OpenShiftService {
         exists
     }
 
-    String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
-        if (!envExists(steps, project)) {
-            String currentClusterUrl = getApiUrl(steps)
-            throw new IOException ("OCP project ${project} on server ${currentClusterUrl}" +
-                ' does not exist - cannot create route to retrieve host / domain name!' +
-                ' If this is needed, please create project on cluster!')
-        }
-        // def routeName = 'test-route-' + (System.currentTimeMillis() +
-        //     new SecureRandom().nextInt(1000))
-        // steps.sh (
-        //     script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
-        //     label: "create dummy route for extraction (${routeName})"
-        // )
-        // def routeUrl = steps.sh (
-        //     script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
-        //     returnStdout: true,
-        //     label: 'get cluster route domain'
-        // ).toString().trim()
-        // def routePrefixLength = "${routeName}-${project}".length() + 1
-        // def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-        // steps.sh (
-        //     script: "oc -n ${project} delete route ${routeName} | true",
-        //     label: "delete dummy route for extraction (${routeName})"
-        // )
-        def routeUrl = steps.sh (
-            script: "oc whoami --show-console",
-            returnStdout: true,
-            label: 'get cluster console route'
-        ).toString().trim()
+    static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
+        def routeUrl = getConsoleUrl(steps) ?: 'N/A'
 
-        logger.info "Console Route: ${routeUrl}"
-        //def prefix = routeUrl.split("//|\\.")[1]
-        def prefix = routeUrl.split("\\.")[0]
-        logger.info "Route Prefix: ${prefix}"    
+        if (routeUrl == 'N/A') {
+            throw new IOException ("Cannot get cluster console url!")
+        }
+
+        def prefix = routeUrl.substring(0, routeUrl.indexOf('.'))
         def routePrefixLength = prefix.length() + 1
-        logger.info "Route Prefix Length: ${routePrefixLength}"
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-        logger.info "Openshift Domain: ${openShiftPublicHost}"
 
         return openShiftPublicHost
     }
