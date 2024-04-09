@@ -91,6 +91,41 @@ class JiraService {
     }
 
     @NonCPS
+    void setIssueLabels(String issueIdOrKey, List names) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to set labels for Jira issue. \'issueIdOrKey\' is undefined.')
+        }
+
+        if (names == null) {
+            throw new IllegalArgumentException('Error: unable to set labels for Jira issue. \'names\' is undefined.')
+        }
+
+        def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(JsonOutput.toJson(
+                [
+                    fields: [
+                        labels: names
+                    ]
+                ]
+            ))
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to set labels for Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to set labels for Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
     void appendCommentToIssue(String issueIdOrKey, String comment) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to append comment to Jira issue. \'issueIdOrKey\' is undefined.')

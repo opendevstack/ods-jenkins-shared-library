@@ -5,6 +5,7 @@
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix Globally injected variables do not work in subcharts/dependencies ([#1066](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1066))
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
+* Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
 
 ## [4.3.4] - 2024-02-20
 
