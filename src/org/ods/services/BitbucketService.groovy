@@ -483,16 +483,17 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
     }
 
     @NonCPS
-    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
-        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
+    Map getMergedPullRequestsForIntegrationBranch(String token, Map repo, int limit, int nextPageStart){
+        String qParams = "state=MERGED&order=OLDEST&at=refs/heads/${repo.branch}"
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo.repo}/pull-requests?${qParams}"
         return queryRepo(token, request, limit, nextPageStart)
     }
 
     @NonCPS
-    Map getPRforMergedCommit(String token, String repo, String commit) {
+    Map getCommmitsForPullRequest(String token, String repo, int pullRequest, int limit, int nextPageStart) {
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}" +
-            "/repos/${repo}/commits/${commit}/pull-requests"
-        return queryRepo(token, request, 0, 0)
+            "/repos/${repo}/pull-requests/${pullRequest}/commits"
+        return queryRepo(token, request, limit, nextPageStart)
     }
 
     @NonCPS
