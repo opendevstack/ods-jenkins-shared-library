@@ -21,9 +21,6 @@ repositories:
   - id: demo-app-front-end
     name: edpt3-demo-app-front-end
     type: ods
-  - id: demo-app-end-to-end
-    name: edpt3-demo-app-end-to-end
-    type: ods-test
 
 capabilities:
 - LeVADocs:
