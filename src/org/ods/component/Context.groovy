@@ -2,7 +2,6 @@ package org.ods.component
 
 import org.ods.util.ShellWithRetry
 import org.ods.util.Logger
-import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.NexusService
@@ -11,6 +10,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
 import java.util.concurrent.ExecutionException
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 
 @SuppressWarnings(['MethodCount', 'UnnecessaryObjectReferences'])
 class Context implements IContext {
@@ -23,6 +24,7 @@ class Context implements IContext {
     private final def script
     // config is a map of config properties to customise the behaviour.
     private final Map config
+    private final IPipelineSteps steps
     private final Logger logger
     // artifact store, the interface to MRP
     private final def artifactUriStore = [builds: [:], deployments: [:]]
@@ -37,6 +39,7 @@ class Context implements IContext {
         this.config = config
         this.logger = logger
         this.localCheckoutEnabled = localCheckoutEnabled
+        this.steps = new PipelineSteps(script)
     }
 
     def assemble() {
@@ -571,15 +574,8 @@ class Context implements IContext {
     }
 
     String getOpenshiftApplicationDomain () {
-        if (!config.environment) {
-            logger.debug('Could not get application domain, as no environment is available')
-            return ''
-        }
         if (!this.appDomain) {
-            logger.startClocked("${config.componentId}-get-oc-app-domain")
-            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).
-                getApplicationDomain()
-            logger.debugClocked("${config.componentId}-get-oc-app-domain")
+            this.appDomain = OpenShiftService.getApplicationDomain(steps)
         }
         this.appDomain
     }
