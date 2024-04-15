@@ -50,11 +50,16 @@ class OpenShiftService {
     }
 
     static String getConsoleUrl(IPipelineSteps steps) {
-        steps.sh(
+        def routeUrl = steps.sh(
             script: 'oc whoami --show-console',
             label: 'Get OpenShift Console URL',
             returnStdout: true
         )
+        if (routeUrl == null) {
+            throw new RuntimeException ("Cannot get cluster console url!")
+        }
+        routeUrl = routeUrl.trim()
+
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
@@ -77,11 +82,6 @@ class OpenShiftService {
 
     static String getApplicationDomain(IPipelineSteps steps) {
         def routeUrl = getConsoleUrl(steps)
-
-        if (routeUrl == null) {
-            throw new RuntimeException ("Cannot get cluster console url!")
-        }
-        routeUrl = routeUrl.trim()
 
         def routePrefixLength = routeUrl.indexOf('.')
         if (routePrefixLength < 0) {
