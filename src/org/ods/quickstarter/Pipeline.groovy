@@ -99,7 +99,7 @@ class Pipeline implements Serializable {
         }
     }
 
-    private appDomain() {
+    private initappDomain() {
         config.appDomain = OpenShiftService.getApplicationDomain(steps)
     }
 
@@ -152,7 +152,7 @@ class Pipeline implements Serializable {
             annotations: config.annotations,
         ) {
             script.node(podLabel) {
-                appDomain()
+                initappDomain()
                 IContext context = new Context(config)
                 block(context)
             }
