@@ -566,4 +566,70 @@ class OpenShiftServiceSpec extends SpecHelper {
           'Deployment'      |   'rs'
     }
 
+    def "getConsoleUrl from cluster"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def routeUrl = "https://console-openshift-console.apps.openshift.com"
+
+        when:
+        def result = service.getConsoleUrl(steps)
+
+        then:
+        steps.sh(_) >> {
+            assert it.label == ['Get OpenShift Console URL']
+            assert it.returnStdout == [true]
+            assert it.script.toString().contains('oc whoami --show-console')
+            return routeUrl
+        }
+        result == routeUrl
+    }
+
+
+    def "getConsoleUrl from cluster if null"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def routeUrl = null
+
+        when:
+        def result = service.getConsoleUrl(steps)
+
+        then:
+        steps.sh(_) >> {
+            return routeUrl
+        }
+        thrown(RuntimeException)
+    }
+
+    def "getApplicationDomain from consoleUrl"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def routeUrl = "https://console-openshift-console.apps.openshift.com"
+        def expectedDomain = "apps.openshift.com"
+
+        when:
+        def domain = service.getApplicationDomain(steps)
+
+        then:
+        steps.sh(_) >> {
+            return routeUrl
+        }
+        domain == expectedDomain
+    }
+
+    def "getApplicationDomain from consoleUrl if no dot"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def routeUrl = "https://console-openshift-console-apps-openshift-com"
+        def expectedDomain = "apps.openshift.com"
+
+        when:
+        def domain = service.getApplicationDomain(steps)
+
+        then:
+        thrown(RuntimeException)
+    }
 }
