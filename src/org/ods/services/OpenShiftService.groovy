@@ -58,8 +58,7 @@ class OpenShiftService {
         if (routeUrl == null) {
             throw new RuntimeException ("Cannot get cluster console url!")
         }
-        routeUrl = routeUrl.trim()
-
+        return routeUrl.toString().trim()
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
@@ -85,7 +84,7 @@ class OpenShiftService {
 
         def routePrefixLength = routeUrl.indexOf('.')
         if (routePrefixLength < 0) {
-            throw new RuntimeException ("Route does not contain a dot: ${routePrefixLength}")
+            throw new RuntimeException ("Route does not contain a dot: ${routeUrl}")
         }
 
         def openShiftPublicHost = routeUrl[routePrefixLength+1..-1]
