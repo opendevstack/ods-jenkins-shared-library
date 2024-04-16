@@ -624,7 +624,6 @@ class OpenShiftServiceSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def service = new OpenShiftService(steps, new Logger(steps, false))
         def routeUrl = "https://console-openshift-console-apps-openshift-com"
-        def expectedDomain = "apps.openshift.com"
 
         when:
         def domain = service.getApplicationDomain(steps)
