@@ -156,35 +156,31 @@ class ContextSpec extends Specification {
 
     def "get openshift cluster domain"() {
         given:
-        def scriptSpy = Spy(PipelineScript)
-        def context = new Context(scriptSpy, null, logger)
+        def steps = Stub(IPipelineSteps)
+        def context = new Context(steps, null, logger)
         def routeUrl = "https://console-openshift-console.apps.openshift.com"
         def expectedDomain = "apps.openshift.com"
+        steps.sh(_) >> routeUrl
 
         when:
         def domain = context.getOpenshiftApplicationDomain()
 
         then:
-        scriptSpy.sh(_) >> {
-            return routeUrl
-        }
         domain == expectedDomain
 
     }
 
     def "get openshift cluster domain if null route url"() {
         given:
-        def scriptSpy = Spy(PipelineScript)
-        def context = new Context(scriptSpy, null, logger)
+        def steps = Stub(IPipelineSteps)
+        def context = new Context(steps, null, logger)
         def routeUrl = null
+        steps.sh(_) >> routeUrl
 
         when:
         def domain = context.getOpenshiftApplicationDomain()
 
         then:
-        scriptSpy.sh(_) >> {
-            return routeUrl
-        }
         thrown(RuntimeException)
 
     }
