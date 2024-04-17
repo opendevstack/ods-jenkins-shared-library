@@ -156,7 +156,7 @@ class ContextSpec extends Specification {
 
     def "get openshift cluster domain"() {
         given:
-        def steps = Stub(IPipelineSteps)
+        def steps = Stub(PipelineScript)
         def context = new Context(steps, null, logger)
         def routeUrl = "https://console-openshift-console.apps.openshift.com"
         def expectedDomain = "apps.openshift.com"
@@ -172,7 +172,7 @@ class ContextSpec extends Specification {
 
     def "get openshift cluster domain if null route url"() {
         given:
-        def steps = Stub(IPipelineSteps)
+        def steps = Stub(PipelineScript)
         def context = new Context(steps, null, logger)
         def routeUrl = null
         steps.sh(_) >> routeUrl
