@@ -154,4 +154,39 @@ class ContextSpec extends Specification {
         uut.determineEnvironment()
     }
 
+    def "get openshift cluster domain"() {
+        given:
+        def scriptSpy = Spy(PipelineScript)
+        def context = new Context(scriptSpy, null, logger)
+        def routeUrl = "https://console-openshift-console.apps.openshift.com"
+        def expectedDomain = "apps.openshift.com"
+
+        when:
+        def domain = context.getOpenshiftApplicationDomain()
+
+        then:
+        scriptSpy.sh(_) >> {
+            return routeUrl
+        }
+        domain == expectedDomain
+
+    }
+
+    def "get openshift cluster domain if null route url"() {
+        given:
+        def scriptSpy = Spy(PipelineScript)
+        def context = new Context(scriptSpy, null, logger)
+        def routeUrl = null
+
+        when:
+        def domain = context.getOpenshiftApplicationDomain()
+
+        then:
+        scriptSpy.sh(_) >> {
+            return routeUrl
+        }
+        thrown(RuntimeException)
+
+    }
+
 }
