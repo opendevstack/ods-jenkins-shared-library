@@ -1299,7 +1299,6 @@ class OpenShiftService {
         } catch (ex) {
             throw new TailorDeploymentException(ex)
         }
-
     }
 
     private void doTailorExport(

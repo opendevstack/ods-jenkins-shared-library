@@ -73,4 +73,5 @@ interface IContext {
 
     // get app domain of the Openshift cluster
     String getAppDomain()
+
 }
