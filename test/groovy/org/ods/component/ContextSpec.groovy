@@ -6,6 +6,7 @@ import org.ods.util.Logger
 import org.ods.util.ShellWithRetry
 import org.ods.util.IPipelineSteps
 import spock.lang.*
+import org.ods.services.OpenShiftService
 
 class ContextSpec extends Specification {
 
