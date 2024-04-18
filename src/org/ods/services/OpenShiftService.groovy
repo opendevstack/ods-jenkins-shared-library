@@ -55,10 +55,10 @@ class OpenShiftService {
             label: 'Get OpenShift Console URL',
             returnStdout: true
         )
-        if (routeUrl == null) {
+        if (!routeUrl) {
             throw new RuntimeException ("Cannot get cluster console url!")
         }
-        return routeUrl.toString().trim()
+        return routeUrl.trim()
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
