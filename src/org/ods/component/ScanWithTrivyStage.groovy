@@ -60,7 +60,7 @@ class ScanWithTrivyStage extends Stage {
         String errorMessages = ''
         int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
             options.additionalFlags, options.reportFile, options.nexusDataBaseRepository,
-            openShift.getApplicationDomain(context.cdProject))
+            openShift.getApplicationDomain())
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
             try {
                 URI reportUriNexus = archiveReportInNexus(options.reportFile, options.nexusReportRepository)

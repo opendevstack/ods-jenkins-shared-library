@@ -71,4 +71,7 @@ interface IContext {
     // alias for odsGitRef
     String getGitBranch()
 
+    // get app domain of the Openshift cluster
+    String getAppDomain()
+
 }
