@@ -570,7 +570,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         given:
         def steps = Stub(IPipelineSteps)
         def service = new OpenShiftService(steps, new Logger(steps, false))
-        def routeUrl = "https://console-openshift-console.apps.openshift.com"
+        def routeUrl = 'https://console-openshift-console.apps.openshift.com'
         steps.sh( { it.script == 'oc whoami --show-console' } ) >> routeUrl
 
         when:
@@ -580,12 +580,11 @@ class OpenShiftServiceSpec extends SpecHelper {
         result == routeUrl
     }
 
-
-    def "getConsoleUrl from cluster if null"() {
+    @Unroll
+    def "getConsoleUrl from cluster if null or empty"() {
         given:
         def steps = Stub(IPipelineSteps)
         def service = new OpenShiftService(steps, new Logger(steps, false))
-        def routeUrl = null
         steps.sh(_) >> routeUrl
 
         when:
@@ -593,18 +592,21 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         thrown(RuntimeException)
+
+        where:
+        routeUrl << [null, '']
     }
 
     def "getApplicationDomain from consoleUrl"() {
         given:
         def steps = Stub(IPipelineSteps)
-        def service = new OpenShiftService(steps, new Logger(steps, false))
-        def routeUrl = "https://console-openshift-console.apps.openshift.com"
+        GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+        def routeUrl = 'https://console-openshift-console.apps.openshift.com'
         def expectedDomain = "apps.openshift.com"
-        steps.sh(_) >> routeUrl
+        OpenShiftService.getConsoleUrl(_) >> routeUrl
 
         when:
-        def domain = service.getApplicationDomain(steps)
+        def domain = OpenShiftService.getApplicationDomain(steps)
 
         then:
         domain == expectedDomain
@@ -613,11 +615,12 @@ class OpenShiftServiceSpec extends SpecHelper {
     def "getApplicationDomain from consoleUrl if no dot"() {
         given:
         def steps = Stub(IPipelineSteps)
-        def service = new OpenShiftService(steps, new Logger(steps, false))
-        def routeUrl = "https://console-openshift-console-apps-openshift-com"
+        GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+        def routeUrl = 'https://console-openshift-console-apps-openshift-com'
+        OpenShiftService.getConsoleUrl(_) >> routeUrl
 
         when:
-        def domain = service.getApplicationDomain(steps)
+        def domain = OpenShiftService.getApplicationDomain(steps)
 
         then:
         thrown(RuntimeException)

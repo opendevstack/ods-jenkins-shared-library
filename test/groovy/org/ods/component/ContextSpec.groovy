@@ -4,6 +4,7 @@ import org.ods.PipelineScript
 import org.ods.util.ILogger
 import org.ods.util.Logger
 import org.ods.util.ShellWithRetry
+import org.ods.util.IPipelineSteps
 import spock.lang.*
 
 class ContextSpec extends Specification {
@@ -156,33 +157,17 @@ class ContextSpec extends Specification {
 
     def "get openshift cluster domain"() {
         given:
-        def steps = Stub(PipelineScript)
+        def steps = Stub(IPipelineSteps)
+        GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
         def context = new Context(steps, null, logger)
-        def routeUrl = "https://console-openshift-console.apps.openshift.com"
-        def expectedDomain = "apps.openshift.com"
-        steps.sh(_) >> routeUrl
+        def expectedDomain = 'apps.openshift.com'
+        OpenShiftService.getApplicationDomain(_) >> expectedDomain
 
         when:
         def domain = context.getOpenshiftApplicationDomain()
 
         then:
         domain == expectedDomain
-
-    }
-
-    def "get openshift cluster domain if null route url"() {
-        given:
-        def steps = Stub(PipelineScript)
-        def context = new Context(steps, null, logger)
-        def routeUrl = null
-        steps.sh(_) >> routeUrl
-
-        when:
-        def domain = context.getOpenshiftApplicationDomain()
-
-        then:
-        thrown(RuntimeException)
-
     }
 
 }

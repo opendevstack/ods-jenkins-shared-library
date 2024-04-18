@@ -574,10 +574,11 @@ class Context implements IContext {
     }
 
     String getOpenshiftApplicationDomain () {
-        if (!this.appDomain) {
-            this.appDomain = OpenShiftService.getApplicationDomain(steps)
+        def appDomain = appDomain
+        if (!appDomain) {
+            this.appDomain = appDomain = OpenShiftService.getApplicationDomain(steps)
         }
-        this.appDomain
+        return appDomain
     }
 
     // set the rollout retry

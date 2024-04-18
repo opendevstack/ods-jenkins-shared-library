@@ -50,7 +50,7 @@ class OpenShiftService {
     }
 
     static String getConsoleUrl(IPipelineSteps steps) {
-        def routeUrl = steps.sh(
+        String routeUrl = steps.sh(
             script: 'oc whoami --show-console',
             label: 'Get OpenShift Console URL',
             returnStdout: true
