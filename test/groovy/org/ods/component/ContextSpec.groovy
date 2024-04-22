@@ -4,7 +4,9 @@ import org.ods.PipelineScript
 import org.ods.util.ILogger
 import org.ods.util.Logger
 import org.ods.util.ShellWithRetry
+import org.ods.util.IPipelineSteps
 import spock.lang.*
+import org.ods.services.OpenShiftService
 
 class ContextSpec extends Specification {
 
@@ -152,6 +154,21 @@ class ContextSpec extends Specification {
             }
         }
         uut.determineEnvironment()
+    }
+
+    def "get openshift cluster domain"() {
+        given:
+        def steps = Stub(IPipelineSteps)
+        GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+        def context = new Context(steps, null, logger)
+        def expectedDomain = 'apps.openshift.com'
+        OpenShiftService.getApplicationDomain(_) >> expectedDomain
+
+        when:
+        def domain = context.getOpenshiftApplicationDomain()
+
+        then:
+        domain == expectedDomain
     }
 
 }
