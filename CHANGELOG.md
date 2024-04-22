@@ -1,13 +1,27 @@
 # Changelog
 
 ## Unreleased
-* add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
-* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+
+### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
-* Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
-* Add Openshift appDomain context value in Quickstarter pipeline, optimize the way to get appDomain from cluster ([#997](https://github.com/opendevstack/ods-quickstarters/issues/997))
-* Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
+
+### Added
+* add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+
+### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+
+## [4.4.0] - 2024-04-22
+
+### Fixed
+* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
+
+### Added
+* Add Openshift appDomain context value in Quickstarter pipeline, optimize the way to get appDomain from cluster ([#997](https://github.com/opendevstack/ods-quickstarters/issues/997))
+
+### Changed
+* Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 
 ## [4.3.4] - 2024-02-20
 
