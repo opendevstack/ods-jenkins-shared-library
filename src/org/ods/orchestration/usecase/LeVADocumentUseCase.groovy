@@ -573,7 +573,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { r ->
                 def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
                 def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-                def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                def requirements = getRequirements(r)
                 def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
                 def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
                 def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
@@ -623,6 +623,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    private List<Project.JiraDataItem> getRequirements(risk){
+        def requirements
+        if(risk.getResolvedTechnicalSpecifications().size()>0){
+             requirements =  risk.getResolvedTechnicalSpecifications()
+        } else {
+            requirements = risk.getResolvedSystemRequirements()
+        }
+        return requirements
     }
 
     private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
