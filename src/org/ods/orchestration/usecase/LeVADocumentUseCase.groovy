@@ -573,7 +573,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { r ->
                 def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
                 def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-                def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                def requirements
+                if(r.getResolvedTechnicalSpecifications().size()>0){
+                    requirements =  r.getResolvedTechnicalSpecifications()
+                } else {
+                    requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                }
                 def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
                 def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
                 def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
