@@ -625,10 +625,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    private List<Project.JiraDataItem> getRequirements(risk){
+    /**
+     * If the risk is associated to technical specification task which is itself associated with a User story,
+     * return the technical specification task
+     * otherwise, return the system requirements
+     * @param risk
+     * @return
+     */
+    private List<Project.JiraDataItem> getRequirements(def risk) {
         def requirements
-        if(risk.getResolvedTechnicalSpecifications().size()>0){
-             requirements =  risk.getResolvedTechnicalSpecifications()
+        if (risk.getResolvedTechnicalSpecifications().size() > 0) {
+            requirements = risk.getResolvedTechnicalSpecifications()
         } else {
             requirements = risk.getResolvedSystemRequirements()
         }
