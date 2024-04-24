@@ -633,11 +633,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @return
      */
     private List<Project.JiraDataItem> getRequirements(Project.JiraDataItem risk) {
-        def requirements
-        if (risk.getResolvedTechnicalSpecifications().size() > 0) {
-            requirements = risk.getResolvedTechnicalSpecifications()
+        List<Project.JiraDataItem> requirements
+        def technicalSpecifications = risk.getResolvedTechnicalSpecifications()
+        def systemRequirements = risk.getResolvedSystemRequirements()
+        if (technicalSpecifications.size() > 0) {
+            requirements = technicalSpecifications
         } else {
-            requirements = risk.getResolvedSystemRequirements()
+            requirements = systemRequirements
         }
         return requirements
     }
