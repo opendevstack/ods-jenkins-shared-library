@@ -573,7 +573,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { r ->
                 def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
                 def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-                def requirement = getRequirement(r)
+                def requirements = getRequirements(r)
                 def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
                 def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
                 def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
@@ -585,7 +585,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     name: r.name,
                     description: convertImages(r.description),
                     proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
-                    requirement: requirement,
+                    requirements: requirements.findAll { it != null },
                     gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
@@ -632,16 +632,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @param risk
      * @return
      */
-    private Project.JiraDataItem getRequirement(Project.JiraDataItem risk) {
-        List<Project.JiraDataItem> requirements = new ArrayList<>()
+    private List<Project.JiraDataItem> getRequirements(Project.JiraDataItem risk) {
+        List<Project.JiraDataItem> requirements
         def technicalSpecifications = risk.getResolvedTechnicalSpecifications()
         def systemRequirements = risk.getResolvedSystemRequirements()
         if (technicalSpecifications.size() > 0) {
             requirements = technicalSpecifications
-        } else if (systemRequirements.size() > 0) {
+        } else {
             requirements = systemRequirements
         }
-        return requirements.get(0)
+        return requirements
     }
 
     private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
