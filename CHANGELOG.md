@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Unreleased
+* Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026))
+* Given that Helm performs an atomic rollout, it's necessary to import all images into the mono repository prior to initiating the rollout process with Helm.
+
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
