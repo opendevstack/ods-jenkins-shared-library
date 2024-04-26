@@ -221,6 +221,162 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    Map setIssueLabelsRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                issueIdOrKey: "JIRA-123",
+                names: ["Label-A", "Label-B", "Label-C"]
+            ],
+            headers: [
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            ],
+            password: "password",
+            username: "username"
+        ]
+
+        result.body = JsonOutput.toJson([
+            fields: [
+                labels: result.data.names
+            ]
+        ])
+
+        result.path = "/rest/api/2/issue/${result.data.issueIdOrKey}"
+
+        return result << mixins
+    }
+
+    Map setIssueLabelsResponseData(Map mixins = [:]) {
+        def result = [
+            status: 200
+        ]
+
+        return result << mixins
+    }
+
+    def "set issue labels with invalid issueIdOrKey"() {
+        given:
+        def request = setIssueLabelsRequestData()
+        def response = setIssueLabelsResponseData()
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(null, request.data.names)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to set labels for Jira issue. 'issueIdOrKey' is undefined."
+
+        when:
+        service.setIssueLabels(" ", request.data.names)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to set labels for Jira issue. 'issueIdOrKey' is undefined."
+    }
+
+    def "set issue labels with invalid names"() {
+        given:
+        def request = setIssueLabelsRequestData()
+        def response = setIssueLabelsResponseData()
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(request.data.issueIdOrKey, null)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to set labels for Jira issue. 'names' is undefined."
+    }
+
+    def "set issue labels"() {
+        given:
+        def request = setIssueLabelsRequestData()
+        def response = setIssueLabelsResponseData()
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(request.data.issueIdOrKey, request.data.names)
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "set issue labels to empty list"() {
+        given:
+        def request = setIssueLabelsRequestData([
+            body: JsonOutput.toJson([
+                fields: [
+                    labels: []
+                ]
+            ])
+        ])
+        def response = setIssueLabelsResponseData()
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(request.data.issueIdOrKey, [])
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "set issue labels with HTTP 404 failure"() {
+        given:
+        def request = setIssueLabelsRequestData()
+        def response = setIssueLabelsResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(request.data.issueIdOrKey, request.data.names)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to set labels for Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "set issue labels with HTTP 500 failure"() {
+        given:
+        def request = setIssueLabelsRequestData()
+        def response = setIssueLabelsResponseData([
+            body: "Sorry, doesn't work!",
+            status: 500
+        ])
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.setIssueLabels(request.data.issueIdOrKey, request.data.names)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to set labels for Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
 
     Map appendCommentToIssueRequestData(Map mixins = [:]) {
         def result = [

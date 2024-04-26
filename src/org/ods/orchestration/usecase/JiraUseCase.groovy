@@ -3,6 +3,7 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.util.ConcurrentCache
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -35,6 +36,7 @@ class JiraUseCase {
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
     private ILogger logger
+    private ConcurrentCache docVersions
 
     JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira, ILogger logger) {
         this.project = project
@@ -42,6 +44,25 @@ class JiraUseCase {
         this.util = util
         this.jira = jira
         this.logger = logger
+
+        def computeIfAbsent = { key ->
+            def documentationTrackingIssueFields =
+                this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
+            def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
+            def version = 0L
+            def versionField =
+                this.jira.getTextFieldsOfIssue(key as String, [documentVersionField])?.getAt(documentVersionField)
+            if (versionField) {
+                try {
+                    version = versionField.toLong()
+                } catch (NumberFormatException _) {
+                    version = 0L
+                }
+            }
+            return version
+        }
+
+        this.docVersions = new ConcurrentCache<String, Long>(computeIfAbsent)
     }
 
     void setSupport(AbstractJiraUseCaseSupport support) {
@@ -63,30 +84,26 @@ class JiraUseCase {
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
                 def issueLabels = [TestIssueLabels.Succeeded as String]
-                if (testCase.skipped || testCase.error || testCase.failure) {
-                    if (testCase.error) {
-                        issueLabels = [TestIssueLabels.Error as String]
-                    }
-
-                    if (testCase.failure) {
-                        issueLabels = [TestIssueLabels.Failed as String]
-                    }
-
-                    if (testCase.skipped) {
-                        issueLabels = [TestIssueLabels.Skipped as String]
-                    }
+                if (testCase.error) {
+                    issueLabels = [TestIssueLabels.Error as String]
                 }
 
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
-                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
+                if (testCase.failure) {
+                    issueLabels = [TestIssueLabels.Failed as String]
+                }
+
+                if (testCase.skipped) {
+                    issueLabels = [TestIssueLabels.Skipped as String]
+                }
+
+                this.jira.setIssueLabels(testIssue.key, issueLabels)
             }
         }
 
         // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
             result.each { testIssue ->
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
-                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
+                this.jira.setIssueLabels(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
 
@@ -396,29 +413,15 @@ class JiraUseCase {
     }
 
     Long getLatestDocVersionId(List<Map> trackingIssues) {
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
-        def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
-
-        // We will use the biggest ID available
+        logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
         def versionList = trackingIssues.collect { issue ->
-            def versionNumber = 0L
-
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
-            if (version) {
-                try {
-                    versionNumber = version.toLong()
-                } catch (NumberFormatException _) {
-                    this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        " version. It contains value '${version}'.")
-                }
-            }
-
-            return versionNumber
+            docVersions.get(issue.key)
         }
 
+        // We will use the biggest ID available
         def result = versionList.max()
-        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
-            "${trackingIssues.collect { it.key } }")
+        logger.debug("Retrieved max doc version ${result} from doc tracking issues " +
+            "${trackingIssues.collect { it.key }}")
 
         return result
     }
