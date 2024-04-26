@@ -286,7 +286,12 @@ class DocumentHistory {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
         }
-        def versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        def versionText = null
+        if(currentEntry != null && currentEntry.getPreviousProjectVersion() == currentEntry.getProjectVersion()){
+            versionText = "No changes were made to this document for project version '${currentEntry.getProjectVersion()}'."
+        } else {
+            versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        }
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
 
