@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* The Document History indicates clearly when an SLC document has not changed ([#1099](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1099))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
