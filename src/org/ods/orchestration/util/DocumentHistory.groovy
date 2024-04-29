@@ -286,13 +286,14 @@ class DocumentHistory {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
         }
-        def versionText = null
-        if(currentEntry != null && currentEntry.getPreviousProjectVersion() == currentEntry.getProjectVersion()){
-            versionText = "No changes were made to this document for project version '${currentEntry.getProjectVersion()}'."
-        } else {
-            versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        String[] risks = currentEntry.getDelegate().get('risks')
+        String[] techSpecs = currentEntry.getDelegate().get('techSpecs')
+        String concurrentVersion = rationaleIfConcurrentVersionsAreFound(currentEntry)
+        if (risks.size() == 0 && techSpecs.size() == 0) {
+            return "No changes were made to this " +
+                "document for project version '${currentEntry.getProjectVersion()}'." + concurrentVersion
         }
-        return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
+        return "Modifications for project version '${currentEntry.getProjectVersion()}'." + concurrentVersion
     }
 
     /**
