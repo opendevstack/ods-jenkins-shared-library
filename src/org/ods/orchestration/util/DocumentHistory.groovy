@@ -295,18 +295,15 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private static boolean isNotModified(DocumentHistoryEntry documentHistoryEntry) {
+    private boolean isNotModified(DocumentHistoryEntry documentHistoryEntry) {
         Map delegate = documentHistoryEntry.getDelegate()
-        boolean isModified = false
         for (delegateType in JiraDataItem.TYPES) {
             String[] values = delegate.get(delegateType)
-            if (values.size() == 0) {
-                isModified = true
-            } else {
+            if (values.size() != 0) {
                 return false
             }
         }
-        return isModified
+        return true
     }
 
     /**
