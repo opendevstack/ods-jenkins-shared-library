@@ -286,14 +286,27 @@ class DocumentHistory {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
         }
-        String[] risks = currentEntry.getDelegate().get('risks')
-        String[] techSpecs = currentEntry.getDelegate().get('techSpecs')
         String concurrentVersion = rationaleIfConcurrentVersionsAreFound(currentEntry)
-        if (risks.size() == 0 && techSpecs.size() == 0) {
+        if (isNotModified(currentEntry)) {
             return "No changes were made to this " +
                 "document for project version '${currentEntry.getProjectVersion()}'." + concurrentVersion
         }
         return "Modifications for project version '${currentEntry.getProjectVersion()}'." + concurrentVersion
+    }
+
+    @NonCPS
+    private static boolean isNotModified(DocumentHistoryEntry documentHistoryEntry) {
+        Map delegate = documentHistoryEntry.getDelegate()
+        boolean isModified = false
+        for (delegateType in JiraDataItem.TYPES) {
+            String[] values = delegate.get(delegateType)
+            if (values.size() == 0) {
+                isModified = true
+            } else {
+                return false
+            }
+        }
+        return isModified
     }
 
     /**

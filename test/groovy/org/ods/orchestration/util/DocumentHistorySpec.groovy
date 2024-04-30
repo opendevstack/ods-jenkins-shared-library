@@ -116,7 +116,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion,
-            "1.1/2", "No changes were made to this document for project version '${secondProjectVersion}'.")] + entries10
+            "1.1/2", "Modifications for project version '${secondProjectVersion}'.")] + entries10
 
         this.jiraDataFix = [
             bugs        : [:],
@@ -143,7 +143,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
-            "1.0.1/3", "No changes were made to this document for project version '${bugfixProjectVersion}'." +
+            "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
                 " This document version invalidates the changes done in document version '${bugfixProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
@@ -172,7 +172,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : [],
         ], 4L, secondProjectVersion, bugfixProjectVersion,
-            "1.1/4", "No changes were made to this document for project version '${secondProjectVersion}'.")] + entriesFix
+            "1.1/4", "Modifications for project version '${secondProjectVersion}'.")] + entriesFix
 
         this.jiraData20 = [
             bugs        : [:],
@@ -203,7 +203,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
-            "2.0/5", "No changes were made to this document for project version '${fourthProjectVersion}'.")] + entries11_second
+            "2.0/5", "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
 
         this.entries20Alt = [new DocumentHistoryEntry([
             bugs        : [],
@@ -215,7 +215,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "2.0/6", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
+            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
     }
 
     protected List<String> computeIssuesDoc(List<DocumentHistoryEntry> dhe) {
