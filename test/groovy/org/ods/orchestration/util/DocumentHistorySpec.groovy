@@ -421,7 +421,7 @@ class DocumentHistorySpec extends SpecHelper {
         history.data == versionEntries
     }
 
-    def "builds docHistory for no fix version"() {
+    def "builds docHistory for no entries in current version but, existed previous version entries"() {
         given:
         def jiraData = noJiraData
         def targetEnvironment = 'D'
@@ -443,7 +443,7 @@ class DocumentHistorySpec extends SpecHelper {
         history.data == versionEntries
     }
 
-    def "builds docHistory for no fix version"() {
+    def "builds docHistory for no entries in current version"() {
         given:
         def jiraData = noJiraDataTwo
         def targetEnvironment = 'D'
