@@ -113,7 +113,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
         logger.info("isHelmDeployment: ${isHelmDeployment}")
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
-        logger.info("isTailorDeployment: ${isTailorDeployment}")
 
         if (isTailorDeployment && isHelmDeployment) {
             steps.error("Must be either a Tailor based deployment or a Helm based deployment")
@@ -125,6 +124,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
+            def msg =steps.libraryResource(resourcePath)
+            logger.warn(msg)
         }
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
