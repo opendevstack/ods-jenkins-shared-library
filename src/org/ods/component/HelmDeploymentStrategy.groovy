@@ -128,8 +128,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 mergedHelmValues << options.helmValues
 
                 // we add the global ones - this allows usage in subcharts
-                // TODO: is this really needed? - we could use *just* the global ones
-                // TODO: how do we know we are not overriding something the user defined?
                 options.helmValues.each { key, value ->
                     mergedHelmValues["global.${key}"] = value
                 }
