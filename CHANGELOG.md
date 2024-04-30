@@ -1,8 +1,30 @@
 # Changelog
 
 ## Unreleased
-* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026)). 
+* Given that Helm performs an atomic rollout, it's necessary to import all images into the mono repository prior to initiating the rollout process with Helm.
+
+### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+### Added
+* Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
+* add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+
+### Changed
+* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+
+## [4.4.0] - 2024-04-22
+
+### Fixed
+* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
+
+### Added
+* Add Openshift appDomain context value in Quickstarter pipeline, optimize the way to get appDomain from cluster ([#997](https://github.com/opendevstack/ods-quickstarters/issues/997))
+
+### Changed
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 
 ## [4.3.4] - 2024-02-20
