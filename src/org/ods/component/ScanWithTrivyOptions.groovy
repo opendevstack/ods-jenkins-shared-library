@@ -43,4 +43,5 @@ class ScanWithTrivyOptions extends Options {
      * possible value.
      * Example: `['--debug', '--timeout=10m']` */
     List<String> additionalFlags
+
 }
