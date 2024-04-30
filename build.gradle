@@ -90,7 +90,7 @@ dependencies {
     testImplementation "com.github.tomakehurst:wiremock:2.27.2"       // for mocking HTTP server responses
     testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0" // for mocking HTTP server responses
     testImplementation "org.hamcrest:hamcrest:2.2"
-    testImplementation "org.skyscreamer:jsonassert:1.5.0"             // JSON Asserts
+    testImplementation "org.skyscreamer:jsonassert:1.5.1"             // JSON Asserts
 }
 
 sourceSets {
