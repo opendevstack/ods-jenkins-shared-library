@@ -1,140 +1,114 @@
 [
     {
-        "date": "2021-03-16",
-        "authorName": "project-admin",
-        "authorEmail": "project-admin@edp.com",
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-backend/pull-requests/2",
-        "commit": "59d9348a4df5e40260ec930053409aba163ebb69",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/2",
+        "commit": "7b65593b2fccd997c5d2633265aa07cfa3cf6e9f",
         "component": "edpt3-demo-app-backend"
     },
     {
-        "date": "2021-03-16",
-        "authorName": "openshift",
-        "authorEmail": "openshift@example.com",
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-backend/pull-requests/2",
-        "commit": "7da0c41dbbbe5c1af6d497a8fb31f87fbc55e33b",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/2",
+        "commit": "64989dcb760d21f2c2ab872c3847fb7fe3b26ce5",
         "component": "edpt3-demo-app-backend"
     },
     {
-        "date": "2021-03-16",
-        "authorName": "project-team-member",
-        "authorEmail": "project-team-member@edp.com",
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-team-member",
-                "reviewerEmail": "project-team-member@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-backend/pull-requests/1",
-        "commit": "c2193652ed488744560c686cdd0e7e3c1dfa6b0f",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/1",
+        "commit": "7b65593b1fccd997c5d1633165aa07cfa3cf6e9f",
         "component": "edpt3-demo-app-backend"
     },
     {
-        "date": "2021-03-16",
-        "authorName": "openshift",
-        "authorEmail": "openshift@example.com",
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-team-member",
-                "reviewerEmail": "project-team-member@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-backend/pull-requests/1",
-        "commit": "7a87b0122c90478eabf481b2fc04059260715fee",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/1",
+        "commit": "64989dcb760d11f1c1ab871c3847fb7fe3b16ce5",
         "component": "edpt3-demo-app-backend"
     },
     {
-        "date":"2021-03-17",
-        "authorName":"project-admin",
-        "authorEmail":"project-admin@edp.com",
-        "reviewers":[
-            {
-                "reviewerName": "project-team-member",
-                "reviewerEmail": "project-team-member@edp.com"
-            },
-            {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
-            }
-        ],
-        "url":"http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/2",
-        "commit":"16770356fe981d00115e978ce31199f4371af5d9",
-        "component":"edpt3-demo-app-front-end"
-    },
-    {
-        "date": "2021-03-17",
-        "authorName": "openshift",
-        "authorEmail": "openshift@example.com",
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-team-member",
-                "reviewerEmail": "project-team-member@edp.com"
-            },
-            {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/2",
-        "commit": "69a7c95ddb20bce08fbe01bf067927a1d7bf6e7c",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "e48750fc61d9f665b3780ef37b70633fd44035d5",
         "component": "edpt3-demo-app-front-end"
     },
     {
-        "date": "2021-03-17",
-        "authorName": "openshift",
-        "authorEmail": "openshift@example.com",
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-team-member",
-                "reviewerEmail": "project-team-member@edp.com"
-            },
-            {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/2",
-        "commit": "0e37d77af184bad786dcd07ee6e43c7430f66e7d",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "659b5d6fc3d2e7794880965eb5630e3f217a40a1",
         "component": "edpt3-demo-app-front-end"
     },
     {
-        "date": "2021-03-16",
-        "authorName": "project-admin",
-        "authorEmail": "project-admin@edp.com",
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/1",
-        "commit": "3e11de659989b1944a4b0528e467108f6373b755",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "83f1c5026e2727bbccfbfa03fef517a91063295a",
         "component": "edpt3-demo-app-front-end"
     },
     {
-        "date": "2021-03-16",
-        "authorName": "openshift",
-        "authorEmail": "openshift@example.com",
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
         "reviewers": [
             {
-                "reviewerName": "project-admin",
-                "reviewerEmail": "project-admin@edp.com"
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
             }
         ],
-        "url": "http://bitbucket.odsbox.lan:7990/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/1",
-        "commit": "34d300361c1ba798c0adec984b0dfe3e473b472e",
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "f9e7ce8fe819dac98980e7a8949f1ae7fa3c1682",
         "component": "edpt3-demo-app-front-end"
     }
 ]

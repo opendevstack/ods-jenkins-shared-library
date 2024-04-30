@@ -177,7 +177,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             resourceNames.each { resourceName ->
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector)
+                    podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
                     if (!podData.isEmpty()) {
                         break
                     }
