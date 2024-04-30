@@ -1,14 +1,38 @@
 # Changelog
 
 ## Unreleased
-* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+
+### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
-* Fix Helm deployment issues with custom chartDir ([#1038](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1038))
+* Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+
+### Added
+* Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
+* Add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+
+### Changed
+* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* Improve messages in Helm deployment issues with custom chartDir option ([#1044](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1044))
+
+## [4.4.0] - 2024-04-22
+
+### Fixed
+* Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix excessive number of Api calls to Jira to retrieve the last document version ([#654](https://github.com/opendevstack/ods-jenkins-shared-library/issues/654))
+
+### Added
+* Add Openshift appDomain context value in Quickstarter pipeline, optimize the way to get appDomain from cluster ([#997](https://github.com/opendevstack/ods-quickstarters/issues/997))
+
+### Changed
 * Update api version in ocp templates for image, buildconfig, route and deploymentconfig ([#1072](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1072))
 
 ## [4.3.4] - 2024-02-20
 
 * Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
+* Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
 * Aqua scanner and Helm deployment conflict fix for jenkins shared library ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
 * Fix ods-infra components require OpenShift projects in Deploy stage ([#1047](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1047))
 
