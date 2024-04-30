@@ -196,6 +196,9 @@ class DeployOdsComponent {
                         "imageTag": project.targetTag,
                         "imageNamespace": project.targetProject,
                         "componentId": deploymentMean.repoId,
+                        "global.imageTag": project.targetTag,
+                        "global.imageNamespace": project.targetProject,
+                        "global.componentId": deploymentMean.repoId,
                     ]
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues

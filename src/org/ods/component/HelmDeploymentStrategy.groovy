@@ -126,8 +126,18 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // we persist the original ones set from outside - here we just add ours
                 Map mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
+
+                // we add the global ones - this allows usage in subcharts
+                options.helmValues.each { key, value ->
+                    mergedHelmValues["global.${key}"] = value
+                }
+
                 mergedHelmValues['imageNamespace'] = targetProject
                 mergedHelmValues['imageTag'] = options.imageTag
+
+                // we also add the predefined ones as these are in use by the library
+                mergedHelmValues['global.imageNamespace'] = targetProject
+                mergedHelmValues['global.imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
