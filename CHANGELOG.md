@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
 * Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026)). 
 * Given that Helm performs an atomic rollout, it's necessary to import all images into the mono repository prior to initiating the rollout process with Helm.
 
@@ -29,6 +30,9 @@
 ## [4.3.4] - 2024-02-20
 
 * Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
+* Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
 * Aqua scanner and Helm deployment conflict fix for jenkins shared library ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
 * Fix ods-infra components require OpenShift projects in Deploy stage ([#1047](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1047))
 

@@ -195,7 +195,7 @@ class ScanWithAquaStage extends Stage {
             ])
         }
         if (messages) {
-            data.put("messages",[
+            data.put("messages", [
                 [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
             ])
         }

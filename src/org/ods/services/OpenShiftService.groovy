@@ -1016,21 +1016,32 @@ class OpenShiftService {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    // checkForPodData returns a subset of information from every pod, once
-    // all pods matching the label are "running". If this is not the case,
-    // it returns an empty list.
-    List<PodData> checkForPodData(String project, String label) {
-        List<PodData> pods = []
+    // checkForPodData returns a subset of information from every pod.
+    // It only considers the pods matching a label and are in a state of "running".
+    // If this is not the case, it returns an empty list.
+    List<PodData> checkForPodData(String project, String label, String resourceName = null) {
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l ${label} -o json",
             returnStdout: true,
             label: "Getting OpenShift pod data for pods labelled with ${label}"
         ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
+        return parsePodJson(podJson, resourceName)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    List<PodData> parsePodJson(podJson, String resourceName = null) {
+        List<PodData> pods = []
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+            // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
         }
-        pods
+        // if we have a resourceName only return the items matching that
+        if (resourceName != null) {
+            def filteredPods= pods.findAll { it.podName.startsWith(resourceName) }
+            return filteredPods
+        }
+        return pods
     }
 
     private String getPodManagerName(String project, String kind, String name, int revision) {
