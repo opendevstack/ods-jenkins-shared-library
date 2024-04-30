@@ -1,0 +1,21 @@
+********************************************************************************
+Detected Tailor deployment
+
+Tailor is deprecated and might be removed in the future.
+
+Please migrate to Helm based deployments.
+
+See:
+
+* https://helm.sh
+* https://github.com/opendevstack/tailor/blob/master/README.md
+
+********************************************************************************
+
+> The main target of Tailor is OpenShift 3.11.
+> Tailor also works against OpenShift 4,
+> but it is recommended to transition to other tools,
+> such as Helm or kustomize,
+> which have become popular and work well against OpenShift 4.
+
+********************************************************************************
