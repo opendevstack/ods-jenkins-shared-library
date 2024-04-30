@@ -50,7 +50,6 @@ class DeployOdsComponent {
                     importImages(deployment, deploymentName, project.sourceProject)
                 }
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-
                     // read from deploymentdescriptor
                     Map deploymentMean = deployment.deploymentMean
                     logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
@@ -190,7 +189,7 @@ class DeployOdsComponent {
                     Map<String, String> helmMergedValues = [
                         "imageTag": project.targetTag,
                         "imageNamespace": project.targetProject,
-                        "componentId": deploymentMean.repoId
+                        "componentId": deploymentMean.repoId,
                     ]
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues
@@ -273,4 +272,5 @@ class DeployOdsComponent {
             }
         }
     }
+
 }
