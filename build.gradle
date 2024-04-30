@@ -75,7 +75,7 @@ dependencies {
     implementation "org.apache.pdfbox:pdfbox:2.0.23"
     implementation "org.apache.poi:poi:4.0.1"
     implementation "org.yaml:snakeyaml:2.2"
-    implementation 'com.vladsch.flexmark:flexmark-all:0.60.2' // for markdown to pdf conversion (sonarqube reports)
+    implementation 'com.vladsch.flexmark:flexmark-all:0.64.8' // for markdown to pdf conversion (sonarqube reports)
     implementation 'com.xlson.groovycsv:groovycsv:1.3'
 
     testImplementation "org.spockframework:spock-core:1.3-groovy-2.4"
