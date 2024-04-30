@@ -16,6 +16,7 @@ class DocumentHistorySpec extends SpecHelper {
     Logger logger
     Map jiraData10
     Map noJiraData
+    Map noJiraDataTwo
     Map jiraData11_first
     Map jiraDataFix
     Map jiraData11_second
@@ -26,6 +27,7 @@ class DocumentHistorySpec extends SpecHelper {
     List<DocumentHistoryEntry> entries11_first
     List<DocumentHistoryEntry> entriesFix
     List<DocumentHistoryEntry> noEntries
+    List<DocumentHistoryEntry> noEntriesOne
     List<DocumentHistoryEntry> entries11_second
     List<DocumentHistoryEntry> entries20
     List<DocumentHistoryEntry> entries20Alt
@@ -49,6 +51,7 @@ class DocumentHistorySpec extends SpecHelper {
         def secondProjectVersion = '1.1'
         def bugfixProjectVersion = '1.0.1'
         def fourthProjectVersion = '2.0'
+        def fifthProjectVersion = '3.0'
 
         def cmp1 = cmp('frontend', firstProjectVersion )
         def cmp2 = cmp('backend', firstProjectVersion)
@@ -85,6 +88,21 @@ class DocumentHistorySpec extends SpecHelper {
             bugs        : [:],
             version     : fourthProjectVersion,
             previousVersion: secondProjectVersion,
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        this.noJiraDataTwo = [
+            bugs        : [:],
+            version     : fifthProjectVersion,
+            previousVersion: fourthProjectVersion,
             components  : [:],
             epics       : [:],
             mitigations : [:],
@@ -245,6 +263,19 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [],
             techSpecs   : []], 7L, fourthProjectVersion, secondProjectVersion,
             "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
+
+        this.noEntriesOne = [new DocumentHistoryEntry([
+            bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components  : [],
+            epics       : [],
+            mitigations : [],
+            requirements: [],
+            risks       : [],
+            tests       : [],
+            techSpecs   : []], 8L, fifthProjectVersion, fourthProjectVersion,
+            "3.0/8", "No changes were made to this document for project version '${fifthProjectVersion}'.")] + noEntries
+
 
     }
 
@@ -408,6 +439,28 @@ class DocumentHistorySpec extends SpecHelper {
 
         then:
         history.latestVersionId == 7L
+        assert entryListIsEquals(history.data, versionEntries)
+        history.data == versionEntries
+    }
+
+    def "builds docHistory for no fix version"() {
+        given:
+        def jiraData = noJiraDataTwo
+        def targetEnvironment = 'D'
+        def savedData = noEntries
+
+        def versionEntries = noEntriesOne
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData() >> savedData
+
+        then:
+        history.latestVersionId == 8L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
     }
