@@ -69,10 +69,12 @@ class JiraUseCase {
         this.support = support
     }
 
+    @NonCPS
     void setJira(JiraService jira) {
         this.jira = jira
     }
 
+    @NonCPS
     JiraService getJira() {
         return jira
     }
