@@ -1186,7 +1186,7 @@ class Project {
      * @result The call results, and empty if not enabled
      * @throw ComponentMismatchException if there is a component mismatch
      */
-    Map getComponentsStatus() {
+    Map getComponentsFromJira() {
         if (!this.jiraUseCase) return [:]
 
         return jiraUseCase.getComponentsStatus(this.key, this.data.buildParams.changeId)
@@ -2018,7 +2018,7 @@ class Project {
         }
     }
 
-    void addFakeRepository(String component) {
+    void addDefaults(String component) {
         def rmURL = git.getOriginUrl()
         def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         def repo = [

@@ -1,6 +1,6 @@
 package org.ods.orchestration.usecase
 
-class ComponentMismatchException  extends IllegalArgumentException {
+class ComponentMismatchException extends Exception {
 
     ComponentMismatchException(String message, Throwable t) {
         super(message, t)

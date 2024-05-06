@@ -82,12 +82,8 @@ class InitStage extends Stage {
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        if (project.isPromotionMode && !project.buildParams.rePromote) {
-            checkReposContainEnvCommits(repos, steps, git, logger, util)
-        }
-
         logger.info("Checking Jira components against metadata.yml repositories")
-        def check = project.getComponentsStatus()
+        def check = project.getComponentsFromJira()
         if (check) {
             if (check.deployableState != 'DEPLOYABLE') {
                 new ComponentMismatchException(check.message)
@@ -97,7 +93,7 @@ class InitStage extends Stage {
             for (component in check.components) {
                 logger.info("Component: $component")
                 if (!project.repositories.any { it -> component.name == (it.containsKey('name') ? it.name : it.id) }) {
-                    project.addFakeRepository(component.name)
+                    project.addDefaults(component.name)
                     logger.info("Repository added: $component.name")
                 }
             }
@@ -120,6 +116,10 @@ class InitStage extends Stage {
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
+        }
+
+        if (project.isPromotionMode && !project.buildParams.rePromote) {
+            checkReposContainEnvCommits(repos, steps, git, logger, util)
         }
 
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
@@ -192,30 +192,32 @@ class InitStage extends Stage {
                                              logger,
                                              util) {
         repos.each { repo ->
-            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                if (repo.data.envStateCommit) {
-                    if (git.isAncestor(repo.data.envStateCommit, repo.data.git.commit)) {
-                        logger.info(
-                            "Verified that ${repo.id}@${repo.data.git.commit} is " +
-                                "a descendant of ${repo.data.envStateCommit}."
-                        )
-                    } else if (project.buildParams.targetEnvironmentToken == 'Q') {
-                        util.warnBuild(
-                            "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
-                                "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
-                        )
+            if (repo.include) {
+                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    if (repo.data.envStateCommit) {
+                        if (git.isAncestor(repo.data.envStateCommit, repo.data.git.commit)) {
+                            logger.info(
+                                "Verified that ${repo.id}@${repo.data.git.commit} is " +
+                                    "a descendant of ${repo.data.envStateCommit}."
+                            )
+                        } else if (project.buildParams.targetEnvironmentToken == 'Q') {
+                            util.warnBuild(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
+                                    "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
+                                    "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
+                            )
+                        } else {
+                            throw new RuntimeException(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
+                                    "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
+                                    "promoted to 'P' into ${project.gitReleaseBranch}."
+                            )
+                        }
                     } else {
-                        throw new RuntimeException(
-                            "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
-                                "promoted to 'P' into ${project.gitReleaseBranch}."
+                        logger.info(
+                            "Repo ${repo.id} is not recorded in env state, skipping commit ancestor verification."
                         )
                     }
-                } else {
-                    logger.info(
-                        "Repo ${repo.id} is not recorded in env state, skipping commit ancestor verification."
-                    )
                 }
             }
         }
