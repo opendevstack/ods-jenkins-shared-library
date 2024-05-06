@@ -298,9 +298,9 @@ class DocumentHistory {
 
     @NonCPS
     private boolean containsChanges(DocumentHistoryEntry documentHistoryEntry) {
-        for (String delegateType : JiraDataItem.TYPES) {
-            String[] values = documentHistoryEntry.get(delegateType)
-            if (values.length > 0) {
+        for (String issueType : JiraDataItem.TYPES) {
+            String[] values = documentHistoryEntry.get(issueType)
+            if (values) {
                 return true
             }
         }
