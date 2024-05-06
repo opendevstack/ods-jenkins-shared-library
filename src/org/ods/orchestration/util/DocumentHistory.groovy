@@ -287,11 +287,11 @@ class DocumentHistory {
             return "Initial document version."
         }
         def versionText
-        if (!containsChanges(currentEntry)) {
+        if (containsChanges(currentEntry)) {
+            versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        } else {
             versionText = "No changes were made to this " +
                 "document for project version '${currentEntry.getProjectVersion()}'."
-        } else {
-            versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
         }
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
