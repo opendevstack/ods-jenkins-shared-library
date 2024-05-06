@@ -287,7 +287,7 @@ class DocumentHistory {
             return "Initial document version."
         }
         def versionText
-        if (doesNotContainChanges(currentEntry)) {
+        if (!containsChanges(currentEntry)) {
             versionText = "No changes were made to this " +
                 "document for project version '${currentEntry.getProjectVersion()}'."
         } else {
@@ -297,14 +297,14 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private boolean doesNotContainChanges(DocumentHistoryEntry documentHistoryEntry) {
+    private boolean containsChanges(DocumentHistoryEntry documentHistoryEntry) {
         for (String delegateType : JiraDataItem.TYPES) {
             String[] values = documentHistoryEntry.get(delegateType)
-            if (values != null && values.length > 0) {
-                return false
+            if (values.length > 0) {
+                return true
             }
         }
-        return true
+        return false
     }
 
     /**
