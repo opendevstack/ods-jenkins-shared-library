@@ -3228,7 +3228,7 @@ class ProjectSpec extends SpecHelper {
         jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
 
         when:
-        def result = project.getComponentsStatus()
+        def result = project.getComponentsFromJira()
 
         then:
         result.deployableState == 'DEPLOYABLE'
@@ -3239,7 +3239,7 @@ class ProjectSpec extends SpecHelper {
         jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
 
         when:
-        def result = project.getComponentsStatus()
+        def result = project.getComponentsFromJira()
 
         then:
         result.deployableState != 'DEPLOYABLE'
@@ -3250,7 +3250,7 @@ class ProjectSpec extends SpecHelper {
         def projectObj = new Project(steps, logger)
 
         when:
-        def result = projectObj.getComponentsStatus()
+        def result = projectObj.getComponentsFromJira()
 
         then:
         !result

@@ -202,15 +202,17 @@ class InitStage extends Stage {
                             )
                         } else if (project.buildParams.targetEnvironmentToken == 'Q') {
                             util.warnBuild(
-                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                    "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
-                                    "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of " +
+                                    "${repo.data.envStateCommit}, which has previously been promoted to 'Q'. " +
+                                    "If ${repo.data.envStateCommit} has been promoted to 'P' as well, " +
+                                    "promotion to 'P' will fail. Proceed with caution."
                             )
                         } else {
                             throw new RuntimeException(
-                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                    "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
-                                    "promoted to 'P' into ${project.gitReleaseBranch}."
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of " +
+                                    "${repo.data.envStateCommit}, which has previously been promoted to 'P'. " +
+                                    "Ensure to merge everything that has been promoted to 'P' " +
+                                    "into ${project.gitReleaseBranch}."
                             )
                         }
                     } else {
