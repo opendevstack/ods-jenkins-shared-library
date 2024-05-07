@@ -206,10 +206,7 @@ class FinalizeStage extends Stage {
                 if ((repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
                     repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
                     repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE)) {
-                    repoIntegrateTasks << [(repo.id): {
-                        doIntegrateIntoMainBranches(steps, repo, git)
-                    }
-                    ]
+                    repoIntegrateTasks << [(repo.id): { doIntegrateIntoMainBranches(steps, repo, git) }]
                 }
             }
         }
