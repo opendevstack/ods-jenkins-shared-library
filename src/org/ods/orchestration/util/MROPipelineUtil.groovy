@@ -233,7 +233,7 @@ class MROPipelineUtil extends PipelineUtil {
         this.logger.startClocked("${repo.id}-scm-checkout")
         def scm = null
         def scmBranch = repo.branch
-        if (this.project.isPromotionMode) {
+        if (this.project.isPromotionMode && repo.include) {
             this.logger.info("Since in promotion mode, checking out tag ${this.project.baseTag}")
             scm = checkoutTagInRepoDir(repo, this.project.baseTag)
             scmBranch = this.project.gitReleaseBranch
