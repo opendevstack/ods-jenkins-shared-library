@@ -1034,11 +1034,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def repos = this.project.repositories.collect { Map it ->
+            def clone = it.clone()
+            clone.printurl = it.url.replaceAll('/+','$0\u200B')
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories,
+                repositories: repos,
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
