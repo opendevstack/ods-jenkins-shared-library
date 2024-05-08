@@ -58,7 +58,7 @@ class DeployOdsComponent {
                     applyTemplates(openShiftDir, deploymentMean)
 
                     def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    def podData = []
+                    def podData = null
                     for (def i = 0; i < retries; i++) {
                         podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
                         if (podData) {
@@ -66,7 +66,11 @@ class DeployOdsComponent {
                         }
                         steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
                         steps.sleep(12)
-                    }   
+                    }
+
+                    if podData == null {
+                        throw new RuntimeException("Error: Could not find 'running' pod(s) with label '${deploymentMean.selector}'")
+                    }
 
                     // TODO: What if podData is empty?
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
