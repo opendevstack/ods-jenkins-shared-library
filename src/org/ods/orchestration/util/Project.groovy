@@ -1491,6 +1491,8 @@ class Project {
                 repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
             }
 
+            repo.printurl = repo.url.replaceAll("(?<!\\/)\\/(?!\\/)","/\u200B"),
+
             this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
             // Resolve repo branch, if not provided
@@ -2021,6 +2023,7 @@ class Project {
     void addDefaults(String component) {
         def rmURL = git.getOriginUrl()
         def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+        def actualUrl = gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString()
         def repo = [
             id: component,
             data: [
@@ -2029,7 +2032,8 @@ class Project {
             ],
             include: false,
             type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-            url: gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString(),
+            url: actualUrl,
+            printurl: actualUrl.replaceAll("(?<!\\/)\\/(?!\\/)","/\u200B"),
             branch: 'master'
         ]
 
