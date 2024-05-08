@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Support StatefulSet in Helm charts ([#1108](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1108))
 * The Document History indicates clearly when an SLC document has not changed ([#1099](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1099))
 
 ### Fixed
