@@ -69,7 +69,10 @@ class DeployOdsComponent {
                     }
 
                     if (podData == null) {
-                        throw new RuntimeException("Error: Could not find 'running' pod(s) with label '${deploymentMean.selector}'")
+                        throw new RuntimeException(
+                        "Error: Could not find 'running' pod(s) with label"
+                        + "'${deploymentMean.selector}'"
+                        )
                     }
 
                     // TODO: What if podData is empty?
