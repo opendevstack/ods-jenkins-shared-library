@@ -15,6 +15,8 @@ class DocumentHistorySpec extends SpecHelper {
     IPipelineSteps steps
     Logger logger
     Map jiraData10
+    Map noJiraData
+    Map noJiraDataTwo
     Map jiraData11_first
     Map jiraDataFix
     Map jiraData11_second
@@ -24,6 +26,8 @@ class DocumentHistorySpec extends SpecHelper {
     List<DocumentHistoryEntry> entries10
     List<DocumentHistoryEntry> entries11_first
     List<DocumentHistoryEntry> entriesFix
+    List<DocumentHistoryEntry> noEntries
+    List<DocumentHistoryEntry> noEntriesOne
     List<DocumentHistoryEntry> entries11_second
     List<DocumentHistoryEntry> entries20
     List<DocumentHistoryEntry> entries20Alt
@@ -47,6 +51,7 @@ class DocumentHistorySpec extends SpecHelper {
         def secondProjectVersion = '1.1'
         def bugfixProjectVersion = '1.0.1'
         def fourthProjectVersion = '2.0'
+        def fifthProjectVersion = '3.0'
 
         def cmp1 = cmp('frontend', firstProjectVersion )
         def cmp2 = cmp('backend', firstProjectVersion)
@@ -75,6 +80,36 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [(rsk1.key): rsk1],
             tests       : [(tst1.key): tst1, (tst2.key): tst2],
             techSpecs   : [(ts1.key):ts1],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        this.noJiraData = [
+            bugs        : [:],
+            version     : fourthProjectVersion,
+            previousVersion: secondProjectVersion,
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        this.noJiraDataTwo = [
+            bugs        : [:],
+            version     : fifthProjectVersion,
+            previousVersion: fourthProjectVersion,
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
             docs        : [:],
             discontinuationsPerType : [:]
         ]
@@ -216,6 +251,32 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
             "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
+
+        this.noEntries = [new DocumentHistoryEntry([
+            bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components  : [],
+            epics       : [],
+            mitigations : [],
+            requirements: [],
+            risks       : [],
+            tests       : [],
+            techSpecs   : []], 7L, fourthProjectVersion, secondProjectVersion,
+            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
+
+        this.noEntriesOne = [new DocumentHistoryEntry([
+            bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components  : [],
+            epics       : [],
+            mitigations : [],
+            requirements: [],
+            risks       : [],
+            tests       : [],
+            techSpecs   : []], 8L, fifthProjectVersion, fourthProjectVersion,
+            "3.0/8", "No changes were made to this document for project version '${fifthProjectVersion}'.")] + noEntries
+
+
     }
 
     protected List<String> computeIssuesDoc(List<DocumentHistoryEntry> dhe) {
@@ -356,6 +417,50 @@ class DocumentHistorySpec extends SpecHelper {
 
         then:
         history.latestVersionId == 5L
+        assert entryListIsEquals(history.data, versionEntries)
+        history.data == versionEntries
+    }
+
+    def "builds docHistory for no entries in current version but, existed previous version entries"() {
+        given:
+        def jiraData = noJiraData
+        def targetEnvironment = 'D'
+        def savedData = entries20Alt
+
+        def versionEntries = noEntries
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData() >> savedData
+
+        then:
+        history.latestVersionId == 7L
+        assert entryListIsEquals(history.data, versionEntries)
+        history.data == versionEntries
+    }
+
+    def "builds docHistory for no entries in current version"() {
+        given:
+        def jiraData = noJiraDataTwo
+        def targetEnvironment = 'D'
+        def savedData = noEntries
+
+        def versionEntries = noEntriesOne
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData() >> savedData
+
+        then:
+        history.latestVersionId == 8L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
     }

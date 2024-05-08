@@ -62,7 +62,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
         IContext context = new Context(null, ctxData, logger)
         OpenShiftService openShiftService = Mock(OpenShiftService.class)
-        openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${contextData.componentId}-124"])]
+        openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${contextData.componentId}-124"])]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
         JenkinsService jenkinsService = Stub(JenkinsService.class)
