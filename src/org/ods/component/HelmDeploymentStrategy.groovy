@@ -176,7 +176,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
 
-                logger.info("Fetching resource for resourcekind: ${resourceKind}/${resourceName} (selector: ${options.selector})")
+                logger.info(
+                    "Fetching resource for resourcekind: "
+                    + "${resourceKind}/${resourceName}"
+                    + "(selector: ${options.selector})"
+                )
 
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
