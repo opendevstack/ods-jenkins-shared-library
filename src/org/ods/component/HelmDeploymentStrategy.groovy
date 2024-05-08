@@ -95,10 +95,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
         helmUpgrade(context.targetProject)
 
-        def deployment_kinds = DEPLOYMENT_KINDS << 'StatefulSet'
+        def deploymentKinds = DEPLOYMENT_KINDS << 'StatefulSet'
 
         def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, deployment_kinds, options.selector
+            context.targetProject, deploymentKinds, options.selector
         )
         logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
         logger.info(
