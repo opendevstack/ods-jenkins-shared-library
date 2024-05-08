@@ -68,7 +68,7 @@ class DeployOdsComponent {
                         steps.sleep(12)
                     }
 
-                    if podData == null {
+                    if (podData == null) {
                         throw new RuntimeException("Error: Could not find 'running' pod(s) with label '${deploymentMean.selector}'")
                     }
 
