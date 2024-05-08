@@ -1037,6 +1037,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def repos = this.project.repositories.collect { Map it ->
             def clone = it.clone()
             clone.printurl = it.url.replaceAll('/+','$0\u200B')
+            return clone
         }
 
         def data_ = [
