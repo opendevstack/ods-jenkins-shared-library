@@ -1491,7 +1491,7 @@ class Project {
                 repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
             }
 
-            repo.printurl = repo.url.replaceAll("(?<!\\/)\\/(?!\\/)","/\u200B"),
+            repo.printurl = repo.url.replaceAll("(?<!\\/)\\/(?!\\/)","/\u200B")
 
             this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
