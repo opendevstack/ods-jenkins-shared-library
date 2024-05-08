@@ -95,8 +95,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
         helmUpgrade(context.targetProject)
 
+        def deployment_kinds = DEPLOYMENT_KINDS << 'StatefulSet'
+
         def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, DEPLOYMENT_KINDS, options.selector
+            context.targetProject, deployment_kinds, options.selector
         )
         logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
         logger.info(
@@ -173,6 +175,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def rolloutData = [:]
         deploymentResources.each { resourceKind, resourceNames ->
             resourceNames.each { resourceName ->
+
+                logger.info("Fetching resource for resourcekind: ${resourceKind}/${resourceName} (selector: ${options.selector})")
+
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
                     podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
