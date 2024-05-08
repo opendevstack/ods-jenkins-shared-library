@@ -80,6 +80,14 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+
+        // Why? In Groovy protected fields are implicitly final.
+        // As per Google: This seems to be the idiomatic way to override protected fields
+        DEPLOYMENT_KINDS.clear()
+        DEPLOYMENT_KINDS.addAll(
+            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+            OpenShiftService.STATEFULSET_KIND,
+        )
     }
 
     @Override
@@ -95,10 +103,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
         helmUpgrade(context.targetProject)
 
-        def deploymentKinds = DEPLOYMENT_KINDS << 'StatefulSet'
-
         def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, deploymentKinds, options.selector
+            context.targetProject, DEPLOYMENT_KINDS, options.selector
         )
         logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
         logger.info(

@@ -7,7 +7,7 @@ import org.ods.util.PodData
 
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
 
-    protected final List<String> DEPLOYMENT_KINDS = [
+    protected List<String> DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
     ]
 
