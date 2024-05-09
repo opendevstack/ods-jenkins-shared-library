@@ -1037,6 +1037,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def repos = this.project.repositories.collect { Map it ->
             def clone = it.clone()
             clone.printurl = it.url.replaceAll('/+','$0\u200B')
+
+            //Add break space in url in manufacturer
+            def p = ~'https?://\\S*'
+            def m = it.metadata.supplier =~ p
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                String url = m.group();
+                url = url.replaceAll('/+', '$0\u200B')
+                m.appendReplacement(sb, url);
+            }
+            m.appendTail(sb);
+            clone.printsupplier = sb.toString()
+
             return clone
         }
 
