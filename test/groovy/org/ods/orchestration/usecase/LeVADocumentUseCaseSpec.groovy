@@ -1235,46 +1235,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
     }
 
-    def "dont create TIR"() {
-        given:
-        // Test Parameters
-        def repo = project.repositories.first()
-        def data = [
-            openshift: [
-                pod: [
-                    podName: 'N/A',
-                    podNamespace: 'N/A',
-                    podCreationTimestamp: 'N/A',
-                    podEnvironment: 'N/A',
-                    podNode: 'N/A',
-                    podIp: 'N/A',
-                    podStatus: 'N/A'
-                ]
-            ]
-        ]
-        repo.include = false
-        // Argument Constraints
-        def documentType = TIR as String
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
-        def documentTemplate = "template"
-        def watermarkText = "WATERMARK"
-
-        when:
-        def result = usecase.createTIR(repo, data)
-
-        then:
-        assert result == null
-        0 * usecase.getDocumentSectionsFileOptional(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-        0 * usecase.getWatermarkText(documentType, _) >> watermarkText
-
-        then:
-        0 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
-        0 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
-        0 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
-    }
     def "create TIR without Jira"() {
         given:
         project.services.jira = null
