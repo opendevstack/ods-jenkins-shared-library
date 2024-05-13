@@ -7221,14 +7221,16 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             def usecase = Stub(LeVADocumentUseCase)
             def logger = Stub(Logger)
             def bbt = Stub(BitbucketTraceabilityUseCase)
-            PROJECT_GAMP_5.repositories[1].include = false
-            def scheduler = new LeVADocumentScheduler(PROJECT_GAMP_5, steps, util, usecase, logger)
+            def currentProject = createProject()
+            currentProject.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
+            currentProject.repositories[1].include = false
+            def scheduler = new LeVADocumentScheduler(currentProject, steps, util, usecase, logger)
 
         when:
             def result = scheduler.isDocumentApplicable(DocumentType.TIR as String,
                 MROPipelineUtil.PipelinePhases.DEPLOY,
                 PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-                PROJECT_GAMP_5.repositories[1])
+                currentProject.repositories[1])
         then:
             !result
     }
