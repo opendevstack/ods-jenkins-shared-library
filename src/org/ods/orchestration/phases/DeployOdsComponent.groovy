@@ -62,7 +62,7 @@ class DeployOdsComponent {
                     for (def i = 0; i < retries; i++) {
                         podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
                         if (podData) {
-                            return podData
+                            break
                         }
                         steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
                         steps.sleep(12)
@@ -83,6 +83,7 @@ class DeployOdsComponent {
                     repo.data.openshift.deployments << [(deploymentName): pod]
                     def deploymentMeanKey = deploymentName + '-deploymentMean'
                     repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
+                    return podData
                 }
             } else {
                 def originalDeploymentVersions =
