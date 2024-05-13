@@ -68,14 +68,13 @@ class DeployOdsComponent {
                         steps.sleep(12)
                     }
 
-                    if (podData == null) {
+                    if (!podData) {
                         throw new DeployOdsComponentException(
                         "Error: Could not find 'running' pod(s) with label"
                         + "'${deploymentMean.selector}'"
                         )
                     }
 
-                    // TODO: What if podData is empty?
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
                     def pod = podData[0].toMap()
