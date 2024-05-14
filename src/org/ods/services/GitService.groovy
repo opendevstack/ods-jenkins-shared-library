@@ -150,7 +150,10 @@ class GitService {
 
         return (gitCommitSubject.contains('[ciskip]')
                  || gitCommitSubject.contains('[skipci]')
-                 || gitCommitSubject.contains('***noci***'))
+                 || gitCommitSubject.contains('***noci***')
+                //  Workaround for Bitbucket git-notes behaviour - reference:
+                // https://github.com/semantic-release/semantic-release/discussions/2017#discussioncomment-995308
+                 || gitCommitSubject.contains("Notes added by 'git notes add'"))
     }
     void checkout(
         String branch,
