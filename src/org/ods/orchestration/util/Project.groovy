@@ -4,7 +4,6 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
-import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
@@ -1189,7 +1188,7 @@ class Project {
     Map getComponentsFromJira() {
         if (!this.jiraUseCase) return [:]
 
-        return jiraUseCase.getComponentsStatus(this.key, this.data.buildParams.changeId)
+        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId)
     }
 
     protected Map loadJiraData(String projectKey) {
@@ -1463,6 +1462,7 @@ class Project {
             result.repositories = []
         }
 
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         result.repositories.eachWithIndex { repo, index ->
             // Check for existence of required attribute 'repositories[i].id'
             if (!repo.id?.trim()) {
@@ -1470,36 +1470,7 @@ class Project {
                         "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
-            repo.include = repo.containsKey('include') ? repo.include : true
-
-            repo.data = [
-                openshift: [:],
-                documents: [:],
-            ]
-
-            // Set repo type, if not provided
-            if (!repo.type?.trim()) {
-                repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
-            }
-
-            // Resolve repo URL
-            def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
-            if (repo.name?.trim()) {
-                repo.url = gitURL.resolve("${repo.name}.git").toString()
-                repo.remove('name')
-            } else {
-                repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-            }
-
-            this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
-
-            // Resolve repo branch, if not provided
-            if (!repo.branch?.trim()) {
-                this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                        "from project meta data. Assuming 'master'.")
-                repo.branch = 'master'
-            }
-            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
+            populateRepo(gitURL, result.id, repo)
         }
 
         if (result.capabilities == null) {
@@ -2018,25 +1989,57 @@ class Project {
         }
     }
 
-    void addDefaults(String component) {
-        def rmURL = git.getOriginUrl()
-        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
-        def actualUrl = gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString()
-        def repo = [
-            id: component,
-            data: [
-                openshift: [:],
-                documents: [:],
-            ],
-            include: false,
-            type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-            url: actualUrl,
-            branch: 'master'
+    protected void populateRepo(URI gitURL, String projectId, Map repo) {
+        // Check for existence of required attribute 'repo.id'
+        if (!repo.id?.trim()) {
+            throw new IllegalArgumentException(
+                "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
+        }
+
+        repo.include = repo.containsKey('include') ? repo.include : true
+
+        repo.data = [
+            openshift: [:],
+            documents: [:],
         ]
 
-        if (rmURL == repo.url) {
+        // Set repo type, if not provided
+        if (!repo.type?.trim()) {
+            repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        }
+
+        // Resolve repo URL
+        if (repo.name?.trim()) {
+            repo.url = gitURL.resolve("${repo.name}.git").toString()
+            repo.remove('name')
+        } else {
+            repo.url = gitURL.resolve("${projectId.toLowerCase()}-${repo.id}.git").toString()
+        }
+
+        this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+
+        // Resolve repo branch, if not provided
+        if (!repo.branch?.trim()) {
+            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
+                "from project meta data. Assuming 'master'.")
+            repo.branch = 'master'
+        }
+        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
+    }
+
+    void addDefaults(String component) {
+        def releaseManagerURL = git.getOriginUrl()
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+        def actualUrl = gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString()
+
+        if (releaseManagerURL == actualUrl) {
             logger.debug("Not adding release manager")
         } else {
+            def repo = [
+                id: component,
+                include: false,
+            ]
+            populateRepo(gitURL, this.key, repo)
             this.data.metadata.repositories.add(repo)
         }
     }

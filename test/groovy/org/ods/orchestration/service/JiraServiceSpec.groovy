@@ -2455,7 +2455,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponentsStatus('EDP','v1')
+        def result = service.getComponents('EDP','v1')
 
         then:
         noExceptionThrown()
@@ -2477,7 +2477,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponentsStatus('EDP','v1')
+        def result = service.getComponents('EDP','v1')
 
         then:
         noExceptionThrown()
@@ -2496,7 +2496,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponentsStatus('EDP','v1')
+        def result = service.getComponents('EDP','v1')
 
         then:
         def e = thrown(RuntimeException)

@@ -3,7 +3,6 @@ package org.ods.orchestration.util
 
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.JiraService
-import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
@@ -3225,7 +3224,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch with jira enabled"() {
         given:
-        jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
 
         when:
         def result = project.getComponentsFromJira()
@@ -3236,7 +3235,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch fail with jira enabled"() {
         given:
-        jiraUseCase.getComponentsStatus('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
 
         when:
         def result = project.getComponentsFromJira()

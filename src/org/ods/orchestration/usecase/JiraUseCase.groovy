@@ -451,8 +451,8 @@ class JiraUseCase {
         return content
     }
 
-    Map getComponentsStatus(String projectKey, String version) {
-        return jira.getComponentsStatus(projectKey, version)
+    Map getComponents(String projectKey, String version) {
+        return jira.getComponents(projectKey, version)
     }
 
 }

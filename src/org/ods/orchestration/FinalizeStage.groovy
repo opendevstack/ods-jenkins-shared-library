@@ -140,7 +140,7 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         def repoSize = flattenedRepos.size()
-        steps.echo "Finalize: Push flattenede repos"
+        steps.echo "Finalize: Push flattened repos"
         steps.echo "$flattenedRepos"
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
@@ -179,16 +179,16 @@ class FinalizeStage extends Stage {
         def gatherCommitTasks = [ : ]
         def repoSize = flattenedRepos.size()
         for (def i = 0; i < repoSize; i++) {
-            def repo = flattenedRepos[i]
-            gatherCommitTasks << [ (repo.id): {
-                if (repo.include) {
+            if (repo.include) {
+                def repo = flattenedRepos[i]
+                gatherCommitTasks << [(repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
                         steps.echo "repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}"
                     }
                 }
+                ]
             }
-            ]
         }
 
         gatherCommitTasks.failFast = true
