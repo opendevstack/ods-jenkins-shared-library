@@ -256,15 +256,13 @@ class ScanWithSonarStage extends Stage {
 
     private createBitbucketCodeInsightReport(
         String qualityGateResult, String nexusUrlReport,String sonarProjectKey, String edition, String branch) {
-        String sorQubeScanUrl = ""
+        String sorQubeScanUrl = sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"
         String result = qualityGateResult == "OK" ? "PASS" : "FAIL"
 
         if (edition != 'community') {
-            sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}&branch=${branch}"
-        } else {
-            sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
+            sorQubeScanUrl +=  "&branch=${branch}"
         }
 
         def data = [
