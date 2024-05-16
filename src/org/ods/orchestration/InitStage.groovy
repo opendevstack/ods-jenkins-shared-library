@@ -80,9 +80,12 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
+        logger.debugClocked('Project#load')
+        project.load(registry.get(GitService), registry.get(JiraUseCase))
+        logger.debugClocked('Project#load')
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        logger.info("Checking Jira components against metadata.yml repositories")
+        logger.info("Comparing Jira components against metadata.yml repositories")
         def check = project.getComponentsFromJira()
         if (check) {
             if (check.deployableState != 'DEPLOYABLE') {
@@ -295,10 +298,6 @@ class InitStage extends Stage {
                                               PipelineSteps steps) {
         BitbucketService bitbucket = registry.get(BitbucketService)
         Closure loadClosure = {
-            logger.debugClocked('Project#load')
-            project.load(registry.get(GitService), registry.get(JiraUseCase))
-            logger.debugClocked('Project#load')
-
             logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
                 && buildParams.version == 'WIP') {
