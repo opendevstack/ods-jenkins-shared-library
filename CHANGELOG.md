@@ -2,6 +2,7 @@
 
 ## Unreleased
 * The Document History indicates clearly when an SLC document has not changed ([#1099](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1099))
+* Fixed SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
@@ -9,6 +10,7 @@
 * Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
 * Fix Globally injected variables do not work in subcharts/dependencies ([#1066](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1066))
 * Fix retrieval of SonarQube quality gate ([#1109](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1109))
+* Fix SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
 
 ### Added
 * Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))

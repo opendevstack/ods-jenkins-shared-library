@@ -115,7 +115,8 @@ class ScanWithSonarStage extends Stage {
         def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
         URI reportUriNexus = generateAndArchiveReportInNexus(report,
             context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-        createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey)
+        createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey, 
+            context.sonarQubeEdition, context.gitBranch)
     }
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
@@ -253,11 +254,18 @@ class ScanWithSonarStage extends Stage {
         }
     }
 
-    private createBitbucketCodeInsightReport(String qualityGateResult, String nexusUrlReport, String sonarProjectKey) {
-        String sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
+    private createBitbucketCodeInsightReport(String qualityGateResult, String nexusUrlReport, String sonarProjectKey, String edition, String branch) {
+        
+        String sorQubeScanUrl = ""
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"
         String result = qualityGateResult == "OK" ? "PASS" : "FAIL"
+
+        if (edition != 'community') {
+                sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}&branch=${branch}"
+            } else {
+                sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
+            }
 
         def data = [
             key: BITBUCKET_SONARQUBE_REPORT_KEY,
