@@ -179,7 +179,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
             "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the changes done in document version '${bugfixProjectVersion}/2'.")] + entries11_first
+                " This document version invalidates the previous document version '${bugfixProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -250,7 +250,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
+            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the previous document version '${fourthProjectVersion}/5'.")] + entries20
 
         this.noEntries = [new DocumentHistoryEntry([
             bugs        : [],
@@ -262,7 +262,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 7L, fourthProjectVersion, secondProjectVersion,
-            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
+            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the previous document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
 
         this.noEntriesOne = [new DocumentHistoryEntry([
             bugs        : [],
@@ -727,7 +727,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries10
         def docContent = computeIssuesDoc(entries10)
         def versionEntries = [new DocumentHistoryEntry(entries10.first().getDelegate(), 2L, firstProjectVersion, '',
-            "1.0/2", "Modifications for project version '${firstProjectVersion}'. This document version invalidates the changes done in document version '${firstProjectVersion}/1'.")] + entries10
+            "1.0/2", "Modifications for project version '${firstProjectVersion}'. This document version invalidates the previous document version '${firstProjectVersion}/1'.")] + entries10
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
