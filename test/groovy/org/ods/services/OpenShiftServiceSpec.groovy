@@ -1,9 +1,11 @@
+
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import org.ods.util.PodData
 import spock.lang.Unroll
 import util.FixtureHelper
 import util.OpenShiftHelper
@@ -56,6 +58,180 @@ class OpenShiftServiceSpec extends SpecHelper {
         '172.30.21.196:5000/baz/qux@sha256:abc' | 'n/a'                                   || '172.30.21.196:5000' | 'baz'      | 'qux' | 'sha256:abc' | 'abc'
         'foo/bar:2-3ec425bc'                    | '172.30.21.196:5000/foo/bar@sha256:xyz' || '172.30.21.196:5000' | 'foo'      | 'bar' | 'sha256:xyz' | 'xyz'
         'baz/qux@sha256:abc'                    | 'n/a'                                   || ''                   | 'baz'      | 'qux' | 'sha256:abc' | 'abc'
+    }
+
+    def "multiple pods data extraction"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def file = new FixtureHelper().getResource("pods.json")
+        List<PodData> expected = [
+            [
+                podName                     : 'example-be-adapter-5dc8d77dbd-cns9z',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-adapter-5dc8d77dbd',
+                podNode                     : 'ip-10-32-10-150.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.100',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-adapter': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-adapter@sha256:d043df9c66af57297f7ff2157f9c2f801e16122649830e4fbf8e09237a8ccc82']
+            ],
+            [
+                podName                     : 'example-be-adapter-db-5cdd4dddd9-4v4wn',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-08T00:16:00Z',
+                deploymentId                : 'example-be-adapter-db-5cdd4dddd9',
+                podNode                     : 'ip-10-32-8-151.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.42',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-08T00:16:00Z',
+                containers                  : ['be-adapter-db': 'registry.redhat.io/rhscl/postgresql-13-rhel7@sha256:c6fde1a8653a597c18b0326bc71ce4a614273be74b9aef3ced83a1b11472687a']
+            ],
+            [
+                podName                     : 'example-be-cache-58d6d45c57-99tvn',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-08T04:24:57Z',
+                deploymentId                : 'example-be-cache-58d6d45c57',
+                podNode                     : 'ip-10-32-9-116.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.34',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-08T04:24:57Z',
+                containers                  : ['be-cache': 'registry.redhat.io/rhscl/redis-5-rhel7@sha256:52ffb5bf944593c290c2de52db5117044e58633385dcbe70679ea69ff0c5ff01']
+            ],
+            [
+                podName                     : 'example-be-datafeed-576bc779f8-9tftp',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-datafeed-576bc779f8',
+                podNode                     : 'ip-10-32-9-69.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.173',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-datafeed': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed@sha256:4cb8d88d1ba4e71e20cc6b9a7e8563f5a3bdd9c3fd802c33420b58139d2a2170']
+            ],
+            [
+                podName                     : 'example-be-datafeed-576bc779f8-m6vxf',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-datafeed-576bc779f8',
+                podNode                     : 'ip-10-32-8-176.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.158',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-datafeed': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-datafeed@sha256:4cb8d88d1ba4e71e20cc6b9a7e8563f5a3bdd9c3fd802c33420b58139d2a2170']
+            ],
+            [
+                podName                     : 'example-be-gateway-7c7d8cc68b-p9skv',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-gateway-7c7d8cc68b',
+                podNode                     : 'ip-10-32-10-154.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.171',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-gateway': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-gateway@sha256:94dd09c933f2b202dd629c8048e534c6b84b3cfc38cd1ef8553ac51de91fb11f']
+            ],
+            [
+                podName                     : 'example-be-main-5ffddb5dc9-hn24m',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-main-5ffddb5dc9',
+                podNode                     : 'ip-10-32-9-69.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.172',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : [
+                    'be-main'           : 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main@sha256:45dcb5214ff20b6374a502e9bd1bba0657073210e38eba0cbd1d9f5ddfa27c67',
+                    'fluent-bit-be-main': 'public.ecr.aws/aws-observability/aws-for-fluent-bit@sha256:741c65dc7fa8383c5517886e73b2740e52d2e69bf62f26fac17059144c9a6a54']
+            ],
+            [
+                podName                     : 'example-be-main-5ffddb5dc9-xjb2n',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-main-5ffddb5dc9',
+                podNode                     : 'ip-10-32-10-154.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.173',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : [
+                    'be-main'           : 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-main@sha256:45dcb5214ff20b6374a502e9bd1bba0657073210e38eba0cbd1d9f5ddfa27c67',
+                    'fluent-bit-be-main': 'public.ecr.aws/aws-observability/aws-for-fluent-bit@sha256:741c65dc7fa8383c5517886e73b2740e52d2e69bf62f26fac17059144c9a6a54']
+            ],
+            [
+                podName                     : 'example-be-token-6fcb4d85d6-7jr2r',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-token-6fcb4d85d6',
+                podNode                     : 'ip-10-32-10-30.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.172',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
+            ],
+            [
+                podName                     : 'example-be-token-6fcb4d85d6-ndp8x',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-token-6fcb4d85d6',
+                podNode                     : 'ip-10-32-9-69.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.171',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
+            ]
+        ]
+
+        when:
+        def podJson = new JsonSlurperClassic().parseText(file.text)
+        def results = service.parsePodJson(podJson, null)
+
+        then:
+        results.size() == expected.size()
+        for (int i = 0; i < results.size(); i++) {
+            results[i].toMap() == expected[i]
+        }
+    }
+
+    def "multiple pods data extraction with resourceName"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def file = new FixtureHelper().getResource("pods.json")
+        List<PodData> expected = [
+            [
+                podName                     : 'example-be-token-6fcb4d85d6-7jr2r',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-token-6fcb4d85d6',
+                podNode                     : 'ip-10-32-10-30.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.172',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
+            ],
+            [
+                podName                     : 'example-be-token-6fcb4d85d6-ndp8x',
+                podNamespace                : 'proj-dev',
+                podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
+                deploymentId                : 'example-be-token-6fcb4d85d6',
+                podNode                     : 'ip-10-32-9-69.eu-west-1.compute.internal',
+                podIp                       : '192.0.2.171',
+                podStatus                   : 'Running',
+                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
+                containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
+            ]
+        ]
+
+        when:
+        def podJson = new JsonSlurperClassic().parseText(file.text)
+        def results = service.parsePodJson(podJson, 'example-be-token')
+
+        then:
+        results.size() == expected.size()
+        for (int i = 0; i < results.size(); i++) {
+            results[i].toMap() == expected[i]
+        }
     }
 
     def "pod data extraction"() {

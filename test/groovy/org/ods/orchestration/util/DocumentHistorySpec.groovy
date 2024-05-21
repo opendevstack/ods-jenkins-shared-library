@@ -250,7 +250,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the previous document version '${fourthProjectVersion}/5'.")] + entries20
+            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
 
         this.noEntries = [new DocumentHistoryEntry([
             bugs        : [],
@@ -262,7 +262,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 7L, fourthProjectVersion, secondProjectVersion,
-            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the previous document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
+            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
 
         this.noEntriesOne = [new DocumentHistoryEntry([
             bugs        : [],
