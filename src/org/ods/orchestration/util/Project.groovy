@@ -1288,6 +1288,8 @@ class Project {
             logger.info("loadJiraData: Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
+            mergedData = this.overrideDeltaDocgenDataLinks(mergedData, newData)
+            mergedData = this.removeObsoleteIssuesFromComponents(mergedData)
             result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
@@ -1299,6 +1301,41 @@ class Project {
         result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
 
         return result
+    }
+
+    protected Map overrideDeltaDocgenDataLinks(Map<String,Map> mergedData, Map<String,Map> deltaDocgenData) {
+        mergedData.findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { issueType, issues ->
+            issues.values().each { Map issueToUpdate ->
+                if(deltaDocgenData[issueType] && deltaDocgenData[issueType][issueToUpdate.key]) {
+                    def resultData = deltaDocgenData[issueType][issueToUpdate.key]
+                    resultData << [expandedPredecessors: mergedData[issueType][issueToUpdate.key]['expandedPredecessors']]
+                    mergedData[issueType][issueToUpdate.key] = resultData
+                } else {
+                    mergedData[issueType][issueToUpdate.key].findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { relatedIssueType, relatedIssues ->
+                        def relatedIssuesToRemove = []
+                        relatedIssues.each {
+                            if (deltaDocgenData[relatedIssueType][it] && deltaDocgenData[relatedIssueType][it][issueType] && !deltaDocgenData[relatedIssueType][it][issueType].contains(issueToUpdate.key)) {
+                                relatedIssuesToRemove.add(it)
+                            }
+                        }
+                        mergedData[issueType][issueToUpdate.key][relatedIssueType].removeAll { relatedIssuesToRemove.contains(it) }
+                    }
+                }
+            }
+        }
+        return mergedData
+    }
+
+    protected Map removeObsoleteIssuesFromComponents(Map<String,Map> mergedData) {
+        mergedData[JiraDataItem.TYPE_COMPONENTS].collectEntries { component, componentIssues ->
+            JiraDataItem.REGULAR_ISSUE_TYPES.each { issueType ->
+                if(componentIssues[issueType]) {
+                    componentIssues[issueType].removeAll { !mergedData[issueType].keySet().contains(it) }
+                }
+            }
+            [(component): componentIssues]
+        }
+        return mergedData
     }
 
     protected Map loadJiraDataBugs(Map tests, String versionName = null) {
