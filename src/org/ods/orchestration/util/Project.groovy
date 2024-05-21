@@ -1312,18 +1312,23 @@ class Project {
                     mergedData[issueType][issueToUpdate.key] = resultData
                 } else {
                     mergedData[issueType][issueToUpdate.key].findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { relatedIssueType, relatedIssues ->
-                        def relatedIssuesToRemove = []
-                        relatedIssues.each {
-                            if (deltaDocgenData[relatedIssueType][it] && deltaDocgenData[relatedIssueType][it][issueType] && !deltaDocgenData[relatedIssueType][it][issueType].contains(issueToUpdate.key)) {
-                                relatedIssuesToRemove.add(it)
-                            }
-                        }
+                        def relatedIssuesToRemove = findRelatedIssuesToRemove(relatedIssues, deltaDocgenData, relatedIssueType, issueType, issueToUpdate)
                         mergedData[issueType][issueToUpdate.key][relatedIssueType].removeAll { relatedIssuesToRemove.contains(it) }
                     }
                 }
             }
         }
         return mergedData
+    }
+
+    protected static List findRelatedIssuesToRemove(List<String> relatedIssues, Map deltaDocgenData, String relatedIssueType, String issueType, Map issueToUpdate) {
+        def relatedIssuesToRemove = []
+        relatedIssues.each {
+            if (deltaDocgenData[relatedIssueType][it] && deltaDocgenData[relatedIssueType][it][issueType] && !deltaDocgenData[relatedIssueType][it][issueType].contains(issueToUpdate.key)) {
+                relatedIssuesToRemove.add(it)
+            }
+        }
+        return relatedIssuesToRemove
     }
 
     protected Map removeObsoleteIssuesFromComponents(Map<String,Map> mergedData) {
