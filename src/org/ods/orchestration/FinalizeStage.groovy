@@ -179,8 +179,8 @@ class FinalizeStage extends Stage {
         def gatherCommitTasks = [ : ]
         def repoSize = flattenedRepos.size()
         for (def i = 0; i < repoSize; i++) {
+            def repo = flattenedRepos[i]
             if (repo.include) {
-                def repo = flattenedRepos[i]
                 gatherCommitTasks << [(repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
