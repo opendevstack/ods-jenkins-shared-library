@@ -116,7 +116,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
         def rolloutData = getRolloutData(deploymentResources) ?: [:]
-        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
+        logger.info(JsonOutput.prettyPrint(JsonOutput.toJson(rolloutData)))
         return rolloutData
     }
 

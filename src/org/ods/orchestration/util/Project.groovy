@@ -310,12 +310,14 @@ class Project {
     Project init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+
         return this
     }
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
     Project initGitDataAndJiraUsecase(GitService git, JiraUseCase usecase) {
+        this.git = git
         if (usecase) {
             // add to notify jira back, even in this super early case
             this.jiraUseCase = usecase
@@ -423,7 +425,6 @@ class Project {
         this.data.openshift = [:]
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
-
         return this
     }
 
@@ -1156,6 +1157,40 @@ class Project {
         return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
     }
 
+    /**
+     * Checks if the JIRA components match the repositories, and return the status and component list:
+     * {
+         "deployableState": "DEPLOYABLE",
+         "message": "** For adding or removing components from the deployment, please denote them with a property <i>include: true</i> or <i>include: false</i> in your <a target=\"_blank\" href=\"https://bitbucket-felst-cd.apps.us-test.ocp.aws.boehringer.com/projects/FELST/repos/felst-releman/browse/metadata.yml?at=refs%2Fheads%2Fmaster\">Release Manager configuration</a>, respectively.",
+         "components": [
+             {
+                 "name": "docker",
+                 "branch": "master",
+                 "include": true
+             },
+             {
+                 "name": "flask",
+                 "branch": "master",
+                 "include": true
+             },
+             {
+                 "name": "spock",
+                 "branch": "master",
+                 "include": true
+             }
+         ]
+     }
+     * If jira or JiraUsecase is not enabled -> Empty map
+     * Otherwise, check from Jira
+     * @result The call results, and empty if not enabled
+     * @throw ComponentMismatchException if there is a component mismatch
+     */
+    Map getComponentsFromJira() {
+        if (!this.jiraUseCase) return [:]
+
+        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId)
+    }
+
     protected Map loadJiraData(String projectKey) {
         def result = [
                 components: [:],
@@ -1427,6 +1462,7 @@ class Project {
             result.repositories = []
         }
 
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
         result.repositories.eachWithIndex { repo, index ->
             // Check for existence of required attribute 'repositories[i].id'
             if (!repo.id?.trim()) {
@@ -1434,34 +1470,7 @@ class Project {
                         "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
-            repo.data = [
-                openshift: [:],
-                documents: [:],
-            ]
-
-            // Set repo type, if not provided
-            if (!repo.type?.trim()) {
-                repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
-            }
-
-            // Resolve repo URL
-            def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
-            if (repo.name?.trim()) {
-                repo.url = gitURL.resolve("${repo.name}.git").toString()
-                repo.remove('name')
-            } else {
-                repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-            }
-
-            this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
-
-            // Resolve repo branch, if not provided
-            if (!repo.branch?.trim()) {
-                this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                        "from project meta data. Assuming 'master'.")
-                repo.branch = 'master'
-            }
-            this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
+            populateRepo(gitURL, result.id, repo)
         }
 
         if (result.capabilities == null) {
@@ -1980,4 +1989,58 @@ class Project {
         }
     }
 
+    protected void populateRepo(URI gitURL, String projectId, Map repo) {
+        // Check for existence of required attribute 'repo.id'
+        if (!repo.id?.trim()) {
+            throw new IllegalArgumentException(
+                "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
+        }
+
+        repo.include = repo.containsKey('include') ? repo.include : true
+
+        repo.data = [
+            openshift: [:],
+            documents: [:],
+        ]
+
+        // Set repo type, if not provided
+        if (!repo.type?.trim()) {
+            repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        }
+
+        // Resolve repo URL
+        if (repo.name?.trim()) {
+            repo.url = gitURL.resolve("${repo.name}.git").toString()
+            repo.remove('name')
+        } else {
+            repo.url = gitURL.resolve("${projectId.toLowerCase()}-${repo.id}.git").toString()
+        }
+
+        this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+
+        // Resolve repo branch, if not provided
+        if (!repo.branch?.trim()) {
+            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
+                "from project meta data. Assuming 'master'.")
+            repo.branch = 'master'
+        }
+        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
+    }
+
+    void addDefaults(String component) {
+        def releaseManagerURL = git.getOriginUrl()
+        def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
+        def actualUrl = gitURL.resolve("${this.key.toLowerCase()}-${component}.git").toString()
+
+        if (releaseManagerURL == actualUrl) {
+            logger.debug("Not adding release manager")
+        } else {
+            def repo = [
+                id: component,
+                include: false,
+            ]
+            populateRepo(gitURL, this.key, repo)
+            this.data.metadata.repositories.add(repo)
+        }
+    }
 }
