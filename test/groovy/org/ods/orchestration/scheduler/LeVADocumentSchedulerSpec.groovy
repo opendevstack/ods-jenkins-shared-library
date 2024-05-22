@@ -10,6 +10,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
 import spock.lang.*
@@ -7210,5 +7211,47 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Error: Creating document of type 'CSD' for project '${project.key}' in phase '${MROPipelineUtil.PipelinePhases.INIT}' and stage '${PipelinePhaseLifecycleStage.PRE_END}' has failed: some error."
+    }
+
+    def "not run for not included repo"() {
+        given:
+            //def steps = Stub(util.PipelineSteps)
+            def steps = Stub(IPipelineSteps)
+            def util = Stub(MROPipelineUtil)
+            def usecase = Stub(LeVADocumentUseCase)
+            def logger = Stub(Logger)
+            def bbt = Stub(BitbucketTraceabilityUseCase)
+            def currentProject = createProject()
+            currentProject.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
+            currentProject.repositories[1].include = false
+            def scheduler = new LeVADocumentScheduler(currentProject, steps, util, usecase, logger)
+
+        when:
+            def result = scheduler.isDocumentApplicable(DocumentType.TIR as String,
+                MROPipelineUtil.PipelinePhases.DEPLOY,
+                PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                currentProject.repositories[1])
+        then:
+            !result
+    }
+
+    def "run for included repo"() {
+        given:
+        //def steps = Stub(util.PipelineSteps)
+        def steps = Stub(IPipelineSteps)
+        def util = Stub(MROPipelineUtil)
+        def usecase = Stub(LeVADocumentUseCase)
+        def logger = Stub(Logger)
+        def bbt = Stub(BitbucketTraceabilityUseCase)
+
+        def scheduler = new LeVADocumentScheduler(PROJECT_GAMP_5, steps, util, usecase, logger)
+
+        when:
+            def result = scheduler.isDocumentApplicable(DocumentType.TIR as String,
+                MROPipelineUtil.PipelinePhases.DEPLOY,
+                PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                PROJECT_GAMP_5.repositories[1])
+        then:
+            result
     }
 }

@@ -1500,6 +1500,7 @@ class ProjectSpec extends SpecHelper {
         def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
             repo.branch = "master"
+            repo.include = true
             repo.data = [ documents: [:], openshift: [:] ]
             repo.url = "https://github.com/my-org/net-${repo.id}.git"
         }
@@ -3219,6 +3220,39 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == false
+    }
+
+    def "check component mismatch with jira enabled"() {
+        given:
+        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
+
+        when:
+        def result = project.getComponentsFromJira()
+
+        then:
+        result.deployableState == 'DEPLOYABLE'
+    }
+
+    def "check component mismatch fail with jira enabled"() {
+        given:
+        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
+
+        when:
+        def result = project.getComponentsFromJira()
+
+        then:
+        result.deployableState != 'DEPLOYABLE'
+    }
+
+    def "check component mismatch with jira disabled"() {
+        given:
+        def projectObj = new Project(steps, logger)
+
+        when:
+        def result = projectObj.getComponentsFromJira()
+
+        then:
+        !result
     }
 
 }
