@@ -1303,6 +1303,16 @@ class Project {
         return result
     }
 
+    /**
+     * It uses the data from the deltadocgen of the latest version as a source of truth in terms of links.
+     * If an issue appears in the deltadocgen report, we use all its data adding the expanded predecessors.
+     * If an issue appears as a link in the old data but in the deltadocgen report doesn't show the same link in the other
+     * direction, then we remove that link.
+     *
+     * @param mergedData resulting data of merging last release json report and deltadocgen
+     * @param deltaDocgenData result of deltadocgen endpoint for the latest version
+     * @return the merged data with the proper links
+     */
     protected Map overrideDeltaDocgenDataLinks(Map<String,Map> mergedData, Map<String,Map> deltaDocgenData) {
         mergedData.findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { issueType, issues ->
             issues.values().each { Map issueToUpdate ->
@@ -1331,6 +1341,12 @@ class Project {
         return relatedIssuesToRemove
     }
 
+    /**
+     * It removes any issue in the components map that does not appear under the technology map it should belong
+     *
+     * @param mergedData resulting data of merging last release json report and deltadocgen
+     * @return the merged data with the proper issues in the components map
+     */
     protected Map removeObsoleteIssuesFromComponents(Map<String,Map> mergedData) {
         mergedData[JiraDataItem.TYPE_COMPONENTS].collectEntries { component, componentIssues ->
             JiraDataItem.REGULAR_ISSUE_TYPES.each { issueType ->
