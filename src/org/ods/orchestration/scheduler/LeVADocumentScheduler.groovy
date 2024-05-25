@@ -253,9 +253,9 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     @NonCPS
     private boolean isProjectOneSAASRepoOnly () {
-        if (!(this.project.repositories.findAll{ repo ->
+        if (!(this.project.repositories.findAll { repo ->
             repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE}).isEmpty()) {
-            return (this.project.repositories.findAll{ repo ->
+            return (this.project.repositories.findAll { repo ->
                 (repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE &&
                 repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST)
             }).isEmpty()
@@ -319,7 +319,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' and repo '${repo.id}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
         }
 
-        return isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isDocumentApplicableForRepoTypeAndPhase(documentType, phase, repo)
+        return repo.include && isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isDocumentApplicableForRepoTypeAndPhase(documentType, phase, repo)
     }
 
     private boolean isDocumentApplicableForRepoTypeAndPhase(String documentType, String phase, Map repo) {
@@ -407,4 +407,5 @@ class LeVADocumentScheduler extends DocGenScheduler {
             }
         }
     }
+
 }

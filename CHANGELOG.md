@@ -1,8 +1,9 @@
 # Changelog
 
 ## Unreleased
-* The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
+* Support deployment with only selected components ([#1081](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1081))
 * The Document History indicates clearly when an SLC document has not changed ([#1099](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1099))
+* Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))

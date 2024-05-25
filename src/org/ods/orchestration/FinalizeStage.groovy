@@ -140,30 +140,38 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         def repoSize = flattenedRepos.size()
+        steps.echo "Finalize: Push flattened repos"
+        steps.echo "$flattenedRepos"
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
-            repoPushTasks << [ (repo.id): {
-                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                    if (project.isWorkInProgress) {
-                        String branchName = repo.data.git.branch ?: repo.branch
-                        git.pushRef(branchName)
-                    } else if (project.isAssembleMode) {
-                        if (!git.remoteTagExists(project.targetTag)) {
-                            git.createTag(project.targetTag)
-                        }
-                        git.pushBranchWithTags(project.gitReleaseBranch)
-                    } else {
-                        if (!git.remoteTagExists(project.targetTag)) {
-                            git.createTag(project.targetTag)
-                        }
-                        git.pushRef(project.targetTag)
-                    }
-                }
+            if (repo.include) {
+                repoPushTasks << repoClosureMap(repo, steps, git)
             }
-            ]
         }
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
+    }
+
+    private Map<Object, Closure> repoClosureMap(repo, steps, git) {
+        return [(repo.id): {
+            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                if (project.isWorkInProgress) {
+                    String branchName = repo.data.git.branch ?: repo.branch
+                    git.pushRef(branchName)
+                } else if (project.isAssembleMode) {
+                    if (!git.remoteTagExists(project.targetTag)) {
+                        git.createTag(project.targetTag)
+                    }
+                    git.pushBranchWithTags(project.gitReleaseBranch)
+                } else {
+                    if (!git.remoteTagExists(project.targetTag)) {
+                        git.createTag(project.targetTag)
+                    }
+                    git.pushRef(project.targetTag)
+                }
+            }
+        }
+        ]
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
@@ -172,13 +180,15 @@ class FinalizeStage extends Stage {
         def repoSize = flattenedRepos.size()
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
-            gatherCommitTasks << [ (repo.id): {
-                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                    repo.data.git.createdExecutionCommit = git.commitSha
-                    steps.echo "repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}"
+            if (repo.include) {
+                gatherCommitTasks << [(repo.id): {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        repo.data.git.createdExecutionCommit = git.commitSha
+                        steps.echo "repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}"
+                    }
                 }
+                ]
             }
-            ]
         }
 
         gatherCommitTasks.failFast = true
@@ -191,13 +201,13 @@ class FinalizeStage extends Stage {
         def repoSize = flattenedRepos.size()
         for (def i = 0; i < repoSize; i++) {
             def repo = flattenedRepos[i]
-            if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-                repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
-                repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE ) {
-                repoIntegrateTasks << [ (repo.id): {
-                    doIntegrateIntoMainBranches(steps, repo, git)
+            if (repo.include) {
+                def repoType = repo.type?.toLowerCase()
+                if ((repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+                    repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
+                    repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE)) {
+                    repoIntegrateTasks << [(repo.id): { doIntegrateIntoMainBranches(steps, repo, git) }]
                 }
-                ]
             }
         }
         repoIntegrateTasks.failFast = true
