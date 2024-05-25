@@ -577,6 +577,75 @@ class DocumentHistorySpec extends SpecHelper {
           history.data == noVersionEntriesOne
     }
 
+    def "builds docHistory for all project versions test"(String issueType, boolean changes, String version, String previousVersion) {
+        setup:
+          def targetEnvironment = 'D'
+          def issueV = [key: "ISSUE-A", versions: [version]]
+          DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+          history.loadSavedDocHistoryData() >> { throw new NoSuchFileException('projectData/documentHistory-D-DocType.json') }
+          def initialJiraData = noJiraDataTwo.clone()
+          def savedDataForNoEntries = noEntriesOne
+          Long count = 9
+
+
+          if (issueType != Project.JiraDataItem.TYPE_DOCS) {
+              initialJiraData[issueType] = [(issueV.key): issueV]
+              initialJiraData['version'] = version
+              initialJiraData['previousVersion'] = previousVersion
+          } else {
+              initialJiraData[issueType] = [
+                  'added1'    : [key: "added1", versions: ['1'], number: 'numberOfAdded1', heading: 'heading', documents: ['doc1', 'doc2']],
+                  'added2'    : [key: "added2", versions: ['1'], number: 'numberOfAdded2', heading: 'heading', documents: ['doc1'], predecessors: []],
+                  'otherDocCh': [key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', heading: 'heading', documents: ['doc2']],
+                  'changed1'  : [key: "changed1", versions: ['1'], number: 'numberOfChanged', heading: 'heading', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],]
+              initialJiraData['version'] = version
+              initialJiraData['previousVersion'] = previousVersion
+          }
+
+          if (issueType != null && issueType != Project.JiraDataItem.TYPE_DOCS) {
+              savedDataForNoEntries.add(new DocumentHistoryEntry([
+                  (issueType): [(issueV.key): issueV, action: 'add']
+              ], count.toLong(), version, previousVersion, version, ''))
+          } else {
+              savedDataForNoEntries.add(new DocumentHistoryEntry([
+                  (issueType): [
+                      'added1'    : [key: "added1", versions: ['1'], number: 'numberOfAdded1', heading: 'heading', documents: ['doc1', 'doc2']],
+                      'added2'    : [key: "added2", versions: ['1'], number: 'numberOfAdded2', heading: 'heading', documents: ['doc1'], predecessors: []],
+                      'otherDocCh': [key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', heading: 'heading', documents: ['doc2']],
+                      'changed1'  : [key: "changed1", versions: ['1'], number: 'numberOfChanged', heading: 'heading', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],]
+              ], count.toLong(), version, previousVersion, version, ''))
+          }
+          count + 1
+
+        when:
+          def docContent = computeIssuesDoc(savedDataForNoEntries)
+          history.load(initialJiraData as Map, docContent)
+
+        then:
+          1 * history.loadSavedDocHistoryData() >> savedDataForNoEntries
+
+        then:
+          String rational = history.data.first().getRational()
+          boolean isPlurals = rational.contains("versions")
+          getHistoryRational(rational, version) == getRational(changes, version, previousVersion, isPlurals, issueType)
+
+        where:
+          issueType      || changes || version || previousVersion
+          null           || false   || "2.0"   || "1.0"
+          'bugs'         || true    || "2.0"   || "1.0"
+          'components'   || true    || "3.0"   || "3.0"
+          'epics'        || true    || "3.0"   || "2.0"
+          'mitigations'  || true    || "4.0"   || "3.0"
+          'requirements' || true    || "4.0"   || "3.0"
+          'risks'        || true    || "5.0"   || "3.0"
+          'techSpecs'    || true    || "6.0"   || "1.0"
+          'tests'        || true    || "7.0"   || "2.0"
+          'docs'         || true    || "7.0"   || "2.0"
+          'other'        || true    || "9.0"   || "3.0"
+
+    }
+
     def "returns empty doc history and logs a warning if some issues do not have a version"() {
         setup:
         def targetEnvironment = 'D'
@@ -1083,4 +1152,40 @@ class DocumentHistorySpec extends SpecHelper {
         }
         return ! areEquals.contains(false)
     }
+
+    String getRational(boolean changes, String version, String previousVersion, boolean isPlurals, String issueType) {
+        def message
+        if (changes && version != previousVersion && issueType != Project.JiraDataItem.TYPE_DOCS && issueType != 'other') {
+            if (isPlurals) {
+                message = "Modifications for project version '${version}'. This document version invalidates the previous document versions '${version}'.";
+
+            } else {
+                message = "Modifications for project version '${version}'. This document version invalidates the previous document version '${version}'.";
+
+            }
+        } else if (changes && version == previousVersion) {
+            message = "Modifications for project version '${version}'.";
+        } else if (!changes && version != previousVersion || issueType == 'other' || issueType == Project.JiraDataItem.TYPE_DOCS) {
+            if (isPlurals) {
+                message = "No changes were made to this document for project version '${version}'. This document version invalidates the previous document versions '${version}'.";
+            } else {
+                message = "No changes were made to this document for project version '${version}'. This document version invalidates the previous document version '${version}'.";
+            }
+        } else {
+            message = "No changes were made to this document for project version '${version}'.";
+        }
+        return message
+    }
+
+    String getHistoryRational(String rational, String version) {
+        if (rational.contains("versions")) {
+            rational = rational.split("versions")[0] + "versions " + "'" + version + "'" + "."
+        } else if (rational.contains("previous document version")) {
+            rational = rational.split("previous document version")[0] + "previous document version " + "'" + version + "'" + "."
+        } else if (rational.contains("document version")) {
+            rational = rational.split("document version")[0] + "document version " + "'" + version + "'" + "."
+        }
+        return rational
+    }
+
 }
