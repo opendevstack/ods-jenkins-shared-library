@@ -286,8 +286,25 @@ class DocumentHistory {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
         }
-        def versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        def versionText
+        if (containsChanges(currentEntry)) {
+            versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
+        } else {
+            versionText = "No changes were made to this " +
+                "document for project version '${currentEntry.getProjectVersion()}'."
+        }
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
+    }
+
+    @NonCPS
+    private boolean containsChanges(DocumentHistoryEntry documentHistoryEntry) {
+        for (String issueType : JiraDataItem.TYPES) {
+            String[] values = documentHistoryEntry.get(issueType)
+            if (values) {
+                return true
+            }
+        }
+        return false
     }
 
     /**

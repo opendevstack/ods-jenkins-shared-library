@@ -6,6 +6,7 @@ import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.service.JiraZephyrService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
+import org.ods.orchestration.usecase.ComponentMismatchException
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JiraUseCaseSupport
@@ -79,9 +80,31 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
-
-        def repos = project.repositories
+        logger.debugClocked('Project#load')
+        project.load(registry.get(GitService), registry.get(JiraUseCase))
+        logger.debugClocked('Project#load')
         MROPipelineUtil util = registry.get(MROPipelineUtil)
+
+        logger.info("Comparing Jira components against metadata.yml repositories")
+        def check = project.getComponentsFromJira()
+        if (check) {
+            if (check.deployableState != 'DEPLOYABLE') {
+                throw new ComponentMismatchException(check.message)
+            }
+            logger.info("Jira components found: $check")
+
+            for (component in check.components) {
+                logger.info("Component: $component")
+                if (!project.repositories.any { it -> component.name == (it.containsKey('name') ? it.name : it.id) }) {
+                    project.addDefaults(component.name)
+                    logger.info("Repository added: $component.name")
+                }
+            }
+        }
+        def repos = project.repositories
+        logger.debug("Printing repositories")
+        logger.debug("$repos")
+
         Closure checkoutClosure = buildCheckOutClousure(repos, logger, envState, util)
         Closure<String> loadClosure = buildLoadClousure(logger, registry, buildParams, git, steps)
         try {
@@ -172,30 +195,34 @@ class InitStage extends Stage {
                                              logger,
                                              util) {
         repos.each { repo ->
-            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                if (repo.data.envStateCommit) {
-                    if (git.isAncestor(repo.data.envStateCommit, repo.data.git.commit)) {
-                        logger.info(
-                            "Verified that ${repo.id}@${repo.data.git.commit} is " +
-                                "a descendant of ${repo.data.envStateCommit}."
-                        )
-                    } else if (project.buildParams.targetEnvironmentToken == 'Q') {
-                        util.warnBuild(
-                            "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
-                                "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
-                        )
+            if (repo.include) {
+                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    if (repo.data.envStateCommit) {
+                        if (git.isAncestor(repo.data.envStateCommit, repo.data.git.commit)) {
+                            logger.info(
+                                "Verified that ${repo.id}@${repo.data.git.commit} is " +
+                                    "a descendant of ${repo.data.envStateCommit}."
+                            )
+                        } else if (project.buildParams.targetEnvironmentToken == 'Q') {
+                            util.warnBuild(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of " +
+                                    "${repo.data.envStateCommit}, which has previously been promoted to 'Q'. " +
+                                    "If ${repo.data.envStateCommit} has been promoted to 'P' as well, " +
+                                    "promotion to 'P' will fail. Proceed with caution."
+                            )
+                        } else {
+                            throw new RuntimeException(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of " +
+                                    "${repo.data.envStateCommit}, which has previously been promoted to 'P'. " +
+                                    "Ensure to merge everything that has been promoted to 'P' " +
+                                    "into ${project.gitReleaseBranch}."
+                            )
+                        }
                     } else {
-                        throw new RuntimeException(
-                            "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
-                                "promoted to 'P' into ${project.gitReleaseBranch}."
+                        logger.info(
+                            "Repo ${repo.id} is not recorded in env state, skipping commit ancestor verification."
                         )
                     }
-                } else {
-                    logger.info(
-                        "Repo ${repo.id} is not recorded in env state, skipping commit ancestor verification."
-                    )
                 }
             }
         }
@@ -271,10 +298,6 @@ class InitStage extends Stage {
                                               PipelineSteps steps) {
         BitbucketService bitbucket = registry.get(BitbucketService)
         Closure loadClosure = {
-            logger.debugClocked('Project#load')
-            project.load(registry.get(GitService), registry.get(JiraUseCase))
-            logger.debugClocked('Project#load')
-
             logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
                 && buildParams.version == 'WIP') {
@@ -458,7 +481,6 @@ class InitStage extends Stage {
             checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
-
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
@@ -481,7 +503,7 @@ class InitStage extends Stage {
                 git.checkoutNewLocalBranch(gitReleaseBranch)
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
-                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), "+
+                logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
                     "using master branch for developer preview.")
                 project.setGitReleaseBranch("master")
             }

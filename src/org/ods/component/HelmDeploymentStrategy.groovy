@@ -108,7 +108,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
         def rolloutData = getRolloutData(deploymentResources) ?: [:]
-        logger.info(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(rolloutData)))
+        logger.info(JsonOutput.prettyPrint(JsonOutput.toJson(rolloutData)))
         return rolloutData
     }
 
@@ -126,8 +126,18 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // we persist the original ones set from outside - here we just add ours
                 Map mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
+
+                // we add the global ones - this allows usage in subcharts
+                options.helmValues.each { key, value ->
+                    mergedHelmValues["global.${key}"] = value
+                }
+
                 mergedHelmValues['imageNamespace'] = targetProject
                 mergedHelmValues['imageTag'] = options.imageTag
+
+                // we also add the predefined ones as these are in use by the library
+                mergedHelmValues['global.imageNamespace'] = targetProject
+                mergedHelmValues['global.imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
@@ -165,7 +175,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             resourceNames.each { resourceName ->
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector)
+                    podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
                     if (!podData.isEmpty()) {
                         break
                     }

@@ -23,4 +23,5 @@ interface ILogger {
 
     def dumpCurrentStopwatchSize()
     def resetStopwatch()
+
 }

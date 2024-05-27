@@ -9,8 +9,6 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
-import java.security.SecureRandom
-
 @SuppressWarnings(['ClassSize', 'MethodCount'])
 @TypeChecked
 class OpenShiftService {
@@ -51,6 +49,18 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    static String getConsoleUrl(IPipelineSteps steps) {
+        String routeUrl = steps.sh(
+            script: 'oc whoami --show-console',
+            label: 'Get OpenShift Console URL',
+            returnStdout: true
+        )
+        if (!routeUrl) {
+            throw new RuntimeException ("Cannot get cluster console url!")
+        }
+        return routeUrl.trim()
+    }
+
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
         steps.sh(
             returnStdout: true,
@@ -69,30 +79,15 @@ class OpenShiftService {
         exists
     }
 
-    static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
-        if (!envExists(steps, project)) {
-            String currentClusterUrl = getApiUrl(steps)
-            throw new IOException ("OCP project ${project} on server ${currentClusterUrl}" +
-                ' does not exist - cannot create route to retrieve host / domain name!' +
-                ' If this is needed, please create project on cluster!')
+    static String getApplicationDomain(IPipelineSteps steps) {
+        def routeUrl = getConsoleUrl(steps)
+
+        def routePrefixLength = routeUrl.indexOf('.')
+        if (routePrefixLength < 0) {
+            throw new RuntimeException ("Route does not contain a dot: ${routeUrl}")
         }
-        def routeName = 'test-route-' + (System.currentTimeMillis() +
-            new SecureRandom().nextInt(1000))
-        steps.sh (
-            script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
-            label: "create dummy route for extraction (${routeName})"
-        )
-        def routeUrl = steps.sh (
-            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
-            returnStdout: true,
-            label: 'get cluster route domain'
-        ).toString().trim()
-        def routePrefixLength = "${routeName}-${project}".length() + 1
-        def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-        steps.sh (
-            script: "oc -n ${project} delete route ${routeName} | true",
-            label: "delete dummy route for extraction (${routeName})"
-        )
+
+        def openShiftPublicHost = routeUrl[routePrefixLength+1..-1]
         return openShiftPublicHost
     }
 
@@ -168,7 +163,7 @@ class OpenShiftService {
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
-        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
+        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}".toString()
         def paramFlags = params.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
         doTailorApply(project, "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
@@ -474,8 +469,8 @@ class OpenShiftService {
         m
     }
 
-    String getApplicationDomain(String project) {
-        getApplicationDomainOfProject(steps, project)
+    String getApplicationDomain() {
+        getApplicationDomain(steps)
     }
 
     // imageInfoForImageUrl expects an image URL like one of the following:
@@ -1021,21 +1016,32 @@ class OpenShiftService {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    // checkForPodData returns a subset of information from every pod, once
-    // all pods matching the label are "running". If this is not the case,
-    // it returns an empty list.
-    List<PodData> checkForPodData(String project, String label) {
-        List<PodData> pods = []
+    // checkForPodData returns a subset of information from every pod.
+    // It only considers the pods matching a label and are in a state of "running".
+    // If this is not the case, it returns an empty list.
+    List<PodData> checkForPodData(String project, String label, String resourceName = null) {
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l ${label} -o json",
             returnStdout: true,
             label: "Getting OpenShift pod data for pods labelled with ${label}"
         ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
+        return parsePodJson(podJson, resourceName)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    List<PodData> parsePodJson(podJson, String resourceName = null) {
+        List<PodData> pods = []
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+            // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
         }
-        pods
+        // if we have a resourceName only return the items matching that
+        if (resourceName != null) {
+            def filteredPods= pods.findAll { it.podName.startsWith(resourceName) }
+            return filteredPods
+        }
+        return pods
     }
 
     private String getPodManagerName(String project, String kind, String name, int revision) {
@@ -1304,7 +1310,6 @@ class OpenShiftService {
         } catch (ex) {
             throw new TailorDeploymentException(ex)
         }
-
     }
 
     private void doTailorExport(
@@ -1338,7 +1343,7 @@ class OpenShiftService {
         }
 
         // Replace values from envParams with parameters, and add parameters into template.
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomain(project)
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomain()
         def templateParams = ''
         def sedReplacements = ''
         envParams.each { key, val ->

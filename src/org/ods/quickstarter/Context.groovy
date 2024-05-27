@@ -145,4 +145,9 @@ class Context implements IContext {
         config.odsGitRef
     }
 
+    @NonCPS
+    String getAppDomain() {
+        config.appDomain
+    }
+
 }

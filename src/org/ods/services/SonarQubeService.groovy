@@ -96,7 +96,7 @@ class SonarQubeService {
             }
             script.sh(
                 label: 'Get status of quality gate',
-                script: "curl -s -u ${authToken}: --url ${getStatusUrl} ${urlEncodingFlags}",
+                script: "curl -s -u ${authToken}: --get --url ${getStatusUrl} ${urlEncodingFlags}",
                 returnStdout: true
             )
         }

@@ -573,7 +573,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { r ->
                 def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
                 def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-                def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                def requirement = getRequirement(r)
                 def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
                 def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
                 def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
@@ -585,8 +585,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     name: r.name,
                     description: convertImages(r.description),
                     proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
-                    requirements: requirements.findAll { it != null }.collect { it.name }.join("<br/>"),
-                    requirementsKey: requirements.findAll { it != null }.collect { it.key }.join("<br/>"),
+                    requirement: requirement,
                     gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
@@ -624,6 +623,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    /**
+     * If the risk is associated to technical specification task which is itself associated with a User story,
+     * return the technical specification task
+     * otherwise, return the system requirements
+     * @param risk
+     * @return
+     */
+    private Project.JiraDataItem getRequirement(Project.JiraDataItem risk) {
+        List<Project.JiraDataItem> requirements = risk.getResolvedTechnicalSpecifications()
+        if (!requirements) {
+            requirements = risk.getResolvedSystemRequirements()
+        }
+        return requirements.get(0)
     }
 
     private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
@@ -1020,11 +1034,30 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def repos = this.project.repositories.collect { Map it ->
+            def clone = it.clone()
+            clone.printurl = it.url.replaceAll('/+','$0\u200B')
+
+            //Add break space in url in manufacturer
+            def p = ~'https?://\\S*'
+            def m = it.metadata.supplier =~ p
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                String url = m.group();
+                url = url.replaceAll('/+', '$0\u200B')
+                m.appendReplacement(sb, url);
+            }
+            m.appendTail(sb);
+            clone.printsupplier = sb.toString()
+
+            return clone
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories,
+                repositories: repos,
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
