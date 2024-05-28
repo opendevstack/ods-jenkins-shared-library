@@ -20,6 +20,7 @@
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Improve messages in Helm deployment issues with custom chartDir option ([#1044](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1044))
+* Substitute env username and password variables for nexus by using instead Jenkins variable "cd-user-with-password" ([#1118](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1118))
 
 ## [4.4.0] - 2024-04-22
 
