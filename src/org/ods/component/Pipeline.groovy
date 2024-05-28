@@ -158,7 +158,8 @@ class Pipeline implements Serializable {
                                     passwordVariable: 'PASSWORD'
                                 )
                             ]) {
-                                NexusService nexusService = new NexusService(context.nexusUrl, script.env.USERNAME as String, script.env.PASSWORD as String)
+                                NexusService nexusService = new NexusService(context.nexusUrl, 
+                                    script.env.USERNAME as String, script.env.PASSWORD as String)
                                 registry.add(NexusService, nexusService)
                             }
                         }

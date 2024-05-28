@@ -49,7 +49,7 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            new NexusService(c.nexusUrl as String, script.env.USERNAME as String, 
+            new NexusService(c.nexusUrl as String, script.env.USERNAME as String,
                 script.env.PASSWORD as String)
         }
     }

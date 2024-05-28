@@ -49,7 +49,7 @@ def call(IContext context, Map config = [:]) {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            nexusService = new NexusService(context.nexusUrl, this.env.USERNAME as String, 
+            nexusService = new NexusService(context.nexusUrl, this.env.USERNAME as String,
                 this.env.PASSWORD as String)
         }
         registry.add(NexusService, nexusService)
