@@ -580,48 +580,52 @@ class DocumentHistorySpec extends SpecHelper {
     @Unroll
     def "builds docHistory for all project versions test"(String issueType, boolean changes) {
         given:
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
-        def existingHistory = [new DocumentHistoryEntry([
-            bugs        : [],
-            'docs'      : [],
-            components  : [],
-            epics       : [],
-            mitigations : [],
-            requirements: [],
-            risks       : [],
-            tests       : [],
-            techSpecs   : []], 1L, '1.0', '',
-            "1.0/1", "Initial document version.")]
-        history.loadSavedDocHistoryData() >> existingHistory
+          DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
+          def existingHistory = [new DocumentHistoryEntry([
+              bugs        : [],
+              'docs'      : [],
+              components  : [],
+              epics       : [],
+              mitigations : [],
+              requirements: [],
+              risks       : [],
+              tests       : [],
+              techSpecs   : []], 1L, '1.0', '',
+              "1.0/1", "Initial document version.")]
 
-        def currentVersionData = [
-            bugs        : [:],
-            version     : '1.1',
-            previousVersion: '1.0',
-            components  : [:],
-            epics       : [:],
-            mitigations : [:],
-            requirements: [:],
-            risks       : [:],
-            tests       : [:],
-            techSpecs   : [:],
-            docs        : [:],
-            discontinuationsPerType : [:]
-        ]
-        if (issueType) {
-            currentVersionData[issueType] = ['anyKey': [key: 'anyKey', versions: ['1.1']]]
-        }
+          history.loadSavedDocHistoryData() >> existingHistory
 
-        def noChangesPrefix = 'No changes were made to this document for project version'
-        def changesPrefix = 'Modifications for project version'
-        def rationalPrefix = changes ? changesPrefix : noChangesPrefix
+          def currentVersionData = [
+              bugs                   : [:],
+              version                : '1.1',
+              previousVersion        : '1.0',
+              components             : [:],
+              epics                  : [:],
+              mitigations            : [:],
+              requirements           : [:],
+              risks                  : [:],
+              tests                  : [:],
+              techSpecs              : [:],
+              docs                   : [:],
+              discontinuationsPerType: [:]
+          ]
+          if (issueType && issueType != 'docs') {
+              currentVersionData[issueType] = ['anyKey': [key: 'anyKey', versions: ['1.1']]]
+          } else if (issueType) {
+              currentVersionData[issueType] = ['anyKey': [key: "anyKey", versions: ['1.1'], documents: ['doc1']]]
+              currentVersionData['discontinuationsPerType'] = [('docs'): [[key: "anyKey", versions: ['1.1'], documents: ['doc1']]]]
+          }
+
+          def noChangesPrefix = 'No changes were made to this document for project version'
+          def changesPrefix = 'Modifications for project version'
+          def rationalPrefix = changes ? changesPrefix : noChangesPrefix
 
         when:
           history.load(currentVersionData, ['anyKey'])
 
         then:
-        def entries = history.docHistoryEntries
-        entries.last().getRational().startsWith(rationalPrefix)
+          def entries = history.docHistoryEntries
+          entries.first().getRational().startsWith(rationalPrefix)
 
         where:
           issueType      || changes
