@@ -171,6 +171,8 @@ def "run successfully"() {
     def context = new Context(null, config, logger)
 
     when:
+    NexusService nexusService = Stub(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.call(context, ['branch': 'master'])
 
@@ -192,6 +194,8 @@ def "run successfully"() {
     def context = new Context(null, config, logger)
 
     when:
+    NexusService nexusService = Stub(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.call(context, options)
 
