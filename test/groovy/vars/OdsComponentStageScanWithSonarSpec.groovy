@@ -166,9 +166,7 @@ def "run successfully"() {
     def config = [
       branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
       gitBranch: 'feature/foo',
-      nexusUrl: 'http://nexus',
-      nexusUsername: 'foo',
-      nexusPassword: 'bar'
+      nexusUrl: 'http://nexus'
     ]
     def context = new Context(null, config, logger)
 
@@ -189,9 +187,7 @@ def "run successfully"() {
       gitBranch: 'master',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
       branchToEnvironmentMapping: [:],
-      nexusUrl: 'http://nexus',
-      nexusUsername: 'foo',
-      nexusPassword: 'bar'
+      nexusUrl: 'http://nexus'
     ]
     def context = new Context(null, config, logger)
 
