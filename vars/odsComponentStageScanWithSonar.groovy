@@ -33,7 +33,15 @@ def call(IContext context, Map config = [:]) {
     }
     def nexusService = ServiceRegistry.instance.get(NexusService)
     if (!nexusService) {
-        nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
+        this.withCredentials([
+            this.usernamePassword(
+                credentialsId: context.credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            nexusService = new NexusService(context.nexusUrl, this.env.USERNAME as String, this.env.PASSWORD as String)
+        }
     }
     def stage = new ScanWithSonarStage(
         this,

@@ -40,9 +40,17 @@ class NexusService {
         this.password = password
     }
 
-    static NexusService newFromEnv(def env) {
-        def c = readConfigFromEnv(env)
-        new NexusService(c.nexusUrl, c.nexusUsername, c.nexusPassword)
+    static NexusService newFromEnv(def script, String credentialsId) {
+        def c = readConfigFromEnv(script.env)
+        script.withCredentials([
+            script.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            new NexusService(c.nexusUrl as String, script.env.USERNAME as String, script.env.PASSWORD as String)
+        }
     }
 
     static Map readConfigFromEnv(def env) {
@@ -54,16 +62,6 @@ class NexusService {
             config.nexusUrl = env.NEXUS_HOST.trim()
         } else {
             throw new IllegalArgumentException("Environment variable 'NEXUS_URL' is required")
-        }
-        if (env.NEXUS_USERNAME?.trim()) {
-            config.nexusUsername = env.NEXUS_USERNAME.trim()
-        } else {
-            throw new IllegalArgumentException('NEXUS_USERNAME is required, but not set')
-        }
-        if (env.NEXUS_PASSWORD?.trim()) {
-            config.nexusPassword = env.NEXUS_PASSWORD.trim()
-        } else {
-            throw new IllegalArgumentException('NEXUS_PASSWORD is required, but not set')
         }
         config
     }
