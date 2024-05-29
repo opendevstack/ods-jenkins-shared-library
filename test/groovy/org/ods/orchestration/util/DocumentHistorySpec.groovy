@@ -465,125 +465,13 @@ class DocumentHistorySpec extends SpecHelper {
         history.data == versionEntries
     }
 
-    def "builds docHistory for all project versions"() {
-        setup:
-          def initialJiraData = jiraData10
-          def initialEntries = entries10
-          def firstVersionJiraData = jiraData11_first
-          def firstVersionEntries = entries11_first
-          def fixJiraData = jiraDataFix
-          def fixVersionEntries = entriesFix
-          def secondVersionJiraData = jiraData11_second
-          def secondVersionEntries = entries11_second
-          def noJiraData = noJiraData
-          def savedDataForNoEntries = entries20Alt
-          def noVersionEntries = noEntries
-          def noJiraDataTwo = noJiraDataTwo
-          def noVersionEntriesOne = noEntriesOne
-          def targetEnvironment = 'D'
-          DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
-          def docContent
-
-          /**
-           * Initial document version.
-           */
-        when:
-          docContent = computeIssuesDoc(initialEntries)
-          history.load(initialJiraData, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> {
-              throw new NoSuchFileException('projectData/documentHistory-D-DocType.json')
-          }
-
-        then:
-          history.latestVersionId == 1L
-          assert entryListIsEquals(history.data, initialEntries)
-          history.data == initialEntries
-
-          /**
-           * Modifications for project version
-           */
-        when:
-          docContent = computeIssuesDoc(firstVersionEntries)
-          history.load(firstVersionJiraData, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> initialEntries
-
-        then:
-          history.latestVersionId == 2L
-          assert entryListIsEquals(history.data, firstVersionEntries)
-          history.data == firstVersionEntries
-
-          /** Modifications for project version,
-           * This document version invalidates the previous document version
-           */
-        when:
-          docContent = computeIssuesDoc(fixVersionEntries)
-          history.load(fixJiraData, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> firstVersionEntries
-
-        then:
-          history.latestVersionId == 3L
-          assert entryListIsEquals(history.data, fixVersionEntries)
-          history.data == fixVersionEntries
-
-          /**
-           * Modifications for project version.
-           */
-        when:
-          docContent = computeIssuesDoc(secondVersionEntries)
-          history.load(secondVersionJiraData, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> fixVersionEntries
-
-        then:
-          history.latestVersionId == 4L
-          assert entryListIsEquals(history.data, secondVersionEntries)
-          history.data == secondVersionEntries
-
-          /** No changes were made to this document for project version,
-           * This document version invalidates the previous document version
-           */
-        when:
-          docContent = computeIssuesDoc(noVersionEntries)
-          history.load(noJiraData, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> savedDataForNoEntries
-
-        then:
-          history.latestVersionId == 7L
-          assert entryListIsEquals(history.data, noVersionEntries)
-          history.data == noVersionEntries
-
-          /**
-           * No changes were made to this document for project version
-           */
-        when:
-          docContent = computeIssuesDoc(noVersionEntriesOne)
-          history.load(noJiraDataTwo, docContent)
-
-        then:
-          1 * history.loadSavedDocHistoryData() >> noVersionEntries
-
-        then:
-          history.latestVersionId == 8L
-          assert entryListIsEquals(history.data, noVersionEntriesOne)
-          history.data == noVersionEntriesOne
-    }
-
     @Unroll
-    def "builds docHistory for all project versions test"(String issueType, boolean changes) {
+    def "The rational correctly detects whether there are changes or not"(String issueType, boolean changes) {
         given:
           DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
           def existingHistory = [new DocumentHistoryEntry([
               bugs        : [],
-              'docs'      : [],
+              docs        : [],
               components  : [],
               epics       : [],
               mitigations : [],
@@ -609,11 +497,8 @@ class DocumentHistorySpec extends SpecHelper {
               docs                   : [:],
               discontinuationsPerType: [:]
           ]
-          if (issueType && issueType != 'docs') {
-              currentVersionData[issueType] = ['anyKey': [key: 'anyKey', versions: ['1.1']]]
-          } else if (issueType) {
-              currentVersionData[issueType] = ['anyKey': [key: "anyKey", versions: ['1.1'], documents: ['doc1']]]
-              currentVersionData['discontinuationsPerType'] = [('docs'): [[key: "anyKey", versions: ['1.1'], documents: ['doc1']]]]
+          if (issueType) {
+              currentVersionData[issueType]['anyKey'] = [key: 'anyKey', versions: ['1.1', '1.0'], documents: ['DocType']]
           }
 
           def noChangesPrefix = 'No changes were made to this document for project version'
@@ -621,11 +506,20 @@ class DocumentHistorySpec extends SpecHelper {
           def rationalPrefix = changes ? changesPrefix : noChangesPrefix
 
         when:
+          currentVersionData.version = '1.0'
+          currentVersionData.previousVersion = ''
           history.load(currentVersionData, ['anyKey'])
 
         then:
-          def entries = history.docHistoryEntries
-          entries.first().getRational().startsWith(rationalPrefix)
+          history.docHistoryEntries.first().getRational().startsWith(rationalPrefix)
+
+        when:
+          history.load(currentVersionData, ['anyKey'])
+
+        then:
+          def rational = history.docHistoryEntries.first().getRational()
+          rational.startsWith(rationalPrefix)
+          rational.contains('This document version invalidates the previous document version')
 
         where:
           issueType      || changes
