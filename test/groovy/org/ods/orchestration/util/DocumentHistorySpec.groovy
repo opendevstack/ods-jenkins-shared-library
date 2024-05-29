@@ -467,7 +467,7 @@ class DocumentHistorySpec extends SpecHelper {
 
     @Unroll
     def "The rational correctly detects whether there are changes or not"(String issueType, boolean changes) {
-        given:
+        given: 'a document history with one existing entry and Jira data for a successor version with or without changes'
           DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
           def existingHistory = [new DocumentHistoryEntry([
               bugs        : [],
@@ -485,8 +485,6 @@ class DocumentHistorySpec extends SpecHelper {
 
           def currentVersionData = [
               bugs                   : [:],
-              version                : '1.1',
-              previousVersion        : '1.0',
               components             : [:],
               epics                  : [:],
               mitigations            : [:],
@@ -504,22 +502,27 @@ class DocumentHistorySpec extends SpecHelper {
           def noChangesPrefix = 'No changes were made to this document for project version'
           def changesPrefix = 'Modifications for project version'
           def rationalPrefix = changes ? changesPrefix : noChangesPrefix
+          def invalidatingRational = 'This document version invalidates the previous document version'
 
-        when:
+        when: 'document history loaded'
+          currentVersionData.version = '1.1'
+          currentVersionData.previousVersion = '1.0'
+          history.load(currentVersionData, ['anyKey'])
+
+        then: 'the rational correctly shows whether there were changes and does not invalidate previous doc versions'
+          def rational1 = history.docHistoryEntries.first().getRational()
+          rational1.startsWith(rationalPrefix)
+          !rational1.contains(invalidatingRational)
+
+        when: 'the document history is loaded with two entries for the same project version'
           currentVersionData.version = '1.0'
           currentVersionData.previousVersion = ''
           history.load(currentVersionData, ['anyKey'])
 
-        then:
-          history.docHistoryEntries.first().getRational().startsWith(rationalPrefix)
-
-        when:
-          history.load(currentVersionData, ['anyKey'])
-
-        then:
-          def rational = history.docHistoryEntries.first().getRational()
-          rational.startsWith(rationalPrefix)
-          rational.contains('This document version invalidates the previous document version')
+        then: 'the rational correctly shows whether there were changes and invalidates previous doc versions'
+          def rational2 = history.docHistoryEntries.first().getRational()
+          rational2.startsWith(rationalPrefix)
+          rational2.contains(invalidatingRational)
 
         where:
           issueType      || changes
