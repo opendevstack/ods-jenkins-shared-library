@@ -179,7 +179,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
             "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the changes done in document version '${bugfixProjectVersion}/2'.")] + entries11_first
+                " This document version invalidates the previous document version '${bugfixProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -250,7 +250,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '${fourthProjectVersion}/5'.")] + entries20
+            "2.0/6", "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the previous document version '${fourthProjectVersion}/5'.")] + entries20
 
         this.noEntries = [new DocumentHistoryEntry([
             bugs        : [],
@@ -262,7 +262,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 7L, fourthProjectVersion, secondProjectVersion,
-            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
+            "2.0/7", "No changes were made to this document for project version '${fourthProjectVersion}'. This document version invalidates the previous document versions '${fourthProjectVersion}/6', '${fourthProjectVersion}/5'.")] + entries20Alt
 
         this.noEntriesOne = [new DocumentHistoryEntry([
             bugs        : [],
@@ -463,6 +463,80 @@ class DocumentHistorySpec extends SpecHelper {
         history.latestVersionId == 8L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
+    }
+
+    @Unroll
+    def "The rational correctly detects whether there are changes or not"(String issueType, boolean changes) {
+        given: 'a document history with one existing entry and Jira data for a successor version with or without changes'
+          DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
+          def existingHistory = [new DocumentHistoryEntry([
+              bugs        : [],
+              docs        : [],
+              components  : [],
+              epics       : [],
+              mitigations : [],
+              requirements: [],
+              risks       : [],
+              tests       : [],
+              techSpecs   : []], 1L, '1.0', '',
+              "1.0/1", "Initial document version.")]
+
+          history.loadSavedDocHistoryData() >> existingHistory
+
+          def currentVersionData = [
+              bugs                   : [:],
+              components             : [:],
+              epics                  : [:],
+              mitigations            : [:],
+              requirements           : [:],
+              risks                  : [:],
+              tests                  : [:],
+              techSpecs              : [:],
+              docs                   : [:],
+              discontinuationsPerType: [:]
+          ]
+          if (issueType) {
+              currentVersionData[issueType]['anyKey'] = [key: 'anyKey', versions: ['1.1', '1.0'], documents: ['DocType']]
+          }
+
+          def noChangesPrefix = 'No changes were made to this document for project version'
+          def changesPrefix = 'Modifications for project version'
+          def rationalPrefix = changes ? changesPrefix : noChangesPrefix
+          def invalidatingRational = 'This document version invalidates the previous document version'
+
+        when: 'document history loaded'
+          currentVersionData.version = '1.1'
+          currentVersionData.previousVersion = '1.0'
+          history.load(currentVersionData, ['anyKey'])
+
+        then: 'the rational correctly shows whether there were changes and does not invalidate previous doc versions'
+          def rational1 = history.docHistoryEntries.first().getRational()
+          rational1.startsWith(rationalPrefix)
+          !rational1.contains(invalidatingRational)
+
+        when: 'the document history is loaded with two entries for the same project version'
+          currentVersionData.version = '1.0'
+          currentVersionData.previousVersion = ''
+          history.load(currentVersionData, ['anyKey'])
+
+        then: 'the rational correctly shows whether there were changes and invalidates previous doc versions'
+          def rational2 = history.docHistoryEntries.first().getRational()
+          rational2.startsWith(rationalPrefix)
+          rational2.contains(invalidatingRational)
+
+        where:
+          issueType      || changes
+          null           || false
+          'bugs'         || true
+          'components'   || true
+          'epics'        || true
+          'mitigations'  || true
+          'requirements' || true
+          'risks'        || true
+          'techSpecs'    || true
+          'tests'        || true
+          'docs'         || true
+
     }
 
     def "returns empty doc history and logs a warning if some issues do not have a version"() {
@@ -727,7 +801,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries10
         def docContent = computeIssuesDoc(entries10)
         def versionEntries = [new DocumentHistoryEntry(entries10.first().getDelegate(), 2L, firstProjectVersion, '',
-            "1.0/2", "Modifications for project version '${firstProjectVersion}'. This document version invalidates the changes done in document version '${firstProjectVersion}/1'.")] + entries10
+            "1.0/2", "Modifications for project version '${firstProjectVersion}'. This document version invalidates the previous document version '${firstProjectVersion}/1'.")] + entries10
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
@@ -971,4 +1045,5 @@ class DocumentHistorySpec extends SpecHelper {
         }
         return ! areEquals.contains(false)
     }
+
 }
