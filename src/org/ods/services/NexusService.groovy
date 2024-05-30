@@ -6,31 +6,18 @@ import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 import kong.unirest.ContentType
 import org.apache.http.client.utils.URIBuilder
-import javax.crypto.Cipher
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
-import javax.crypto.KeyGenerator
 
 class NexusService {
 
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
+
     final URI baseURL
+    final def script
+    final String credentialsId
 
-    final String username
-    final String password
-    final SecretKeySpec secretKey
-
-    NexusService(String baseURL, String username, String password) {
+    NexusService(String baseURL, def script, String credentialsId) {
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined.")
-        }
-
-        if (!username?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'username' is undefined.")
-        }
-
-        if (!password?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'password' is undefined.")
         }
 
         try {
@@ -40,26 +27,14 @@ class NexusService {
                 "Error: unable to connect to Nexus. '${baseURL}' is not a valid URI."
             ).initCause(e)
         }
-        this.username = username
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(128); // for example
-        SecretKey secretKey = keyGen.generateKey();
-        this.secretKey = new SecretKeySpec(secretKey.getEncoded(), "AES");
-        this.password = encrypt(password, secretKey as SecretKeySpec)
 
+        this.script = script
+        this.credentialsId = credentialsId
     }
 
-    static NexusService newFromEnv(def script, String credentialsId) {
-        def c = readConfigFromEnv(script.env)
-        script.withCredentials([
-            script.usernamePassword(
-                credentialsId: credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            new NexusService(c.nexusUrl as String, script.env.USERNAME as String, script.env.PASSWORD as String)
-        }
+    static NexusService newFromEnv(def env, def script, String credentialsId) {
+        def c = readConfigFromEnv(env)
+        new NexusService(c.nexusUrl as String, script, credentialsId)
     }
 
     static Map readConfigFromEnv(def env) {
@@ -75,7 +50,6 @@ class NexusService {
         config
     }
 
-    @NonCPS
     URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
         Map nexusParams = [
             'raw.directory': directory,
@@ -95,12 +69,23 @@ class NexusService {
     }
 
     @SuppressWarnings('LineLength')
-    @NonCPS
     URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
-        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-            .routeParam('repository', repository)
-            .basicAuth(this.username, decrypt(this.password, this.secretKey))
+        script.withCredentials([
+            script.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+                .routeParam('repository', repository)
+                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
+            return processsStoreArtifact(restCall, repository, artifact, contentType, repositoryType, nexusParams)
+        }
+    }
 
+    @NonCPS
+    private URI processsStoreArtifact(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
@@ -140,19 +125,30 @@ class NexusService {
 
         if (repositoryType == 'raw') {
             return this.baseURL.resolve("/repository/${repository}/${nexusParams['raw.directory']}/" +
-              "${nexusParams['raw.asset1.filename']}")
+                "${nexusParams['raw.asset1.filename']}")
         }
         return this.baseURL.resolve("/repository/${repository}")
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
-    @NonCPS
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
-        def restCall = Unirest.get("${urlToDownload}")
-            .basicAuth(this.username, decrypt(this.password, this.secretKey))
+        script.withCredentials([
+            script.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
+            def restCall = Unirest.get("${urlToDownload}")
+                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
+            return (processRetrieveArtifact(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
+        }
+    }
 
+    @NonCPS
+    private Map<URI, File> processRetrieveArtifact(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
         // hurray - unirest, in case file exists - don't do anything.
         File artifactExists = new File("${extractionPath}/${name}")
         if (artifactExists) {
@@ -177,36 +173,27 @@ class NexusService {
         return [
             uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
-        ]
+        ] as Map<URI, File>
     }
 
-    @NonCPS
     boolean groupExists(String nexusRepository, String groupName) {
-        String urlToDownload =
-            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-        def response = Unirest.get("${urlToDownload}")
-            .basicAuth(this.username, decrypt(this.password, this.secretKey))
-            .asString()
+        script.withCredentials([
+            script.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            String urlToDownload =
+                "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
+            def response = Unirest.get("${urlToDownload}")
+                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
+                .asString()
 
-        response.ifFailure {
-            throw new RuntimeException ("Could not retrieve data from '${urlToDownload}'")
+            response.ifFailure {
+                throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
+            }
+            return !response.getBody().contains('\"items\" : [ ]')
         }
-        return !response.getBody().contains('\"items\" : [ ]')
-    }
-
-    @NonCPS
-    private static String encrypt(String data, SecretKeySpec secretKey) {
-        Cipher cipher = Cipher.getInstance("AES")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        byte[] encrypted = cipher.doFinal(data.getBytes())
-        return Base64.getEncoder().encodeToString(encrypted)
-    }
-
-    @NonCPS
-    private static String decrypt(String data, SecretKeySpec secretKey) {
-        Cipher cipher = Cipher.getInstance("AES")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        byte[] decoded = Base64.getDecoder().decode(data)
-        return new String(cipher.doFinal(decoded))
     }
 }

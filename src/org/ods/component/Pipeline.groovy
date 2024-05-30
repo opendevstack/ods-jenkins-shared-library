@@ -151,17 +151,8 @@ class Pipeline implements Serializable {
 
                         if (!registry.get(NexusService)) {
                             logger.debug 'Registering NexusService'
-                            script.withCredentials([
-                                script.usernamePassword(
-                                    credentialsId: context.credentialsId,
-                                    usernameVariable: 'USERNAME',
-                                    passwordVariable: 'PASSWORD'
-                                )
-                            ]) {
-                                NexusService nexusService = new NexusService(context.nexusUrl,
-                                    script.env.USERNAME as String, script.env.PASSWORD as String)
-                                registry.add(NexusService, nexusService)
-                            }
+                            registry.add(NexusService, new NexusService(
+                                context.nexusUrl, script, context.credentialsId))
                         }
                     }
 

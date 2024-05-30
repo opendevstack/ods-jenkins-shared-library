@@ -42,16 +42,7 @@ def call(IContext context, Map config = [:]) {
     }
     NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
-        this.withCredentials([
-            this.usernamePassword(
-                credentialsId: context.credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            nexusService = new NexusService(context.nexusUrl, this.env.USERNAME as String,
-                this.env.PASSWORD as String)
-        }
+        nexusService = new NexusService(context.nexusUrl, this, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
     OpenShiftService openShiftService = registry.get(OpenShiftService)

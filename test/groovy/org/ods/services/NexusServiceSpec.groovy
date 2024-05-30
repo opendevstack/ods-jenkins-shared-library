@@ -3,6 +3,7 @@ package org.ods.services
 import com.github.tomakehurst.wiremock.client.*
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.PipelineMock
 import org.ods.services.NexusService
 import spock.lang.*
 
@@ -10,63 +11,33 @@ import util.*
 
 class NexusServiceSpec extends SpecHelper {
 
-    NexusService createService(int port, String username, String password) {
-        return new NexusService("http://localhost:${port}", username, password)
+    NexusService createService(int port, def script, String credentialsId) {
+        return new NexusService("http://localhost:${port}", script, credentialsId)
     }
 
     def "create with invalid baseURL"() {
+        given:
+        PipelineMock script = new PipelineMock()
         when:
-        new NexusService(null, "username", "password")
+        new NexusService(null, script, "foo-cd-cd-user-with-password")
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'baseURL' is undefined."
 
         when:
-        new NexusService(" ", "username", "password")
+        new NexusService(" ", script, "foo-cd-cd-user-with-password")
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'baseURL' is undefined."
 
         when:
-        new NexusService("invalid URL", "username", "password")
+        new NexusService("invalid URL", script, "foo-cd-cd-user-with-password")
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'invalid URL' is not a valid URI."
-    }
-
-    def "create with invalid username"() {
-        when:
-        new NexusService("http://localhost", null, "password")
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'username' is undefined."
-
-        when:
-        new NexusService("http://localhost", " ", "password")
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'username' is undefined."
-    }
-
-    def "create with invalid password"() {
-        when:
-        new NexusService("http://localhost", "username", null)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'password' is undefined."
-
-        when:
-        new NexusService("http://localhost", "username", " ")
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'password' is undefined."
     }
 
 
@@ -121,11 +92,12 @@ class NexusServiceSpec extends SpecHelper {
 
     def "store artifact"() {
         given:
+        PipelineMock script = new PipelineMock()
         def request = storeArtifactRequestData()
         def response = storeArtifactResponseData()
 
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), script, "foo-cd-cd-user-with-password")
 
         when:
         def result = service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -143,9 +115,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 404
         ])
-
+        PipelineMock script = new PipelineMock()
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), script, "foo-cd-cd-user-with-password")
 
         when:
         service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -165,9 +137,9 @@ class NexusServiceSpec extends SpecHelper {
             body: "Sorry, doesn't work!",
             status: 500
         ])
-
+        PipelineMock script = new PipelineMock()
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), script, "foo-cd-cd-user-with-password")
 
         when:
         service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -186,9 +158,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 404
         ])
-
+        PipelineMock script = new PipelineMock()
         def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), script, "foo-cd-cd-user-with-password")
 
         when:
         service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
@@ -207,9 +179,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 200
         ])
-
+        PipelineMock script = new PipelineMock()
         def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), script, "foo-cd-cd-user-with-password")
 
         when:
         Map result = service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
