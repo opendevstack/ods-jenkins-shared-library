@@ -6,16 +6,17 @@ import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 import kong.unirest.ContentType
 import org.apache.http.client.utils.URIBuilder
+import org.ods.util.IPipelineSteps
 
 class NexusService {
 
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
 
-    final URI baseURL
-    final def script
-    final String credentialsId
+    private URI baseURL
+    private IPipelineSteps steps
+    private String credentialsId
 
-    NexusService(String baseURL, def script, String credentialsId) {
+    NexusService(String baseURL, IPipelineSteps steps, String credentialsId) {
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined.")
         }
@@ -28,13 +29,21 @@ class NexusService {
             ).initCause(e)
         }
 
-        this.script = script
+        if (!steps) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'steps' is null.")
+        }
+
+        if (!credentialsId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'credentialsId' is undefined")
+        }
+
+        this.steps = steps
         this.credentialsId = credentialsId
     }
 
-    static NexusService newFromEnv(def env, def script, String credentialsId) {
+    static NexusService newFromEnv(def env, IPipelineSteps steps, String credentialsId) {
         def c = readConfigFromEnv(env)
-        new NexusService(c.nexusUrl as String, script, credentialsId)
+        new NexusService(c.nexusUrl as String, steps, credentialsId)
     }
 
     static Map readConfigFromEnv(def env) {
@@ -70,22 +79,23 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
-        script.withCredentials([
-            script.usernamePassword(
+        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+            .routeParam('repository', repository)
+        steps.withCredentials([
+            steps.usernamePassword(
                 credentialsId: credentialsId,
                 usernameVariable: 'USERNAME',
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-                .routeParam('repository', repository)
-                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
-            return processsStoreArtifact(restCall, repository, artifact, contentType, repositoryType, nexusParams)
+            restCall = restCall.basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
         }
+        return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     @NonCPS
-    private URI processsStoreArtifact(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
@@ -133,22 +143,23 @@ class NexusService {
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        script.withCredentials([
-            script.usernamePassword(
+        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
+        def restCall = Unirest.get("${urlToDownload}")
+        steps.withCredentials([
+            steps.usernamePassword(
                 credentialsId: credentialsId,
                 usernameVariable: 'USERNAME',
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
-            def restCall = Unirest.get("${urlToDownload}")
-                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
-            return (processRetrieveArtifact(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
+            restCall = restCall.basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
         }
+        return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
     }
 
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     @NonCPS
-    private Map<URI, File> processRetrieveArtifact(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
+    private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
         // hurray - unirest, in case file exists - don't do anything.
         File artifactExists = new File("${extractionPath}/${name}")
         if (artifactExists) {
@@ -177,23 +188,21 @@ class NexusService {
     }
 
     boolean groupExists(String nexusRepository, String groupName) {
-        script.withCredentials([
-            script.usernamePassword(
+        String urlToDownload =
+            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
+        def response = Unirest.get("${urlToDownload}")
+        steps.withCredentials([
+            steps.usernamePassword(
                 credentialsId: credentialsId,
                 usernameVariable: 'USERNAME',
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            String urlToDownload =
-                "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-            def response = Unirest.get("${urlToDownload}")
-                .basicAuth(script.env.USERNAME, script.env.PASSWORD)
-                .asString()
-
-            response.ifFailure {
-                throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
-            }
-            return !response.getBody().contains('\"items\" : [ ]')
+            response.basicAuth(steps.env.USERNAME, steps.env.PASSWORD).asString()
         }
+        response.ifFailure {
+            throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
+        }
+        return !response.getBody().contains('\"items\" : [ ]')
     }
 }

@@ -6,6 +6,7 @@ import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
+import org.ods.util.PipelineSteps
 
 def call(IContext context, Map config = [:]) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
@@ -33,8 +34,8 @@ def call(IContext context, Map config = [:]) {
     }
     def nexusService = ServiceRegistry.instance.get(NexusService)
     if (!nexusService) {
-        nexusService = new NexusService(context.nexusUrl, this, context.credentialsId)
-        registry.add(NexusService, nexusService)
+        steps = new PipelineSteps(this)
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
     }
     def stage = new ScanWithSonarStage(
         this,

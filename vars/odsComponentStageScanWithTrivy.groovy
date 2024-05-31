@@ -42,7 +42,7 @@ def call(IContext context, Map config = [:]) {
     }
     NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
-        nexusService = new NexusService(context.nexusUrl, this, context.credentialsId)
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
     OpenShiftService openShiftService = registry.get(OpenShiftService)
