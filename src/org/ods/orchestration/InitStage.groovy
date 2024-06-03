@@ -257,7 +257,8 @@ class InitStage extends Stage {
             addJiraToRegistry(registry)
         }
 
-        registry.add(NexusService, NexusService.newFromEnv(script.env))
+        registry.add(NexusService, NexusService.newFromEnv(script.env, steps,
+            project.services.bitbucket.credentials.id))
         registry.add(OpenShiftService,
             new OpenShiftService(
                 registry.get(PipelineSteps),
