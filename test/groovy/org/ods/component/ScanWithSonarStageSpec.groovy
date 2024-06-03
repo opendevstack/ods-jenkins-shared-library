@@ -9,7 +9,7 @@ import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
-
+import util.PipelineSteps
 import java.nio.file.Paths
 
 class ScanWithSonarStageSpec extends PipelineSpockTestBase {

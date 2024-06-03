@@ -7,6 +7,7 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
+import util.PipelineSteps
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 

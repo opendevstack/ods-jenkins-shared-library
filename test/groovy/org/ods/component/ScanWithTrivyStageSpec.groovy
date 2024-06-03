@@ -8,6 +8,8 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
+import util.PipelineSteps
+
 
 class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
 
