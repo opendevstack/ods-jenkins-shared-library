@@ -93,7 +93,7 @@ class NexusService {
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
-    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
     private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         nexusParams.each { key, value ->
@@ -157,7 +157,7 @@ class NexusService {
         return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
     }
 
-    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
     private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
         // hurray - unirest, in case file exists - don't do anything.
@@ -184,7 +184,7 @@ class NexusService {
         return [
             uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
-        ] as Map<URI, File>
+        ]
     }
 
     boolean groupExists(String nexusRepository, String groupName) {
