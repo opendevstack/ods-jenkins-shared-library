@@ -6,7 +6,6 @@ import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
