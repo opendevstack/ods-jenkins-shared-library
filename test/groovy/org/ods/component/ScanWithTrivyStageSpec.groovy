@@ -13,7 +13,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
 
     ScanWithTrivyStage createStage() {
         def script = Spy(PipelineScript)
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def logger = Spy(new Logger(steps, false))
         IContext context = new Context(steps,
             [componentId: "component1",
@@ -31,7 +31,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
-        def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
+        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
         def openShift = Spy(new OpenShiftService (steps, logger))
         def stage = new ScanWithTrivyStage(
             script,

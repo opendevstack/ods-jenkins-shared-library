@@ -24,7 +24,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     ScanWithSonarStage createStage(tempFolderPath) {
         def script = Spy(PipelineScript)
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         steps.env.WORKSPACE = tempFolderPath
         def logger = Spy(new Logger(steps, false))
         IContext context = new Context(steps,
@@ -47,7 +47,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger))
         def sonarQube = Spy(new SonarQubeService(script, logger, "SonarServerConfig"))
-        def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
+        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
         def stage = new ScanWithSonarStage (
             script,
             context,

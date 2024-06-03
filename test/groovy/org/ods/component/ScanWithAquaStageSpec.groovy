@@ -12,7 +12,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
         def script = Spy(PipelineScript)
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def logger = Spy(new Logger(steps, false))
         IContext context = new Context(steps,
             [componentId: "component1",
@@ -31,7 +31,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger))
         def openShift = Spy(new OpenShiftService (steps, logger))
-        def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
+        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
         def stage = new ScanWithAquaStage(
             script,
             context,
