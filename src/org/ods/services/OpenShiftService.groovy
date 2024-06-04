@@ -18,6 +18,7 @@ class OpenShiftService {
     static final String ROLLOUT_WAITING = 'waiting'
     static final String DEPLOYMENTCONFIG_KIND = 'DeploymentConfig'
     static final String DEPLOYMENT_KIND = 'Deployment'
+    static final String STATEFULSET_KIND = 'StatefulSet'
 
     private final IPipelineSteps steps
     private final ILogger logger

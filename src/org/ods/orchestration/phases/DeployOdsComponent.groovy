@@ -58,13 +58,21 @@ class DeployOdsComponent {
                     applyTemplates(openShiftDir, deploymentMean)
 
                     def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                    def podData = null
                     for (def i = 0; i < retries; i++) {
-                        def podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
+                        podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
                         if (podData) {
-                            return podData
+                            break
                         }
                         steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
                         steps.sleep(12)
+                    }
+
+                    if (!podData) {
+                        throw new DeployOdsComponentException(
+                        "Error: Could not find 'running' pod(s) with label"
+                        + "'${deploymentMean.selector}'"
+                        )
                     }
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
@@ -75,6 +83,7 @@ class DeployOdsComponent {
                     repo.data.openshift.deployments << [(deploymentName): pod]
                     def deploymentMeanKey = deploymentName + '-deploymentMean'
                     repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
+                    return podData
                 }
             } else {
                 def originalDeploymentVersions =

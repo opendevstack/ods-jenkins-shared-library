@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Support StatefulSet in Helm charts ([#1108](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1108))
 * Support deployment with only selected components ([#1081](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1081))
 * The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
 * Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
