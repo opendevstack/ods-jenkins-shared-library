@@ -79,8 +79,7 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
-        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-            .routeParam('repository', repository)
+        def restCall
         steps.withCredentials([
             steps.usernamePassword(
                 credentialsId: credentialsId,
@@ -88,8 +87,10 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            restCall = restCall.basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+            restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+                .routeParam('repository', repository).basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
         }
+
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
@@ -144,7 +145,7 @@ class NexusService {
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
         String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
-        def restCall = Unirest.get("${urlToDownload}")
+        def restCall
         steps.withCredentials([
             steps.usernamePassword(
                 credentialsId: credentialsId,
@@ -152,7 +153,7 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            restCall = restCall.basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
         }
         return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
     }
@@ -190,7 +191,7 @@ class NexusService {
     boolean groupExists(String nexusRepository, String groupName) {
         String urlToDownload =
             "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-        def response = Unirest.get("${urlToDownload}")
+        def response
         steps.withCredentials([
             steps.usernamePassword(
                 credentialsId: credentialsId,
@@ -198,11 +199,14 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            response.basicAuth(steps.env.USERNAME, steps.env.PASSWORD).asString()
+            response = Unirest.get("${urlToDownload}")
+                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+                .asString()
         }
         response.ifFailure {
             throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
         }
         return !response.getBody().contains('\"items\" : [ ]')
+
     }
 }
