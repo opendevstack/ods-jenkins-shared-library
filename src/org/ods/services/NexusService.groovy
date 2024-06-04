@@ -190,7 +190,6 @@ class NexusService {
     boolean groupExists(String nexusRepository, String groupName) {
         String urlToDownload =
             "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-        def response = Unirest.get("${urlToDownload}")
         steps.withCredentials([
             steps.usernamePassword(
                 credentialsId: credentialsId,
@@ -198,7 +197,9 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            response.basicAuth(steps.env.USERNAME, steps.env.PASSWORD).asString()
+            def response = Unirest.get("${urlToDownload}")
+                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+                .asString()
         }
         response.ifFailure {
             throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
