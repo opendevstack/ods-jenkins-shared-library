@@ -152,7 +152,7 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD).asString()
         }
         return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
     }
@@ -198,7 +198,9 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            response = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+            response = Unirest.get("${urlToDownload}")
+                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+                .asString()
         }
         response.ifFailure {
             throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
