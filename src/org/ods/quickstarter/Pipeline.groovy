@@ -78,6 +78,8 @@ class Pipeline implements Serializable {
             config << NexusService.readConfigFromEnv(script.env)
         }
 
+        config << loadNexusAuth()
+
         onAgentNode(config) { context ->
             new CheckoutStage(script, context).execute()
             new CreateOutputDirectoryStage(script, context).execute()
@@ -87,6 +89,21 @@ class Pipeline implements Serializable {
 
             new PushToRemoteStage(script, context).execute()
         }
+    }
+
+    private Map loadNexusAuth(){
+        def map = [:]
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: config.cdUserCredentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            map.nexusUsername = steps.env.USERNAME
+            map.nexusPassword = steps.env.PASSWORD
+        }
+        return map
     }
 
     private checkRequiredBuildParams() {

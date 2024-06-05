@@ -81,6 +81,9 @@ class Context implements IContext {
         config.openshiftHost = script.env.OPENSHIFT_API_URL
         config << BitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
+
+
+
         config.triggeredByOrchestrationPipeline = !!script.env.MULTI_REPO_BUILD
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
@@ -123,6 +126,8 @@ class Context implements IContext {
         logger.debug 'Deriving configuration from input ...'
         config.cdProject = "${config.projectId}-cd"
         config.credentialsId = config.cdProject + '-cd-user-with-password'
+
+        config << loadNexusAuth()
 
         logger.debug 'Setting defaults ...'
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
@@ -199,6 +204,21 @@ class Context implements IContext {
         // get the build labels from the env running in ..
         config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
             'JENKINS_AGENT_'))
+    }
+
+    private Map loadNexusAuth(){
+        def map = [:]
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: config.credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            map.nexusUsername = steps.env.USERNAME
+            map.nexusPassword = steps.env.PASSWORD
+        }
+        return map
     }
 
     boolean getDebug() {
