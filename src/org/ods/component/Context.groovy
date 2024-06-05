@@ -82,8 +82,6 @@ class Context implements IContext {
         config << BitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
 
-
-
         config.triggeredByOrchestrationPipeline = !!script.env.MULTI_REPO_BUILD
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'

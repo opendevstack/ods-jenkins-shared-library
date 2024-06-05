@@ -13,7 +13,7 @@
 * Fix retrieval of SonarQube quality gate ([#1109](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1109))
 * Fix SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
 * Fix NexusService methods that were not obtaining the x2 account when pushing and retrieving artifacts ([#1121](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1121)
-* Fix error where some quickstarters needed variables nexusUsername and nexusPassword on context ([#1121](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1121)
+* Fix error where some quickstarters needed variables nexusUsername and nexusPassword on context ([#1123](htthttps://github.com/opendevstack/ods-jenkins-shared-library/pull/1123)
 
 ### Added
 * Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
