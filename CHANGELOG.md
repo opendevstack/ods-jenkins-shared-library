@@ -1,12 +1,17 @@
 # Changelog
 
 ## Unreleased
-* Support deployment with only selected components ([#1081](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1081))
-* The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
-* Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
+
+### Added
+
+### Changed
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.5.0] - 2024-06-06
+
+### Fixed
 * Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026))
 * Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
 * Fix Globally injected variables do not work in subcharts/dependencies ([#1066](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1066))
@@ -14,13 +19,15 @@
 * Fix SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
 * Fix NexusService methods that were not obtaining the x2 account when pushing and retrieving artifacts ([#1121](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1121)
 * Context variables nexusUsername and nexusPassword are set again by nexusService ([#1124](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1124)
+* The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
+* Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
 
 ### Added
 * Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
 * Add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+* Support deployment with only selected components ([#1081](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1081))
 
 ### Changed
-* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Improve messages in Helm deployment issues with custom chartDir option ([#1044](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1044))
 * Substitute env username and password variables for nexus by using instead Jenkins variable "cd-user-with-password" ([#1118](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1118))
 
