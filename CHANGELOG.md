@@ -19,6 +19,8 @@
 * Fix SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
 * Fix NexusService methods that were not obtaining the x2 account when pushing and retrieving artifacts ([#1121](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1121)
 * Context variables nexusUsername and nexusPassword are set again by nexusService ([#1124](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1124)
+* The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
+* Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
 
 ### Added
 * Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
