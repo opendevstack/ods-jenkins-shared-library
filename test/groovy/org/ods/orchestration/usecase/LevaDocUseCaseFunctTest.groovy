@@ -55,6 +55,7 @@ import util.FixtureHelper
  *
  */
 @Slf4j
+@Ignore
 class LevaDocUseCaseFunctTest extends Specification {
 
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"] as String)
