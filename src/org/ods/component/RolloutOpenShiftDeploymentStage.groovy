@@ -5,8 +5,6 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
-//import org.ods.openshift.OpenShiftResourceMetadata
-//import org.ods.util.PodData
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -18,7 +16,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final RolloutOpenShiftDeploymentOptions options
     private IDeploymentStrategy deploymentStrategy
     private Map<String, Object> config
-
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -101,7 +98,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
-
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -117,9 +113,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
         logger.info("isHelmDeployment: ${isHelmDeployment}")
         def isTailorDeployment = steps.fileExists(options.openshiftDir)
-        logger.info("isTailorDeployment: ${isTailorDeployment}")
 
-        if (isTailorDeployment && isHelmDeployment){
+        if (isTailorDeployment && isHelmDeployment) {
             steps.error("Must be either a Tailor based deployment or a Helm based deployment")
             throw new IllegalStateException("Must be either a Tailor based deployment or a Helm based deployment")
         }
@@ -129,6 +124,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
+            def msg =steps.libraryResource(resourcePath)
+            logger.warn(msg)
         }
         if (isHelmDeployment) {
             deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
@@ -143,4 +141,5 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         STAGE_NAME
     }
+
 }

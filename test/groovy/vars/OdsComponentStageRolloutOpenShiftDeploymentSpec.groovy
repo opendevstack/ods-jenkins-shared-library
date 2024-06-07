@@ -157,7 +157,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.rollout(*_) >> "${config.componentId}-124"
     openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
-    openShiftService.checkForPodData('foo-dev', 'app=foo-bar') >> [new PodData([deploymentId: "${config.componentId}-124"])]
+    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -204,7 +204,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     buildArtifacts.size() > 0
     buildArtifacts.deployments['bar-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade('foo-dev', 'bar', ['values.yaml'], ['registry':null, 'componentId':'bar', 'imageNamespace':'foo-dev', 'imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('foo-dev', 'bar', ['values.yaml'], ['registry':null, 'componentId':'bar', 'global.registry':null, 'global.componentId':'bar', 'imageNamespace':'foo-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'foo-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll

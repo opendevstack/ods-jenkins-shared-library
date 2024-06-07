@@ -3,6 +3,8 @@ package org.ods.util
 @SuppressWarnings('MethodCount')
 interface IPipelineSteps {
 
+    String libraryResource(String path)
+
     void archiveArtifacts(String artifacts)
 
     void archiveArtifacts(Map args)
@@ -78,4 +80,5 @@ interface IPipelineSteps {
     def emailext(Map args)
 
     def findFiles (Map args)
+
 }

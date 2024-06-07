@@ -172,7 +172,7 @@ class Stage {
             new File(path).traverse(nameFilter: ~/.*\.log$/, type: groovy.io.FileType.FILES) { file ->
                 result << file
             }
-        } catch (FileNotFoundException e) {}
+        } catch (FileNotFoundException e) { }
 
         return result
     }

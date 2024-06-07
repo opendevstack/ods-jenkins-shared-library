@@ -47,7 +47,7 @@ def call(IContext context, Map config = [:]) {
     }
     NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
-        nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
 

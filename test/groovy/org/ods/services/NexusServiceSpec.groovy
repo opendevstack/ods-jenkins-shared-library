@@ -3,70 +3,62 @@ package org.ods.services
 import com.github.tomakehurst.wiremock.client.*
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.services.NexusService
-import spock.lang.*
 
+import org.ods.util.IPipelineSteps
 import util.*
 
 class NexusServiceSpec extends SpecHelper {
 
-    NexusService createService(int port, String username, String password) {
-        return new NexusService("http://localhost:${port}", username, password)
+    NexusService createService(int port, String credentialsId) {
+        IPipelineSteps steps = Stub(IPipelineSteps)
+        steps.env >> [USERNAME: "username", PASSWORD: "password"]
+        steps.withCredentials(_,_) >> { List credentialsList, Closure c -> c.call() }
+        return new NexusService("http://localhost:${port}", steps, credentialsId)
     }
 
     def "create with invalid baseURL"() {
+        given:
+        IPipelineSteps steps = Stub(IPipelineSteps)
         when:
-        new NexusService(null, "username", "password")
+        new NexusService(null, steps, "foo-cd-cd-user-with-password")
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'baseURL' is undefined."
 
         when:
-        new NexusService(" ", "username", "password")
+        new NexusService(" ", steps, "foo-cd-cd-user-with-password")
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'baseURL' is undefined."
 
         when:
-        new NexusService("invalid URL", "username", "password")
+        new NexusService("invalid URL", steps, "foo-cd-cd-user-with-password")
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Nexus. 'invalid URL' is not a valid URI."
     }
 
-    def "create with invalid username"() {
+    def "create with invalid steps"() {
         when:
-        new NexusService("http://localhost", null, "password")
+        new NexusService("http://localhost",  null, "foo-cd-cd-user-with-password")
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'username' is undefined."
-
-        when:
-        new NexusService("http://localhost", " ", "password")
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'username' is undefined."
+        e.message == "Error: unable to connect to Nexus. 'steps' is null."
     }
 
-    def "create with invalid password"() {
+    def "create with invalid credentialsId"() {
+        given:
+        IPipelineSteps steps = Stub(IPipelineSteps)
         when:
-        new NexusService("http://localhost", "username", null)
+        new NexusService("http://localhost", steps, null)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'password' is undefined."
-
-        when:
-        new NexusService("http://localhost", "username", " ")
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Nexus. 'password' is undefined."
+        e.message == "Error: unable to connect to Nexus. 'credentialsId' is undefined"
     }
 
 
@@ -125,7 +117,7 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData()
 
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
 
         when:
         def result = service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -143,9 +135,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 404
         ])
-
+        IPipelineSteps steps = Stub(IPipelineSteps)
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
 
         when:
         service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -165,9 +157,9 @@ class NexusServiceSpec extends SpecHelper {
             body: "Sorry, doesn't work!",
             status: 500
         ])
-
+        IPipelineSteps steps = Stub(IPipelineSteps)
         def server = createServer(WireMock.&post, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
 
         when:
         service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
@@ -186,9 +178,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 404
         ])
-
+        IPipelineSteps steps = Stub(IPipelineSteps)
         def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
 
         when:
         service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
@@ -207,9 +199,9 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 200
         ])
-
+        IPipelineSteps steps = Stub(IPipelineSteps)
         def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
 
         when:
         Map result = service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")

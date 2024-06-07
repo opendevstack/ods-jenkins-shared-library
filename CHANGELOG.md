@@ -2,14 +2,34 @@
 
 ## Unreleased
 
+### Added
+
+### Changed
+
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
+## [4.5.0] - 2024-06-06
+
+### Fixed
+* Preload images into the cluster before initiating the rollout process using Helm ([#1026](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1026))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Fix Globally injected variables do not work in subcharts/dependencies ([#1066](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1066))
+* Fix retrieval of SonarQube quality gate ([#1109](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1109))
+* Fix SonarQube Pull Request code insights link not pointing to the branch scanned ([#1112](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1112))
+* Fix NexusService methods that were not obtaining the x2 account when pushing and retrieving artifacts ([#1121](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1121)
+* Context variables nexusUsername and nexusPassword are set again by nexusService ([#1124](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1124)
+* The Document History indicates clearly when an SLC document has not changed ([#1115](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1115))
+* Fix using repo variable before declaration ([#1117](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1117))
+
 ### Added
-* add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+* Included the complete Requirement description to Risk Assessment Table ([#1098](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1098))
+* Add dependency updates for Gradle via dependabot ([#1040](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1040))
+* Support deployment with only selected components ([#1081](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1081))
 
 ### Changed
-* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* Improve messages in Helm deployment issues with custom chartDir option ([#1044](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1044))
+* Substitute env username and password variables for nexus by using instead Jenkins variable "cd-user-with-password" ([#1118](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1118))
 
 ## [4.4.0] - 2024-04-22
 
@@ -26,10 +46,15 @@
 ## [4.3.4] - 2024-02-20
 
 * Fix documentation refers to qs with prefix infra- however there are only inf- quickstarters  ([#1060](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1060))
+* Fix ods-deployments file repeats image in mono repository setup ([#1011](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1011))
+* Fix parameter count warning in ([86e1d](https://github.com/opendevstack/ods-jenkins-shared-library/commit/86e1d583b271446ef1489339da0912f78406e40d))
+* Remove `jvmArgs "-XX:MaxPermSize=256m"` from build.gradle as it is no longer supported (See https://docs.oracle.com/javase/9/migrate/#GUID-1F270BDA-50B0-49C8-807E-0B727CCC5169)
 * Aqua scanner and Helm deployment conflict fix for jenkins shared library ([#1067](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1067))
 * Fix ods-infra components require OpenShift projects in Deploy stage ([#1047](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1047))
 
 ## [4.3.3] - 2023-11-07
+* Add better documentation for Helm ([#1027](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1027))
+* Avoid Groovy string interpolation [#1030](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1030)
 
 ### Added
 * Add done boolean flag to data passed to the document template service ([#1048](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1048))

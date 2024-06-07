@@ -13,6 +13,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context = context
     }
 
+    String libraryResource(String path) {
+        return this.context.libraryResource(path)
+    }
+
     void archiveArtifacts(String artifacts) {
         this.context.archiveArtifacts(artifacts)
     }
@@ -167,4 +171,5 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def emailext(Map args) {
         this.context.emailext(args)
     }
+
 }
