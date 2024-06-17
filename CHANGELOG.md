@@ -8,6 +8,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix to use the correct wiki formatting from jira plugin api([#1128](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1128))
 
 ## [4.5.0] - 2024-06-06
 
