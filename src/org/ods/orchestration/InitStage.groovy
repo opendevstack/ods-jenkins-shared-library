@@ -89,7 +89,7 @@ class InitStage extends Stage {
         def check = project.getComponentsFromJira()
         if (check) {
             if (check.deployableState != 'DEPLOYABLE') {
-                throw new ComponentMismatchException(check.message)
+                throw new ComponentMismatchException(check.wikiMessage)
             }
             logger.info("Jira components found: $check")
 
