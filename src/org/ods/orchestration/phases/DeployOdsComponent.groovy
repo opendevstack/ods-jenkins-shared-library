@@ -1,5 +1,6 @@
 package org.ods.orchestration.phases
 
+import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.util.IPipelineSteps
@@ -70,11 +71,14 @@ class DeployOdsComponent {
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
 
-                    // podData will remain empty if
-                    logger.debug("Helm podData for " +
-                        "targetProject=${project.targetProject}, " +
-                        "selector=${deploymentMean.selector}, " +
-                        "name=${deploymentName}: ${podData}")
+                    def podDataContext = [
+                        "targetProject=${project.targetProject}",
+                        "selector=${deploymentMean.selector}",
+                        "name=${deploymentName}",
+                    ]
+                    logger.info("Helm podData for ${podDataContext.join(', ')}: " +
+                        "${JsonOutput.prettyPrint(JsonOutput.toJson(podData))}")
+
                     def podMapOrNull = podData[0]?.toMap() // if podData is [] then podMapOrNull is null
                     if (podMapOrNull) {
                         verifyImageShas(deployment, podMapOrNull.containers)
