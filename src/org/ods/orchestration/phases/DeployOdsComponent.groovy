@@ -11,6 +11,7 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -56,23 +57,29 @@ class DeployOdsComponent {
                     deploymentMean['repoId'] = repo.id
 
                     applyTemplates(openShiftDir, deploymentMean)
-
+                    List<PodData> podData = []
                     def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
                     for (def i = 0; i < retries; i++) {
-                        def podData = os.checkForPodData(project.targetProject, deploymentMean.selector)
+                        podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
                         if (podData) {
-                            return podData
+                            break
                         }
                         steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
                         steps.sleep(12)
                     }
-
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
-                    def pod = podData[0].toMap()
 
-                    verifyImageShas(deployment, pod.containers)
-                    repo.data.openshift.deployments << [(deploymentName): pod]
+                    // podData will remain empty if
+                    logger.debug("Helm podData for " +
+                        "targetProject=${project.targetProject}, " +
+                        "selector=${deploymentMean.selector}, " +
+                        "name=${deploymentName}: ${podData}")
+                    def podMapOrNull = podData[0]?.toMap() // if podData is [] then podMapOrNull is null
+                    if (podMapOrNull) {
+                        verifyImageShas(deployment, podMapOrNull.containers)
+                    }
+                    repo.data.openshift.deployments << [(deploymentName): podMapOrNull]
                     def deploymentMeanKey = deploymentName + '-deploymentMean'
                     repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
                 }

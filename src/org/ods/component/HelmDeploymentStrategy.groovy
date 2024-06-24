@@ -176,7 +176,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 def podData = []
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
                     podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
-                    if (!podData.isEmpty()) {
+                    if (podData) {
                         break
                     }
                     steps.echo("Could not find 'running' pod(s) with label '${options.selector}' - waiting")
@@ -192,14 +192,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                         'helmValuesFiles': options.helmValuesFiles,
                         'helmValues': options.helmValues,
                         'helmDefaultFlags': options.helmDefaultFlags,
-                        'helmAdditionalFlags': options.helmAdditionalFlags
+                        'helmAdditionalFlags': options.helmAdditionalFlags,
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
                 // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
+                def podMapOrNull = podData[0]?.toMap() // if podData is [] then podMapOrNull is null
+                context.addDeploymentToArtifactURIs(resourceName, podMapOrNull)
             }
         }
         rolloutData
