@@ -8,6 +8,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix to generate TIR information in QA and PROD for helm components ([#1133](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1133))
 
 ## [4.5.1] - 2024-06-19
 
