@@ -2019,12 +2019,9 @@ class Project {
         this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
         // Resolve repo branch, if not provided
-        if (!repo.branch?.trim()) {
-            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                "from project meta data. Assuming 'master'.")
-            repo.branch = 'master'
+        if (repo.branch?.trim()) {
+            throw new Exception("Error branch is set") //TODO: better exception
         }
-        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
     }
 
     void addDefaults(String component) {

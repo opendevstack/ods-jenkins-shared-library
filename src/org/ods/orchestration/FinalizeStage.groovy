@@ -156,7 +156,7 @@ class FinalizeStage extends Stage {
         return [(repo.id): {
             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                 if (project.isWorkInProgress) {
-                    String branchName = repo.data.git.branch ?: repo.branch
+                    String branchName = repo.data.git.branch ?: repo.defaultBranch
                     git.pushRef(branchName)
                 } else if (project.isAssembleMode) {
                     if (!git.remoteTagExists(project.targetTag)) {
@@ -226,7 +226,7 @@ class FinalizeStage extends Stage {
                 if (steps.fileExists('openshift-exported/template.yml')) {
                     filesToCheckout << 'openshift-exported/template.yml'
                 }
-                git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
+                git.mergeIntoMainBranch(project.gitReleaseBranch, repo.defaultBranch, filesToCheckout)
             }
         }
     }

@@ -319,6 +319,40 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    String getDefaultBranch(String projectKey, String repoSlug) {
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
+            while (retries++ < maxAttempts) {
+                try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
+                    res = script.sh(
+                        returnStdout: true,
+                        label: 'Set bitbucket build status via API',
+                        script: """curl \\
+                                --fail \\
+                                -sS \\
+                                --request GET \\
+                                --header ${authHeader} \\
+                                ${bitbucketUrl}rest/api/1.0/projects/${projectKey}/repos/${repoSlug}/branches/default"""
+                    ).trim()
+                    try {
+                        // call readJSON inside of withCredentials block,
+                        // otherwise token will be displayed in output
+                        def js = script.readJSON(text: res)
+                        return js['displayId']
+                    } catch (Exception ex) {
+                        logger.warn "Could not understand API response. Error was: ${ex}"
+                    }
+                } catch (err) {
+                    logger.warn("Could not get Bitbucket repo '${repoSlug}' default branch due to: ${err}")
+                }
+            }
+        }
+        logger.debugClocked("buildstatus-${buildName}-${state}")
+    }
+
     /**
      * Creates a code insight report in bitbucket via API.
      * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
@@ -484,7 +518,7 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
 
     @NonCPS
     Map getMergedPullRequestsForIntegrationBranch(String token, Map repo, int limit, int nextPageStart){
-        String qParams = "state=MERGED&order=OLDEST&at=refs/heads/${repo.branch}"
+        String qParams = "state=MERGED&order=OLDEST&at=refs/heads/${repo.defaultBranch}"
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo.repo}/pull-requests?${qParams}"
         return queryRepo(token, request, limit, nextPageStart)
     }
