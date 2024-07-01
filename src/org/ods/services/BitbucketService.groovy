@@ -335,7 +335,7 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${bitbucketUrl}rest/api/1.0/projects/${projectKey}/repos/${repoSlug}/branches/default"""
+                                ${bitbucketUrl}/rest/api/1.0/projects/${projectKey}/repos/${repoSlug}/branches/default"""
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
