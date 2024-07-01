@@ -329,7 +329,7 @@ class BitbucketService {
                     def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
                     res = script.sh(
                         returnStdout: true,
-                        label: 'Set bitbucket build status via API',
+                        label: 'Get bitbucket repo default branch via API',
                         script: """curl \\
                                 --fail \\
                                 -sS \\

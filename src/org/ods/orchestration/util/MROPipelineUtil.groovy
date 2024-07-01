@@ -284,10 +284,11 @@ class MROPipelineUtil extends PipelineUtil {
 
     private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
         Map scmResult = [ : ]
+        def bbs = ServiceRegistry.instance.get(BitbucketService)
         String gitReleaseBranch = this.project.gitReleaseBranch
         if ("master" == gitReleaseBranch) {
             //TODO: still using only master for RM?
-            repo.defaultBranch = this.project.services.bitbucket.getDefaultBranch(this.project.getId(),repo.id)
+            repo.defaultBranch = bbs.getDefaultBranch(this.project.getId(), repo.id)
             gitReleaseBranch = repo.defaultBranch
         }
 
