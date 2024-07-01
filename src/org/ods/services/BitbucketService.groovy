@@ -319,8 +319,8 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
-    String getDefaultBranch(String projectKey, String repoSlug) {
-        logger.debugClocked("defaultbranch-${projectKey}-${repoSlug}")
+    String getDefaultBranch(String projectKey, String repo) {
+        logger.debugClocked("defaultbranch-${projectKey}-${repo}")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
@@ -335,7 +335,7 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${bitbucketUrl}/rest/api/1.0/projects/${projectKey}/repos/${repoSlug}/branches/default"""
+                                ${bitbucketUrl}/rest/api/1.0/projects/${projectKey}/repos/${projectKey}-${repo}/branches/default"""
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
