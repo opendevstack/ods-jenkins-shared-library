@@ -346,11 +346,11 @@ class BitbucketService {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
                 } catch (err) {
-                    logger.warn("Could not get Bitbucket repo '${repoSlug}' default branch due to: ${err}")
+                    logger.warn("Could not get Bitbucket repo '${projectKey}-${repo}' default branch due to: ${err}")
                 }
             }
         }
-        logger.debugClocked("defaultbranch-${projectKey}-${repoSlug}")
+        logger.debugClocked("defaultbranch-${projectKey}-${projectKey}-${repo}")
     }
 
     /**
