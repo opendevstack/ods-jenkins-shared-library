@@ -1,0 +1,1422 @@
+{
+  "name": "standalone-app",
+  "info": {
+    "first_deployed": "2022-12-19T09:44:32.164490076Z",
+    "last_deployed": "2024-03-04T15:21:09.34520527Z",
+    "deleted": "",
+    "description": "Upgrade complete",
+    "status": "deployed",
+    "resources": {
+      "v1/Cluster": [
+        {
+          "apiVersion": "postgresql.k8s.enterprisedb.io/v1",
+          "kind": "Cluster",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-07-04T13:18:28Z",
+            "generation": 3,
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "edb-cluster",
+              "app.kubernetes.io/version": "2f70aaae0e4facb06e6981c542b235e89fe156c3",
+              "helm.sh/chart": "edb-cluster-0.1.0_2f70aaae0e4facb06e6981c542b235e89fe156c3"
+            },
+            "name": "edb-cluster",
+            "namespace": "guardians-test",
+            "resourceVersion": "2880969905",
+            "uid": "3ee355b9-0ebb-4997-9351-47b96def618f"
+          },
+          "spec": {
+            "affinity": {
+              "podAntiAffinityType": "preferred"
+            },
+            "bootstrap": {
+              "initdb": {
+                "database": "app",
+                "encoding": "UTF8",
+                "localeCType": "C",
+                "localeCollate": "C",
+                "owner": "app"
+              }
+            },
+            "enableSuperuserAccess": true,
+            "failoverDelay": 0,
+            "imageName": "quay.io/enterprisedb/postgresql:15.3",
+            "instances": 1,
+            "logLevel": "info",
+            "maxSyncReplicas": 0,
+            "minSyncReplicas": 0,
+            "monitoring": {
+              "customQueriesConfigMap": [
+                {
+                  "key": "queries",
+                  "name": "postgresql-operator-default-monitoring"
+                }
+              ],
+              "disableDefaultQueries": false,
+              "enablePodMonitor": false
+            },
+            "postgresGID": 26,
+            "postgresUID": 26,
+            "postgresql": {
+              "parameters": {
+                "archive_mode": "on",
+                "archive_timeout": "5min",
+                "dynamic_shared_memory_type": "posix",
+                "log_destination": "csvlog",
+                "log_directory": "/controller/log",
+                "log_filename": "postgres",
+                "log_rotation_age": "0",
+                "log_rotation_size": "0",
+                "log_truncate_on_rotation": "false",
+                "logging_collector": "on",
+                "max_parallel_workers": "32",
+                "max_replication_slots": "32",
+                "max_worker_processes": "32",
+                "shared_memory_type": "mmap",
+                "shared_preload_libraries": "",
+                "ssl_max_protocol_version": "TLSv1.3",
+                "ssl_min_protocol_version": "TLSv1.3",
+                "wal_keep_size": "512MB",
+                "wal_receiver_timeout": "5s",
+                "wal_sender_timeout": "5s"
+              },
+              "syncReplicaElectionConstraint": {
+                "enabled": false
+              }
+            },
+            "primaryUpdateMethod": "restart",
+            "primaryUpdateStrategy": "unsupervised",
+            "replicationSlots": {
+              "highAvailability": {
+                "enabled": true,
+                "slotPrefix": "_cnp_"
+              },
+              "updateInterval": 30
+            },
+            "resources": {},
+            "smartShutdownTimeout": 180,
+            "startDelay": 30,
+            "stopDelay": 30,
+            "storage": {
+              "resizeInUseVolumes": true,
+              "size": "20Gi"
+            },
+            "switchoverDelay": 40000000
+          },
+          "status": {
+            "certificates": {
+              "clientCASecret": "edb-cluster-ca",
+              "expirations": {
+                "edb-cluster-ca": "2024-08-29 14:02:22 +0000 UTC",
+                "edb-cluster-replication": "2024-08-29 14:02:22 +0000 UTC",
+                "edb-cluster-server": "2024-08-29 14:02:22 +0000 UTC"
+              },
+              "replicationTLSSecret": "edb-cluster-replication",
+              "serverAltDNSNames": [
+                "edb-cluster-rw",
+                "edb-cluster-rw.guardians-test",
+                "edb-cluster-rw.guardians-test.svc",
+                "edb-cluster-r",
+                "edb-cluster-r.guardians-test",
+                "edb-cluster-r.guardians-test.svc",
+                "edb-cluster-ro",
+                "edb-cluster-ro.guardians-test",
+                "edb-cluster-ro.guardians-test.svc"
+              ],
+              "serverCASecret": "edb-cluster-ca",
+              "serverTLSSecret": "edb-cluster-server"
+            },
+            "cloudNativePostgresqlCommitHash": "949626034",
+            "cloudNativePostgresqlOperatorHash": "0737af0747dd2ac7040c7b21655bd8e5fa4e01028fe9d833891be071390e8785",
+            "conditions": [
+              {
+                "lastTransitionTime": "2024-05-25T14:42:08Z",
+                "message": "Cluster is Ready",
+                "reason": "ClusterIsReady",
+                "status": "True",
+                "type": "Ready"
+              },
+              {
+                "lastTransitionTime": "2023-07-04T13:19:38Z",
+                "message": "velero addon is disabled",
+                "reason": "Disabled",
+                "status": "False",
+                "type": "k8s.enterprisedb.io/velero"
+              },
+              {
+                "lastTransitionTime": "2023-07-04T13:19:38Z",
+                "message": "external-backup-adapter addon is disabled",
+                "reason": "Disabled",
+                "status": "False",
+                "type": "k8s.enterprisedb.io/externalBackupAdapter"
+              },
+              {
+                "lastTransitionTime": "2023-07-04T13:19:38Z",
+                "message": "external-backup-adapter-cluster addon is disabled",
+                "reason": "Disabled",
+                "status": "False",
+                "type": "k8s.enterprisedb.io/externalBackupAdapterCluster"
+              },
+              {
+                "lastTransitionTime": "2023-07-04T13:19:40Z",
+                "message": "kasten addon is disabled",
+                "reason": "Disabled",
+                "status": "False",
+                "type": "k8s.enterprisedb.io/kasten"
+              },
+              {
+                "lastTransitionTime": "2023-11-30T15:26:14Z",
+                "message": "Continuous archiving is working",
+                "reason": "ContinuousArchivingSuccess",
+                "status": "True",
+                "type": "ContinuousArchiving"
+              }
+            ],
+            "configMapResourceVersion": {
+              "metrics": {
+                "postgresql-operator-default-monitoring": "2880955105"
+              }
+            },
+            "currentPrimary": "edb-cluster-1",
+            "currentPrimaryTimestamp": "2023-07-04T13:19:27.039619Z",
+            "healthyPVC": [
+              "edb-cluster-1"
+            ],
+            "instanceNames": [
+              "edb-cluster-1"
+            ],
+            "instances": 1,
+            "instancesReportedState": {
+              "edb-cluster-1": {
+                "isPrimary": true,
+                "timeLineID": 1
+              }
+            },
+            "instancesStatus": {
+              "healthy": [
+                "edb-cluster-1"
+              ]
+            },
+            "latestGeneratedNode": 1,
+            "licenseStatus": {
+              "licenseExpiration": "2999-12-31T00:00:00Z",
+              "licenseStatus": "Valid license (Boehringer Ingelheim (boehringer_ingelheim))",
+              "repositoryAccess": false,
+              "valid": true
+            },
+            "managedRolesStatus": {},
+            "phase": "Cluster in healthy state",
+            "poolerIntegrations": {
+              "pgBouncerIntegration": {}
+            },
+            "pvcCount": 1,
+            "readService": "edb-cluster-r",
+            "readyInstances": 1,
+            "secretsResourceVersion": {
+              "applicationSecretVersion": "2880969810",
+              "clientCaSecretVersion": "2880969811",
+              "replicationSecretVersion": "2880969813",
+              "serverCaSecretVersion": "2880969811",
+              "serverSecretVersion": "2880969815",
+              "superuserSecretVersion": "2880969816"
+            },
+            "targetPrimary": "edb-cluster-1",
+            "targetPrimaryTimestamp": "2023-07-04T13:18:29.516149Z",
+            "timelineID": 1,
+            "topology": {
+              "instances": {
+                "edb-cluster-1": {}
+              },
+              "nodesUsed": 1,
+              "successfullyExtracted": true
+            },
+            "writeService": "edb-cluster-rw"
+          }
+        }
+      ],
+      "v1/ConfigMap": [
+        {
+          "apiVersion": "v1",
+          "data": {
+            "application.yaml": "REDACTED\n"
+          },
+          "kind": "ConfigMap",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-05-16T15:41:54Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core-appconfig-configmap",
+            "namespace": "guardians-test",
+            "resourceVersion": "2880955101",
+            "uid": "612ad220-26de-44b6-bbf6-31ba57e456cb"
+          }
+        }
+      ],
+      "v1/Deployment": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "annotations": {
+              "deployment.kubernetes.io/revision": "36",
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2022-12-19T09:44:33Z",
+            "generation": 42,
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core",
+            "namespace": "guardians-test",
+            "resourceVersion": "2865328801",
+            "uid": "30d8bb5a-06ff-4705-97d4-51f7737a9bfe"
+          },
+          "spec": {
+            "progressDeadlineSeconds": 600,
+            "replicas": 1,
+            "revisionHistoryLimit": 10,
+            "selector": {
+              "matchLabels": {
+                "app.kubernetes.io/instance": "standalone-app",
+                "app.kubernetes.io/name": "core"
+              }
+            },
+            "strategy": {
+              "type": "Recreate"
+            },
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "checksum/appconfig-configmap": "cf3b985c902671383801409e8a965ad17ab4ec10e5b6237b7486bd5d16dcec67",
+                  "checksum/rsa-key-secret": "57a5e7abec60d7d4084c36a3d59aca39df32371cff531337d060401b9655d3e5",
+                  "checksum/security-exandradev-secret": "07f38b38833d3701cfcd128a3429ba4defe5272e99164fbba4352a40ed94f99a",
+                  "checksum/security-unify-secret": "2705b192feffaf260f2d5d524d6dfdefe6348d6faa95662f1485fbfd63af2a95"
+                },
+                "creationTimestamp": null,
+                "labels": {
+                  "app.kubernetes.io/instance": "standalone-app",
+                  "app.kubernetes.io/name": "core"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "env": [
+                      {
+                        "name": "EXANDRADEV_CLIENT_ID",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientId",
+                            "name": "core-security-exandradev-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "EXANDRADEV_CLIENT_SECRET",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientSecret",
+                            "name": "core-security-exandradev-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "UNIFY_CLIENT_ID",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientId",
+                            "name": "core-security-unify-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "UNIFY_CLIENT_SECRET",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientSecret",
+                            "name": "core-security-unify-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "DB_USERNAME",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "username",
+                            "name": "edb-cluster-app"
+                          }
+                        }
+                      },
+                      {
+                        "name": "DB_PASSWORD",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "password",
+                            "name": "edb-cluster-app"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/core-standalone:ea80478c0052a5d76c505d7e5f56556ac63ea982",
+                    "imagePullPolicy": "IfNotPresent",
+                    "livenessProbe": {
+                      "failureThreshold": 3,
+                      "httpGet": {
+                        "path": "/q/health/live",
+                        "port": "http",
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 5,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "name": "core",
+                    "ports": [
+                      {
+                        "containerPort": 8081,
+                        "name": "http",
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      },
+                      "requests": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      }
+                    },
+                    "securityContext": {},
+                    "startupProbe": {
+                      "failureThreshold": 20,
+                      "httpGet": {
+                        "path": "/q/health/started",
+                        "port": "http",
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 3,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "volumeMounts": [
+                      {
+                        "mountPath": "/deployments/core/rsa",
+                        "name": "exandra-rsa-key-volume",
+                        "readOnly": true
+                      },
+                      {
+                        "mountPath": "/deployments/config",
+                        "name": "exandra-config-volume",
+                        "readOnly": true
+                      }
+                    ]
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "terminationGracePeriodSeconds": 30,
+                "volumes": [
+                  {
+                    "name": "exandra-rsa-key-volume",
+                    "secret": {
+                      "defaultMode": 420,
+                      "items": [
+                        {
+                          "key": "rsaKey",
+                          "path": "jwk.json"
+                        }
+                      ],
+                      "secretName": "core-rsa-key-secret"
+                    }
+                  },
+                  {
+                    "configMap": {
+                      "defaultMode": 420,
+                      "name": "core-appconfig-configmap"
+                    },
+                    "name": "exandra-config-volume"
+                  }
+                ]
+              }
+            }
+          },
+          "status": {
+            "availableReplicas": 1,
+            "conditions": [
+              {
+                "lastTransitionTime": "2023-05-16T15:53:18Z",
+                "lastUpdateTime": "2024-03-04T15:21:26Z",
+                "message": "ReplicaSet \"core-75c8f865f7\" has successfully progressed.",
+                "reason": "NewReplicaSetAvailable",
+                "status": "True",
+                "type": "Progressing"
+              },
+              {
+                "lastTransitionTime": "2024-05-25T13:43:04Z",
+                "lastUpdateTime": "2024-05-25T13:43:04Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+              }
+            ],
+            "observedGeneration": 42,
+            "readyReplicas": 1,
+            "replicas": 1,
+            "updatedReplicas": 1
+          }
+        },
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "annotations": {
+              "deployment.kubernetes.io/revision": "18",
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-05-08T09:40:33Z",
+            "generation": 18,
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "standalone-gateway",
+              "app.kubernetes.io/version": "7b5e50e13fd78502967881f4970484ae08b76dc4",
+              "helm.sh/chart": "standalone-gateway-0.1.0_7b5e50e13fd78502967881f4970484ae08b76d"
+            },
+            "name": "standalone-gateway",
+            "namespace": "guardians-test",
+            "resourceVersion": "2865332166",
+            "uid": "e4d081ee-0e07-48f7-873a-50a167513b09"
+          },
+          "spec": {
+            "progressDeadlineSeconds": 600,
+            "replicas": 1,
+            "revisionHistoryLimit": 10,
+            "selector": {
+              "matchLabels": {
+                "app.kubernetes.io/instance": "standalone-app",
+                "app.kubernetes.io/name": "standalone-gateway"
+              }
+            },
+            "strategy": {
+              "type": "Recreate"
+            },
+            "template": {
+              "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                  "app.kubernetes.io/instance": "standalone-app",
+                  "app.kubernetes.io/name": "standalone-gateway"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4",
+                    "imagePullPolicy": "IfNotPresent",
+                    "livenessProbe": {
+                      "failureThreshold": 3,
+                      "httpGet": {
+                        "path": "/ready",
+                        "port": 9901,
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 5,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "name": "standalone-gateway",
+                    "ports": [
+                      {
+                        "containerPort": 8000,
+                        "name": "http",
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "256Mi"
+                      }
+                    },
+                    "securityContext": {},
+                    "startupProbe": {
+                      "failureThreshold": 30,
+                      "httpGet": {
+                        "path": "/ready",
+                        "port": 9901,
+                        "scheme": "HTTP"
+                      },
+                      "initialDelaySeconds": 1,
+                      "periodSeconds": 1,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File"
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "terminationGracePeriodSeconds": 30
+              }
+            }
+          },
+          "status": {
+            "availableReplicas": 1,
+            "conditions": [
+              {
+                "lastTransitionTime": "2023-05-08T09:40:33Z",
+                "lastUpdateTime": "2023-12-20T16:48:17Z",
+                "message": "ReplicaSet \"standalone-gateway-5466b58d7c\" has successfully progressed.",
+                "reason": "NewReplicaSetAvailable",
+                "status": "True",
+                "type": "Progressing"
+              },
+              {
+                "lastTransitionTime": "2024-05-25T13:43:54Z",
+                "lastUpdateTime": "2024-05-25T13:43:54Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+              }
+            ],
+            "observedGeneration": 18,
+            "readyReplicas": 1,
+            "replicas": 1,
+            "updatedReplicas": 1
+          }
+        }
+      ],
+      "v1/Pod(related)": [
+        {
+          "apiVersion": "v1",
+          "items": [
+            {
+              "apiVersion": "v1",
+              "kind": "Pod",
+              "metadata": {
+                "annotations": {
+                  "checksum/appconfig-configmap": "cf3b985c902671383801409e8a965ad17ab4ec10e5b6237b7486bd5d16dcec67",
+                  "checksum/rsa-key-secret": "57a5e7abec60d7d4084c36a3d59aca39df32371cff531337d060401b9655d3e5",
+                  "checksum/security-exandradev-secret": "07f38b38833d3701cfcd128a3429ba4defe5272e99164fbba4352a40ed94f99a",
+                  "checksum/security-unify-secret": "2705b192feffaf260f2d5d524d6dfdefe6348d6faa95662f1485fbfd63af2a95",
+                  "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.18.50/24\"],\"mac_address\":\"0a:58:0a:fb:12:32\",\"gateway_ips\":[\"10.251.18.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.18.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.18.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.18.1\"}],\"ip_address\":\"10.251.18.50/24\",\"gateway_ip\":\"10.251.18.1\"}}",
+                  "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.18.50\"\n    ],\n    \"mac\": \"0a:58:0a:fb:12:32\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                  "openshift.io/scc": "restricted-v2",
+                  "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2024-05-25T13:41:18Z",
+                "generateName": "core-75c8f865f7-",
+                "labels": {
+                  "app.kubernetes.io/instance": "standalone-app",
+                  "app.kubernetes.io/name": "core",
+                  "pod-template-hash": "75c8f865f7"
+                },
+                "name": "core-75c8f865f7-8tbcw",
+                "namespace": "guardians-test",
+                "ownerReferences": [
+                  {
+                    "apiVersion": "apps/v1",
+                    "blockOwnerDeletion": true,
+                    "controller": true,
+                    "kind": "ReplicaSet",
+                    "name": "core-75c8f865f7",
+                    "uid": "f98ac8f8-8e79-4511-9124-7514fe409761"
+                  }
+                ],
+                "resourceVersion": "2865328796",
+                "uid": "47adcd3a-b1f4-409a-9647-4e00e3c453cb"
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "env": [
+                      {
+                        "name": "EXANDRADEV_CLIENT_ID",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientId",
+                            "name": "core-security-exandradev-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "EXANDRADEV_CLIENT_SECRET",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientSecret",
+                            "name": "core-security-exandradev-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "UNIFY_CLIENT_ID",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientId",
+                            "name": "core-security-unify-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "UNIFY_CLIENT_SECRET",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "clientSecret",
+                            "name": "core-security-unify-secret"
+                          }
+                        }
+                      },
+                      {
+                        "name": "DB_USERNAME",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "username",
+                            "name": "edb-cluster-app"
+                          }
+                        }
+                      },
+                      {
+                        "name": "DB_PASSWORD",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "key": "password",
+                            "name": "edb-cluster-app"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/core-standalone:ea80478c0052a5d76c505d7e5f56556ac63ea982",
+                    "imagePullPolicy": "IfNotPresent",
+                    "livenessProbe": {
+                      "failureThreshold": 3,
+                      "httpGet": {
+                        "path": "/q/health/live",
+                        "port": "http",
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 5,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "name": "core",
+                    "ports": [
+                      {
+                        "containerPort": 8081,
+                        "name": "http",
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      },
+                      "requests": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      }
+                    },
+                    "securityContext": {
+                      "allowPrivilegeEscalation": false,
+                      "capabilities": {
+                        "drop": [
+                          "ALL"
+                        ]
+                      },
+                      "runAsNonRoot": true,
+                      "runAsUser": 1001270000
+                    },
+                    "startupProbe": {
+                      "failureThreshold": 20,
+                      "httpGet": {
+                        "path": "/q/health/started",
+                        "port": "http",
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 3,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "volumeMounts": [
+                      {
+                        "mountPath": "/deployments/core/rsa",
+                        "name": "exandra-rsa-key-volume",
+                        "readOnly": true
+                      },
+                      {
+                        "mountPath": "/deployments/config",
+                        "name": "exandra-config-volume",
+                        "readOnly": true
+                      },
+                      {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-wdbhx",
+                        "readOnly": true
+                      }
+                    ]
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                  {
+                    "name": "default-dockercfg-kn5ds"
+                  }
+                ],
+                "nodeName": "ip-10-8-33-221.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                  "fsGroup": 1001270000,
+                  "seLinuxOptions": {
+                    "level": "s0:c36,c5"
+                  },
+                  "seccompProfile": {
+                    "type": "RuntimeDefault"
+                  }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                  {
+                    "effect": "NoExecute",
+                    "key": "node.kubernetes.io/not-ready",
+                    "operator": "Exists",
+                    "tolerationSeconds": 300
+                  },
+                  {
+                    "effect": "NoExecute",
+                    "key": "node.kubernetes.io/unreachable",
+                    "operator": "Exists",
+                    "tolerationSeconds": 300
+                  },
+                  {
+                    "effect": "NoSchedule",
+                    "key": "node.kubernetes.io/memory-pressure",
+                    "operator": "Exists"
+                  }
+                ],
+                "volumes": [
+                  {
+                    "name": "exandra-rsa-key-volume",
+                    "secret": {
+                      "defaultMode": 420,
+                      "items": [
+                        {
+                          "key": "rsaKey",
+                          "path": "jwk.json"
+                        }
+                      ],
+                      "secretName": "core-rsa-key-secret"
+                    }
+                  },
+                  {
+                    "configMap": {
+                      "defaultMode": 420,
+                      "name": "core-appconfig-configmap"
+                    },
+                    "name": "exandra-config-volume"
+                  },
+                  {
+                    "name": "kube-api-access-wdbhx",
+                    "projected": {
+                      "defaultMode": 420,
+                      "sources": [
+                        {
+                          "serviceAccountToken": {
+                            "expirationSeconds": 3607,
+                            "path": "token"
+                          }
+                        },
+                        {
+                          "configMap": {
+                            "items": [
+                              {
+                                "key": "ca.crt",
+                                "path": "ca.crt"
+                              }
+                            ],
+                            "name": "kube-root-ca.crt"
+                          }
+                        },
+                        {
+                          "downwardAPI": {
+                            "items": [
+                              {
+                                "fieldRef": {
+                                  "apiVersion": "v1",
+                                  "fieldPath": "metadata.namespace"
+                                },
+                                "path": "namespace"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "configMap": {
+                            "items": [
+                              {
+                                "key": "service-ca.crt",
+                                "path": "service-ca.crt"
+                              }
+                            ],
+                            "name": "openshift-service-ca.crt"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "status": {
+                "conditions": [
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:41:18Z",
+                    "status": "True",
+                    "type": "Initialized"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:43:03Z",
+                    "status": "True",
+                    "type": "Ready"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:43:03Z",
+                    "status": "True",
+                    "type": "ContainersReady"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:41:18Z",
+                    "status": "True",
+                    "type": "PodScheduled"
+                  }
+                ],
+                "containerStatuses": [
+                  {
+                    "containerID": "cri-o://475026e4b427c773eb5355446e4e9da989d91d7864b0e4f623c3f942885a11a2",
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/core-standalone:ea80478c0052a5d76c505d7e5f56556ac63ea982",
+                    "imageID": "image-registry.openshift-image-registry.svc:5000/guardians-test/core-standalone@sha256:6a2290e522133866cafc4864c30ea6ba591de4238a865936e3e4f953d60c173a",
+                    "lastState": {},
+                    "name": "core",
+                    "ready": true,
+                    "restartCount": 0,
+                    "started": true,
+                    "state": {
+                      "running": {
+                        "startedAt": "2024-05-25T13:42:52Z"
+                      }
+                    }
+                  }
+                ],
+                "hostIP": "10.8.33.221",
+                "phase": "Running",
+                "podIP": "10.251.18.50",
+                "podIPs": [
+                  {
+                    "ip": "10.251.18.50"
+                  }
+                ],
+                "qosClass": "Guaranteed",
+                "startTime": "2024-05-25T13:41:18Z"
+              }
+            }
+          ],
+          "kind": "PodList",
+          "metadata": {
+            "resourceVersion": "2886974735"
+          }
+        },
+        {
+          "apiVersion": "v1",
+          "items": [
+            {
+              "apiVersion": "v1",
+              "kind": "Pod",
+              "metadata": {
+                "annotations": {
+                  "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.18.51/24\"],\"mac_address\":\"0a:58:0a:fb:12:33\",\"gateway_ips\":[\"10.251.18.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.18.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.18.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.18.1\"}],\"ip_address\":\"10.251.18.51/24\",\"gateway_ip\":\"10.251.18.1\"}}",
+                  "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.18.51\"\n    ],\n    \"mac\": \"0a:58:0a:fb:12:33\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                  "openshift.io/scc": "restricted-v2",
+                  "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2024-05-25T13:41:18Z",
+                "generateName": "standalone-gateway-5466b58d7c-",
+                "labels": {
+                  "app.kubernetes.io/instance": "standalone-app",
+                  "app.kubernetes.io/name": "standalone-gateway",
+                  "pod-template-hash": "5466b58d7c"
+                },
+                "name": "standalone-gateway-5466b58d7c-6h87c",
+                "namespace": "guardians-test",
+                "ownerReferences": [
+                  {
+                    "apiVersion": "apps/v1",
+                    "blockOwnerDeletion": true,
+                    "controller": true,
+                    "kind": "ReplicaSet",
+                    "name": "standalone-gateway-5466b58d7c",
+                    "uid": "86bc0197-c804-47fe-97ce-34655e72347e"
+                  }
+                ],
+                "resourceVersion": "2865332161",
+                "uid": "ad9109db-bb3e-4302-8b51-66e8a647b06d"
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4",
+                    "imagePullPolicy": "IfNotPresent",
+                    "livenessProbe": {
+                      "failureThreshold": 3,
+                      "httpGet": {
+                        "path": "/ready",
+                        "port": 9901,
+                        "scheme": "HTTP"
+                      },
+                      "periodSeconds": 5,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "name": "standalone-gateway",
+                    "ports": [
+                      {
+                        "containerPort": 8000,
+                        "name": "http",
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "1",
+                        "memory": "512Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "256Mi"
+                      }
+                    },
+                    "securityContext": {
+                      "allowPrivilegeEscalation": false,
+                      "capabilities": {
+                        "drop": [
+                          "ALL"
+                        ]
+                      },
+                      "runAsNonRoot": true,
+                      "runAsUser": 1001270000
+                    },
+                    "startupProbe": {
+                      "failureThreshold": 30,
+                      "httpGet": {
+                        "path": "/ready",
+                        "port": 9901,
+                        "scheme": "HTTP"
+                      },
+                      "initialDelaySeconds": 1,
+                      "periodSeconds": 1,
+                      "successThreshold": 1,
+                      "timeoutSeconds": 1
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "volumeMounts": [
+                      {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-6tc2p",
+                        "readOnly": true
+                      }
+                    ]
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                  {
+                    "name": "default-dockercfg-kn5ds"
+                  }
+                ],
+                "nodeName": "ip-10-8-33-221.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                  "fsGroup": 1001270000,
+                  "seLinuxOptions": {
+                    "level": "s0:c36,c5"
+                  },
+                  "seccompProfile": {
+                    "type": "RuntimeDefault"
+                  }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                  {
+                    "effect": "NoExecute",
+                    "key": "node.kubernetes.io/not-ready",
+                    "operator": "Exists",
+                    "tolerationSeconds": 300
+                  },
+                  {
+                    "effect": "NoExecute",
+                    "key": "node.kubernetes.io/unreachable",
+                    "operator": "Exists",
+                    "tolerationSeconds": 300
+                  },
+                  {
+                    "effect": "NoSchedule",
+                    "key": "node.kubernetes.io/memory-pressure",
+                    "operator": "Exists"
+                  }
+                ],
+                "volumes": [
+                  {
+                    "name": "kube-api-access-6tc2p",
+                    "projected": {
+                      "defaultMode": 420,
+                      "sources": [
+                        {
+                          "serviceAccountToken": {
+                            "expirationSeconds": 3607,
+                            "path": "token"
+                          }
+                        },
+                        {
+                          "configMap": {
+                            "items": [
+                              {
+                                "key": "ca.crt",
+                                "path": "ca.crt"
+                              }
+                            ],
+                            "name": "kube-root-ca.crt"
+                          }
+                        },
+                        {
+                          "downwardAPI": {
+                            "items": [
+                              {
+                                "fieldRef": {
+                                  "apiVersion": "v1",
+                                  "fieldPath": "metadata.namespace"
+                                },
+                                "path": "namespace"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "configMap": {
+                            "items": [
+                              {
+                                "key": "service-ca.crt",
+                                "path": "service-ca.crt"
+                              }
+                            ],
+                            "name": "openshift-service-ca.crt"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "status": {
+                "conditions": [
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:41:18Z",
+                    "status": "True",
+                    "type": "Initialized"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:43:54Z",
+                    "status": "True",
+                    "type": "Ready"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:43:54Z",
+                    "status": "True",
+                    "type": "ContainersReady"
+                  },
+                  {
+                    "lastProbeTime": null,
+                    "lastTransitionTime": "2024-05-25T13:41:18Z",
+                    "status": "True",
+                    "type": "PodScheduled"
+                  }
+                ],
+                "containerStatuses": [
+                  {
+                    "containerID": "cri-o://14b477cac3d4639fd0dbb9c024ac5274c506f827034783ac5934df6d06da784c",
+                    "image": "image-registry.openshift-image-registry.svc:5000/guardians-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4",
+                    "imageID": "image-registry.openshift-image-registry.svc:5000/guardians-test/standalone-gateway@sha256:c347bebe2497e1e7701bc57b34778e62ac072d223d121e438958e3ffdae4df1a",
+                    "lastState": {},
+                    "name": "standalone-gateway",
+                    "ready": true,
+                    "restartCount": 0,
+                    "started": true,
+                    "state": {
+                      "running": {
+                        "startedAt": "2024-05-25T13:43:50Z"
+                      }
+                    }
+                  }
+                ],
+                "hostIP": "10.8.33.221",
+                "phase": "Running",
+                "podIP": "10.251.18.51",
+                "podIPs": [
+                  {
+                    "ip": "10.251.18.51"
+                  }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2024-05-25T13:41:18Z"
+              }
+            }
+          ],
+          "kind": "PodList",
+          "metadata": {
+            "resourceVersion": "2886974735"
+          }
+        }
+      ],
+      "v1/Secret": [
+        {
+          "apiVersion": "v1",
+          "data": {
+            "rsaKey": "REDACTED"
+          },
+          "kind": "Secret",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-08-25T08:54:46Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core-rsa-key-secret",
+            "namespace": "guardians-test",
+            "resourceVersion": "2880969794",
+            "uid": "45e94955-0ee4-41c6-ab53-582ceabd3274"
+          },
+          "type": "Opaque"
+        },
+        {
+          "apiVersion": "v1",
+          "data": {
+            "clientId": "REDACTED",
+            "clientSecret": "REDACTED"
+          },
+          "kind": "Secret",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-08-25T08:54:46Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core-security-exandradev-secret",
+            "namespace": "guardians-test",
+            "resourceVersion": "2880969795",
+            "uid": "4db28b76-f90f-4431-a19d-73ef7e5d5ae7"
+          },
+          "type": "Opaque"
+        },
+        {
+          "apiVersion": "v1",
+          "data": {
+            "clientId": "REDACTED",
+            "clientSecret": "REDACTED"
+          },
+          "kind": "Secret",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-05-16T15:41:54Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core-security-unify-secret",
+            "namespace": "guardians-test",
+            "resourceVersion": "2880969797",
+            "uid": "536ceb38-0457-4186-bd09-efe234b5fca1"
+          },
+          "type": "Opaque"
+        }
+      ],
+      "v1/Service": [
+        {
+          "apiVersion": "v1",
+          "kind": "Service",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2022-12-19T09:44:33Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "core",
+              "app.kubernetes.io/version": "ea80478c0052a5d76c505d7e5f56556ac63ea982",
+              "helm.sh/chart": "core-0.1.0_ea80478c0052a5d76c505d7e5f56556ac63ea982"
+            },
+            "name": "core",
+            "namespace": "guardians-test",
+            "resourceVersion": "2687980260",
+            "uid": "287bf074-73da-4546-a43d-6d1f23c82365"
+          },
+          "spec": {
+            "clusterIP": "172.30.21.158",
+            "clusterIPs": [
+              "172.30.21.158"
+            ],
+            "internalTrafficPolicy": "Cluster",
+            "ipFamilies": [
+              "IPv4"
+            ],
+            "ipFamilyPolicy": "SingleStack",
+            "ports": [
+              {
+                "name": "http",
+                "port": 8081,
+                "protocol": "TCP",
+                "targetPort": 8081
+              }
+            ],
+            "selector": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/name": "core"
+            },
+            "sessionAffinity": "None",
+            "type": "ClusterIP"
+          },
+          "status": {
+            "loadBalancer": {}
+          }
+        },
+        {
+          "apiVersion": "v1",
+          "kind": "Service",
+          "metadata": {
+            "annotations": {
+              "meta.helm.sh/release-name": "standalone-app",
+              "meta.helm.sh/release-namespace": "guardians-test"
+            },
+            "creationTimestamp": "2023-05-08T09:40:33Z",
+            "labels": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/managed-by": "Helm",
+              "app.kubernetes.io/name": "standalone-gateway",
+              "app.kubernetes.io/version": "7b5e50e13fd78502967881f4970484ae08b76dc4",
+              "helm.sh/chart": "standalone-gateway-0.1.0_7b5e50e13fd78502967881f4970484ae08b76d"
+            },
+            "name": "standalone-gateway",
+            "namespace": "guardians-test",
+            "resourceVersion": "2497441712",
+            "uid": "87924b81-ff69-4676-b03c-31cb84fcea1e"
+          },
+          "spec": {
+            "clusterIP": "172.30.187.73",
+            "clusterIPs": [
+              "172.30.187.73"
+            ],
+            "internalTrafficPolicy": "Cluster",
+            "ipFamilies": [
+              "IPv4"
+            ],
+            "ipFamilyPolicy": "SingleStack",
+            "ports": [
+              {
+                "name": "http",
+                "port": 80,
+                "protocol": "TCP",
+                "targetPort": 8000
+              }
+            ],
+            "selector": {
+              "app.kubernetes.io/instance": "standalone-app",
+              "app.kubernetes.io/name": "standalone-gateway"
+            },
+            "sessionAffinity": "None",
+            "type": "ClusterIP"
+          },
+          "status": {
+            "loadBalancer": {}
+          }
+        }
+      ]
+    }
+  },
+  "manifest": "REDACTED\n",
+  "version": 43,
+  "namespace": "guardians-test"
+}

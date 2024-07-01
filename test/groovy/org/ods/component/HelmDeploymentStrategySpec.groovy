@@ -1,11 +1,14 @@
 package org.ods.component
 
+import groovy.json.JsonSlurperClassic
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.HelmStatusSimpleData
 import org.ods.util.Logger
 import org.ods.util.PodData
 import spock.lang.Shared
+import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
 
 class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
@@ -21,45 +24,75 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         buildUrl: 'https://jenkins.example.com/job/foo-cd/job/foo-cd-bar-master/11/console',
         buildTime: '2020-03-23 12:27:08 +0100',
         odsSharedLibVersion: '2.x',
-        projectId: 'foo',
-        componentId: 'bar',
-        cdProject: 'foo-cd',
+        projectId: 'guardians',
+        componentId: 'core',
+        cdProject: 'guardians-cd',
         artifactUriStore: [builds: [bar: [:]]]
     ]
 
     def "rollout: check deploymentMean"() {
         given:
 
-        def expectedDeploymentMeans = [
-            "builds": [:],
-            "deployments": [
-                "bar-deploymentMean": [
-                    "type": "helm",
-                    "selector": "app=foo-bar",
-                    "chartDir": "chart",
-                    "helmReleaseName": "bar",
-                    "helmEnvBasedValuesFiles": [],
-                    "helmValuesFiles": ["values.yaml"],
-                    "helmValues": [:],
-                    "helmDefaultFlags": ["--install", "--atomic"],
-                    "helmAdditionalFlags": []
-                ],
-                "bar":[
-                    "podName": null,
-                    "podNamespace": null,
-                    "podMetaDataCreationTimestamp": null,
-                    "deploymentId": "bar-124",
-                    "podNode": null,
-                    "podIp": null,
-                    "podStatus": null,
-                    "podStartupTimeStamp": null,
-                    "containers": null,
+        def expectedDeploymentMean = [
+            type                   : "helm",
+            selector               : "app=guardians-core",
+            chartDir               : "chart",
+            helmReleaseName        : "core",
+            helmEnvBasedValuesFiles: [],
+            helmValuesFiles        : ["values.yaml"],
+            helmValues             : [:],
+            helmDefaultFlags       : ["--install", "--atomic"],
+            helmAdditionalFlags    : [],
+            helmStatus             : [
+                releaseName      : "standalone-app",
+                releaseRevision  : "43",
+                namespace        : "guardians-test",
+                deployStatus     : "deployed",
+                deployDescription: "Upgrade complete",
+                lastDeployed     : "2024-03-04T15:21:09.34520527Z",
+                resources        : [
+                    [kind: "ConfigMap", name: "core-appconfig-configmap"],
+                    [kind: "Deployment", name: "core"],
+                    [kind: "Deployment", name: "standalone-gateway"],
+                    [kind: "Service", name: "core"],
+                    [kind: "Service", name: "standalone-gateway"],
+                    [kind: "Cluster", name: "edb-cluster"],
+                    [kind: "Secret", name: "core-rsa-key-secret"],
+                    [kind: "Secret", name: "core-security-exandradev-secret"],
+                    [kind: "Secret", name: "core-security-unify-secret"]
                 ]
             ]
         ]
+        def expectedDeploymentMeans = [
+            builds     : [:],
+            deployments: [
+                "core-deploymentMean"              : expectedDeploymentMean,
+                "core"                             : [
+                    podName                     : null,
+                    podNamespace                : null,
+                    podMetaDataCreationTimestamp: null,
+                    deploymentId                : "core-124",
+                    podStatus                   : null,
+                    containers                  : null
+                ],
+                "standalone-gateway-deploymentMean": expectedDeploymentMean,
+                "standalone-gateway"               : [
+                    podName                     : null,
+                    podNamespace                : null,
+                    podMetaDataCreationTimestamp: null,
+                    deploymentId                : "core-124",
+                    podStatus                   : null,
+                    containers                  : null,
+                ],
+            ]
+        ]
+
         def config = [:]
 
-        def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
+        def helmStatusFile = new FixtureHelper().getResource("helmstatus.json")
+        def helmStatus = HelmStatusSimpleData.fromJsonObject(new JsonSlurperClassic().parseText(helmStatusFile.text))
+
+        def ctxData = contextData + [environment: 'test', targetProject: 'guardians-test', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
         IContext context = new Context(null, ctxData, logger)
         OpenShiftService openShiftService = Mock(OpenShiftService.class)
         openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${contextData.componentId}-124"])]
@@ -72,8 +105,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
 
         when:
-        def deploymentResources = [Deployment: ['bar']]
-        def rolloutData = strategy.getRolloutData(deploymentResources)
+        strategy.getRolloutData(helmStatus)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
 
