@@ -79,16 +79,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
     ]
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
-        'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
+        'SCRR-MD': [storage: 'pdf', content: 'pdf']
     ]
 
     static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String): 'SAAS Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String)        : 'Automated tests',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE as String)     : '3rd Party Service Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE as String)        : 'ODS Software Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA as String)       : 'Infrastructure as Code Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB as String)         : 'ODS library component'
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
@@ -138,7 +138,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def requirements = this.project.getSystemRequirements()
         def reqsWithNoGampTopic = getReqsWithNoGampTopic(requirements)
         def reqsGroupedByGampTopic = getReqsGroupedByGampTopic(requirements)
-        reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
+        reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic]
 
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
@@ -146,18 +146,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def epic = epics.isEmpty() ? null : epics.first()
 
                 return [
-                    key             : req.key,
-                    applicability   : 'Mandatory',
-                    ursName         : req.name,
-                    ursDescription  : this.convertImages(req.description ?: ''),
-                    csName          : req.configSpec.name ?: 'N/A',
-                    csDescription   : this.convertImages(req.configSpec.description ?: ''),
-                    fsName          : req.funcSpec.name ?: 'N/A',
-                    fsDescription   : this.convertImages(req.funcSpec.description ?: ''),
-                    epic            : epic?.key,
-                    epicName        : epic?.epicName,
-                    epicTitle       : epic?.title,
-                    epicDescription : this.convertImages(epic?.description),
+                    key            : req.key,
+                    applicability  : 'Mandatory',
+                    ursName        : req.name,
+                    ursDescription : this.convertImages(req.description ?: ''),
+                    csName         : req.configSpec.name ?: 'N/A',
+                    csDescription  : this.convertImages(req.configSpec.description ?: ''),
+                    fsName         : req.funcSpec.name ?: 'N/A',
+                    fsDescription  : this.convertImages(req.funcSpec.description ?: ''),
+                    epic           : epic?.key,
+                    epicName       : epic?.epicName,
+                    epicTitle      : epic?.title,
+                    epicDescription: this.convertImages(epic?.description),
                 ]
             }
 
@@ -193,17 +193,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map sortByEpicAndRequirementKeys(List updatedReqs) {
         def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
         def reqsGroupByEpic = sortedUpdatedReqs.findAll {
-            it.epic != null }.groupBy { it.epic }.sort()
+            it.epic != null
+        }.groupBy { it.epic }.sort()
 
         def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
             def aStory = epicStories.first()
             [
-                epicName        : aStory.epicName,
-                epicTitle       : aStory.epicTitle,
-                epicDescription : this.convertImages(aStory.epicDescription ?: ''),
-                key             : aStory.epic,
-                epicIndex       : index,
-                stories         : epicStories,
+                epicName       : aStory.epicName,
+                epicTitle      : aStory.epicTitle,
+                epicDescription: this.convertImages(aStory.epicDescription ?: ''),
+                key            : aStory.epic,
+                epicIndex      : index,
+                stories        : epicStories,
             ]
         }
         def output = [
@@ -216,14 +217,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @NonCPS
     private def computeKeysInDocForCSD(def data) {
-        return data.collect { it.subMap(['key', 'epics']).values()  }
+        return data.collect { it.subMap(['key', 'epics']).values() }
             .flatten().unique()
     }
 
     @NonCPS
     private def computeKeysInDocForDTP(def data, def tests) {
         return data.collect { 'Technology-' + it.id } + tests
-            .collect { [it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }
+            .collect { [it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')] }
             .flatten()
     }
 
@@ -286,7 +287,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description += testIssue.name
             }
 
-            def riskLevels = testIssue.getResolvedRisks(). collect {
+            def riskLevels = testIssue.getResolvedRisks().collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
@@ -312,19 +313,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                repo              : repo,
-                sections          : sections,
-                tests             : tests,
-                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
-                testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
+                repo                          : repo,
+                sections                      : sections,
+                tests                         : tests,
+                numAdditionalTests            : junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
+                testFiles                     : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
                 } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
-                conclusion        : [
+                discrepancies                 : discrepancies.discrepancies,
+                conclusion                    : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ],
-                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistory               : docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
@@ -398,7 +399,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests. collect { it.key }.join(", "),
+                    testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Integration",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
@@ -421,7 +422,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests. collect { it.key }.join(", "),
+                    testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Acceptance",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
@@ -455,8 +456,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                sections        : sections,
-                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                sections                      : sections,
+                documentHistory               : docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
@@ -497,14 +498,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                sections                     : sections,
-                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
-                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
-                conclusion                   : [
+                sections                      : sections,
+                numAdditionalAcceptanceTests  : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
+                numAdditionalIntegrationTests : junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
+                conclusion                    : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ],
-                documentHistory: docHistory?.getDocGenFormat() ?: [],
+                documentHistory               : docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
@@ -554,7 +555,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private def computeKeysInDocForRA(def data) {
         return data
-            .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
+            .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values() }
             .flatten()
     }
 
@@ -569,7 +570,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def risks = this.project.getRisks()
-            .findAll {  it != null }
+            .findAll { it != null }
             .collect { r ->
                 def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
                 def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
@@ -588,11 +589,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     requirement: requirement,
                     gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
-                    severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
-                    probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                    riskPriority: riskPriority ? riskPriority."short" : "None",
-                    riskPriorityNumber: (r.riskPriorityNumber != null) ? r.riskPriorityNumber : "N/A",
-                    riskComment: r.riskComment ? r.riskComment : "N/A",
+                    severityOfImpact       : severityOfImpact ? severityOfImpact."short" : "None",
+                    probabilityOfDetection : probabilityOfDetection ? probabilityOfDetection."short" : "None",
+                    riskPriority           : riskPriority ? riskPriority."short" : "None",
+                    riskPriorityNumber     : (r.riskPriorityNumber != null) ? r.riskPriorityNumber : "N/A",
+                    riskComment            : r.riskComment ? r.riskComment : "N/A",
                 ]
             }
 
@@ -663,7 +664,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private def computeKeysInDocForIPV(def data) {
         return data
-            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
+            .collect { it.subMap(['key', 'components', 'techSpecs']).values() }
             .flatten()
     }
 
@@ -699,9 +700,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
-                sections       : sections,
-                tests          : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
+                repositories                  : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                sections                      : sections,
+                tests                         : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key     : testIssue.key,
                         summary : testIssue.name,
@@ -723,7 +724,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private def computeKeysInDocForIVR(def data) {
         return data
-            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
+            .collect { it.subMap(['key', 'components', 'techSpecs']).values() }
             .flatten()
     }
 
@@ -753,7 +754,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def keysInDoc =  this.computeKeysInDocForIVR(installationTestIssues)
+        def keysInDoc = this.computeKeysInDocForIVR(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.findAll { it ->
@@ -763,9 +764,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
-                sections          : sections,
-                tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
+                repositories                  : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                sections                      : sections,
+                tests                         : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
                         description: this.convertImages(testIssue.description ?: ''),
@@ -775,12 +776,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         techSpec   : testIssue.techSpecs.join(", ") ?: "N/A"
                     ]
                 }),
-                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
-                testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
+                numAdditionalTests            : junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
+                testFiles                     : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
-                conclusion        : [
+                discrepancies                 : discrepancies.discrepancies,
+                conclusion                    : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ],
@@ -818,7 +819,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
                 testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped
-                    || !testIssue.getResolvedBugs(). findAll { bug -> bug.status?.toLowerCase() != "done" }.isEmpty()
+                    || !testIssue.getResolvedBugs().findAll { bug -> bug.status?.toLowerCase() != "done" }.isEmpty()
                     || testIssue.isUnexecuted)
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
@@ -846,37 +847,37 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                sections            : sections,
-                integrationTests    : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
+                sections                      : sections,
+                integrationTests              : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : this.convertImages(getTestDescription(testIssue)),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "" : "N/A"),
                         steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
                     ]
                 }),
-                acceptanceTests     : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
+                acceptanceTests               : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : this.convertImages(getTestDescription(testIssue)),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "" : "N/A"),
                         steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
                     ]
                 }),
-                integrationTestFiles: SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
+                integrationTestFiles          : SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
-                acceptanceTestFiles : SortUtil.sortIssuesByProperties(acceptanceTestData.testReportFiles.collect { file ->
+                acceptanceTestFiles           : SortUtil.sortIssuesByProperties(acceptanceTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -904,8 +905,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                sections        : sections,
-                integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
+                sections                      : sections,
+                integrationTests              : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : this.convertImages(testIssue.description ?: testIssue.name),
@@ -914,7 +915,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
-                acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
+                acceptanceTests               : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : this.convertImages(testIssue.description ?: testIssue.name),
@@ -986,17 +987,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
         def modules = componentsMetadata
-            .findAll {  it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-            .collect {  component ->
+            .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+            .collect { component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
                 component.requirements = component.requirements.findAll { it != null }.collect { r ->
-                    [key: r.key, name: r.name,
+                    [key           : r.key, name: r.name,
                      reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
                 }.groupBy { it.gampTopic.toLowerCase() }
                     .collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
                 return component
-        }
+            }
 
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
@@ -1096,9 +1097,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             deployNote   : deploynoteData,
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
-                deployments: repo.data.openshift.deployments ?: ''
+                deployments: assembleDeployments(repo.data.openshift.deployments ?: [:]),
             ],
-            testResults: [
+            testResults  : [
                 installation: installationTestData?.testResults
             ],
             data: [
@@ -1113,7 +1114,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def codeReviewReport
         if (this.project.isAssembleMode && !this.jiraUseCase.jira &&
             repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase()) {
-            def currentRepoAsList = [ repo ]
+            def currentRepoAsList = [repo]
             codeReviewReport = obtainCodeReviewReport(currentRepoAsList)
         }
 
@@ -1128,6 +1129,92 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return this.createDocument(documentType, repo, data_, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
+    }
+
+    /**
+     * Helm releases become top level elements, tailor deployments are left alone.
+     */
+    @SuppressWarnings('CyclomaticComplexity')
+    Map<String, Object> assembleDeployments(Map<String, Map<String, Object>> deployments) {
+        // collect helm releases
+        Map<String, Map<String, Object>> deploymentsMeansHelm = deployments.findAll {
+            it.key.endsWith('-deploymentMean') && it.value.type == "helm"
+        }
+        Map<String, Map<String, Object>> deploymentsHelmByRelease = [:]
+        deploymentsMeansHelm.each { String deploymentName, Map<String, Object> deploymentMeanHelm ->
+            deploymentsHelmByRelease << [(deploymentMeanHelm.helmReleaseName): deploymentMeanHelm]
+        }
+        Set<String> componentsCoveredByHelm = []
+        deploymentsHelmByRelease.each { String release, Map<String, Object> deploymentMeanHelm ->
+            List<Map<String, String>> resources = deploymentMeanHelm?.helmStatus?.resources ?: []
+            resources.each {
+                if (!it?.kind) {
+                    logger.debug("skipping resource - no kind defined: ${it}")
+                    return
+                }
+                if (!it?.name) {
+                    logger.debug("skipping resource - no name defined: ${it}")
+                    return
+                }
+                if (!os.isDeploymentKind(it.kind)) {
+                    return
+                }
+                componentsCoveredByHelm << it.name
+            }
+        }
+
+        Set<String> helmReleasesCovered = []
+        Map<String, Object> deploymentsForTir = [:]
+        deployments.each { String deploymentName, Map deployment ->
+            if (deploymentName.endsWith('-deploymentMean')) {
+                if (deployment.type == "helm") {
+                    String releaseName = deployment?.helmReleaseName
+                    if (!releaseName) {
+                        logger.warn("No helmReleaseName name in ${deploymentName}: skipping")
+                        return
+                    }
+                    if (releaseName in helmReleasesCovered) {
+                        return
+                    }
+                    def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
+                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(), withoutHelmStatus)
+                    def helmStatus = assembleHelmStatus(deployment?.helmStatus ?: [:])
+                    deploymentsForTir.put("${releaseName}-deploymentStatus".toString(), helmStatus)
+                    helmReleasesCovered << (releaseName)
+                } else {
+                    deploymentsForTir.put(deploymentName, deployment)
+                }
+            } else {
+                if (deploymentName in componentsCoveredByHelm) {
+                    return
+                } else {
+                    deploymentsForTir.put(deploymentName, deployment.findAll { k, v -> k != 'podName' })
+                }
+            }
+        }
+        logger.debug("createTIR - assembled deployments data:${prettyPrint(toJson(deploymentsForTir))}")
+        deploymentsForTir
+    }
+
+    @SuppressWarnings('UnnecessaryCast')
+    Map assembleHelmStatus(Map helmStatus) {
+        def resources = helmStatus?.resources ?: [] as List<Map<String, String> >
+        def properResources = resources.findAll {
+            it?.kind && it?.name
+        }
+        def byKind = properResources.groupBy { it.kind }
+        String formattedResourcesByKind = byKind.collect { kind, resourcesOfKind ->
+            "${kind}: " + resourcesOfKind.collect { it.name }.join(', ')
+        }.sort().join(', ')
+
+        def assembledHelmStatus = helmStatus.collectEntries { k, v ->
+            if (k == 'resources') {
+                [(k): formattedResourcesByKind ]
+            } else {
+                [(k): v]
+            }
+        }
+        return assembledHelmStatus
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {

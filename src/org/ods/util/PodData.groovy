@@ -24,21 +24,9 @@ class PodData {
     // Example: foo-3
     String deploymentId
 
-    // podNode is the node name on which of the pod, equal to .spec.nodeName.
-    // Example: ip-172-32-53-123.eu-west-1.compute.internal
-    String podNode
-
-    // podIp is the IP of the pod, equal to .status.podIP.
-    // Example: 10.132.16.73
-    String podIp
-
     // podStatus is the status phase of the pod, equal to .status.phase
     // Example: Running
     String podStatus
-
-    // podStartupTimeStamp is the start time of the pod, equal to .status.startTime.
-    // Example: 2020-11-02T10:57:35Z
-    String podStartupTimeStamp
 
     // containers is a map of container names to their image.
     // Example: [bar: '172.30.21.193:5000/foo/bar@sha256:a828...4389']
@@ -51,10 +39,7 @@ class PodData {
             podNamespace: podNamespace,
             podMetaDataCreationTimestamp: podMetaDataCreationTimestamp,
             deploymentId: deploymentId,
-            podNode: podNode,
-            podIp: podIp,
             podStatus: podStatus,
-            podStartupTimeStamp: podStartupTimeStamp,
             containers: containers,
         ]
     }
