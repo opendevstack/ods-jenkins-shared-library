@@ -327,7 +327,7 @@ class BitbucketService {
             while (retries++ < maxAttempts) {
                 try {
                     def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
-                    res = script.sh(
+                    def res = script.sh(
                         returnStdout: true,
                         label: 'Get bitbucket repo default branch via API',
                         script: """curl \\
