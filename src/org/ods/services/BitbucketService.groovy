@@ -337,10 +337,12 @@ class BitbucketService {
                                 --header ${authHeader} \\
                                 ${bitbucketUrl}/rest/api/1.0/projects/${projectKey}/repos/${projectKey}-${repo}/branches/default"""
                     ).trim()
+                    logger.info(res)
                     try {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
                         def js = script.readJSON(text: res)
+                        logger.info(js['displayId'])
                         return js['displayId']
                     } catch (Exception ex) {
                         logger.warn "Could not understand API response. Error was: ${ex}"
