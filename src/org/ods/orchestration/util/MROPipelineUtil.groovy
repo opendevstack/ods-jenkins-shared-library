@@ -289,7 +289,7 @@ class MROPipelineUtil extends PipelineUtil {
         String gitReleaseBranch = this.project.gitReleaseBranch
         if ("master" == gitReleaseBranch) {
             //TODO: still using only master for RM?
-            repo.defaultBranch = bbs.getDefaultBranch(this.project.getId(), repo.id)
+            repo.defaultBranch = bbs.getDefaultBranch(this.project.getKey(), repo.id)
             gitReleaseBranch = repo.defaultBranch
         }
 
