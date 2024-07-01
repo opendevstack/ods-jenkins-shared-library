@@ -320,6 +320,7 @@ class BitbucketService {
     }
 
     String getDefaultBranch(String projectKey, String repoSlug) {
+        logger.debugClocked("defaultbranch-${projectKey}-${repoSlug}")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
@@ -350,7 +351,7 @@ class BitbucketService {
                 }
             }
         }
-        logger.debugClocked("buildstatus-${buildName}-${state}")
+        logger.debugClocked("defaultbranch-${projectKey}-${repoSlug}")
     }
 
     /**
