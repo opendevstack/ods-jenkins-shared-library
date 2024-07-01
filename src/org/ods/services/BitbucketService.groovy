@@ -324,7 +324,6 @@ class BitbucketService {
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
-            def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
             while (retries++ < maxAttempts) {
                 try {
                     def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
