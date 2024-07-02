@@ -1176,10 +1176,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     if (releaseName in helmReleasesCovered) {
                         return
                     }
-                    def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
-                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(), withoutHelmStatus)
                     def helmStatus = assembleHelmStatus(deployment?.helmStatus ?: [:])
                     deploymentsForTir.put("${releaseName}-deploymentStatus".toString(), helmStatus)
+                    def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
+                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(), withoutHelmStatus)
                     helmReleasesCovered << (releaseName)
                 } else {
                     deploymentsForTir.put(deploymentName, deployment)
