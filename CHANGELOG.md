@@ -6,6 +6,7 @@
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* TIR - remove dynamic pod data and surface helm status ([#1135](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1135))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))

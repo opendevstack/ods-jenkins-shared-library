@@ -1,0 +1,112 @@
+{
+    "deployments": {
+        "backend-helm-monorepo-chart-component-a": {
+            "podName": "backend-helm-monorepo-chart-component-a-7d6659884-vhl2z",
+            "podNamespace": "kraemerh-test",
+            "podMetaDataCreationTimestamp": "2024-06-26T13:05:33Z",
+            "deploymentId": "backend-helm-monorepo-chart-component-a-7d6659884",
+            "podStatus": "Running",
+            "containers": {
+                "chart-component-a": "image-registry.openshift-image-registry.svc:5000/kraemerh-test/backend-helm-monorepo-component-a@sha256:5c6440e6179138842d75a9b4a0eb9dd283097839931119e79ee0da43656c8870"
+            }
+        },
+        "backend-helm-monorepo-chart-component-a-deploymentMean": {
+            "type": "helm",
+            "selector": "app.kubernetes.io/instance=backend-helm-monorepo",
+            "chartDir": "chart",
+            "helmReleaseName": "backend-helm-monorepo",
+            "helmEnvBasedValuesFiles": [
+            ],
+            "helmValuesFiles": [
+                "values.yaml"
+            ],
+            "helmValues": {
+                "registry": "image-registry.openshift-image-registry.svc:5000",
+                "componentId": "backend-helm-monorepo"
+            },
+            "helmDefaultFlags": [
+                "--install",
+                "--atomic"
+            ],
+            "helmAdditionalFlags": [
+            ],
+            "helmStatus": {
+                "releaseName": "backend-helm-monorepo",
+                "releaseRevision": "2",
+                "namespace": "kraemerh-dev",
+                "deployStatus": "deployed",
+                "deployDescription": "Upgrade complete",
+                "lastDeployed": "2024-06-26T12:59:51.270713404Z",
+                "resources": [
+                    {
+                        "kind": "Deployment",
+                        "name": "backend-helm-monorepo-chart-component-a"
+                    },
+                    {
+                        "kind": "Deployment",
+                        "name": "backend-helm-monorepo-chart-component-b"
+                    },
+                    {
+                        "kind": "Service",
+                        "name": "backend-helm-monorepo-chart"
+                    }
+                ]
+            },
+            "repoId": "backend-helm-monorepo"
+        },
+        "backend-helm-monorepo-chart-component-b": {
+            "podName": "backend-helm-monorepo-chart-component-b-87c7f548d-6hhcz",
+            "podNamespace": "kraemerh-test",
+            "podMetaDataCreationTimestamp": "2024-06-26T13:05:33Z",
+            "deploymentId": "backend-helm-monorepo-chart-component-b-87c7f548d",
+            "podStatus": "Running",
+            "containers": {
+                "chart-component-b": "image-registry.openshift-image-registry.svc:5000/kraemerh-test/backend-helm-monorepo-component-b@sha256:5e9ed6ba8458a9501a9d973398ff27e6e50411d3745cec0dac761e07378185a2"
+            }
+        },
+        "backend-helm-monorepo-chart-component-b-deploymentMean": {
+            "type": "helm",
+            "selector": "app.kubernetes.io/instance=backend-helm-monorepo",
+            "chartDir": "chart",
+            "helmReleaseName": "backend-helm-monorepo",
+            "helmEnvBasedValuesFiles": [
+            ],
+            "helmValuesFiles": [
+                "values.yaml"
+            ],
+            "helmValues": {
+                "registry": "image-registry.openshift-image-registry.svc:5000",
+                "componentId": "backend-helm-monorepo"
+            },
+            "helmDefaultFlags": [
+                "--install",
+                "--atomic"
+            ],
+            "helmAdditionalFlags": [
+            ],
+            "helmStatus": {
+                "releaseName": "backend-helm-monorepo",
+                "releaseRevision": "2",
+                "namespace": "kraemerh-dev",
+                "deployStatus": "deployed",
+                "deployDescription": "Upgrade complete",
+                "lastDeployed": "2024-06-26T12:59:51.270713404Z",
+                "resources": [
+                    {
+                        "kind": "Deployment",
+                        "name": "backend-helm-monorepo-chart-component-a"
+                    },
+                    {
+                        "kind": "Deployment",
+                        "name": "backend-helm-monorepo-chart-component-b"
+                    },
+                    {
+                        "kind": "Service",
+                        "name": "backend-helm-monorepo-chart"
+                    }
+                ]
+            },
+            "repoId": "backend-helm-monorepo"
+        }
+    }
+}

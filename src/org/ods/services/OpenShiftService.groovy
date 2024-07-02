@@ -5,6 +5,8 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.util.HelmStatusData
+import org.ods.util.HelmStatusSimpleData
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -152,6 +154,33 @@ class OpenShiftService {
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
             )
+        }
+    }
+
+    HelmStatusSimpleData helmStatus(
+        String project,
+        String release
+    ) {
+        def helmStatusData = retrieveHelmStatus(project, release)
+        HelmStatusSimpleData.from(helmStatusData)
+    }
+
+    HelmStatusData retrieveHelmStatus(
+        String project,
+        String release
+    ) {
+        try {
+            def helmStdout = steps.sh(
+                script: "helm -n ${project} status ${release} --show-resources  -o json",
+                label: "Gather Helm status for release ${release} in ${project}",
+                returnStdout: true
+            ).toString().trim()
+            def object = new JsonSlurperClassic().parseText(helmStdout)
+            def helmStatusData = HelmStatusData.fromJsonObject(object)
+            helmStatusData
+        } catch (Exception e) {
+            throw new RuntimeException("Helm status Failed (${e.message})!" +
+                "Helm could not gather status of ${release} in ${project}")
         }
     }
 
@@ -429,7 +458,12 @@ class OpenShiftService {
         )
     }
 
-    // Returns data about the pods (replicas) of the deployment.
+    boolean isDeploymentKind(String kind) {
+        boolean b = kind in [DEPLOYMENTCONFIG_KIND, DEPLOYMENT_KIND]
+        b
+    }
+
+            // Returns data about the pods (replicas) of the deployment.
     // If not all pods are running until the retries are exhausted,
     // an exception is thrown.
     List<PodData> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
@@ -449,7 +483,7 @@ class OpenShiftService {
         throw new RuntimeException("Could not find 'running' pod(s) with label '${label}'")
     }
 
-    // getResourcesForComponent returns a map in which each kind is mapped to a list of resources.
+    // getResourcesForComponent returns a map in which each kind is mapped to a list of resources names.
     Map<String, List<String>> getResourcesForComponent(String project, List<String> kinds, String selector) {
         def items = steps.sh(
             script: """oc -n ${project} get ${kinds.join(',')} \
@@ -1256,7 +1290,7 @@ class OpenShiftService {
         )
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
+    @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric', 'LineLength'])
     @TypeChecked(TypeCheckingMode.SKIP)
     private List<PodData> extractPodData(Map podJson) {
         List<PodData> pods = []
@@ -1270,16 +1304,17 @@ class OpenShiftService {
             if (podOCData.metadata?.generateName) {
                 pod.deploymentId = podOCData.metadata.generateName - ~/-$/ // Trim dash suffix
             }
-            pod.podNode = podOCData.spec?.nodeName ?: 'N/A'
-            pod.podIp = podOCData.status?.podIP ?: 'N/A'
             pod.podStatus = podOCData.status?.phase ?: 'N/A'
-            pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
             pod.containers = [:]
             // We need to get the image SHA from the containerStatuses, and not
             // from the pod spec because the pod spec image field is optional
             // and may not contain an image SHA, but e.g. a tag, depending on
             // the pod manager (e.g. ReplicationController, ReplicaSet). See
-            // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core.
+            // Comment above from version 1.19 no longer available online
+            // Cluster currently run on 1.27
+            // docs for 1.27: https://v1-27.docs.kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/
+            // latest: https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#Container
+            // example of an imageID: "image-registry.openshift-image-registry.svc:5000/guardians-test/core-standalone@sha256:6a2290e522133866cafc4864c30ea6ba591de4238a865936e3e4f953d60c173a"
             podOCData.spec?.containers?.each { container ->
                 podOCData.status?.containerStatuses?.each { containerStatus ->
                     if (containerStatus.name == container.name) {

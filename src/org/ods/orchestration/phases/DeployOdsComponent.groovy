@@ -1,5 +1,6 @@
 package org.ods.orchestration.phases
 
+import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.util.IPipelineSteps
@@ -11,6 +12,7 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -58,20 +60,28 @@ class DeployOdsComponent {
                     applyTemplates(openShiftDir, deploymentMean)
 
                     def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    def podData = null
+                    def podDataContext = [
+                        "targetProject=${project.targetProject}",
+                        "selector=${deploymentMean.selector}",
+                        "name=${deploymentName}",
+                    ]
+                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                    List<PodData> podData = null
                     for (def i = 0; i < retries; i++) {
                         podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
                         if (podData) {
                             break
                         }
-                        steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
+                        steps.echo("${msgPodsNotFound} - waiting")
                         steps.sleep(12)
                     }
 
                     if (!podData) {
-                        throw new RuntimeException("Could not find 'running' pod(s) with label " +
-                            "'${deploymentMean.selector}'")
+                        throw new RuntimeException(msgPodsNotFound)
                     }
+
+                    logger.info("Helm podData for '${podDataContext.join(', ')}': " +
+                        "${JsonOutput.prettyPrint(JsonOutput.toJson(podData))}")
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -227,6 +237,15 @@ class DeployOdsComponent {
                         deploymentMean.helmDefaultFlags,
                         deploymentMean.helmAdditionalFlags,
                         true)
+
+                    def helmStatus = os. helmStatus(project.targetProject, deploymentMean.helmReleaseName)
+                    def helmStatusMap = helmStatus.toMap()
+                    deploymentMean.helmStatus = helmStatusMap
+                    logger.info("${this.class.name} -- HELM STATUS")
+                    logger.info(
+                        JsonOutput.prettyPrint(
+                            JsonOutput.toJson(helmStatusMap)))
+
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->
