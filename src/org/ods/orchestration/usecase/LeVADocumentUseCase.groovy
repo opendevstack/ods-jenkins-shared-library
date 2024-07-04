@@ -1164,8 +1164,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         Set<String> helmReleasesCovered = []
-        Map<String, Object> deploymentsForTir = [:]
-        deployments.each { String deploymentName, Map deployment ->
+        Map<String, Map<String,Object> > deploymentsForTir = [:]
+        deployments.each { String deploymentName, Map<String, Object> deployment ->
             if (deploymentName.endsWith('-deploymentMean')) {
                 if (deployment.type == "helm") {
                     String releaseName = deployment?.helmReleaseName
@@ -1176,13 +1176,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     if (releaseName in helmReleasesCovered) {
                         return
                     }
-                    def helmStatus = assembleHelmStatus(deployment?.helmStatus ?: [:])
+                    def helmStatus = assembleHelmStatus( (deployment?.helmStatus ?: [:] ) as Map<String, Object>)
                     deploymentsForTir.put("${releaseName}-deploymentStatus".toString(), helmStatus)
                     def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
-                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(), withoutHelmStatus)
+                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(),
+                        handleEmptyValues(withoutHelmStatus))
                     helmReleasesCovered << (releaseName)
                 } else {
-                    deploymentsForTir.put(deploymentName, deployment)
+                    deploymentsForTir.put(deploymentName, handleEmptyValues(deployment))
                 }
             } else {
                 if (deploymentName in componentsCoveredByHelm) {
@@ -1215,6 +1216,32 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
         return assembledHelmStatus
+    }
+
+    Map<String, Object> handleEmptyValues(Map<String, Object> deployment)  {
+        if (deployment?.type == 'tailor') {
+            def tailorEmptyValues = [
+                tailorParamFile: 'None',
+                tailorParams: 'None',
+                tailorPreserve: 'No extra resources specified to be preserved'
+            ]
+            return deployment.collectEntries { k, v ->
+                def newValue = (tailorEmptyValues.containsKey(k) && !v) ? tailorEmptyValues[k] : v
+                [(k): newValue]
+            }
+        }
+        if (deployment?.type == 'helm') {
+            def helmEmptyValues = [
+                helmAdditionalFlags: 'None',
+                helmEnvBasedValuesFiles: 'None',
+                helmValues: 'None',
+            ]
+            return deployment.collectEntries { k, v ->
+                def newValue = (helmEmptyValues.containsKey(k) && !v) ? helmEmptyValues[k] : v
+                [(k): newValue]
+            }
+        }
+        return deployment
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {

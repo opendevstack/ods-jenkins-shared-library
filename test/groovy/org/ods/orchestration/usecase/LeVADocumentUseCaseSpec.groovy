@@ -1281,9 +1281,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
     }
 
-    def "assemble deploymentInfo for TIR"() {
+    def "assemble deploymentInfo for TIR with helm"() {
         given:
-        def file = new FixtureHelper().getResource("deployments-data.json")
+        def file = new FixtureHelper().getResource("deployments-data-helm.json")
         os.isDeploymentKind(*_) >> true
 
         when:
@@ -1295,8 +1295,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         assembledData["backend-helm-monorepo-deploymentMean"] == [
             chartDir               : "chart",
             repoId : "backend-helm-monorepo",
-            helmAdditionalFlags: [],
-            helmEnvBasedValuesFiles :[],
+            helmAdditionalFlags: "None",
+            helmEnvBasedValuesFiles :"None",
             helmValues :[
                 registry :"image-registry.openshift-image-registry.svc:5000",
                 componentId :"backend-helm-monorepo"
@@ -1315,6 +1315,37 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             resources : "Deployment: backend-helm-monorepo-chart-component-a, backend-helm-monorepo-chart-component-b, Service: backend-helm-monorepo-chart",
             deployStatus :"deployed",
             lastDeployed :"2024-06-26T12:59:51.270713404Z"
+        ]
+    }
+
+    def "assemble deploymentInfo for TIR with tailor"() {
+        given:
+        def file = new FixtureHelper().getResource("deployments-data-tailor.json")
+        os.isDeploymentKind(*_) >> true
+
+        when:
+        def deploymentsData = new JsonSlurperClassic().parseText(file.text)
+        def assembledData = usecase.assembleDeployments(deploymentsData.deployments)
+
+        then:
+
+        assembledData["backend-first-deploymentMean"] == [
+            type: "tailor",
+            selector: "app=kraemerh-backend-first",
+            tailorSelectors: [
+                selector: "app=kraemerh-backend-first",
+                exclude: "bc,is",
+            ],
+            tailorParamFile: "None",
+            tailorParams: "None",
+            tailorPreserve: "No extra resources specified to be preserved",
+            tailorVerify: true
+        ]
+
+        assembledData["backend-first"] == [
+            containers: [
+                "backend-first": "backend-first@sha256:fc5fb63f4ac45e207a4a1ceba37534814489c16e82306cf46aca76627c0f5e1e"
+            ]
         ]
     }
 
