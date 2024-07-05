@@ -287,7 +287,7 @@ class MROPipelineUtil extends PipelineUtil {
         Map scmResult = [ : ]
         def bbs = ServiceRegistry.instance.get(BitbucketService)
         String gitReleaseBranch = this.project.gitReleaseBranch
-        repo.defaultBranch = bbs.getDefaultBranch(this.project.getKey(), repo.id)
+        repo.defaultBranch = bbs.getDefaultBranch(repo.id)
         if ("master" == gitReleaseBranch) {
             //TODO: still using only master for RM?
             gitReleaseBranch = repo.defaultBranch

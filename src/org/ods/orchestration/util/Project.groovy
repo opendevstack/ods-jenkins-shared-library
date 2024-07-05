@@ -2020,7 +2020,7 @@ class Project {
 
         // Resolve repo branch, if not provided
         if (repo.branch?.trim()) {
-            throw new Exception("Error branch is set") //TODO: better exception
+            throw new IllegalArgumentException("Deprecated branch field is set")
         }
     }
 

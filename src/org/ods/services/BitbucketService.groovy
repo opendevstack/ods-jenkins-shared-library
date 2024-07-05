@@ -319,8 +319,9 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
-    String getDefaultBranch(String projectKey, String repo) {
-        logger.debugClocked("defaultbranch-${projectKey}-${repo}")
+    @SuppressWarnings('LineLength')
+    String getDefaultBranch(String repo) {
+        logger.debugClocked("defaultbranch-${project}-${repo}")
         String displayId = ""
         withTokenCredentials { username, token ->
             def maxAttempts = 3
@@ -336,22 +337,23 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${bitbucketUrl}/rest/api/1.0/projects/${projectKey}/repos/${projectKey}-${repo}/branches/default"""
+                                ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${project}-${repo}/branches/default"""
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
                         def js = script.readJSON(text: res)
                         displayId = js['displayId']
+                        return displayId
                     } catch (Exception ex) {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
                 } catch (err) {
-                    logger.warn("Could not get Bitbucket repo '${projectKey}-${repo}' default branch due to: ${err}")
+                    logger.warn("Could not get Bitbucket repo '${project}-${repo}' default branch due to: ${err}")
                 }
             }
         }
-        logger.debugClocked("defaultbranch-${projectKey}-${projectKey}-${repo}")
+        logger.debugClocked("defaultbranch-${project}-${project}-${repo}")
         return displayId
     }
 
