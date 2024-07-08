@@ -454,7 +454,7 @@ class JiraUseCase {
     Map getComponents(String projectKey, String version) {
         if (!this.jira) {
             logger.warn("getComponents: Could *NOT* retrieve components because jira has invalid value.")
-            return
+            return [:]
         }
         return jira.getComponents(projectKey, version)
     }
