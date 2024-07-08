@@ -1331,6 +1331,19 @@ class Project {
         return mergedData
     }
 
+    /**
+     * The method checks each issue in the 'relatedIssues' list against the related issues in the 'deltaDocgenData'.
+     * If the issueToUpdate key does not appear in the deltaDocgenData as a related issue but the deltaDocGen has some
+     * issues related for that issue type, the issue is added to the list of issues to be removed.
+     *
+     * @param relatedIssues A list of related issues to be examined.
+     * @param deltaDocgenData A map containing data from the deltaDocGen
+     * @param relatedIssueType The type of the related issue.
+     * @param issueType The type of the issue.
+     * @param issueToUpdate A map containing the issue to be updated.
+     *
+     * @return A list of related issues that need to be removed.
+     */
     protected static List findRelatedIssuesToRemove(List<String> relatedIssues, Map deltaDocgenData, String relatedIssueType, String issueType, Map issueToUpdate) {
         def relatedIssuesToRemove = []
         relatedIssues.each {
