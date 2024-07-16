@@ -11,6 +11,7 @@
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * In test results, labels not related to execution persist ([#1138](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1138))
 * Fix excluded ods-infra components failing on deploy stage ([#1139](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1139))
+* Fix Finalize stage for ods-library components ([#1140](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1140))
 
 ## [4.5.3] - 2024-07-08
 
