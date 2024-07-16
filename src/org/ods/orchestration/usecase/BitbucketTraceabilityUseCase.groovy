@@ -115,10 +115,9 @@ class BitbucketTraceabilityUseCase {
                 nextPageStart = pullRequests.nextPageStart
             }
 
-            records += pullRequests.values.collect { pullRequest ->
-                processPullRequest(token, repo, pullRequest)}
-                .flatten()
-
+            records += pullRequests.values.collectMany { pullRequest ->
+                processPullRequest(token, repo, pullRequest)
+            }
         }
         return records
     }
@@ -201,6 +200,7 @@ class BitbucketTraceabilityUseCase {
             Date dateObj =  new Date(timestamp)
             return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
         }
+        
     }
 
     private class Developer {

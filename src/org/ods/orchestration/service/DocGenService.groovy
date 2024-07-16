@@ -45,7 +45,7 @@ class DocGenService {
                     type: type,
                     version: version
                 ],
-                data: data
+                data: data,
             ]))
             .asString()
 
@@ -69,4 +69,5 @@ class DocGenService {
     private static byte[] decodeBase64(String base64String) {
         return Base64.decoder.decode(base64String)
     }
+
 }
