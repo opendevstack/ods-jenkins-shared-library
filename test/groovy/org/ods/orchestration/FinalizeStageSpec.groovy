@@ -139,7 +139,7 @@ class FinalizeStageSpec extends SpecHelper {
         finalStageNotInstallable.integrateIntoMainBranchRepos(steps, gitService)
 
         then:
-        0 * script.parallel([:])
+        0 * finalStageNotInstallable.doIntegrateIntoMainBranches(_)
 
         where:
         type                | _
