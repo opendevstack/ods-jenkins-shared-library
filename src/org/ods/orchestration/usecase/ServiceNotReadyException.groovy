@@ -1,9 +1,10 @@
 package org.ods.orchestration.usecase
 
 class ServiceNotReadyException extends Exception {
+
     final int status
 
-    ServiceNotReadyException(int status){
+    ServiceNotReadyException(int status) {
         this.status = status
     }
 
@@ -26,4 +27,5 @@ class ServiceNotReadyException extends Exception {
     String toString() {
         return super.toString() + "\nHTTP status: ${status}"
     }
+
 }

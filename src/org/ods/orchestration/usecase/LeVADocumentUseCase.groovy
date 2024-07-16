@@ -1041,13 +1041,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             //Add break space in url in manufacturer
             def p = ~'https?://\\S*'
             def m = it.metadata.supplier =~ p
-            StringBuffer sb = new StringBuffer();
+            StringBuffer sb = new StringBuffer()
             while (m.find()) {
-                String url = m.group();
+                String url = m.group()
                 url = url.replaceAll('/+', '$0\u200B')
-                m.appendReplacement(sb, url);
+                m.appendReplacement(sb, url)
             }
-            m.appendTail(sb);
+            m.appendTail(sb)
             clone.printsupplier = sb.toString()
 
             return clone
