@@ -204,6 +204,7 @@ class FinalizeStage extends Stage {
             if (repo.include) {
                 def repoType = repo.type?.toLowerCase()
                 if ((repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+                    repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB &&
                     repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
                     repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE)) {
                     repoIntegrateTasks << [(repo.id): { doIntegrateIntoMainBranches(steps, repo, git) }]

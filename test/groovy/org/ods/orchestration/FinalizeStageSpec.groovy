@@ -125,4 +125,27 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.createTag(project.targetTag)
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
+
+    def "integrateIntoMainBranchRepos if repo of type is #type"() {
+        given:
+        def repos = project.data.metadata.repositories
+        repos.each { repo ->
+            repo.type = type
+        }
+
+        def finalStageNotInstallable = Spy(new FinalizeStage(script, project, repos))
+
+        when:
+        finalStageNotInstallable.integrateIntoMainBranchRepos(steps, gitService)
+
+        then:
+        0 * script.parallel([:])
+
+        where:
+        type                | _
+        'ods-test'          | _
+        'ods-library'       | _
+        'ods-infra'         | _
+        'ods-saas-service'  | _
+    }
 }
