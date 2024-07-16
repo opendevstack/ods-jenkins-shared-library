@@ -200,7 +200,7 @@ class BitbucketTraceabilityUseCase {
             Date dateObj =  new Date(timestamp)
             return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
         }
-        
+
     }
 
     private class Developer {
