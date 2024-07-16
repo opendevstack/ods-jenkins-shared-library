@@ -58,11 +58,11 @@ class DocGenUseCaseSpec extends SpecHelper {
         pdf = Mock(PDFUtil)
         jenkins = Mock(JenkinsService)
         usecase = Spy(new DocGenUseCaseImpl(project, steps, util, docGen, nexus, pdf, jenkins))
+        docGen.healthCheck() >> 200
     }
 
     def "create document"() {
         given:
-        docGen.healthCheck() >>> [201, 300, 400, 500, 200]
         // Test Parameters
         def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
@@ -89,6 +89,7 @@ class DocGenUseCaseSpec extends SpecHelper {
 
         then:
         1 * docGen.createDocument(documentType, "0.1", data) >> document
+        5 * docGen.healthCheck() >>> [201, 300, 400, 500, 200]
 
         then:
         1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID,repo)
@@ -125,13 +126,11 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create document when docgen not ready"() {
-        given:
-        docGen.healthCheck() >>> [201, 300, 400, 100, 500]
-
         when:
         usecase.createDocument(null, null, null)
 
         then:
+        5 * docGen.healthCheck() >>> [201, 300, 400, 100, 500]
         ServiceNotReadyException e = thrown()
         e.getStatus() == 500
     }
