@@ -17,6 +17,8 @@ import org.ods.orchestration.util.Project
     'GStringAsMapKey',
     'DuplicateMapLiteral'])
 abstract class DocGenUseCase {
+    private static final int MAX_RETRIES = 5
+    private static final int RETRY_WAIT_SECONDS = 5
 
     static final String RESURRECTED = "resurrected"
     protected Project project
@@ -37,7 +39,23 @@ abstract class DocGenUseCase {
         this.jenkins = jenkins
     }
 
+    private int isServiceReady() {
+        int status
+        for (int i = 0; i < MAX_RETRIES; i++) {
+            status = this.docGen.healthCheck()
+            if (status == 200) {
+                break
+            }
+            sleep(RETRY_WAIT_SECONDS)
+        }
+        return status
+    }
+
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
+        int status = isServiceReady()
+        if (status != 200) {
+            throw new ServiceNotReadyException(status, "DocGen service is not ready.")
+        }
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 

@@ -58,10 +58,12 @@ class DocGenUseCaseSpec extends SpecHelper {
         pdf = Mock(PDFUtil)
         jenkins = Mock(JenkinsService)
         usecase = Spy(new DocGenUseCaseImpl(project, steps, util, docGen, nexus, pdf, jenkins))
+        docGen.healthCheck() >> 200
     }
 
     def "create document"() {
         given:
+        docGen.healthCheck() >> [201, 300, 400, 500, 200]
         // Test Parameters
         def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
@@ -123,13 +125,24 @@ class DocGenUseCaseSpec extends SpecHelper {
         logFile2.delete()
     }
 
-    
+    def "create document when docgen not ready"() {
+        given:
+        docGen.healthCheck() >> [201, 300, 400, 100, 500]
+
+        when:
+        usecase.createDocument(*_)
+
+        then:
+        ServiceNotReadyException e = thrown()
+        e.getStatus() == 500
+    }
+
     def "create document and stash"() {
         given:
         // Test Parameters
         def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
-  
+
         def documentType = "myDocumentType"
         def version = project.buildParams.version
         def repo = project.repositories.first()
@@ -138,15 +151,15 @@ class DocGenUseCaseSpec extends SpecHelper {
             "raw/${logFile1.name}": logFile1.bytes,
             "raw/${logFile2.name}": logFile2.bytes
         ]
-  
+
         // Argument Constraints
         def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
-  
+
         // Stubbed Method Responses
         def document = "PDF".bytes
         def archive = "Archive".bytes
         def nexusUri = new URI("http://nexus")
-  
+
         when:
         def result = usecase.createDocument(documentType, repo, data, files)
 
@@ -181,10 +194,10 @@ class DocGenUseCaseSpec extends SpecHelper {
             archive,
             "application/zip"
         ) >> nexusUri
-  
+
         then:
         result == nexusUri.toString()
-  
+
         cleanup:
         logFile1.delete()
         logFile2.delete()
@@ -381,7 +394,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         new File ("${path}/${docName}").write("test")
 
         def metadata = [:]
-        
+
         when:
         usecase.createOverallDocument(templateName, documentType, metadata)
 
@@ -432,11 +445,11 @@ class DocGenUseCaseSpec extends SpecHelper {
         def version = project.buildParams.version
         def build = "0815"
         def repo = project.repositories.first()
-  
+
         repo.data.openshift = [:]
         when:
         def result = usecase.resurrectAndStashDocument(documentType, repo)
-  
+
         then:
         result.found == false
     }

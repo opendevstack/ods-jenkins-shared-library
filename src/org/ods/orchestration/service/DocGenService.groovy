@@ -7,8 +7,6 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 
-import java.net.URI
-
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -29,6 +27,12 @@ class DocGenService {
                 "Error: unable to connect to DocGen. '${baseURL}' is not a valid URI."
             ).initCause(e)
         }
+    }
+
+    @NonCPS
+    int healthCheck() {
+        def response = Unirest.head("${this.baseURL}/health").asEmpty()
+        return response.getStatus()
     }
 
     @NonCPS
