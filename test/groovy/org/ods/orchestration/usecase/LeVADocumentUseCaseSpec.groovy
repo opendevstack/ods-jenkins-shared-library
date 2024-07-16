@@ -90,7 +90,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         steps.getEnv() >> ['RELEASE_PARAM_VERSION': 'WIP']
         stepsNoWip.getEnv() >> ['RELEASE_PARAM_VERSION': 'CHG00001']
-        docGen.healthCheck() >> 200
     }
 
     def "compute test discrepancies"() {

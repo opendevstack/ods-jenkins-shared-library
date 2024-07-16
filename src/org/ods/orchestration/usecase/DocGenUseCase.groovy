@@ -41,10 +41,7 @@ abstract class DocGenUseCase {
     }
 
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
-        int status = isServiceReady()
-        if (status != 200) {
-            throw new ServiceNotReadyException(status, "DocGen service is not ready.")
-        }
+        checkServiceReadiness()
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 
@@ -253,16 +250,16 @@ abstract class DocGenUseCase {
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
-    private int isServiceReady() {
+    private void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
             status = this.docGen.healthCheck()
             if (status == 200) {
-                break
+                return
             }
             sleep(RETRY_WAIT_SECONDS)
         }
-        return status
+        throw new ServiceNotReadyException(status, "DocGen service is not ready.")
     }
 
 }
