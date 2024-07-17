@@ -85,6 +85,9 @@ class JiraUseCase {
         // Handle Jira test issues for which a corresponding test exists in testResults
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
+                // Remove all the results from preceding executions
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
+
                 def issueLabels = [TestIssueLabels.Succeeded as String]
                 if (testCase.error) {
                     issueLabels = [TestIssueLabels.Error as String]
@@ -98,14 +101,16 @@ class JiraUseCase {
                     issueLabels = [TestIssueLabels.Skipped as String]
                 }
 
-                this.jira.setIssueLabels(testIssue.key, issueLabels)
+                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
             }
         }
 
         // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
             result.each { testIssue ->
-                this.jira.setIssueLabels(testIssue.key, [TestIssueLabels.Missing as String])
+                // Remove all the results from preceding executions
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
+                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
 
