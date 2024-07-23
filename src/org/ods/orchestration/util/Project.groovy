@@ -36,6 +36,9 @@ class Project {
             'SSDS': ['1', '2.1', '3.1', '5.4'],
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+
+    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Security vulnerability"
+
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
@@ -2041,6 +2044,42 @@ class Project {
             ]
             populateRepo(gitURL, this.key, repo)
             this.data.metadata.repositories.add(repo)
+        }
+    }
+
+    protected List loadJiraSecurityVulnerabilityIssues() {
+        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase.jira) return [:]
+
+        def jql = "project = \"${this.jiraProjectKey}\" AND issuetype = \"Security Vulnerability\" " +
+            "AND summary ~ \"${SECURITY_VULNERABILITY_ISSUE_SUMMARY}\""
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: []
+        ]
+
+        def jiraSecurityVulnerabilityIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+
+        return jiraSecurityVulnerabilityIssues
+    }
+
+    def void createOrUpdateSecurityVulnerabilityIssue(String message) {
+        logger.debug("createOrUpdateSecurityVulnerabilityIssue")
+        if (!this.jiraUseCase || !this.jiraUseCase.jira) {
+            logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
+            return
+        }
+        List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues()
+        if (securityVulnerabilityIssues?.size() > 1) {
+            logger.warn("More than one security vulnerability issue detected for project ${this.jiraProjectKey}")
+            //TODO what now?
+        } else if (securityVulnerabilityIssues?.size() == 1) { // Transition the issue to "TO DO" state
+            this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
+        } else { // Create the issue
+            this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
+                SECURITY_VULNERABILITY_ISSUE_SUMMARY, message)
         }
     }
 }

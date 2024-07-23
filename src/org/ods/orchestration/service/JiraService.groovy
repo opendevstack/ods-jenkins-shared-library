@@ -277,6 +277,10 @@ class JiraService {
         return createIssueType("Bug", projectKey, summary, description, fixVersion)
     }
 
+    Map createIssueTypeSecurityVulnerability(String projectKey, String summary, String description, String fixVersion = null) {
+        return createIssueType("Security Vulnerability", projectKey, summary, description, fixVersion)
+    }
+
     @NonCPS
     Map getDocGenData(String projectKey) {
         if (!projectKey?.trim()) {
@@ -792,5 +796,87 @@ class JiraService {
             throw new RuntimeException(message)
         }
         return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
+    void transitionIssueToToDo(String issueId) {
+        def possibleTransitions = getTransitions(issueId)
+
+        for (def transition : possibleTransitions) {
+            switch (transition.name.toString().toLowerCase()) {
+                case "confirm dor":
+                    // Issue is already in TO DO state
+                    return
+                case "confirm dod":
+                    doTransition(issueId, "confirm DoD")
+                    doTransition(issueId, "reopen")
+                    return
+                case "reopen":
+                    doTransition(issueId, "reopen")
+                    return
+                default:
+                    // Probably another state like cancel, move to the next one
+                    break
+            }
+        }
+    }
+
+    @NonCPS
+    def getTransitions(issueId) {
+        if (!issueId?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
+        }
+        def response =
+            Unirest.get("${this.baseURL}/rest/api/2/issue/${issueId}/transitions")
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .asString()
+        response.ifFailure {
+            def message = "ERROR: unable to get issue transitions from Jira. " +
+                "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.getBaseURL()}"
+            }
+
+            throw new RuntimeException(message)
+        }
+        return new JsonSlurperClassic().parseText(response.getBody()).transitions.collect { transition ->
+            [
+                id  : transition.id,
+                name: transition.name
+            ]
+        }
+    }
+
+    @NonCPS
+    def doTransition(issueId, transitionName) {
+        if (!issueId?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
+        }
+        if (!transitionName?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to transition issue. 'transitionName' is undefined.")
+        }
+
+        def response =
+            Unirest.post("${this.baseURL}/rest/api/2/issue/${issueId}/transitions")
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(JsonOutput.toJson(
+                    [transition: ["id": transition.id]]
+                ))
+                .asString()
+        response.ifFailure {
+            def message = "ERROR: unable to issue transitions from Jira. " +
+                "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.getBaseURL()}"
+            }
+
+            throw new RuntimeException(message)
+        }
+        return true
     }
 }
