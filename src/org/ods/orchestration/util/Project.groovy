@@ -2051,8 +2051,10 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
+        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         def jql = "project = \"${this.jiraProjectKey}\" AND issuetype = \"Security Vulnerability\" " +
             "AND summary ~ \"${SECURITY_VULNERABILITY_ISSUE_SUMMARY}\""
+
 
         def jqlQuery = [
             fields: fields,
