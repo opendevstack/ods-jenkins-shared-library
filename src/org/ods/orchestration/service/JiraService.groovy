@@ -802,9 +802,14 @@ class JiraService {
     @NonCPS
     void transitionIssueToToDo(String issueId, ILogger logger) {
         logger.debug("issueId: " + issueId)
-        def possibleTransitions = getTransitions(issueId)
-        logger.debug("Possible transitions: " + possibleTransitions)
+        def possibleTransitions = null
+        try {
+            possibleTransitions = getTransitions(issueId)
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e)
+        }
 
+        logger.debug("Possible transitions: " + possibleTransitions)
         for (def transition : possibleTransitions) {
             switch (transition.name.toString().toLowerCase()) {
                 case "confirm dor":
