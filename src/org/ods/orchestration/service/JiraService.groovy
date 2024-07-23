@@ -11,6 +11,7 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.util.ILogger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -799,8 +800,10 @@ class JiraService {
     }
 
     @NonCPS
-    void transitionIssueToToDo(String issueId) {
+    void transitionIssueToToDo(String issueId, ILogger logger) {
+        logger.debug("issueId: " + issueId)
         def possibleTransitions = getTransitions(issueId)
+        logger.debug("Possible transitions: " + possibleTransitions)
 
         for (def transition : possibleTransitions) {
             switch (transition.name.toString().toLowerCase()) {
