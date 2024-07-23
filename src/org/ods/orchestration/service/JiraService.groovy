@@ -11,7 +11,9 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
+import org.ods.util.Logger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -25,7 +27,10 @@ class JiraService {
     String username
     String password
 
+    ILogger logger
+
     JiraService(String baseURL, String username, String password) {
+        logger = ServiceRegistry.instance.get(Logger)
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
         }
@@ -800,7 +805,7 @@ class JiraService {
     }
 
     @NonCPS
-    void transitionIssueToToDo(String issueId, ILogger logger) {
+    void transitionIssueToToDo(String issueId) {
         logger.debug("issueId: " + issueId)
         def possibleTransitions = null
         try {
@@ -831,6 +836,7 @@ class JiraService {
 
     @NonCPS
     def getTransitions(issueId) {
+        logger.debug("getTransitions for issueId: " + issueId)
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
         }
@@ -849,6 +855,7 @@ class JiraService {
 
             throw new RuntimeException(message)
         }
+        logger.debug("getTransitions response: " + response)
         return new JsonSlurperClassic().parseText(response.getBody()).transitions.collect { transition ->
             [
                 id  : transition.id,
