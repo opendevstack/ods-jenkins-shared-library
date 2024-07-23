@@ -1288,11 +1288,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)
-        def assembledData = usecase.assembleDeployments(deploymentsData.deployments)
+        def assembledData = usecase.getHelmStatusAndMean(deploymentsData.deployments)
 
         then:
 
-        assembledData["backend-helm-monorepo-deploymentMean"] == [
+        assembledData["mean"] == [
             chartDir               : "chart",
             repoId : "backend-helm-monorepo",
             helmAdditionalFlags: "None",
@@ -1307,7 +1307,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             helmValuesFiles :["values.yaml"],
             type :"helm", ]
 
-        assembledData["backend-helm-monorepo-deploymentStatus"] == [
+        assembledData["status"] == [
             releaseRevision :"2",
             releaseName :"backend-helm-monorepo",
             namespace: "kraemerh-dev",
@@ -1325,7 +1325,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)
-        def assembledData = usecase.assembleDeployments(deploymentsData.deployments)
+        def assembledData = usecase.getNonHelmDeployments(deploymentsData.deployments)
 
         then:
 

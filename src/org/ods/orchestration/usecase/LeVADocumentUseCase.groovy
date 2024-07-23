@@ -1095,9 +1095,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
+            helmStatus: getHelmStatusAndMean(repo.data.openshift.deployments ?: [:]),
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
-                deployments: assembleDeployments(repo.data.openshift.deployments ?: [:]),
+                deployments: getNonHelmDeployments(repo.data.openshift.deployments ?: [:]),
             ],
             testResults  : [
                 installation: installationTestData?.testResults
@@ -1109,6 +1110,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
+        JsonLogUtil.debug(logger, "createTIR - assembled data:", data_)
 
         // Code review report - in the special case of NO jira ..
         def codeReviewReport
@@ -1132,73 +1134,62 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     /**
-     * Helm releases become top level elements, tailor deployments are left alone.
+     * Retrieves first helm release in deployments.
+     *
+     * @return An empty map if there is no helm release in deployments.
+     *      Otherwise keys 'status' and 'means' each contain a
+     *      map suited to format the information in a template.
      */
     @SuppressWarnings('CyclomaticComplexity')
-    Map<String, Object> assembleDeployments(Map<String, Map<String, Object>> deployments) {
-        // collect helm releases
-        def deploymentsMeansHelm = deployments.findAll {
+    Map<String, Map<String, Object> > getHelmStatusAndMean(Map<String, Map<String, Object>> deployments) {
+        // collect first helm release
+        def deploymentMeanHelm = deployments.find {
             it.key.endsWith('-deploymentMean') && it.value.type == "helm"
         }
-        // codeNarc complains if we use def x = [:] as Map<...> that this is an Unnecessary cast
-        Map<String, Map<String, Object>> deploymentsHelmByRelease = [:]
-        deploymentsMeansHelm.each { String deploymentName, Map<String, Object> deploymentMeanHelm ->
-            deploymentsHelmByRelease << [(deploymentMeanHelm.helmReleaseName): deploymentMeanHelm]
-        }
-        Set<String> componentsCoveredByHelm = []
-        deploymentsHelmByRelease.each { String release, Map<String, Object> deploymentMeanHelm ->
-            List<Map<String, String>> resources = deploymentMeanHelm?.helmStatus?.resources ?: []
-            resources.each {
-                if (!it?.kind) {
-                    logger.debug("skipping resource - no kind defined: ${it}")
-                    return
-                }
-                if (!it?.name) {
-                    logger.debug("skipping resource - no name defined: ${it}")
-                    return
-                }
-                if (!os.isDeploymentKind(it.kind)) {
-                    return
-                }
-                componentsCoveredByHelm << it.name
-            }
-        }
 
-        Set<String> helmReleasesCovered = []
-        Map<String, Map<String,Object> > deploymentsForTir = [:]
+        def meanHelm = deploymentMeanHelm?.value
+        if (!meanHelm) {
+            return [:]
+        }
+        String releaseName = meanHelm?.helmReleaseName
+        if (!releaseName) {
+            logger.warn("No helmReleaseName name in ${meanHelm}: skipping")
+            return [:]
+        }
+        def helmStatus = formatHelmStatus((meanHelm?.helmStatus ?: [:]) as Map<String, Object>)
+        def meanHelmWithoutStatus = meanHelm.findAll { k, v -> k != 'helmStatus' }
+        [
+            status: helmStatus,
+            mean: formatEmptyValues(meanHelmWithoutStatus)
+        ]
+    }
+
+    /**
+     * Retrieves all non-helm deployments.
+     *
+     * The processed map is suited to be displayed with Helm.
+     *
+     * @return An empty map if no such deployments exist.
+     *      Otherwise keys indicate the deployment resource or deployment mean if they
+     *      have a suffix of -deploymentMean.
+     */
+    Map<String, Object> getNonHelmDeployments(Map<String, Map<String, Object>> deployments) {
+        // collect non helm deployments
+        def deploymentsNotHelm = deployments.findAll {
+            !it.key.endsWith('-deploymentMean') || it.value?.type != "helm"
+        }
+        Map<String, Map<String, Object>> deploymentsForTir = [:]
         deployments.each { String deploymentName, Map<String, Object> deployment ->
             if (deploymentName.endsWith('-deploymentMean')) {
-                if (deployment.type == "helm") {
-                    String releaseName = deployment?.helmReleaseName
-                    if (!releaseName) {
-                        logger.warn("No helmReleaseName name in ${deploymentName}: skipping")
-                        return
-                    }
-                    if (releaseName in helmReleasesCovered) {
-                        return
-                    }
-                    def helmStatus = assembleHelmStatus((deployment?.helmStatus ?: [:]) as Map<String, Object>)
-                    deploymentsForTir.put("${releaseName}-deploymentStatus".toString(), helmStatus)
-                    def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
-                    deploymentsForTir.put("${releaseName}-deploymentMean".toString(),
-                        handleEmptyValues(withoutHelmStatus))
-                    helmReleasesCovered << (releaseName)
-                } else {
-                    deploymentsForTir.put(deploymentName, handleEmptyValues(deployment))
-                }
+                deploymentsForTir.put(deploymentName, formatEmptyValues(deployment))
             } else {
-                if (deploymentName in componentsCoveredByHelm) {
-                    return
-                } else {
-                    deploymentsForTir.put(deploymentName, deployment.findAll { k, v -> k != 'podName' })
-                }
+                deploymentsForTir.put(deploymentName, deployment.findAll { k, v -> k != 'podName' })
             }
         }
-        JsonLogUtil.debug("createTIR - assembled deployments data:", deploymentsForTir)
         deploymentsForTir
     }
 
-    Map assembleHelmStatus(Map helmStatus) {
+    Map<String, String> formatHelmStatus(Map helmStatus) {
         List<Map<String, String> > resources = helmStatus?.resources ?: []
         def properResources = resources.findAll {
             it?.kind && it?.name
@@ -1218,7 +1209,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return assembledHelmStatus
     }
 
-    Map<String, Object> handleEmptyValues(Map<String, Object> deployment)  {
+    Map<String, Object> formatEmptyValues(Map<String, Object> deployment)  {
         if (deployment?.type == 'tailor') {
             def tailorEmptyValues = [
                 tailorParamFile: 'None',

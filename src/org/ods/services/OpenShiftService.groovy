@@ -171,7 +171,7 @@ class OpenShiftService {
     ) {
         try {
             def helmStdout = steps.sh(
-                script: "helm -n ${project} status ${release} --show-resources  -o json",
+                script: "helm -n ${project} status ${release} --show-resources  -o json | jq",
                 label: "Gather Helm status for release ${release} in ${project}",
                 returnStdout: true
             ).toString().trim()
