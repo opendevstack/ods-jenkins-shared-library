@@ -263,6 +263,10 @@ class Pipeline implements Serializable {
                             setBitbucketBuildStatus('SUCCESSFUL')
                             logger.infoClocked("${context.componentId}", '***** Finished ODS Pipeline *****')
                         }
+
+                        //TODO remove this
+                        context.addArtifactURI('securityVulnerability', 'true')
+
                         return this
                     } catch (err) {
                         script.stage('odsPipeline error') {

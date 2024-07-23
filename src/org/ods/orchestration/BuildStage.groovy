@@ -95,6 +95,7 @@ class BuildStage extends Stage {
         //TODO Check this
         logger.debug("Check securityVulnerabilityRepos")
         def securityVulnerabilityRepos = filterReposWithSecurityVulnerability(repos?.flatten().findAll())
+        logger.debug("securityVulnerabilityRepos size: " + securityVulnerabilityRepos.size())
         if (securityVulnerabilityRepos?.size() > 0) {
             String secVulReposCommaSeparated = buildReposCommaSeparatedString(securityVulnerabilityRepos)
             String message = buildSecurityVulnerabilityMessage(secVulReposCommaSeparated)
