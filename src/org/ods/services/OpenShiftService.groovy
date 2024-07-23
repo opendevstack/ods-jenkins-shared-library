@@ -178,8 +178,8 @@ class OpenShiftService {
             def object = new JsonSlurperClassic().parseText(helmStdout)
             def helmStatusData = HelmStatusData.fromJsonObject(object)
             helmStatusData
-        } catch (Exception e) {
-            throw new RuntimeException("Helm status Failed (${e.message})!" +
+        } catch (ex) {
+            throw new RuntimeException("Helm status Failed (${ex.message})!" +
                 "Helm could not gather status of ${release} in ${project}")
         }
     }

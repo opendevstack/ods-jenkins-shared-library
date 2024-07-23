@@ -1,6 +1,5 @@
 package org.ods.orchestration.phases
 
-import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.util.IPipelineSteps
@@ -12,6 +11,7 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.util.JsonLogUtil
 import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
@@ -42,6 +42,8 @@ class DeployOdsComponent {
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
+                JsonLogUtil.debug(logger, "DeploymentDescriptor '${openShiftDir}': ",
+                    deploymentDescriptor.deployments)
             }
             if (!repo.data.openshift.deployments) {
                 repo.data.openshift.deployments = [:]
@@ -79,9 +81,7 @@ class DeployOdsComponent {
                     if (!podData) {
                         throw new RuntimeException(msgPodsNotFound)
                     }
-
-                    logger.info("Helm podData for '${podDataContext.join(', ')}': " +
-                        "${JsonOutput.prettyPrint(JsonOutput.toJson(podData))}")
+                    JsonLogUtil.debug(logger, "Helm podData for '${podDataContext.join(', ')}': ", podData)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -238,14 +238,10 @@ class DeployOdsComponent {
                         deploymentMean.helmAdditionalFlags,
                         true)
 
-                    def helmStatus = os. helmStatus(project.targetProject, deploymentMean.helmReleaseName)
+                    def helmStatus = os.helmStatus(project.targetProject, deploymentMean.helmReleaseName)
                     def helmStatusMap = helmStatus.toMap()
                     deploymentMean.helmStatus = helmStatusMap
-                    logger.info("${this.class.name} -- HELM STATUS")
-                    logger.info(
-                        JsonOutput.prettyPrint(
-                            JsonOutput.toJson(helmStatusMap)))
-
+                    JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS", helmStatusMap)
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->

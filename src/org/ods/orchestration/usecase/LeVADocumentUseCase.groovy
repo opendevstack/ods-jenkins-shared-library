@@ -1,7 +1,6 @@
 package org.ods.orchestration.usecase
 
-import static groovy.json.JsonOutput.prettyPrint
-import static groovy.json.JsonOutput.toJson
+import org.ods.util.JsonLogUtil
 
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.xml.XmlUtil
@@ -1072,7 +1071,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
+        JsonLogUtil.debug(logger, "createTIR - repo:", repo)
+        JsonLogUtil.debug(logger, "createTIR - data:", data)
 
         def documentType = DocumentType.TIR as String
 
@@ -1137,9 +1137,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @SuppressWarnings('CyclomaticComplexity')
     Map<String, Object> assembleDeployments(Map<String, Map<String, Object>> deployments) {
         // collect helm releases
-        Map<String, Map<String, Object>> deploymentsMeansHelm = deployments.findAll {
+        def deploymentsMeansHelm = deployments.findAll {
             it.key.endsWith('-deploymentMean') && it.value.type == "helm"
         }
+        // codeNarc complains if we use def x = [:] as Map<...> that this is an Unnecessary cast
         Map<String, Map<String, Object>> deploymentsHelmByRelease = [:]
         deploymentsMeansHelm.each { String deploymentName, Map<String, Object> deploymentMeanHelm ->
             deploymentsHelmByRelease << [(deploymentMeanHelm.helmReleaseName): deploymentMeanHelm]
@@ -1176,7 +1177,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     if (releaseName in helmReleasesCovered) {
                         return
                     }
-                    def helmStatus = assembleHelmStatus( (deployment?.helmStatus ?: [:] ) as Map<String, Object>)
+                    def helmStatus = assembleHelmStatus((deployment?.helmStatus ?: [:]) as Map<String, Object>)
                     deploymentsForTir.put("${releaseName}-deploymentStatus".toString(), helmStatus)
                     def withoutHelmStatus = deployment.findAll { k, v -> k != 'helmStatus' }
                     deploymentsForTir.put("${releaseName}-deploymentMean".toString(),
@@ -1193,13 +1194,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }
             }
         }
-        logger.debug("createTIR - assembled deployments data:${prettyPrint(toJson(deploymentsForTir))}")
+        JsonLogUtil.debug("createTIR - assembled deployments data:", deploymentsForTir)
         deploymentsForTir
     }
 
-    @SuppressWarnings('UnnecessaryCast')
     Map assembleHelmStatus(Map helmStatus) {
-        def resources = helmStatus?.resources ?: [] as List<Map<String, String> >
+        List<Map<String, String> > resources = helmStatus?.resources ?: []
         def properResources = resources.findAll {
             it?.kind && it?.name
         }

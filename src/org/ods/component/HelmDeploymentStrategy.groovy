@@ -1,12 +1,12 @@
 package org.ods.component
 
-import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatusSimpleData
 import org.ods.util.ILogger
+import org.ods.util.JsonLogUtil
 import org.ods.util.PipelineSteps
 import org.ods.util.PodData
 
@@ -96,26 +96,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
         helmUpgrade(context.targetProject)
         HelmStatusSimpleData helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
-        def helmStatusMap = helmStatus.toMap()
-        def deploymentResources = getDeploymentResources(helmStatus)
-
-        logger.info("${this.class.name} -- HELM STATUS")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(helmStatusMap)))
-
-        // not sure if we need both HELM STATUS and DEPLOYMENT RESOURCES"
-        logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(deploymentResources)))
+        if (logger.debugMode) {
+            def deploymentResources = getDeploymentResources(helmStatus)
+            def helmStatusMap = helmStatus.toMap()
+            JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS", helmStatusMap)
+            JsonLogUtil.debug(logger, "${this.class.name} -- DEPLOYMENT RESOURCES", deploymentResources)
+        }
 
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
         def rolloutData = getRolloutData(helmStatus)
-        logger.info(JsonOutput.prettyPrint(JsonOutput.toJson(rolloutData)))
+        logger.info(JsonLogUtil.jsonToString(rolloutData))
         return rolloutData
     }
 
@@ -132,7 +125,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 options.helmValues['componentId'] = context.componentId
 
                 // we persist the original ones set from outside - here we just add ours
-                Map mergedHelmValues = [:] as Map<String, String>
+                def mergedHelmValues = [:] as Map<String, String>
                 mergedHelmValues << options.helmValues
 
                 // we add the global ones - this allows usage in subcharts
@@ -182,6 +175,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private Map<String, List<PodData>> getRolloutData(
         HelmStatusSimpleData helmStatus
     ) {
+        @SuppressWarnings(['LineLength'])  // for the github permalinks
+        // Why do we need podData when helm should take care of the install
+        // 1. FinalizeOdsComponent#verifyDeploymentsBuiltByODS() will fail at
+        //      https://github.com/opendevstack/ods-jenkins-shared-library/blob/7aab67dad73298b1388eca3517a1a2ea856a2b8e/src/org/ods/orchestration/phases/FinalizeOdsComponent.groovy#L165
+        //    unless it can associate all pods with a deployment resource.
+        // 2. DeploymentDescripter requires to have for each deployment resource
+        //    a deployment mean with postfix -deploymentMean
+        // 3. Image importing in DeployOdsComponent at
+        //    https://github.com/opendevstack/ods-jenkins-shared-library/blob/97463eebc986f1558c37d5ff5a84ec188f9e92d0/src/org/ods/orchestration/phases/DeployOdsComponent.groovy#L51)
+        //    currently is driven by images in PodData#containers.
+        //
+        // If possible this should be redesigned so that the shared library does not have to
+        // concern itself with pods anymore.
         def rolloutData = [:]
         helmStatus.resources.each { resource ->
             if (! (resource.kind in DEPLOYMENT_KINDS)) {
@@ -219,9 +225,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             if (!podData) {
                 throw new RuntimeException(msgPodsNotFound)
             }
-
-            logger.debug("Helm podData for ${podDataContext.join(', ')}: " +
-                "${JsonOutput.prettyPrint(JsonOutput.toJson(podData))}")
+            JsonLogUtil.debug(logger, "Helm podData for ${podDataContext.join(', ')}:", podData)
 
             rolloutData["${resource.kind}/${resource.name}"] = podData
             // TODO: Once the orchestration pipeline can deal with multiple replicas,

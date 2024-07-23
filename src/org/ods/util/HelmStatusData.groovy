@@ -60,9 +60,9 @@ class HelmStatusData {
             info.resources = resourcesMap
             status.info = new HelmStatusInfoData(info)
             new HelmStatusData(status)
-        } catch (Exception e) {
+        } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
-                "Unexpected helm status information in JSON at 'info': ${e.getMessage()}")
+                "Unexpected helm status information in JSON at 'info': ${ex.message}")
         }
     }
 
@@ -127,7 +127,8 @@ class HelmStatusData {
         }
         try {
             new HelmStatusResourceData(resource)
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            // provide context
             throw new IllegalArgumentException(
                 "Unexpected helm status JSON at '${context}': ${e.getMessage()}")
         }
