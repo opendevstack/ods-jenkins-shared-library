@@ -1179,7 +1179,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             !it.key.endsWith('-deploymentMean') || it.value?.type != "helm"
         }
         Map<String, Map<String, Object>> deploymentsForTir = [:]
-        deployments.each { String deploymentName, Map<String, Object> deployment ->
+        deploymentsNotHelm.each { String deploymentName, Map<String, Object> deployment ->
             if (deploymentName.endsWith('-deploymentMean')) {
                 deploymentsForTir.put(deploymentName, formatEmptyValues(deployment))
             } else {
