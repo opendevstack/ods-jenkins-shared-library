@@ -27,10 +27,7 @@ class JiraService {
     String username
     String password
 
-    ILogger logger
-
     JiraService(String baseURL, String username, String password) {
-        logger = ServiceRegistry.instance.get(Logger)
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
         }
@@ -805,11 +802,11 @@ class JiraService {
     }
 
     @NonCPS
-    void transitionIssueToToDo(String issueId) {
+    void transitionIssueToToDo(String issueId, ILogger logger) {
         logger.debug("issueId: " + issueId)
         def possibleTransitions = null
         try {
-            possibleTransitions = getTransitions(issueId)
+            possibleTransitions = getTransitions(issueId, logger)
         } catch (Exception e) {
             logger.error(e.getMessage(), e)
         }
@@ -821,11 +818,11 @@ class JiraService {
                     // Issue is already in TO DO state
                     return
                 case "confirm dod":
-                    doTransition(issueId, "confirm DoD")
-                    doTransition(issueId, "reopen")
+                    doTransition(issueId, "confirm DoD", logger)
+                    doTransition(issueId, "reopen", logger)
                     return
                 case "reopen":
-                    doTransition(issueId, "reopen")
+                    doTransition(issueId, "reopen", logger)
                     return
                 default:
                     // Probably another state like cancel, move to the next one
@@ -835,7 +832,7 @@ class JiraService {
     }
 
     @NonCPS
-    def getTransitions(issueId) {
+    def getTransitions(issueId, ILogger logger) {
         logger.debug("getTransitions for issueId: " + issueId)
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
@@ -865,7 +862,7 @@ class JiraService {
     }
 
     @NonCPS
-    def doTransition(issueId, transitionName) {
+    def doTransition(issueId, transitionName, ILogger logger) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
         }
