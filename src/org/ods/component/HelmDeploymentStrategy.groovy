@@ -99,8 +99,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (logger.debugMode) {
             def deploymentResources = getDeploymentResources(helmStatus)
             def helmStatusMap = helmStatus.toMap()
-            JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS", helmStatusMap)
-            JsonLogUtil.debug(logger, "${this.class.name} -- DEPLOYMENT RESOURCES", deploymentResources)
+            JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS".toString(), helmStatusMap)
+            JsonLogUtil.debug(logger, "${this.class.name} -- DEPLOYMENT RESOURCES".toString(), deploymentResources)
         }
 
         // // FIXME: pauseRollouts is non trivial to determine!
@@ -225,7 +225,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             if (!podData) {
                 throw new RuntimeException(msgPodsNotFound)
             }
-            JsonLogUtil.debug(logger, "Helm podData for ${podDataContext.join(', ')}:", podData)
+            JsonLogUtil.debug(logger, "Helm podData for ${podDataContext.join(', ')}:".toString(), podData)
 
             rolloutData["${resource.kind}/${resource.name}"] = podData
             // TODO: Once the orchestration pipeline can deal with multiple replicas,

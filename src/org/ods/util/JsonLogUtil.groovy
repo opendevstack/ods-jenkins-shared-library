@@ -7,7 +7,6 @@ import groovy.transform.TypeChecked
 @TypeChecked
 class JsonLogUtil {
 
-    @NonCPS
     static String debug(ILogger logger, String msg, Object jsonObject) {
         if (logger.debugMode) {
             if (msg) {

@@ -42,7 +42,7 @@ class DeployOdsComponent {
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
-                JsonLogUtil.debug(logger, "DeploymentDescriptor '${openShiftDir}': ",
+                JsonLogUtil.debug(logger, "DeploymentDescriptor '${openShiftDir}': ".toString(),
                     deploymentDescriptor.deployments)
             }
             if (!repo.data.openshift.deployments) {
@@ -81,7 +81,7 @@ class DeployOdsComponent {
                     if (!podData) {
                         throw new RuntimeException(msgPodsNotFound)
                     }
-                    JsonLogUtil.debug(logger, "Helm podData for '${podDataContext.join(', ')}': ", podData)
+                    JsonLogUtil.debug(logger, "Helm podData for '${podDataContext.join(', ')}': ".toString(), podData)
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -241,7 +241,7 @@ class DeployOdsComponent {
                     def helmStatus = os.helmStatus(project.targetProject, deploymentMean.helmReleaseName)
                     def helmStatusMap = helmStatus.toMap()
                     deploymentMean.helmStatus = helmStatusMap
-                    JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS", helmStatusMap)
+                    JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS".toString(), helmStatusMap)
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->
