@@ -2074,12 +2074,15 @@ class Project {
             return
         }
         List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues()
+        logger.debug("securityVulnerabilityIssues size: " + securityVulnerabilityIssues.size())
         if (securityVulnerabilityIssues?.size() > 1) {
             logger.warn("More than one security vulnerability issue detected for project ${this.jiraProjectKey}")
             //TODO what now?
         } else if (securityVulnerabilityIssues?.size() == 1) { // Transition the issue to "TO DO" state
+            logger.debug("Transition the issue to \"TO DO\" state")
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
         } else { // Create the issue
+            logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
                 SECURITY_VULNERABILITY_ISSUE_SUMMARY, message)
         }

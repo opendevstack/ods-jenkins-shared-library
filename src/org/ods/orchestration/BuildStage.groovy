@@ -98,7 +98,9 @@ class BuildStage extends Stage {
         logger.debug("securityVulnerabilityRepos size: " + securityVulnerabilityRepos.size())
         if (securityVulnerabilityRepos?.size() > 0) {
             String secVulReposCommaSeparated = buildReposCommaSeparatedString(securityVulnerabilityRepos)
+            logger.debug("secVulReposCommaSeparated: " +  size)
             String message = buildSecurityVulnerabilityMessage(secVulReposCommaSeparated)
+            logger.debug("buildSecurityVulnerabilityMessage: " +  message)
             project.createOrUpdateSecurityVulnerabilityIssue(message)
         }
 
@@ -164,8 +166,8 @@ class BuildStage extends Stage {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
     }
 
-    String buildReposCommaSeparatedString(def tailorFailedRepos) {
-        def reposCommaSeparatedString = tailorFailedRepos
+    String buildReposCommaSeparatedString(def repositories) {
+        def reposCommaSeparatedString = repositories
             .collect { it -> "\"" + it.id + "\"" }
             .join(", ")
 
