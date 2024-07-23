@@ -98,7 +98,7 @@ class BuildStage extends Stage {
         logger.debug("securityVulnerabilityRepos size: " + securityVulnerabilityRepos.size())
         if (securityVulnerabilityRepos?.size() > 0) {
             String secVulReposCommaSeparated = buildReposCommaSeparatedString(securityVulnerabilityRepos)
-            logger.debug("secVulReposCommaSeparated: " +  size)
+            logger.debug("secVulReposCommaSeparated: " +  secVulReposCommaSeparated.size())
             String message = buildSecurityVulnerabilityMessage(secVulReposCommaSeparated)
             logger.debug("buildSecurityVulnerabilityMessage: " +  message)
             project.createOrUpdateSecurityVulnerabilityIssue(message)
