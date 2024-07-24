@@ -817,8 +817,8 @@ class JiraService {
                     // Issue is already in TO DO state
                     return
                 case "confirm dod":
-                    doTransition(issueId, "confirm DoD", logger)
-                    doTransition(issueId, "reopen", logger)
+                    doTransition(issueId, transition, logger)
+                    transitionIssueToToDo(issueId, logger)
                     return
                 case "reopen":
                     doTransition(issueId, "reopen", logger)
@@ -859,12 +859,12 @@ class JiraService {
         }
     }
 
-    def doTransition(issueId, transitionName, ILogger logger) {
+    def doTransition(issueId, transition, ILogger logger) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
         }
-        if (!transitionName?.trim()) {
-            throw new IllegalArgumentException("ERROR: unable to transition issue. 'transitionName' is undefined.")
+        if (!transition || !transition.id?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to transition issue. Transition id is undefined.")
         }
 
         def response =
