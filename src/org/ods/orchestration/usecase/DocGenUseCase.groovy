@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
@@ -250,6 +251,7 @@ abstract class DocGenUseCase {
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
+    @NonCPS
     private void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
