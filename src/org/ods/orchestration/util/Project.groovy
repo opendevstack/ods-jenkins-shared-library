@@ -2,6 +2,7 @@ package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
+import org.apache.commons.lang3.mutable.MutableInt
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.usecase.JiraUseCase
@@ -2080,7 +2081,8 @@ class Project {
             //TODO what now?
         } else if (securityVulnerabilityIssues?.size() == 1) { // Transition the issue to "TO DO" state
             logger.debug("Transition the issue to \"TO DO\" state")
-            this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, logger)
+            MutableInt maxTransitionCount = 5; // Just in case somebody modifies the workflow without notice
+            this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount, logger)
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,

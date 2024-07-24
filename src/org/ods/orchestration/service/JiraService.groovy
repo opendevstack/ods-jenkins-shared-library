@@ -6,6 +6,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
+import org.apache.commons.lang3.mutable.MutableInt
 import org.ods.orchestration.util.StringCleanup
 
 import kong.unirest.Unirest
@@ -801,18 +802,23 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    void transitionIssueToToDo(String issueId, ILogger logger) {
+    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount, ILogger logger) {
+        if (maxTransitionCount.getValue() < 0) {
+            throw new RuntimeException("Unable to transaition the issue to To Do state in less than ${maxTransitionCount} tries.")
+            return
+        }
+        maxTransitionCount.decrement()
         logger.debug("issueId: " + issueId)
         def possibleTransitions = getTransitions(issueId, logger)
         logger.debug("Possible transitions: " + possibleTransitions)
         for (def transition : possibleTransitions) {
             switch (transition.name.toString().toLowerCase()) {
-                case "confirm dor":
+                case "confirm dor11111":
                     // Issue is already in TO DO state
                     return
                 case "confirm dod":
                     doTransition(issueId, transition, logger)
-                    transitionIssueToToDo(issueId, logger)
+                    transitionIssueToToDo(issueId, maxTransitionCount, logger)
                     return
                 case "reopen":
                     doTransition(issueId, transition, logger)
