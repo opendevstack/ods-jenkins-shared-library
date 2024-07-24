@@ -1096,13 +1096,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
-            deployment: [
-                status: helmStatusAndMean?.status ?: [:],
-                mean: helmStatusAndMean?.mean ?: [:],
-            ],
-            deploymentSame: helmStatusAndMean,
-            deploymentStatus: helmStatusAndMean?.status ?: [:],
-            deploymentMean: helmStatusAndMean?.mean ?: [:],
+            deployment: helmStatusAndMean,
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
                 deployments: getNonHelmDeployments(repo.data.openshift.deployments ?: [:]),
