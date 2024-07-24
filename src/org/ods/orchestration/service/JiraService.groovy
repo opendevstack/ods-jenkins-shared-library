@@ -803,13 +803,7 @@ class JiraService {
 
     void transitionIssueToToDo(String issueId, ILogger logger) {
         logger.debug("issueId: " + issueId)
-        def possibleTransitions = null
-        try {
-            possibleTransitions = getTransitions(issueId, logger)
-        } catch (Error e) {
-            logger.debug(e.getMessage())
-        }
-
+        def possibleTransitions = getTransitions(issueId, logger)
         logger.debug("Possible transitions: " + possibleTransitions)
         for (def transition : possibleTransitions) {
             switch (transition.name.toString().toLowerCase()) {
