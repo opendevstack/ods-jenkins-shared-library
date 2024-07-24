@@ -807,8 +807,8 @@ class JiraService {
         def possibleTransitions = null
         try {
             possibleTransitions = getTransitions(issueId, logger)
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e)
+        } catch (Error e) {
+            logger.debug(e.getMessage())
         }
 
         logger.debug("Possible transitions: " + possibleTransitions)
