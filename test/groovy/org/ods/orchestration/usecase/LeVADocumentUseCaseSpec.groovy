@@ -1313,7 +1313,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             name :"backend-helm-monorepo",
             namespace: "kraemerh-dev",
             description :"Upgrade complete",
-            resources : "Deployment: backend-helm-monorepo-chart-component-a, backend-helm-monorepo-chart-component-b, Service: backend-helm-monorepo-chart",
+            resourcesByKind : [
+                Deployment: ["backend-helm-monorepo-chart-component-a", "backend-helm-monorepo-chart-component-b"],
+                Service: ["backend-helm-monorepo-chart"],
+            ],
             status :"deployed",
             lastDeployed :"2024-06-26T12:59:51.270713404Z"
         ]

@@ -15,7 +15,7 @@ class HelmStatusSimpleData {
     /**
      * Resources names by kind
      */
-    Map<String, List<String>> resourcesByKind
+    Map<String, List<String> > resourcesByKind
 
     @SuppressWarnings(['Instanceof'])
     static HelmStatusSimpleData fromJsonObject(Object object) {
@@ -58,30 +58,23 @@ class HelmStatusSimpleData {
                     }
                 }
             }
-            String name = rootObject.name
-            String version = rootObject.version as String
-            String namespace = rootObject.namespace
-            String status = infoObject.status
-            String description = infoObject.description
-            String lastDeployed = infoObject["last_deployed"]
-            new HelmStatusSimpleData(name, version, namespace, status, description, lastDeployed, resourcesByKind)
+            def hs = new HelmStatusSimpleData()
+            hs.with {
+                name = rootObject.name
+                version = rootObject.version as String
+                namespace = rootObject.namespace
+                status = infoObject.status
+                description = infoObject.description
+                lastDeployed = infoObject["last_deployed"]
+            }
+            hs.resourcesByKind = resourcesByKind.collectEntries { kind, names ->
+                [ kind, names.collect() ]
+            } as Map<String, List<String> >
+            hs
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
                 "Unexpected helm status information in JSON at 'info': ${ex.message}")
         }
-    }
-
-    @SuppressWarnings(['ParameterCount'])
-    HelmStatusSimpleData(String name, String version, String namespace,
-                         String status, String description, String lastDeployed,
-                         Map<String, List<String>> resourcesByKind) {
-        this.name = name
-        this.version = version
-        this.namespace = namespace
-        this.status = status
-        this.description = description
-        this.lastDeployed = lastDeployed
-        this.resourcesByKind = resourcesByKind
     }
 
     Map<String, List<String>> getResourcesByKind(List<String> kinds) {
@@ -185,4 +178,5 @@ class HelmStatusSimpleData {
             throw new IllegalArgumentException(msgs.join("."))
         }
     }
+
 }
