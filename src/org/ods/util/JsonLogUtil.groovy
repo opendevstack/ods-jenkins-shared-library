@@ -12,13 +12,15 @@ class JsonLogUtil {
             if (msg) {
                 logger.debug(msg)
             }
-            logger.debug(jsonToString(jsonObject))
+            if (jsonObject) {
+                logger.debug(jsonToString(jsonObject))
+            }
         }
     }
 
     @NonCPS
     static String jsonToString(Object jsonObject) {
-        JsonOutput.prettyPrint(JsonOutput.toJson(jsonObject))
+        return JsonOutput.prettyPrint(JsonOutput.toJson(jsonObject))
     }
 
 }

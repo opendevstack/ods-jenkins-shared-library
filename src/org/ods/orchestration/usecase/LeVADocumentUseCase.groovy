@@ -1092,10 +1092,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
 
+        def helmStatusAndMean = getHelmStatusAndMean(repo.data.openshift.deployments ?: [:])
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
-            helmStatus: getHelmStatusAndMean(repo.data.openshift.deployments ?: [:]),
+            deployment: [
+                status: helmStatusAndMean?.status ?: [:],
+                mean: helmStatusAndMean?.mean ?: [:],
+            ],
+            deploymentSame: helmStatusAndMean,
+            deploymentStatus: helmStatusAndMean?.status ?: [:],
+            deploymentMean: helmStatusAndMean?.mean ?: [:],
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
                 deployments: getNonHelmDeployments(repo.data.openshift.deployments ?: [:]),
@@ -1157,7 +1164,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def helmStatus = formatHelmStatus((meanHelm?.helmStatus ?: [:]) as Map<String, Object>)
         def meanHelmWithoutStatus = meanHelm.findAll { k, v -> k != 'helmStatus' }
-        [
+        return [
             status: helmStatus,
             mean: formatEmptyValues(meanHelmWithoutStatus)
         ]
@@ -1185,7 +1192,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 deploymentsForTir.put(deploymentName, deployment.findAll { k, v -> k != 'podName' })
             }
         }
-        deploymentsForTir
+        return deploymentsForTir
     }
 
     Map<String, String> formatHelmStatus(Map helmStatus) {

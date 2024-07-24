@@ -70,7 +70,7 @@ class HelmStatusSimpleData {
             hs.resourcesByKind = resourcesByKind.collectEntries { kind, names ->
                 [ kind, names.collect() ]
             } as Map<String, List<String> >
-            hs
+            return hs
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
                 "Unexpected helm status information in JSON at 'info': ${ex.message}")
@@ -78,7 +78,7 @@ class HelmStatusSimpleData {
     }
 
     Map<String, List<String>> getResourcesByKind(List<String> kinds) {
-        resourcesByKind.subMap(kinds)
+        return resourcesByKind.subMap(kinds)
     }
 
     @NonCPS
@@ -92,27 +92,27 @@ class HelmStatusSimpleData {
             lastDeployed: lastDeployed,
             resourcesByKind: resourcesByKind,
         ]
-        result
+        return result
     }
 
     @NonCPS
     String toString() {
-        toMap().toMapString()
+        return toMap().toMapString()
     }
 
     private static Tuple2<String, String> extractResource(
         resourceJsonObject, String context) {
         def resourceObject = ensureMap(resourceJsonObject, context)
         Map<String, Object> resource = [:]
-        if (resourceObject.kind) {
+        if (resourceObject?.kind) {
             resource.kind = resourceObject.kind
         }
-        if (resource.kind == "PodList") {
+        if (resource?.kind == "PodList") {
             return null
         }
         Map<String, Object> metadataObject = ensureMap(
             resourceObject.metadata, "${context}.metadata")
-        if (metadataObject.name) {
+        if (metadataObject?.name) {
             resource["name"] = metadataObject.name
         }
 
@@ -134,7 +134,7 @@ class HelmStatusSimpleData {
 
             throw new IllegalArgumentException(msg)
         }
-        obj as Map
+        return obj as Map
     }
 
     @SuppressWarnings(['Instanceof'])
@@ -147,7 +147,7 @@ class HelmStatusSimpleData {
             throw new IllegalArgumentException(
                 "${context}: expected JSON array, found ${obj.getClass()}")
         }
-        obj as List
+        return obj as List
     }
 
     @SuppressWarnings(['Instanceof'])
@@ -162,7 +162,7 @@ class HelmStatusSimpleData {
                 badTypes << "${att}: expected String, found ${jsonObject[att].getClass()}"
             }
         }
-        new Tuple2(missingOrEmptyKeys, badTypes)
+        return new Tuple2(missingOrEmptyKeys, badTypes)
     }
 
     @NonCPS

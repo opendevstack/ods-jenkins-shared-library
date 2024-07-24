@@ -166,9 +166,8 @@ class OpenShiftService {
                 label: "Gather Helm status for release ${release} in ${project}",
                 returnStdout: true
             ).toString().trim()
-            def object = new JsonSlurperClassic().parseText(helmStdout)
-            def helmStatusData = HelmStatusSimpleData.fromJsonObject(object)
-            helmStatusData
+            def helmStatusMap = new JsonSlurperClassic().parseText(helmStdout)
+            return HelmStatusSimpleData.fromJsonObject(helmStatusMap)
         } catch (ex) {
             throw new RuntimeException("Helm status Failed (${ex.message})!" +
                 "Helm could not gather status of ${release} in ${project}")
