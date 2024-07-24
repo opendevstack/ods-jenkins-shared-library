@@ -5,7 +5,6 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.util.HelmStatusData
 import org.ods.util.HelmStatusSimpleData
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -161,22 +160,14 @@ class OpenShiftService {
         String project,
         String release
     ) {
-        def helmStatusData = retrieveHelmStatus(project, release)
-        HelmStatusSimpleData.from(helmStatusData)
-    }
-
-    HelmStatusData retrieveHelmStatus(
-        String project,
-        String release
-    ) {
         try {
             def helmStdout = steps.sh(
-                script: "helm -n ${project} status ${release} --show-resources  -o json | jq",
+                script: "helm -n ${project} status ${release} --show-resources  -o json",
                 label: "Gather Helm status for release ${release} in ${project}",
                 returnStdout: true
             ).toString().trim()
             def object = new JsonSlurperClassic().parseText(helmStdout)
-            def helmStatusData = HelmStatusData.fromJsonObject(object)
+            def helmStatusData = HelmStatusSimpleData.fromJsonObject(object)
             helmStatusData
         } catch (ex) {
             throw new RuntimeException("Helm status Failed (${ex.message})!" +

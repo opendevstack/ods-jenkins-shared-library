@@ -1309,12 +1309,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             type :"helm", ]
 
         helmStatusAndMean["status"] == [
-            releaseRevision :"2",
-            releaseName :"backend-helm-monorepo",
+            version :"2",
+            name :"backend-helm-monorepo",
             namespace: "kraemerh-dev",
-            deployDescription :"Upgrade complete",
+            description :"Upgrade complete",
             resources : "Deployment: backend-helm-monorepo-chart-component-a, backend-helm-monorepo-chart-component-b, Service: backend-helm-monorepo-chart",
-            deployStatus :"deployed",
+            status :"deployed",
             lastDeployed :"2024-06-26T12:59:51.270713404Z"
         ]
         nonHelmDeployments["backend-helm-monorepo-chart-component-a"] == [

@@ -31,26 +31,21 @@
             "helmAdditionalFlags": [
             ],
             "helmStatus": {
-                "releaseName": "backend-helm-monorepo",
-                "releaseRevision": "2",
+                "name": "backend-helm-monorepo",
+                "version": "2",
                 "namespace": "kraemerh-dev",
-                "deployStatus": "deployed",
-                "deployDescription": "Upgrade complete",
+                "status": "deployed",
+                "description": "Upgrade complete",
                 "lastDeployed": "2024-06-26T12:59:51.270713404Z",
-                "resources": [
-                    {
-                        "kind": "Deployment",
-                        "name": "backend-helm-monorepo-chart-component-a"
-                    },
-                    {
-                        "kind": "Deployment",
-                        "name": "backend-helm-monorepo-chart-component-b"
-                    },
-                    {
-                        "kind": "Service",
-                        "name": "backend-helm-monorepo-chart"
-                    }
-                ]
+                "resourcesByKind": {
+                    "Deployment": [
+                        "backend-helm-monorepo-chart-component-a",
+                        "backend-helm-monorepo-chart-component-b"
+                    ],
+                    "Service": [
+                        "backend-helm-monorepo-chart"
+                    ]
+                }
             },
             "repoId": "backend-helm-monorepo"
         },
@@ -85,26 +80,21 @@
             "helmAdditionalFlags": [
             ],
             "helmStatus": {
-                "releaseName": "backend-helm-monorepo",
-                "releaseRevision": "2",
+                "name": "backend-helm-monorepo",
+                "version": "2",
                 "namespace": "kraemerh-dev",
-                "deployStatus": "deployed",
-                "deployDescription": "Upgrade complete",
+                "status": "deployed",
+                "description": "Upgrade complete",
                 "lastDeployed": "2024-06-26T12:59:51.270713404Z",
-                "resources": [
-                    {
-                        "kind": "Deployment",
-                        "name": "backend-helm-monorepo-chart-component-a"
-                    },
-                    {
-                        "kind": "Deployment",
-                        "name": "backend-helm-monorepo-chart-component-b"
-                    },
-                    {
-                        "kind": "Service",
-                        "name": "backend-helm-monorepo-chart"
-                    }
-                ]
+                "resourcesByKind": {
+                    "Deployment": [
+                        "backend-helm-monorepo-chart-component-a",
+                        "backend-helm-monorepo-chart-component-b"
+                    ],
+                    "Service": [
+                        "backend-helm-monorepo-chart"
+                    ]
+                }
             },
             "repoId": "backend-helm-monorepo"
         }

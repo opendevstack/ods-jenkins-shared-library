@@ -189,50 +189,52 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // If possible this should be redesigned so that the shared library does not have to
         // concern itself with pods anymore.
         def rolloutData = [:]
-        helmStatus.resources.each { resource ->
-            if (! (resource.kind in DEPLOYMENT_KINDS)) {
+        helmStatus.resourcesByKind.each { kind, names ->
+            if (!(kind in DEPLOYMENT_KINDS)) {
                 return // continues with next
             }
-            context.addDeploymentToArtifactURIs("${resource.name}-deploymentMean",
-                [
-                    'type': 'helm',
-                    'selector': options.selector,
-                    'chartDir': options.chartDir,
-                    'helmReleaseName': options.helmReleaseName,
-                    'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-                    'helmValuesFiles': options.helmValuesFiles,
-                    'helmValues': options.helmValues,
-                    'helmDefaultFlags': options.helmDefaultFlags,
-                    'helmAdditionalFlags': options.helmAdditionalFlags,
-                    'helmStatus': helmStatus.toMap(),
+            names.each { name ->
+                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
+                    [
+                        type: 'helm',
+                        selector: options.selector,
+                        chartDir: options.chartDir,
+                        helmReleaseName: options.helmReleaseName,
+                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+                        helmValuesFiles: options.helmValuesFiles,
+                        helmValues: options.helmValues,
+                        helmDefaultFlags: options.helmDefaultFlags,
+                        helmAdditionalFlags: options.helmAdditionalFlags,
+                        helmStatus: helmStatus.toMap(),
+                    ]
+                )
+                def podDataContext = [
+                    "targetProject=${context.targetProject}",
+                    "selector=${options.selector}",
+                    "name=${name}",
                 ]
-            )
-            def podDataContext = [
-                "targetProject=${context.targetProject}",
-                "selector=${options.selector}",
-                "name=${resource.name}",
-            ]
-            def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-            List<PodData> podData = null
-            for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                podData = openShift.checkForPodData(context.targetProject, options.selector, resource.name)
-                if (podData) {
-                    break
+                def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                List<PodData> podData = null
+                for (def i = 0; i < options.deployTimeoutRetries; i++) {
+                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                    if (podData) {
+                        break
+                    }
+                    steps.echo("${msgPodsNotFound} - waiting")
+                    steps.sleep(12)
                 }
-                steps.echo("${msgPodsNotFound} - waiting")
-                steps.sleep(12)
-            }
-            if (!podData) {
-                throw new RuntimeException(msgPodsNotFound)
-            }
-            JsonLogUtil.debug(logger, "Helm podData for ${podDataContext.join(', ')}:".toString(), podData)
+                if (!podData) {
+                    throw new RuntimeException(msgPodsNotFound)
+                }
+                JsonLogUtil.debug(logger, "Helm podData for ${podDataContext.join(', ')}:".toString(), podData)
 
-            rolloutData["${resource.kind}/${resource.name}"] = podData
-            // TODO: Once the orchestration pipeline can deal with multiple replicas,
-            // update this to store multiple pod artifacts.
-            // TODO: Potential conflict if resourceName is duplicated between
-            // Deployment and DeploymentConfig resource.
-            context.addDeploymentToArtifactURIs(resource.name, podData[0]?.toMap())
+                rolloutData["${kind}/${name}"] = podData
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                // update this to store multiple pod artifacts.
+                // TODO: Potential conflict if resourceName is duplicated between
+                // Deployment and DeploymentConfig resource.
+                context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
+            }
         }
         rolloutData
     }

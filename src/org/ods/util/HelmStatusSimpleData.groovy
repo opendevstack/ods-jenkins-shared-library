@@ -6,58 +6,98 @@ import groovy.transform.TypeChecked
 @TypeChecked
 class HelmStatusSimpleData {
 
-    String releaseName
-    String releaseRevision
+    String name
+    String version
     String namespace
-    String deployStatus
-    String deployDescription
+    String status
+    String description
     String lastDeployed
-    List<HelmStatusResource> resources
+    /**
+     * Resources names by kind
+     */
+    Map<String, List<String>> resourcesByKind
 
-    static HelmStatusSimpleData fromJsonObject(Object jsonObject) {
-        from(HelmStatusData.fromJsonObject(jsonObject))
+    @SuppressWarnings(['Instanceof'])
+    static HelmStatusSimpleData fromJsonObject(Object object) {
+        try {
+            def rootObject = ensureMap(object, "")
+
+            def infoObject = ensureMap(rootObject.info, "info")
+
+            // validation of missing keys or types
+            def missingKeys = []
+            def badTypes = []
+            def expectedStringAttribsForRoot = collectMissingStringAttributes(rootObject,
+                ["name", "namespace"])
+            def expectedStringAttribsForInfo = collectMissingStringAttributes(infoObject,
+                ["status", "description", "last_deployed"])
+            missingKeys.addAll(expectedStringAttribsForRoot.first)
+            missingKeys.addAll(expectedStringAttribsForInfo.first)
+            badTypes.addAll(expectedStringAttribsForRoot.second)
+            badTypes.addAll(expectedStringAttribsForInfo.second)
+            def att = "version"
+            if (!rootObject.containsKey(att)) {
+                missingKeys << att
+            } else if (!(rootObject[att] instanceof Integer)) {
+                badTypes << "${att}: expected Integer, found ${rootObject[att].getClass()}"
+            }
+            handleMissingKeysOrBadTypes(missingKeys, badTypes)
+            def resourcesObject = ensureMap(infoObject.resources, "info.resources")
+            // All resources are in an json object which organize resources by keys
+            // Examples are  "v1/Cluster", "v1/ConfigMap"  "v1/Deployment", "v1/Pod(related)"
+            // For these keys the map contains list of resources.
+            Map<String, List<String>> resourcesByKind = [:] .withDefault { [] }
+            for (entry in resourcesObject.entrySet()) {
+                def key = entry.key as String
+                def resourceList = ensureList(entry.value, "info.resources.${key}")
+                resourceList.eachWithIndex { resourceJsonObject, i ->
+                    def resourceContext = "info.resources.${key}.[${i}]"
+                    def resource = extractResource(resourceJsonObject, resourceContext)
+                    if (resource) {
+                        resourcesByKind[resource.first] << resource.second
+                    }
+                }
+            }
+            String name = rootObject.name
+            String version = rootObject.version as String
+            String namespace = rootObject.namespace
+            String status = infoObject.status
+            String description = infoObject.description
+            String lastDeployed = infoObject["last_deployed"]
+            new HelmStatusSimpleData(name, version, namespace, status, description, lastDeployed, resourcesByKind)
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                "Unexpected helm status information in JSON at 'info': ${ex.message}")
+        }
     }
 
-    @SuppressWarnings(['NestedForLoop'])
-    static HelmStatusSimpleData from(HelmStatusData status) {
-        def simpleResources = []
-        for (resourceList in status.info.resources.values()) {
-            for (hsr in resourceList) {
-                simpleResources << new HelmStatusResource(kind: hsr.kind, name: hsr.metadataName)
-            }
-        }
-        new HelmStatusSimpleData(
-            releaseName: status.name,
-            releaseRevision: status.version,
-            namespace: status.namespace,
-            deployStatus: status.info.status,
-            deployDescription: status.info.description,
-            lastDeployed: status.info.lastDeployed,
-            resources: simpleResources,)
+    @SuppressWarnings(['ParameterCount'])
+    HelmStatusSimpleData(String name, String version, String namespace,
+                         String status, String description, String lastDeployed,
+                         Map<String, List<String>> resourcesByKind) {
+        this.name = name
+        this.version = version
+        this.namespace = namespace
+        this.status = status
+        this.description = description
+        this.lastDeployed = lastDeployed
+        this.resourcesByKind = resourcesByKind
     }
 
     Map<String, List<String>> getResourcesByKind(List<String> kinds) {
-        def deploymentResources = resources.findAll { it.kind in kinds }
-        Map<String, List<String>> resourcesByKind = [:]
-        deploymentResources.each {
-            if (!resourcesByKind.containsKey(it.kind)) {
-                resourcesByKind[it.kind] = []
-            }
-            resourcesByKind[it.kind] << it.name
-        }
-        resourcesByKind
+        resourcesByKind.subMap(kinds)
     }
 
     @NonCPS
     Map<String, Object> toMap() {
         def result = [
-            releaseName: releaseName,
-            releaseRevision: releaseRevision,
+            name: name,
+            version: version,
             namespace: namespace,
-            deployStatus: deployStatus,
-            deployDescription: deployDescription,
+            status: status,
+            description: description,
             lastDeployed: lastDeployed,
-            resources: resources.collect { [kind: it.kind, name: it.name] }
+            resourcesByKind: resourcesByKind,
         ]
         result
     }
@@ -67,4 +107,82 @@ class HelmStatusSimpleData {
         toMap().toMapString()
     }
 
+    private static Tuple2<String, String> extractResource(
+        resourceJsonObject, String context) {
+        def resourceObject = ensureMap(resourceJsonObject, context)
+        Map<String, Object> resource = [:]
+        if (resourceObject.kind) {
+            resource.kind = resourceObject.kind
+        }
+        if (resource.kind == "PodList") {
+            return null
+        }
+        Map<String, Object> metadataObject = ensureMap(
+            resourceObject.metadata, "${context}.metadata")
+        if (metadataObject.name) {
+            resource["name"] = metadataObject.name
+        }
+
+        def expected = collectMissingStringAttributes(resource, ["name", "kind"])
+        handleMissingKeysOrBadTypes(expected.first, expected.second)
+        return new Tuple2(resource.kind, resource.name)
+    }
+
+    @SuppressWarnings(['Instanceof'])
+    @NonCPS
+    private static Map ensureMap(Object obj, String context) {
+        if (obj == null) {
+            return [:]
+        }
+        if (!(obj instanceof Map)) {
+            def msg = context ?
+                "${context}: expected JSON object, found ${obj.getClass()}" :
+                "Expected JSON object, found ${obj.getClass()}"
+
+            throw new IllegalArgumentException(msg)
+        }
+        obj as Map
+    }
+
+    @SuppressWarnings(['Instanceof'])
+    @NonCPS
+    private static List ensureList(Object obj, String context) {
+        if (obj == null) {
+            return []
+        }
+        if (!(obj instanceof List)) {
+            throw new IllegalArgumentException(
+                "${context}: expected JSON array, found ${obj.getClass()}")
+        }
+        obj as List
+    }
+
+    @SuppressWarnings(['Instanceof'])
+    private static Tuple2<List<String>, List<String>> collectMissingStringAttributes(
+        Map<String, Object> jsonObject, List<String> stringAttributes) {
+        def missingOrEmptyKeys = []
+        def badTypes = []
+        for (att in stringAttributes) {
+            if (! (jsonObject.containsKey(att) && jsonObject[att])) {
+                missingOrEmptyKeys << att
+            } else if (!(jsonObject[att] instanceof String)) {
+                badTypes << "${att}: expected String, found ${jsonObject[att].getClass()}"
+            }
+        }
+        new Tuple2(missingOrEmptyKeys, badTypes)
+    }
+
+    @NonCPS
+    private static void handleMissingKeysOrBadTypes(List<String> missingKeys, List<String> badTypes) {
+        if (missingKeys || badTypes) {
+            def msgs = []
+            if (missingKeys) {
+                msgs << "Missing keys: ${missingKeys.join(', ')}"
+            }
+            if (badTypes) {
+                msgs << "Bad types: ${badTypes.join(', ')}"
+            }
+            throw new IllegalArgumentException(msgs.join("."))
+        }
+    }
 }

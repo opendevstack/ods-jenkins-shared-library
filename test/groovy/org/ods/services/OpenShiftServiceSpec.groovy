@@ -261,7 +261,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         def helmJsonText = new FixtureHelper().getResource("helmstatus.json").text
 
         when:
-        def helmStatusData = service.retrieveHelmStatus('guardians-test', 'standalone-app')
+        def helmStatusData = service.helmStatus('guardians-test', 'standalone-app')
 //            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
         then:
         1 * steps.sh(
