@@ -38,7 +38,7 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
 
-    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Security vulnerability"
+    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Security vulnerabilities detected by AquaSec"
 
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
@@ -2069,13 +2069,11 @@ class Project {
     }
 
     def void createOrUpdateSecurityVulnerabilityIssue(String message) {
-        logger.debug("createOrUpdateSecurityVulnerabilityIssue")
         if (!this.jiraUseCase || !this.jiraUseCase.jira) {
             logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
             return
         }
         List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues()
-        logger.debug("securityVulnerabilityIssues size: " + securityVulnerabilityIssues.size())
         if (securityVulnerabilityIssues?.size() > 1) {
             logger.warn("More than one security vulnerability issue detected for project ${this.jiraProjectKey}")
             //TODO what now?

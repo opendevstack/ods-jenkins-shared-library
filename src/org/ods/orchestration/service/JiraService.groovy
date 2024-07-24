@@ -802,40 +802,34 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount, ILogger logger) {
-        if (maxTransitionCount.getValue() < 0) {
-            throw new RuntimeException("Unable to transaition the issue to To Do state in less than ${maxTransitionCount} tries.")
+    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount) {
+        if (maxTransitionCount.getValue() <= 0) {
+            throw new RuntimeException("Unable to transaition the issue to To Do state.")
             return
         }
         maxTransitionCount.decrement()
-        logger.debug("issueId: " + issueId)
         def possibleTransitions = getTransitions(issueId, logger)
-        logger.debug("Possible transitions: " + possibleTransitions)
         for (def transition : possibleTransitions) {
             def transitionNameLowerCase = transition.name.toString().toLowerCase()
-
-            transitionNameLowerCase = "confirm dod"
-
             switch (transitionNameLowerCase) {
                 case "confirm dor":
                     // Issue is already in TO DO state
                     return
                 case "confirm dod":
-                    doTransition(issueId, transition, logger)
-                    transitionIssueToToDo(issueId, maxTransitionCount, logger)
+                    doTransition(issueId, transition)
+                    transitionIssueToToDo(issueId, maxTransitionCount)
                     return
                 case "reopen":
-                    doTransition(issueId, transition, logger)
+                    doTransition(issueId, transition)
                     return
                 default:
-                    // Probably another state like cancel, move to the next one
+                    // Another state like cancel, move to the next one
                     break
             }
         }
     }
 
-    def getTransitions(issueId, ILogger logger) {
-        logger.debug("getTransitions for issueId: " + issueId)
+    def getTransitions(issueId) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
         }
@@ -854,7 +848,6 @@ class JiraService {
 
             throw new RuntimeException(message)
         }
-        logger.debug("getTransitions response: " + response)
         return new JsonSlurperClassic().parseText(response.getBody()).transitions.collect { transition ->
             [
                 id  : transition.id,
