@@ -1140,7 +1140,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
      *      Otherwise keys 'status' and 'means' each contain a
      *      map suited to format the information in a template.
      */
-    @SuppressWarnings('CyclomaticComplexity')
     Map<String, Map<String, Object> > getHelmStatusAndMean(Map<String, Map<String, Object>> deployments) {
         // collect first helm release
         def deploymentMeanHelm = deployments.find {
@@ -1167,7 +1166,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     /**
      * Retrieves all non-helm deployments.
      *
-     * The processed map is suited to be displayed with Helm.
+     * The processed map is suited to format the resource information in the TIR.
      *
      * @return An empty map if no such deployments exist.
      *      Otherwise keys indicate the deployment resource or deployment mean if they
