@@ -18,7 +18,8 @@ class HelmStatusSimpleData {
     Map<String, List<String> > resourcesByKind
 
     @SuppressWarnings(['Instanceof'])
-    static HelmStatusSimpleData fromJsonObject(Object object) {
+    @NonCPS
+        static HelmStatusSimpleData fromJsonObject(Object object) {
         try {
             def rootObject = ensureMap(object, "")
 
@@ -77,6 +78,7 @@ class HelmStatusSimpleData {
         }
     }
 
+    @NonCPS
     Map<String, List<String>> getResourcesByKind(List<String> kinds) {
         return resourcesByKind.subMap(kinds)
     }
@@ -100,6 +102,7 @@ class HelmStatusSimpleData {
         return toMap().toMapString()
     }
 
+    @NonCPS
     private static Tuple2<String, String> extractResource(
         resourceJsonObject, String context) {
         def resourceObject = ensureMap(resourceJsonObject, context)
@@ -151,6 +154,7 @@ class HelmStatusSimpleData {
     }
 
     @SuppressWarnings(['Instanceof'])
+    @NonCPS
     private static Tuple2<List<String>, List<String>> collectMissingStringAttributes(
         Map<String, Object> jsonObject, List<String> stringAttributes) {
         def missingOrEmptyKeys = []
