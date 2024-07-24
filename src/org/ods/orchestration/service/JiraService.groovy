@@ -801,7 +801,6 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    @NonCPS
     void transitionIssueToToDo(String issueId, ILogger logger) {
         logger.debug("issueId: " + issueId)
         def possibleTransitions = null
@@ -831,7 +830,6 @@ class JiraService {
         }
     }
 
-    @NonCPS
     def getTransitions(issueId, ILogger logger) {
         logger.debug("getTransitions for issueId: " + issueId)
         if (!issueId?.trim()) {
@@ -861,7 +859,6 @@ class JiraService {
         }
     }
 
-    @NonCPS
     def doTransition(issueId, transitionName, ILogger logger) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
