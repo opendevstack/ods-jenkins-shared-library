@@ -12,9 +12,6 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.services.ServiceRegistry
-import org.ods.util.ILogger
-import org.ods.util.Logger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -808,7 +805,7 @@ class JiraService {
             return
         }
         maxTransitionCount.decrement()
-        def possibleTransitions = getTransitions(issueId, logger)
+        def possibleTransitions = getTransitions(issueId)
         for (def transition : possibleTransitions) {
             def transitionNameLowerCase = transition.name.toString().toLowerCase()
             switch (transitionNameLowerCase) {
@@ -856,7 +853,7 @@ class JiraService {
         }
     }
 
-    def doTransition(issueId, transition, ILogger logger) {
+    def doTransition(issueId, transition) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
         }
