@@ -812,8 +812,11 @@ class JiraService {
         def possibleTransitions = getTransitions(issueId, logger)
         logger.debug("Possible transitions: " + possibleTransitions)
         for (def transition : possibleTransitions) {
-            transition.name = "confirm dod"
-            switch (transition.name.toString().toLowerCase()) {
+            def transitionNameLowerCase = transition.name.toString().toLowerCase()
+
+            transitionNameLowerCase = "confirm dod"
+
+            switch (transitionNameLowerCase) {
                 case "confirm dor":
                     // Issue is already in TO DO state
                     return
