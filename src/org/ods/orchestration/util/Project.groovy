@@ -2074,10 +2074,7 @@ class Project {
             return
         }
         List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues()
-        if (securityVulnerabilityIssues?.size() > 1) {
-            logger.warn("More than one security vulnerability issue detected for project ${this.jiraProjectKey}")
-            //TODO what now?
-        } else if (securityVulnerabilityIssues?.size() == 1) { // Transition the issue to "TO DO" state
+        if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount, logger)
