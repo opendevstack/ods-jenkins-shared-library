@@ -821,7 +821,7 @@ class JiraService {
                     transitionIssueToToDo(issueId, logger)
                     return
                 case "reopen":
-                    doTransition(issueId, "reopen", logger)
+                    doTransition(issueId, transition, logger)
                     return
                 default:
                     // Probably another state like cancel, move to the next one
