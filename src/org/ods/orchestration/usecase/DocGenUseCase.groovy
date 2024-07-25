@@ -252,7 +252,7 @@ abstract class DocGenUseCase {
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
     @NonCPS
-    private void checkServiceReadiness() {
+    protected void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
             status = this.docGen.healthCheck()
