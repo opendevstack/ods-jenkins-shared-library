@@ -1092,11 +1092,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
 
-        def helmStatusAndMean = getHelmStatusAndMean(repo.data.openshift.deployments ?: [:])
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
-            deployment: helmStatusAndMean,
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
                 deployments: getNonHelmDeployments(repo.data.openshift.deployments ?: [:]),
@@ -1111,6 +1109,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ]
         ]
+        def helmStatusAndMean = getHelmStatusAndMean(repo.data.openshift.deployments ?: [:])
+        if (helmStatusAndMean) {
+            data_ << [deployment: helmStatusAndMean]
+        }
         JsonLogUtil.debug(logger, "createTIR - assembled data:", data_)
 
         // Code review report - in the special case of NO jira ..
