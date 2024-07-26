@@ -1185,13 +1185,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String formatHelmStatusKey(String key)  {
         def keyFormat = [
-            name: "Na\nme",
-            version: "Ver\\nsion",
-            namespace: "Name<br/>space",
-            status: "Deployment<br> Status",
-            description: "Deployment{{{<br/>}}} Description",
-            lastDeployed: "Deployment{{{br}}}Timestamp",
-            resourcesByKind: "Res\\\nources",
+            name: "Name",
+            version: "Version",
+            namespace: "Namespace",
+            status: "Deployment Status",
+            description: "Deployment Description",
+            lastDeployed: "Deployment Timestamp",
+            resourcesByKind: "Resources",
         ]
         return keyFormat.getOrDefault(key, key)
     }
