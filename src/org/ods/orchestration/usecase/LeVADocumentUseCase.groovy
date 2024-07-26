@@ -1166,6 +1166,36 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
     }
 
+    Map<String, String> formatHelmStatus(Map helmStatus) {
+        Map<String, List<String> > byKind = helmStatus?.resourcesByKind ?: [:]
+        String formattedResourcesByKind = byKind.collect { kind, resourcesOfKind ->
+            "${kind}: " + resourcesOfKind.collect { it }.join(', ')
+        }.sort().join('. ')
+
+        def assembledHelmStatus = helmStatus.collectEntries { k, v ->
+            def formattedKey = formatHelmStatusKey(k)
+            if (k == 'resourcesByKind') {
+                [(formattedKey): formattedResourcesByKind ]
+            } else {
+                [(formattedKey): v]
+            }
+        }
+        return assembledHelmStatus
+    }
+
+    String formatHelmStatusKey(String key)  {
+        def keyFormat = [
+            name: "Na\nme",
+            version: "Ver\\nsion",
+            namespace: "Name<br/>space",
+            status: "Deployment<br> Status",
+            description: "Deployment{{{<br/>}}} Description",
+            lastDeployed: "Deployment{{{br}}}Timestamp",
+            resourcesByKind: "Res\\\nources",
+        ]
+        return keyFormat.getOrDefault(key, key)
+    }
+
     /**
      * Retrieves all non-helm deployments.
      *
@@ -1189,26 +1219,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
         return deploymentsForTir
-    }
-
-    Map<String, String> formatHelmStatus(Map helmStatus) {
-        List<Map<String, String> > resources = helmStatus?.resources ?: []
-        def properResources = resources.findAll {
-            it?.kind && it?.name
-        }
-        def byKind = properResources.groupBy { it.kind }
-        String formattedResourcesByKind = byKind.collect { kind, resourcesOfKind ->
-            "${kind}: " + resourcesOfKind.collect { it.name }.join(', ')
-        }.sort().join(', ')
-
-        def assembledHelmStatus = helmStatus.collectEntries { k, v ->
-            if (k == 'resources') {
-                [(k): formattedResourcesByKind ]
-            } else {
-                [(k): v]
-            }
-        }
-        return assembledHelmStatus
     }
 
     Map<String, Object> formatEmptyValues(Map<String, Object> deployment)  {
