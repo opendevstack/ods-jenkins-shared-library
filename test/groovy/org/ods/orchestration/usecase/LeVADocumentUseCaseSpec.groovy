@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 import groovy.util.logging.Log
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -8,6 +9,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.util.ILogger
 import org.ods.services.ServiceRegistry
+import org.ods.util.PodData
 import spock.lang.Unroll
 
 import org.ods.services.JenkinsService
@@ -890,6 +892,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
+
     def "create IVR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
@@ -960,10 +963,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def version = (odsRepoType == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'WIP' : '1.0'
 
         def expectedSpecifications = systemDesignSpec
-                                    ? ["key":"NET-128",
-                                      "req_key":"NET-125",
-                                      "description":systemDesignSpec]
-                                    : null
+            ? ["key":"NET-128",
+               "req_key":"NET-125",
+               "description":systemDesignSpec]
+            : null
         def expectedComponents = ["key":"Technology-demo-app-catalogue",
                                   "nameOfSoftware":"demo-app-catalogue",
                                   "componentType":componentTypeLong,
@@ -1073,7 +1076,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             "risks": ["NET-126"],
             "tests": ["NET-127"]
         }''',
-                     '''
+                           '''
           {
             "key": "NET-128",
             "id": "128",
@@ -1087,7 +1090,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             "risks": ["NET-126"],
             "tests": ["NET-127"]
         }''',
-                     '''
+                           '''
           {
             "key": "NET-128",
             "id": "128",
@@ -1276,6 +1279,101 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
         1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
+    }
+
+    def "assemble deploymentInfo for TIR with helm"() {
+        given:
+        def file = new FixtureHelper().getResource("deployments-data-helm.json")
+        os.isDeploymentKind(*_) >> true
+
+        when:
+        def deploymentsData = new JsonSlurperClassic().parseText(file.text)
+        def helmStatusAndMean = usecase.getHelmStatusAndMean(deploymentsData.deployments)
+        def nonHelmDeployments = usecase.getNonHelmDeployments(deploymentsData.deployments)
+
+        then:
+
+        helmStatusAndMean["mean"] == [
+            chartDir               : "chart",
+            repoId : "backend-helm-monorepo",
+            helmAdditionalFlags: "None",
+            helmEnvBasedValuesFiles :"None",
+            helmValues :[
+                registry :"image-registry.openshift-image-registry.svc:5000",
+                componentId :"backend-helm-monorepo"
+            ],
+            helmDefaultFlags :["--install", "--atomic"],
+            helmReleaseName :"backend-helm-monorepo",
+            selector :"app.kubernetes.io/instance=backend-helm-monorepo",
+            helmValuesFiles :["values.yaml"],
+            type :"helm", ]
+
+        helmStatusAndMean["status"] == [
+            "Version": "2",
+            "Name": "backend-helm-monorepo",
+            "Namespace": "kraemerh-dev",
+            "Deployment Description": "Upgrade complete",
+            "Resources": "Deployment: backend-helm-monorepo-chart-component-a, backend-helm-monorepo-chart-component-b. Service: backend-helm-monorepo-chart",
+            "Deployment Status" :"deployed",
+            "Deployment Timestamp" :"2024-06-26T12:59:51.270713404Z"
+        ]
+        nonHelmDeployments["backend-helm-monorepo-chart-component-a"] == [
+            podNamespace: "kraemerh-test",
+            podMetaDataCreationTimestamp: "2024-06-26T13:05:33Z",
+            deploymentId: "backend-helm-monorepo-chart-component-a-7d6659884",
+            podStatus: "Running",
+            containers: [
+                "chart-component-a": "image-registry.openshift-image-registry.svc:5000/kraemerh-test/backend-helm-monorepo-component-a@sha256:5c6440e6179138842d75a9b4a0eb9dd283097839931119e79ee0da43656c8870"
+            ]
+        ]
+        nonHelmDeployments["backend-helm-monorepo-chart-component-b"] == [
+            podNamespace: "kraemerh-test",
+            podMetaDataCreationTimestamp: "2024-06-26T13:05:33Z",
+            deploymentId: "backend-helm-monorepo-chart-component-b-87c7f548d",
+            podStatus: "Running",
+            containers: [
+                "chart-component-b": "image-registry.openshift-image-registry.svc:5000/kraemerh-test/backend-helm-monorepo-component-b@sha256:5e9ed6ba8458a9501a9d973398ff27e6e50411d3745cec0dac761e07378185a2"
+            ]
+        ]
+    }
+
+    def "assemble deploymentInfo for TIR with tailor"() {
+        given:
+        def file = new FixtureHelper().getResource("deployments-data-tailor.json")
+        os.isDeploymentKind(*_) >> true
+
+        when:
+        def deploymentsData = new JsonSlurperClassic().parseText(file.text)
+        def helmStatusAndMean = usecase.getHelmStatusAndMean(deploymentsData.deployments)
+        def nonHelmDeployments = usecase.getNonHelmDeployments(deploymentsData.deployments)
+        def data = [:]
+        if (helmStatusAndMean) {  // must be falsy
+            data << [deployment: helmStatusAndMean]
+        }
+        helmStatusAndMean == [:]
+
+        then:
+
+        data == [:]
+
+        nonHelmDeployments["backend-first-deploymentMean"] == [
+            type: "tailor",
+            selector: "app=kraemerh-backend-first",
+            tailorSelectors: [
+                selector: "app=kraemerh-backend-first",
+                exclude: "bc,is",
+            ],
+            tailorParamFile: "None",
+            tailorParams: "None",
+            tailorPreserve: "No extra resources specified to be preserved",
+            tailorVerify: true
+        ]
+
+        nonHelmDeployments["backend-first"] == [
+            containers: [
+                "backend-first": "backend-first@sha256:fc5fb63f4ac45e207a4a1ceba37534814489c16e82306cf46aca76627c0f5e1e"
+            ]
+        ]
     }
 
     def "create overall DTR"() {
@@ -1657,25 +1755,25 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "order steps"() {
         given:
         def  testIssue = [ key: "JIRA-1" ,
-              steps: [
-                [
-                    orderId: 2,
-                    data: "N/A"
-                ],
-                [
-                    orderId: 1,
-                    data: "N/A"
-                ]
-            ]]
+                           steps: [
+                               [
+                                   orderId: 2,
+                                   data: "N/A"
+                               ],
+                               [
+                                   orderId: 1,
+                                   data: "N/A"
+                               ]
+                           ]]
 
-            when:
-            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-                null, null, null, null, null, null, null,
-                null, null, null, null)
-            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
+        when:
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null,
+            null, null, null, null)
+        def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
 
-            then:
-            ordered.get(0).orderId == 1
+        then:
+        ordered.get(0).orderId == 1
     }
 
     def "referenced documents version"() {
