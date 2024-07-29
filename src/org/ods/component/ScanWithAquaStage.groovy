@@ -105,6 +105,7 @@ class ScanWithAquaStage extends Stage {
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
+                logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
                 // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
@@ -121,6 +122,7 @@ class ScanWithAquaStage extends Stage {
                 errorMessages += "<li>Error archiving Aqua reports</li>"
             }
         } else {
+            logger.info("PROBLEMS WITH AQUA")
             createBitbucketCodeInsightReport(errorMessages)
         }
 
