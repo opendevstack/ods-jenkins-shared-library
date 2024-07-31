@@ -3,10 +3,12 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 
 @TypeChecked
@@ -47,6 +49,7 @@ class ScanWithAquaStage extends Stage {
 
     protected run() {
         String errorMessages = ''
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
 
         // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
@@ -111,9 +114,6 @@ class ScanWithAquaStage extends Stage {
 
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
                 logger.info("AQUA actionableVulnerabilities: " + actionableVulnerabilities)
-                if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
-                    throw new RuntimeException("Remote critical vulnerability found: " + actionableVulnerabilities)
-                }
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
@@ -136,7 +136,8 @@ class ScanWithAquaStage extends Stage {
         }
 
         if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
-            throw new RuntimeException("Remote critical vulnerability found: " + actionableVulnerabilities)
+            util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
+//            throw new RuntimeException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
         notifyAquaProblem(alertEmails, errorMessages)
