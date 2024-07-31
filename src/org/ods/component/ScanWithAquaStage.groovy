@@ -109,6 +109,7 @@ class ScanWithAquaStage extends Stage {
                 logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
 
                 List actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
+                logger.info("AQUA actionableVulnerabilities: " + actionableVulnerabilities)
                 if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
                     throw new RuntimeException("Remote critical vulnerability found: " + actionableVulnerabilities)
                 }
