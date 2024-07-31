@@ -2,6 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.apache.commons.lang3.StringUtils
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -106,6 +107,12 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
                 logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
+
+                List actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
+                if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
+                    throw new RuntimeException("Remote critical vulnerability found: " + actionableVulnerabilities)
+                }
+
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
                 // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
@@ -288,4 +295,18 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
+        List result = []
+        aquaJsonMap.resources.each { it ->
+            (it as Map).vulnerabilities.each { vul ->
+                Map vulnerability = vul as Map
+                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase("remote")
+                    && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase("critical")
+                    && !StringUtils.isEmpty(vulnerability?.solution as String)) {
+                    result.push(vulnerability)
+                }
+            }
+        }
+        return result
+    }
 }

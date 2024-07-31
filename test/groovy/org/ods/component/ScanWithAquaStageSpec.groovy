@@ -964,4 +964,19 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.logger.warn(_)
     }
 
+    def "Filter the vulnerabilities that are critical, remote and have a solution"() {
+        given:
+        def stage = createStage()
+        def aquaJsonFile = new File(getClass().getResource("aqua-test-result.json").toURI())
+        def pipelineSteps = new PipelineSteps()
+
+        when:
+        def aquaJsonAsMap = pipelineSteps.readJSON(text: aquaJsonFile.text) as Map
+        def result = stage.filterRemoteCriticalWithSolutionVulnerabilities(aquaJsonAsMap)
+
+        then:
+        assert result != null
+        assert result.size() == 1
+    }
+
 }
