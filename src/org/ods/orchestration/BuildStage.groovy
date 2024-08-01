@@ -77,6 +77,10 @@ class BuildStage extends Stage {
         // parallels causing arraylist$itr serioalouation errors
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
 
+        //TODO remove these
+        util.failBuild("Test failure")
+        throw new IllegalStateException("Test failure")
+
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
                 // FailFast only if not WIP
