@@ -48,6 +48,10 @@ class DeployStage extends Stage {
             }
         }
 
+        //TODO remove these
+        util.failBuild("Test failure")
+        throw new IllegalStateException("Test failure")
+
         def postExecuteRepo = { steps_, repo ->
             // In case we run the phase on an agent node, we need to make sure that
             // the levaDocScheduler.run is executed on the master node, as it does
