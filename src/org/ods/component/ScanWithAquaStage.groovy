@@ -136,6 +136,7 @@ class ScanWithAquaStage extends Stage {
         }
 
         if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
+            context.addArtifactURI('aquaFailure', 'true')
             util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
             throw new IllegalStateException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
