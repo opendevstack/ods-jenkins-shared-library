@@ -138,6 +138,7 @@ class ScanWithAquaStage extends Stage {
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
+            openShift.deleteImage(imageRef)
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 

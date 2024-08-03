@@ -1439,4 +1439,16 @@ class OpenShiftService {
         extractPodData(podJson)
     }
 
+    String deleteImage(String imageRef) {
+        def script = "oc tag -d ${imageRef}"
+        logger.info("deleteImage for imageRef: " + imageRef)
+        ""
+
+//        def scriptLabel = "Delete image ${imageRef}"
+//        steps.sh(
+//            script: script,
+//            label: scriptLabel,
+//            returnStdout: true
+//        ).toString().trim()
+    }
 }
