@@ -109,6 +109,13 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(jiraMessage)
             }
         }
+        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+        logger.info("aquaCriticalVulnerabilityRepos: " + aquaCriticalVulnerabilityRepos)
+        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+            String aquaFiledMessage = "Aqua critical vulnerability detected"
+            util.failBuild(aquaFiledMessage)
+            throw new IllegalStateException(aquaFiledMessage)
+        }
     }
 
     String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {
@@ -141,6 +148,10 @@ class BuildStage extends Stage {
 
     List filterReposWithTailorFailure(def repos) {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
+    }
+
+    List filterReposWithAquaCriticalVulnerability(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
     }
 
     String buildReposCommaSeparatedString(def tailorFailedRepos) {
