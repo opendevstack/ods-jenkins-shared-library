@@ -112,7 +112,7 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(jiraMessage)
             }
         }
-        def aquaCriticalVulnerabilityRepos = filterReposWithTailorFailure(repos)
+        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
         logger.info("aquaCriticalVulnerabilityRepos: " + aquaCriticalVulnerabilityRepos)
         if (aquaCriticalVulnerabilityRepos?.size() > 0) {
             String aquaFiledMessage = "Aqua critical vulnerability detected"
