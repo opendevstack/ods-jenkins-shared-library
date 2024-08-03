@@ -114,6 +114,8 @@ class ScanWithAquaStage extends Stage {
                 List actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
                 if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
                     context.addArtifactURI('aquaCriticalVulnerability', 'true')
+                    //TODO fix this
+                    util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
                 }
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
@@ -305,7 +307,7 @@ class ScanWithAquaStage extends Stage {
                 Map vulnerability = vul as Map
                 if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase("remote")
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase("critical")
-                    && !StringUtils.isEmpty(vulnerability?.solution as String)) {
+                    && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
                     result.push(vulnerability)
                 }
             }

@@ -90,6 +90,9 @@ class BuildStage extends Stage {
         // failed unit tests as possible
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
+
+        logger.info("Repos: " + repos)
+
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos?.size > 0) {
             def baseErrMsg = "Failing build as repositories contain errors!" +
@@ -110,6 +113,7 @@ class BuildStage extends Stage {
             }
         }
         def aquaCriticalVulnerabilityRepos = filterReposWithTailorFailure(repos)
+        logger.info("aquaCriticalVulnerabilityRepos: " + aquaCriticalVulnerabilityRepos)
         if (aquaCriticalVulnerabilityRepos?.size() > 0) {
             String aquaFiledMessage = "Aqua critical vulnerability detected"
             util.failBuild(aquaFiledMessage)
