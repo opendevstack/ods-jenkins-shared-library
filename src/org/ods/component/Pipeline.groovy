@@ -263,8 +263,6 @@ class Pipeline implements Serializable {
                             setBitbucketBuildStatus('SUCCESSFUL')
                             logger.infoClocked("${context.componentId}", '***** Finished ODS Pipeline *****')
                         }
-                        //TODO fix this
-                        throw new Exception("Test exception")
                         return this
                     } catch (err) {
                         script.stage('odsPipeline error') {
