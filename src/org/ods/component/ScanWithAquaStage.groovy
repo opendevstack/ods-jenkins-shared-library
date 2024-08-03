@@ -4,6 +4,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.services.AquaRemoteCriticalVulnerabilityException
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -105,18 +106,13 @@ class ScanWithAquaStage extends Stage {
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
+        List actionableVulnerabilities = null
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
                 logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
-
-                List actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
-                if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
-                    context.addArtifactURI('aquaCriticalVulnerability', 'true')
-                    //TODO fix this
-                    util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
-                }
+                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
@@ -139,6 +135,14 @@ class ScanWithAquaStage extends Stage {
         }
 
         notifyAquaProblem(alertEmails, errorMessages)
+
+        if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
+            context.addArtifactURI('aquaCriticalVulnerability', 'true')
+            //TODO fix this
+            util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
+            throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
+        }
+
         return
     }
 
