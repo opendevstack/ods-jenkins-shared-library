@@ -137,9 +137,8 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
-            context.addArtifactURI('aquaCriticalVulnerability', 'true')
-            //TODO fix this
-            util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
+            //TODO delete the image
+
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
