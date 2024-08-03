@@ -80,7 +80,7 @@ class BuildStage extends Stage {
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
                 // FailFast only if not WIP
-                group.failFast = !project.isWorkInProgress
+                group.failFast = true //!project.isWorkInProgress
                 script.parallel(group)
             }
 
@@ -94,6 +94,8 @@ class BuildStage extends Stage {
         if (project.hasFailingTests() || failedRepos?.size > 0) {
             def baseErrMsg = "Failing build as repositories contain errors!" +
                 "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
+
+
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
