@@ -105,15 +105,16 @@ class ScanWithAquaStage extends Stage {
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
-        List actionableVulnerabilities = null
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
                 logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
 
-                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
-                logger.info("AQUA actionableVulnerabilities: " + actionableVulnerabilities)
+                List actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
+                if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
+                    context.addArtifactURI('aquaCriticalVulnerability', 'true')
+                }
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
@@ -133,12 +134,6 @@ class ScanWithAquaStage extends Stage {
         } else {
             logger.info("PROBLEMS WITH AQUA")
             createBitbucketCodeInsightReport(errorMessages)
-        }
-
-        if (actionableVulnerabilities?.size() > 0) { // We need to fail the pipeline
-            context.addArtifactURI('aquaFailure', 'true')
-            util.failBuild("Remote critical vulnerability found: " + actionableVulnerabilities)
-            throw new IllegalStateException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
         notifyAquaProblem(alertEmails, errorMessages)

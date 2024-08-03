@@ -91,12 +91,9 @@ class BuildStage extends Stage {
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
-        logger.info("Repos: " + repos)
         if (project.hasFailingTests() || failedRepos?.size > 0) {
             def baseErrMsg = "Failing build as repositories contain errors!" +
                 "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
-
-
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
@@ -111,6 +108,12 @@ class BuildStage extends Stage {
             if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
+        }
+        def aquaCriticalVulnerabilityRepos = filterReposWithTailorFailure(repos)
+        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+            String aquaFiledMessage = "Aqua critical vulnerability detected"
+            util.failBuild(aquaFiledMessage)
+            throw new IllegalStateException(aquaFiledMessage)
         }
     }
 
@@ -144,6 +147,10 @@ class BuildStage extends Stage {
 
     List filterReposWithTailorFailure(def repos) {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
+    }
+
+    List filterReposWithAquaCriticalVulnerability(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
     }
 
     String buildReposCommaSeparatedString(def tailorFailedRepos) {
