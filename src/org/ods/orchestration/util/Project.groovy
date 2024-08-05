@@ -2018,9 +2018,10 @@ class Project {
 
         this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
-        // Resolve repo branch, if not provided
+        // Fail the RM pipeline if the old branch flag is in use
         if (repo.branch?.trim()) {
-            throw new IllegalArgumentException("Deprecated branch field is set")
+            throw new IllegalArgumentException("Deprecated branch field is set in 'metadata.yml' " +
+                "inside Release Manager component for repo '${repo.id}'")
         }
     }
 
