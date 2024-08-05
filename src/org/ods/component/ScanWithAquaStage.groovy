@@ -149,6 +149,7 @@ class ScanWithAquaStage extends Stage {
         // take the image ref of the image that is being build in the image build stage
         Map<String, String> buildInfo =
             context.getBuildArtifactURIs().builds[options.resourceName] as Map<String, String>
+        logger.info("Buildinfo: " + buildInfo)
         if (buildInfo) {
             String imageRef = buildInfo.image
             return imageRef[(imageRef.indexOf("/") + 1)..-1]
