@@ -85,9 +85,9 @@ class InitStage extends Stage {
         logger.debugClocked('Project#load')
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        logger.info("Comparing Jira components against metadata.yml repositories")
         def check = project.getComponentsFromJira()
         if (check) {
+            logger.info("Comparing Jira components against metadata.yml repositories")
             if (check.deployableState != 'DEPLOYABLE') {
                 throw new ComponentMismatchException(check.wikiMessage)
             }
