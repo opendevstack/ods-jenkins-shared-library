@@ -154,6 +154,11 @@ class ScanWithAquaStage extends Stage {
         logger.info("context.getBuildNumber(): " + context.getBuildNumber())
         logger.info("context.getBuildTag(): " + context.getBuildTag())
         logger.info("context.getBuildUrl(): " + context.getBuildUrl())
+        logger.info(" context.getGitCommit(): " +  context.getGitCommit())
+        logger.info(" context.getShortGitCommit(): " +  context.getShortGitCommit())
+        logger.info(" context.getTagversion(): " +  context.getTagversion())
+
+
         if (buildInfo) {
             String imageRef = buildInfo.image
             return imageRef[(imageRef.indexOf("/") + 1)..-1]
