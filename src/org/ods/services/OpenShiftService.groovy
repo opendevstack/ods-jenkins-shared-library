@@ -1441,8 +1441,7 @@ class OpenShiftService {
 
     String deleteImage(String imageNameAndTag) {
         def script = "oc tag -d ${imageNameAndTag}"
-        logger.info("deleteImage for imageRef: " + imageNameAndTag)
-
+        logger.debug("Deleting image with command: " + script)
         def scriptLabel = "Delete image ${imageNameAndTag}"
         steps.sh(
             script: script,
