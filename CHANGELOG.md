@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+* In the release manager pipeline, use the default integration branch for component ([#1144](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1144)) 
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))

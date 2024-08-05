@@ -10,6 +10,7 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.BitbucketService
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.ods.orchestration.phases.FinalizeNonOdsComponent
@@ -232,7 +233,7 @@ class MROPipelineUtil extends PipelineUtil {
     void checkoutNotReleaseManagerRepo(Map repo, boolean recheckout = false) {
         this.logger.startClocked("${repo.id}-scm-checkout")
         def scm = null
-        def scmBranch = repo.branch
+        def scmBranch = ""
         if (this.project.isPromotionMode && repo.include) {
             this.logger.info("Since in promotion mode, checking out tag ${this.project.baseTag}")
             scm = checkoutTagInRepoDir(repo, this.project.baseTag)
@@ -284,9 +285,11 @@ class MROPipelineUtil extends PipelineUtil {
 
     private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
         Map scmResult = [ : ]
+        def bbs = ServiceRegistry.instance.get(BitbucketService)
         String gitReleaseBranch = this.project.gitReleaseBranch
+        repo.defaultBranch = bbs.getDefaultBranch(repo.id)
         if ("master" == gitReleaseBranch) {
-            gitReleaseBranch = repo.branch
+            gitReleaseBranch = repo.defaultBranch
         }
 
         // check if release manager repo already has a release branch
@@ -298,7 +301,7 @@ class MROPipelineUtil extends PipelineUtil {
                 if (! isWorkInProgress) {
                     this.logger.warn """
                                 Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
-                                Attempting to checkout '${repo.branch}' and create the release branch from it.
+                                Attempting to checkout '${repo.defaultBranch}' and create the release branch from it.
                                 """
                     // Possible reasons why this might happen:
                     // * Release branch manually created in RM repo
@@ -310,10 +313,10 @@ class MROPipelineUtil extends PipelineUtil {
                 } else {
                     this.logger.warn """
                                 Checkout of '${gitReleaseBranch}' for repo '${repo.id}' failed.
-                                Attempting to checkout branch '${repo.branch}'.
+                                Attempting to checkout branch '${repo.defaultBranch}'.
                                 """
-                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
-                    scmResult.scmBranch = repo.branch
+                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.defaultBranch)
+                    scmResult.scmBranch = repo.defaultBranch
                 }
             }
         } else {
@@ -321,18 +324,18 @@ class MROPipelineUtil extends PipelineUtil {
                 scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
                 scmResult.scmBranch = gitReleaseBranch
             } else {
-                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.branch} for repo ${repo.id}")
-                scmResult.scm = checkoutBranchInRepoDir(repo, repo.branch)
-                scmResult.scmBranch = repo.branch
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.defaultBranch} for repo ${repo.id}")
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.defaultBranch)
+                scmResult.scmBranch = repo.defaultBranch
             }
         }
         return scmResult
     }
 
     private def createBranchFromDefaultBranch(Map repo, String branchName) {
-        this.logger.info("Creating branch ${branchName} from branch ${repo.branch} for repo ${repo.id} ")
-        def scm = checkoutBranchInRepoDir(repo, repo.branch)
-        if (repo.branch != branchName) {
+        this.logger.info("Creating branch ${branchName} from branch ${repo.defaultBranch} for repo ${repo.id} ")
+        def scm = checkoutBranchInRepoDir(repo, repo.defaultBranch)
+        if (repo.defaultBranch != branchName) {
             steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
                 git.checkoutNewLocalBranch(branchName)
             }

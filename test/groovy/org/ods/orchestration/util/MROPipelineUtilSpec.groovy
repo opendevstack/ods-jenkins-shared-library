@@ -1,5 +1,8 @@
 package org.ods.orchestration.util
 
+import org.ods.services.BitbucketService
+import org.ods.services.ServiceRegistry
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -21,6 +24,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     IPipelineSteps steps
     MROPipelineUtil util
     GitService gitService
+    BitbucketService bitbucketService
     def logger
 
     def setup() {
@@ -28,6 +32,8 @@ class MROPipelineUtilSpec extends SpecHelper {
         steps = Spy(util.PipelineSteps)
         gitService = Mock(GitService)
         logger = Mock(Logger)
+        bitbucketService = Mock(BitbucketService)
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
         util = new MROPipelineUtil(project, steps, gitService, logger)
     }
 
@@ -596,27 +602,29 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenBranchNotExistsAndWIP"() {
         given:
         Map repo = [:]
-        repo.branch = "forTesting"
+        repo.id = "testrepo"
         boolean isWorkInProgress = true
         this.project.gitReleaseBranch = "release/1.0.0"
+        bitbucketService.getDefaultBranch("testrepo") >> "default"
         when:
         util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
         then:
         1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> false
-        1 * gitService.checkout("*/${repo.branch}", _, _)
+        1 * gitService.checkout("*/default", _, _)
     }
 
     def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenBranchNotExistsAndNotWIP"() {
         given:
         Map repo = [:]
-        repo.branch = "forTesting"
+        repo.id = "testrepo"
         boolean isWorkInProgress = false
         this.project.gitReleaseBranch = "release/1.0.0"
+        bitbucketService.getDefaultBranch("testrepo") >> "default"
         when:
         util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
         then:
         1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> false
-        1 * gitService.checkout("*/${repo.branch}", _, _)
+        1 * gitService.checkout("*/default", _, _)
         1 * gitService.checkoutNewLocalBranch("${this.project.gitReleaseBranch}")
     }
 

@@ -140,17 +140,17 @@ Please follow these steps to resolve and restart your deployment:
         given:
         project.data.buildParams.version = testVersion
         def testRepos = [
-            [id       : "golang", branch: "master", type: "ods",
+            [id       : "golang", defaultBranch: "master", type: "ods",
              data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
                                        documents: [:]],
                          failedStage: "odsPipeline error"],
              doInstall: true],
-            [id       : "other", branch: "master", type: "ods",
+            [id       : "other", defaultBranch: "master", type: "ods",
              data     : [openshift  : [builds   : [], deployments: [:],
                                        documents: [:]],
                          failedStage: "odsPipeline error"],
              doInstall: true],
-            [id       : "third", branch: "master", type: "ods",
+            [id       : "third", defaultBranch: "master", type: "ods",
              data     : [openshift  : [builds   : [], deployments: [:], tailorFailure: true,
                                        documents: [:]],
                          failedStage: "odsPipeline error"],
