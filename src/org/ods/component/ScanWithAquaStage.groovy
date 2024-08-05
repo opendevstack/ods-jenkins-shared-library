@@ -138,30 +138,20 @@ class ScanWithAquaStage extends Stage {
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
-            openShift.deleteImage(imageRef)
+            String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
+            logger.info("Delete image response: " + response)
+
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
         return
     }
 
+
     private String getImageRef() {
         // take the image ref of the image that is being build in the image build stage
         Map<String, String> buildInfo =
             context.getBuildArtifactURIs().builds[options.resourceName] as Map<String, String>
-
-        logger.info("Buildinfo: " + buildInfo)
-        logger.info("context.getBuildNumber(): " + context.getBuildNumber())
-        logger.info("context.getBuildTag(): " + context.getBuildTag())
-        logger.info("context.getBuildUrl(): " + context.getBuildUrl())
-        logger.info(" context.getGitCommit(): " +  context.getGitCommit())
-        logger.info(" context.getShortGitCommit(): " +  context.getShortGitCommit())
-        logger.info(" context.getTagversion(): " +  context.getTagversion())
-        logger.info(" context.getBuildArtifactURIs(): " +  context.getBuildArtifactURIs())
-        logger.info(" context.getComponentId(): " +  context.getComponentId())
-        logger.info(" context.getProjectId(): " +  context.getProjectId())
-
-
         if (buildInfo) {
             String imageRef = buildInfo.image
             return imageRef[(imageRef.indexOf("/") + 1)..-1]
