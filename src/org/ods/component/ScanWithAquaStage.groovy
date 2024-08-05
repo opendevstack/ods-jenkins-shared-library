@@ -147,7 +147,6 @@ class ScanWithAquaStage extends Stage {
         return
     }
 
-
     private String getImageRef() {
         // take the image ref of the image that is being build in the image build stage
         Map<String, String> buildInfo =
