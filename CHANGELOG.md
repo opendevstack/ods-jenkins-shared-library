@@ -4,6 +4,7 @@
 * Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
 
 ### Added
+* In the release manager pipeline, use the default integration branch for component ([#1144](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1144)) 
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))

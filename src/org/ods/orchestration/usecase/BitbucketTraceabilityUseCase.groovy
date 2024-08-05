@@ -96,7 +96,8 @@ class BitbucketTraceabilityUseCase {
         int reposSize = repos.size()
         for (def i = 0; i < reposSize; i++) {
             def repository = repos[i]
-            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
+            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}",
+                       defaultBranch: repository.defaultBranch]
         }
         return result
     }

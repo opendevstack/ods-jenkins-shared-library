@@ -1499,7 +1499,6 @@ class ProjectSpec extends SpecHelper {
         // Verify annotations to the metadata.yml file are made
         def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
-            repo.branch = "master"
             repo.include = true
             repo.data = [ documents: [:], openshift: [:] ]
             repo.url = "https://github.com/my-org/net-${repo.id}.git"

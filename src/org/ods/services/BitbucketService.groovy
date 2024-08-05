@@ -319,6 +319,44 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    @SuppressWarnings('LineLength')
+    String getDefaultBranch(String repo) {
+        logger.debugClocked("defaultbranch-${project}-${repo}")
+        String displayId = ""
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            while (retries++ < maxAttempts) {
+                try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
+                    def res = script.sh(
+                        returnStdout: true,
+                        label: 'Get bitbucket repo default branch via API',
+                        script: """curl \\
+                                --fail \\
+                                -sS \\
+                                --request GET \\
+                                --header ${authHeader} \\
+                                ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${project}-${repo}/branches/default"""
+                    ).trim()
+                    try {
+                        // call readJSON inside of withCredentials block,
+                        // otherwise token will be displayed in output
+                        def js = script.readJSON(text: res)
+                        displayId = js['displayId']
+                        return displayId
+                    } catch (Exception ex) {
+                        logger.warn "Could not understand API response. Error was: ${ex}"
+                    }
+                } catch (err) {
+                    logger.warn("Could not get Bitbucket repo '${project}-${repo}' default branch due to: ${err}")
+                }
+            }
+        }
+        logger.debugClocked("defaultbranch-${project}-${project}-${repo}")
+        return displayId
+    }
+
     /**
      * Creates a code insight report in bitbucket via API.
      * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
