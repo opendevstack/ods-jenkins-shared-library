@@ -157,6 +157,9 @@ class ScanWithAquaStage extends Stage {
         logger.info(" context.getGitCommit(): " +  context.getGitCommit())
         logger.info(" context.getShortGitCommit(): " +  context.getShortGitCommit())
         logger.info(" context.getTagversion(): " +  context.getTagversion())
+        logger.info(" context.getBuildArtifactURIs(): " +  context.getBuildArtifactURIs())
+        logger.info(" context.getComponentId(): " +  context.getComponentId())
+        logger.info(" context.getProjectId(): " +  context.getProjectId())
 
 
         if (buildInfo) {
