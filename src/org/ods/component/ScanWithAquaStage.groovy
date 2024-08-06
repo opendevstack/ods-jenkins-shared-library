@@ -49,8 +49,11 @@ class ScanWithAquaStage extends Stage {
     }
 
     protected run() {
-        String errorMessages = ''
-        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        String errorMessages = 'test message'
+
+        //TODO remove this
+        notifyAquaProblem("", errorMessages)
+        return
 
         // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
@@ -131,6 +134,7 @@ class ScanWithAquaStage extends Stage {
             }
         } else {
             logger.info("PROBLEMS WITH AQUA")
+            errorMessages += "<li>There were problems with Aqua service, scan response code received: ${returnCode}</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
 
@@ -302,8 +306,12 @@ class ScanWithAquaStage extends Stage {
                 replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
                 to: recipients
             )
+            logger.info("Recipients: " + recipients + ", set build unstable.")
+            this.steps.currentBuild.result = 'UNSTABLE'
         }
     }
+
+
 
     private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
         List result = []
