@@ -51,10 +51,6 @@ class ScanWithAquaStage extends Stage {
     protected run() {
         String errorMessages = 'test message'
 
-        //TODO remove this
-        notifyAquaProblem("", errorMessages)
-        return
-
         // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
         if (!alertEmails) {
@@ -306,7 +302,6 @@ class ScanWithAquaStage extends Stage {
                 replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
                 to: recipients
             )
-            logger.info("Recipients: " + recipients + ", set build unstable.")
             this.steps.currentBuild.result = 'UNSTABLE'
         }
     }
