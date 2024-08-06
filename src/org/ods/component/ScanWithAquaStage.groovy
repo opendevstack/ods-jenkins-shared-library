@@ -49,8 +49,7 @@ class ScanWithAquaStage extends Stage {
     }
 
     protected run() {
-        String errorMessages = 'test message'
-
+        String errorMessages = ''
         // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
         if (!alertEmails) {
