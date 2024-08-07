@@ -139,7 +139,7 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            createBitbucketCodeInsightReport("Test BB message")
+            createBitbucketBlockingCodeInsightReport()
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
@@ -221,9 +221,31 @@ class ScanWithAquaStage extends Stage {
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
+    private createBitbucketBlockingCodeInsightReport() {
+        String title = "Aqua Security"
+        String details = "There are Aqua security critical vulnerabilities with available solutions that should be fixed"
+
+        String result = "FAIL"
+
+        def data = [
+            key: BITBUCKET_AQUA_REPORT_KEY,
+            title: title,
+            messages: [
+                [
+                    title: "Blocking",
+                    value: "Yes"
+                ]
+            ],
+            details: details,
+            result: result,
+        ]
+
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
+    }
+
     private createBitbucketCodeInsightReport(String messages) {
         String title = "Aqua Security"
-        String details = "There was some problems with Aqua:"
+        String details = "There were some problems with Aqua"
 
         String result = "FAIL"
 
