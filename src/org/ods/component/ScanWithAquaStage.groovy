@@ -109,7 +109,7 @@ class ScanWithAquaStage extends Stage {
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
-                logger.info("AQUA JSON result: " + steps.readFile(file: jsonFile) as String)
+
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
@@ -138,8 +138,8 @@ class ScanWithAquaStage extends Stage {
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
+            logger.debug("Delete image response: " + response)
             createBitbucketCodeInsightReport("Test BB message")
-            logger.info("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
