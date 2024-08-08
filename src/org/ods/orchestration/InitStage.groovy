@@ -85,11 +85,11 @@ class InitStage extends Stage {
         logger.debugClocked('Project#load')
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        logger.info("Comparing Jira components against metadata.yml repositories")
         def check = project.getComponentsFromJira()
         if (check) {
+            logger.info("Comparing Jira components against metadata.yml repositories")
             if (check.deployableState != 'DEPLOYABLE') {
-                throw new ComponentMismatchException(check.message)
+                throw new ComponentMismatchException(check.wikiMessage)
             }
             logger.info("Jira components found: $check")
 
@@ -257,7 +257,8 @@ class InitStage extends Stage {
             addJiraToRegistry(registry)
         }
 
-        registry.add(NexusService, NexusService.newFromEnv(script.env))
+        registry.add(NexusService, NexusService.newFromEnv(script.env, steps,
+            project.services.bitbucket.credentials.id))
         registry.add(OpenShiftService,
             new OpenShiftService(
                 registry.get(PipelineSteps),

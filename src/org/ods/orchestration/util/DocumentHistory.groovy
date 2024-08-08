@@ -333,7 +333,7 @@ class DocumentHistory {
             return ''
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
-            return " This document version invalidates the changes done in document version${pluralS} " +
+            return " This document version invalidates the previous document version${pluralS} " +
                 "'${currentEntry.getProjectVersion()}/" +
                 "${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
         }
