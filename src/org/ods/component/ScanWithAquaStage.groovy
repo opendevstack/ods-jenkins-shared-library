@@ -121,14 +121,13 @@ class ScanWithAquaStage extends Stage {
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
                 createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
-                    registry, imageRef, errorCodes.sum() as int, errorMessages)
+                    registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
                 errorMessages += "<li>Error archiving Aqua reports</li>"
             }
         } else {
-            logger.info("PROBLEMS WITH AQUA")
             errorMessages += "<li>There were problems with Aqua service, scan response code received: ${returnCode}</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
@@ -139,7 +138,6 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            createBitbucketBlockingCodeInsightReport()
             throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
         }
 
@@ -184,7 +182,8 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
-                                             String registry, String imageRef, int returnCode, String messages) {
+                                             String registry, String imageRef, int returnCode, String messages,
+                                                List actionableVulnerabilities) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following links to review the Aqua Security scan report:"
@@ -217,28 +216,21 @@ class ScanWithAquaStage extends Stage {
                 [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
             ])
         }
-
-        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
-    }
-
-    private createBitbucketBlockingCodeInsightReport() {
-        String title = "Aqua Security"
-        String details = "There are Aqua security critical vulnerabilities with available solutions that should be fixed"
-
-        String result = "FAIL"
-
-        def data = [
-            key: BITBUCKET_AQUA_REPORT_KEY,
-            title: title,
-            messages: [
-                [
+        if (actionableVulnerabilities?.size() > 0) {
+            if (data.messages) {
+                ((List) data.messages).add([
                     title: "Blocking",
                     value: "Yes"
-                ]
-            ],
-            details: details,
-            result: result,
-        ]
+                ])
+            } else {
+                data.put("messages", [
+                    [
+                        title: "Blocking",
+                        value: "Yes"
+                    ]
+                ])
+            }
+        }
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }

@@ -109,8 +109,7 @@ def call(IContext context, Map config = [:]) {
                 "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         }
     } catch (AquaRemoteCriticalVulnerabilityException e) {
-        //TODO fix this
-        logger.error("odsComponentStageScanWithAqua error: " + e.getMessage())
+        logger.warn("Aqua scan error: " + e.getMessage())
         throw e
     } catch (err) {
         logger.warn("Error with Aqua due to: ${err}")
