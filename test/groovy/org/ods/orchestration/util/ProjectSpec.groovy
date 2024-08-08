@@ -1499,7 +1499,6 @@ class ProjectSpec extends SpecHelper {
         // Verify annotations to the metadata.yml file are made
         def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
-            repo.branch = "master"
             repo.include = true
             repo.data = [ documents: [:], openshift: [:] ]
             repo.url = "https://github.com/my-org/net-${repo.id}.git"
@@ -3253,6 +3252,24 @@ class ProjectSpec extends SpecHelper {
 
         then:
         !result
+    }
+
+    def "check hasGivenTypes"() {
+        given:
+        def projectObj = new Project(steps, logger)
+
+        when:
+        def resulFromExecution = projectObj.hasGivenTypes(testTypes, testIssue)
+
+        then:
+        result == resulFromExecution
+
+        where:
+        testTypes                                               |   testIssue                   |   result
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: 'Unit']          |   true
+        ['Integration', 'Installation', 'Acceptance']           |   [testType: 'Unit']          |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: null]            |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [:]                         |   false
     }
 
 }
