@@ -1,0 +1,1746 @@
+{
+    "image": "tcvedp-cd/springbootaquafail@sha256:12b5736830442cfae16e5571ac374b6c44372fbbe2ab1a056f635987ecd8ae9a",
+    "registry": "us-test",
+    "scan_started": {
+        "seconds": 1722343503,
+        "nanos": 802230513
+    },
+    "scan_duration": 3,
+    "digest": "sha256:dde5494f0b3204ab211764df7b131c5ffad557c97ecb4d528530618141b506bc",
+    "metadata": {
+        "repo_digests": [
+            "tcvedp-cd/springbootaquafail@sha256:12b5736830442cfae16e5571ac374b6c44372fbbe2ab1a056f635987ecd8ae9a"
+        ]
+    },
+    "os": "redhat",
+    "version": "9.4",
+    "resources": [
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "avahi-libs",
+                "version": "0.8-20.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:avahi-libs:0.8-20.el9",
+                "license": "LGPLv2+",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "avahi",
+                "src_version": "0.8"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-36217",
+                    "type": "vulnerability",
+                    "description": "Rejected reason: DO NOT USE THIS CANDIDATE NUMBER. ConsultIDs: CVE-2021-3502. Reason: This candidate is a duplicate of CVE-2021-3502. Notes: All CVE users should reference CVE-2021-3502 instead of this candidate. All references and descriptions in this candidate have been removed to prevent accidental usage",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2021-36217",
+                    "publish_date": "2021-07-07",
+                    "modification_date": "2023-11-07",
+                    "vendor_score_v3": 6.2,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 6.2,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "avahi",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.2",
+                    "vendor_publish_date": "2021-07-07"
+                },
+                {
+                    "name": "CVE-2017-6519",
+                    "type": "vulnerability",
+                    "description": "avahi-daemon in Avahi through 0.6.32 and 0.7 inadvertently responds to IPv6 unicast queries with source addresses that are not on-link, which allows remote attackers to cause a denial of service (traffic amplification) and may cause information leakage by obtaining potentially sensitive  information from the responding device via port-5353 UDP packets.  NOTE: this may overlap CVE-2015-2809.",
+                    "nvd_score": 6.4,
+                    "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:P",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2017-6519",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2017-6519",
+                    "publish_date": "2017-05-01",
+                    "modification_date": "2023-11-07",
+                    "nvd_score_v3": 9.1,
+                    "nvd_vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 5.8,
+                    "vendor_vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:N/I:N/A:L",
+                    "aqua_score": 5.8,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:N/I:N/A:L",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "avahi",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.8",
+                    "vendor_publish_date": "2015-03-31",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-346",
+                            "name": "Origin Validation Error"
+                        }
+                    ],
+                    "epss_score": 0.04769,
+                    "epss_percentile": 0.91904,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "ca-certificates",
+                "version": "2023.2.60_v7.0.306-90.1.el9_2",
+                "arch": "noarch",
+                "cpe": "pkg:/rhel:9.4:ca-certificates:2023.2.60_v7.0.306-90.1.el9_2",
+                "license": "Public Domain",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "ca-certificates",
+                "src_version": "2023.2.60_v7.0.306"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2023-37920",
+                    "type": "vulnerability",
+                    "description": "Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi prior to version 2023.07.22 recognizes \"e-Tugra\" root certificates. e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems. Certifi 2023.07.22 removes root certificates from \"e-Tugra\" from the root store.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-37920",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-37920",
+                    "publish_date": "2023-07-25",
+                    "modification_date": "2023-08-12",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 9.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+                    "aqua_score": 9.1,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 9.1",
+                    "vendor_publish_date": "2023-07-25",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-345",
+                            "name": "Insufficient Verification of Data Authenticity"
+                        }
+                    ],
+                    "epss_score": 0.00059,
+                    "epss_percentile": 0.22793,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "curl-minimal",
+                "version": "7.76.1-29.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:curl-minimal:7.76.1-29.el9_4",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "curl",
+                "src_version": "7.76.1"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-2398",
+                    "type": "vulnerability",
+                    "description": "When an application tells libcurl it wants to allow HTTP/2 server push, and the amount of received headers for the push surpasses the maximum allowed limit (1000), libcurl aborts the server push. When aborting, libcurl inadvertently does not free all the previously allocated headers and instead leaks the memory.  Further, this error condition fails silently and is therefore not easily detected by an application.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-2398",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-2398",
+                    "publish_date": "2024-03-27",
+                    "modification_date": "2024-07-29",
+                    "nvd_score_v3": 8.6,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+                    "nvd_severity_v3": "high",
+                    "vendor_score_v3": 7.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_score": 7.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "curl",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 7.5",
+                    "vendor_publish_date": "2024-03-27"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "glib2",
+                "version": "2.68.4-14.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:glib2:2.68.4-14.el9",
+                "license": "LGPLv2+",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "glib2",
+                "src_version": "2.68.4"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-34397",
+                    "type": "vulnerability",
+                    "description": "An issue was discovered in GNOME GLib before 2.78.5, and 2.79.x and 2.80.x before 2.80.1. When a GDBus-based client subscribes to signals from a trusted system service such as NetworkManager on a shared computer, other users of the same computer can send spoofed D-Bus signals that the GDBus-based client will wrongly interpret as having been sent by the trusted system service. This could lead to the GDBus-based client behaving incorrectly, with an application-dependent impact.",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-34397",
+                    "publish_date": "2024-05-07",
+                    "modification_date": "2024-06-10",
+                    "vendor_score_v3": 3.8,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:N/I:L/A:N",
+                    "aqua_score": 3.8,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:N/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.8",
+                    "vendor_publish_date": "2024-05-07"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "java-21-openjdk",
+                "version": "1:21.0.4.0.7-1.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:java-21-openjdk:1:21.0.4.0.7-1.el9",
+                "license": "ASL 1.1 and ASL 2.0 and BSD and BSD with advertising and GPL+ and GPLv2 and GPLv2 with exceptions and IJG and LGPLv2+ and MIT and MPLv2.0 and Public Domain and W3C and zlib and ISC and FTL and RSA",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "java-21-openjdk",
+                "src_version": "21.0.4.0.7"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-21094",
+                    "type": "vulnerability",
+                    "description": "Vulnerability in the Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition product of Oracle Java SE (component: Hotspot).  Supported versions that are affected are Oracle Java SE: 8u401, 8u401-perf, 11.0.22, 17.0.10, 21.0.2, 22; Oracle GraalVM for JDK: 17.0.10, 21.0.2, 22; Oracle GraalVM Enterprise Edition: 20.3.13 and  21.3.9. Difficult to exploit vulnerability allows unauthenticated attacker with network access via multiple protocols to compromise Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition.  Successful attacks of this vulnerability can result in  unauthorized update, insert or delete access to some of Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition accessible data. Note: This vulnerability can be exploited by using APIs in the specified Component, e.g., through a web service which supplies data to the APIs. This vulnerability also applies to Java deployments, typically in clients running sandboxed Java Web Start applications or sandboxed Java applets, that load and run untrusted code (e.g., code that comes from the internet) and rely on the Java sandbox for security. CVSS 3.1 Base Score 3.7 (Integrity impacts).  CVSS Vector: (CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N).",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-21094",
+                    "publish_date": "2024-04-16",
+                    "modification_date": "2024-07-03",
+                    "vendor_score_v3": 3.7,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_score": 3.7,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.7",
+                    "vendor_publish_date": "2024-04-16",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-349",
+                            "name": "Acceptance of Extraneous Untrusted Data With Trusted Data"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "java-21-openjdk-devel",
+                "version": "1:21.0.4.0.7-1.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:java-21-openjdk-devel:1:21.0.4.0.7-1.el9",
+                "license": "ASL 1.1 and ASL 2.0 and BSD and BSD with advertising and GPL+ and GPLv2 and GPLv2 with exceptions and IJG and LGPLv2+ and MIT and MPLv2.0 and Public Domain and W3C and zlib and ISC and FTL and RSA",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "java-21-openjdk",
+                "src_version": "21.0.4.0.7"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-21094",
+                    "type": "vulnerability",
+                    "description": "Vulnerability in the Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition product of Oracle Java SE (component: Hotspot).  Supported versions that are affected are Oracle Java SE: 8u401, 8u401-perf, 11.0.22, 17.0.10, 21.0.2, 22; Oracle GraalVM for JDK: 17.0.10, 21.0.2, 22; Oracle GraalVM Enterprise Edition: 20.3.13 and  21.3.9. Difficult to exploit vulnerability allows unauthenticated attacker with network access via multiple protocols to compromise Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition.  Successful attacks of this vulnerability can result in  unauthorized update, insert or delete access to some of Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition accessible data. Note: This vulnerability can be exploited by using APIs in the specified Component, e.g., through a web service which supplies data to the APIs. This vulnerability also applies to Java deployments, typically in clients running sandboxed Java Web Start applications or sandboxed Java applets, that load and run untrusted code (e.g., code that comes from the internet) and rely on the Java sandbox for security. CVSS 3.1 Base Score 3.7 (Integrity impacts).  CVSS Vector: (CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N).",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-21094",
+                    "publish_date": "2024-04-16",
+                    "modification_date": "2024-07-03",
+                    "vendor_score_v3": 3.7,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_score": 3.7,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "java-21-openjdk",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.7",
+                    "vendor_publish_date": "2024-04-16",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-349",
+                            "name": "Acceptance of Extraneous Untrusted Data With Trusted Data"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "java-21-openjdk-headless",
+                "version": "1:21.0.4.0.7-1.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:java-21-openjdk-headless:1:21.0.4.0.7-1.el9",
+                "license": "ASL 1.1 and ASL 2.0 and BSD and BSD with advertising and GPL+ and GPLv2 and GPLv2 with exceptions and IJG and LGPLv2+ and MIT and MPLv2.0 and Public Domain and W3C and zlib and ISC and FTL and RSA",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "java-21-openjdk",
+                "src_version": "21.0.4.0.7"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-21094",
+                    "type": "vulnerability",
+                    "description": "Vulnerability in the Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition product of Oracle Java SE (component: Hotspot).  Supported versions that are affected are Oracle Java SE: 8u401, 8u401-perf, 11.0.22, 17.0.10, 21.0.2, 22; Oracle GraalVM for JDK: 17.0.10, 21.0.2, 22; Oracle GraalVM Enterprise Edition: 20.3.13 and  21.3.9. Difficult to exploit vulnerability allows unauthenticated attacker with network access via multiple protocols to compromise Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition.  Successful attacks of this vulnerability can result in  unauthorized update, insert or delete access to some of Oracle Java SE, Oracle GraalVM for JDK, Oracle GraalVM Enterprise Edition accessible data. Note: This vulnerability can be exploited by using APIs in the specified Component, e.g., through a web service which supplies data to the APIs. This vulnerability also applies to Java deployments, typically in clients running sandboxed Java Web Start applications or sandboxed Java applets, that load and run untrusted code (e.g., code that comes from the internet) and rely on the Java sandbox for security. CVSS 3.1 Base Score 3.7 (Integrity impacts).  CVSS Vector: (CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N).",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-21094",
+                    "publish_date": "2024-04-16",
+                    "modification_date": "2024-07-03",
+                    "vendor_score_v3": 3.7,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_score": 3.7,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "java-21-openjdk",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.7",
+                    "vendor_publish_date": "2024-04-16",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-349",
+                            "name": "Acceptance of Extraneous Untrusted Data With Trusted Data"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "krb5-libs",
+                "version": "1.21.1-1.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:krb5-libs:1.21.1-1.el9",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "krb5",
+                "src_version": "1.21.1"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-26462",
+                    "type": "vulnerability",
+                    "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/kdc/ndr.c.",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-26462",
+                    "publish_date": "2024-02-29",
+                    "modification_date": "2024-05-14",
+                    "vendor_score_v3": 7.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 7.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "krb5",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 7.5",
+                    "vendor_publish_date": "2024-02-28"
+                },
+                {
+                    "name": "CVE-2024-37370",
+                    "type": "vulnerability",
+                    "description": "In MIT Kerberos 5 (aka krb5) before 1.21.3, an attacker can modify the plaintext Extra Count field of a confidential GSS krb5 wrap token, causing the unwrapped token to appear truncated to the application.",
+                    "vendor_severity": "moderate",
+                    "publish_date": "2024-06-28",
+                    "modification_date": "2024-07-01",
+                    "aqua_severity": "medium",
+                    "ancestor_pkg": "krb5",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "vendor_publish_date": "2024-06-27"
+                },
+                {
+                    "name": "CVE-2024-37371",
+                    "type": "vulnerability",
+                    "description": "In MIT Kerberos 5 (aka krb5) before 1.21.3, an attacker can cause invalid memory reads during GSS message token handling by sending message tokens with invalid length fields.",
+                    "vendor_severity": "moderate",
+                    "publish_date": "2024-06-28",
+                    "modification_date": "2024-07-01",
+                    "aqua_severity": "medium",
+                    "ancestor_pkg": "krb5",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "vendor_publish_date": "2024-06-27"
+                },
+                {
+                    "name": "CVE-2024-26458",
+                    "type": "vulnerability",
+                    "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak in /krb5/src/lib/rpc/pmap_rmt.c.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-26458",
+                    "publish_date": "2024-02-29",
+                    "modification_date": "2024-05-14",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "krb5",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2024-02-28"
+                },
+                {
+                    "name": "CVE-2024-26461",
+                    "type": "vulnerability",
+                    "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/lib/gssapi/krb5/k5sealv3.c.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-26461",
+                    "publish_date": "2024-02-29",
+                    "modification_date": "2024-05-14",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "krb5",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2024-02-28"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "libcurl-minimal",
+                "version": "7.76.1-29.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:libcurl-minimal:7.76.1-29.el9_4",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "curl",
+                "src_version": "7.76.1"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-2398",
+                    "type": "vulnerability",
+                    "description": "When an application tells libcurl it wants to allow HTTP/2 server push, and the amount of received headers for the push surpasses the maximum allowed limit (1000), libcurl aborts the server push. When aborting, libcurl inadvertently does not free all the previously allocated headers and instead leaks the memory.  Further, this error condition fails silently and is therefore not easily detected by an application.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-2398",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-2398",
+                    "publish_date": "2024-03-27",
+                    "modification_date": "2024-07-29",
+                    "nvd_score_v3": 8.6,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+                    "nvd_severity_v3": "high",
+                    "vendor_score_v3": 7.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_score": 7.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "curl",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 7.5",
+                    "vendor_publish_date": "2024-03-27"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "libgcrypt",
+                "version": "1.10.0-10.el9_2",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:libgcrypt:1.10.0-10.el9_2",
+                "license": "LGPLv2+",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "libgcrypt",
+                "src_version": "1.10.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-2236",
+                    "type": "vulnerability",
+                    "description": "A timing-based side-channel flaw was found in libgcrypt's RSA implementation. This issue may allow a remote attacker to initiate a Bleichenbacher-style attack, which can lead to the decryption of RSA ciphertexts.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-2236",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-2236",
+                    "publish_date": "2024-03-06",
+                    "modification_date": "2024-04-25",
+                    "nvd_score_v3": 5.9,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2024-03-06",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-208",
+                            "name": "Observable Timing Discrepancy"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "libxml2",
+                "version": "2.9.13-6.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:libxml2:2.9.13-6.el9_4",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "libxml2",
+                "src_version": "2.9.13"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-34459",
+                    "type": "vulnerability",
+                    "description": "An issue was discovered in xmllint (from libxml2) before 2.11.8 and 2.12.x before 2.12.7. Formatting error messages with xmllint --htmlout can result in a buffer over-read in xmlHTMLPrintFileContext in xmllint.c.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-34459",
+                    "publish_date": "2024-05-14",
+                    "modification_date": "2024-06-10",
+                    "vendor_score_v3": 5.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                    "aqua_score": 5.5,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.5",
+                    "vendor_publish_date": "2024-05-08"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "libyaml",
+                "version": "0.2.5-7.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:libyaml:0.2.5-7.el9",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "libyaml",
+                "src_version": "0.2.5"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-35325",
+                    "type": "vulnerability",
+                    "description": "A vulnerability was found in libyaml up to 0.2.5. Affected by this issue is the function yaml_event_delete of the file /src/libyaml/src/api.c. The manipulation leads to a double-free.",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-35325",
+                    "publish_date": "2024-06-13",
+                    "modification_date": "2024-06-13",
+                    "vendor_score_v3": 6.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 6.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.5",
+                    "vendor_publish_date": "2024-06-13"
+                },
+                {
+                    "name": "CVE-2024-35326",
+                    "type": "vulnerability",
+                    "description": "libyaml v0.2.5 is vulnerable to Buffer Overflow. Affected by this issue is the function yaml_emitter_emit of the file /src/libyaml/src/emitter.c. The manipulation leads to a double-free.",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-35326",
+                    "publish_date": "2024-06-13",
+                    "modification_date": "2024-06-13",
+                    "vendor_score_v3": 6.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 6.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.5",
+                    "vendor_publish_date": "2024-06-13"
+                },
+                {
+                    "name": "CVE-2024-35328",
+                    "type": "vulnerability",
+                    "description": "libyaml v0.2.5 is vulnerable to DDOS. Affected by this issue is the function yaml_parser_parse of the file /src/libyaml/src/parser.c.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-35328",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-35328",
+                    "publish_date": "2024-06-13",
+                    "modification_date": "2024-07-19",
+                    "nvd_score_v3": 7.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "high",
+                    "vendor_score_v3": 7.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 7.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 7.5",
+                    "vendor_publish_date": "2024-06-13",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-835",
+                            "name": "Loop with Unreachable Exit Condition ('Infinite Loop')"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "ncurses-base",
+                "version": "6.2-10.20210508.el9",
+                "arch": "noarch",
+                "cpe": "pkg:/rhel:9.4:ncurses-base:6.2-10.20210508.el9",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "ncurses",
+                "src_version": "6.2"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2023-45918",
+                    "type": "vulnerability",
+                    "description": "ncurses 6.4-20230610 has a NULL pointer dereference in tgetstr in tinfo/lib_termcap.c.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-45918",
+                    "publish_date": "2024-02-16",
+                    "modification_date": "2024-03-15",
+                    "vendor_score_v3": 3.3,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
+                    "aqua_score": 3.3,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "ncurses",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.3",
+                    "vendor_publish_date": "2024-01-26"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "ncurses-libs",
+                "version": "6.2-10.20210508.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:ncurses-libs:6.2-10.20210508.el9",
+                "license": "MIT",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "ncurses",
+                "src_version": "6.2"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2023-45918",
+                    "type": "vulnerability",
+                    "description": "ncurses 6.4-20230610 has a NULL pointer dereference in tgetstr in tinfo/lib_termcap.c.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-45918",
+                    "publish_date": "2024-02-16",
+                    "modification_date": "2024-03-15",
+                    "vendor_score_v3": 3.3,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
+                    "aqua_score": 3.3,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "ncurses",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 3.3",
+                    "vendor_publish_date": "2024-01-26"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nspr",
+                "version": "4.35.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nspr:4.35.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "nss",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nss",
+                "version": "3.90.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nss:3.90.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nss-softokn",
+                "version": "3.90.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nss-softokn:3.90.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "nss",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nss-softokn-freebl",
+                "version": "3.90.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nss-softokn-freebl:3.90.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "nss",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nss-sysinit",
+                "version": "3.90.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nss-sysinit:3.90.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "nss",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "nss-util",
+                "version": "3.90.0-7.el9_4",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:nss-util:3.90.0-7.el9_4",
+                "license": "MPLv2.0",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "nss",
+                "src_version": "3.90.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6602",
+                    "type": "vulnerability",
+                    "description": "A mismatch between allocator and deallocator could have lead to memory corruption. This vulnerability affects Firefox \u003c 128, Firefox ESR \u003c 115.13, Thunderbird \u003c 115.13, and Thunderbird \u003c 128.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6602",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6602",
+                    "publish_date": "2024-07-09",
+                    "modification_date": "2024-07-16",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "vendor_score_v3": 6.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_score": 6.1,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "nss",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.1",
+                    "vendor_publish_date": "2024-07-09"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "openldap",
+                "version": "2.6.6-3.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:openldap:2.6.6-3.el9",
+                "license": "OLDAP-2.8",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "openldap",
+                "src_version": "2.6.6"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2023-2953",
+                    "type": "vulnerability",
+                    "description": "A vulnerability was found in openldap. This security flaw causes a null pointer dereference in ber_memalloc_x() function.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-2953",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-2953",
+                    "publish_date": "2023-05-30",
+                    "modification_date": "2023-08-02",
+                    "nvd_score_v3": 7.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "high",
+                    "vendor_score_v3": 7.1,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_score": 7.1,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 7.1",
+                    "vendor_publish_date": "2023-05-29",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-476",
+                            "name": "NULL Pointer Dereference"
+                        }
+                    ],
+                    "epss_score": 0.00407,
+                    "epss_percentile": 0.71133,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "openssl-libs",
+                "version": "1:3.0.7-27.el9",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:openssl-libs:1:3.0.7-27.el9",
+                "license": "ASL 2.0",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "openssl",
+                "src_version": "3.0.7"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2023-6129",
+                    "type": "vulnerability",
+                    "description": "Issue summary: The POLY1305 MAC (message authentication code) implementation\ncontains a bug that might corrupt the internal state of applications running\non PowerPC CPU based platforms if the CPU provides vector instructions.\n\nImpact summary: If an attacker can influence whether the POLY1305 MAC\nalgorithm is used, the application state might be corrupted with various\napplication dependent consequences.\n\nThe POLY1305 MAC (message authentication code) implementation in OpenSSL for\nPowerPC CPUs restores the contents of vector registers in a different order\nthan they are saved. Thus the contents of some of these vector registers\nare corrupted when returning to the caller. The vulnerable code is used only\non newer PowerPC processors supporting the PowerISA 2.07 instructions.\n\nThe consequences of this kind of internal application state corruption can\nbe various - from no consequences, if the calling application does not\ndepend on the contents of non-volatile XMM registers at all, to the worst\nconsequences, where the attacker could get complete control of the application\nprocess. However unless the compiler uses the vector registers for storing\npointers, the most likely consequence, if any, would be an incorrect result\nof some application dependent calculations or a crash leading to a denial of\nservice.\n\nThe POLY1305 MAC algorithm is most frequently used as part of the\nCHACHA20-POLY1305 AEAD (authenticated encryption with associated data)\nalgorithm. The most common usage of this AEAD cipher is with TLS protocol\nversions 1.2 and 1.3. If this cipher is enabled on the server a malicious\nclient can influence whether this AEAD cipher is used. This implies that\nTLS server applications using OpenSSL can be potentially impacted. However\nwe are currently not aware of any concrete application that would be affected\nby this issue therefore we consider this a Low severity security issue.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6129",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-6129",
+                    "publish_date": "2024-01-09",
+                    "modification_date": "2024-05-03",
+                    "nvd_score_v3": 6.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 6.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H",
+                    "aqua_score": 6.5,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "openssl",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 6.5",
+                    "vendor_publish_date": "2024-01-09",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-787",
+                            "name": "Out-of-bounds Write"
+                        }
+                    ],
+                    "epss_score": 0.00045,
+                    "epss_percentile": 0.1208,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2023-6237",
+                    "type": "vulnerability",
+                    "description": "Issue summary: Checking excessively long invalid RSA public keys may take\na long time.\n\nImpact summary: Applications that use the function EVP_PKEY_public_check()\nto check RSA public keys may experience long delays. Where the key that\nis being checked has been obtained from an untrusted source this may lead\nto a Denial of Service.\n\nWhen function EVP_PKEY_public_check() is called on RSA public keys,\na computation is done to confirm that the RSA modulus, n, is composite.\nFor valid RSA keys, n is a product of two or more large primes and this\ncomputation completes quickly. However, if n is an overly large prime,\nthen this computation would take a long time.\n\nAn application that calls EVP_PKEY_public_check() and supplies an RSA key\nobtained from an untrusted source could be vulnerable to a Denial of Service\nattack.\n\nThe function EVP_PKEY_public_check() is not called from other OpenSSL\nfunctions however it is called from the OpenSSL pkey command line\napplication. For that reason that application is also vulnerable if used\nwith the '-pubin' and '-check' options on untrusted data.\n\nThe OpenSSL SSL/TLS implementation is not affected by this issue.\n\nThe OpenSSL 3.0 and 3.1 FIPS providers are affected by this issue.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2023-6237",
+                    "publish_date": "2024-04-25",
+                    "modification_date": "2024-06-10",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "openssl",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2024-01-15"
+                },
+                {
+                    "name": "CVE-2024-4603",
+                    "type": "vulnerability",
+                    "description": "Issue summary: Checking excessively long DSA keys or parameters may be very\nslow.\n\nImpact summary: Applications that use the functions EVP_PKEY_param_check()\nor EVP_PKEY_public_check() to check a DSA public key or DSA parameters may\nexperience long delays. Where the key or parameters that are being checked\nhave been obtained from an untrusted source this may lead to a Denial of\nService.\n\nThe functions EVP_PKEY_param_check() or EVP_PKEY_public_check() perform\nvarious checks on DSA parameters. Some of those computations take a long time\nif the modulus (`p` parameter) is too large.\n\nTrying to use a very large modulus is slow and OpenSSL will not allow using\npublic keys with a modulus which is over 10,000 bits in length for signature\nverification. However the key and parameter check functions do not limit\nthe modulus size when performing the checks.\n\nAn application that calls EVP_PKEY_param_check() or EVP_PKEY_public_check()\nand supplies a key or parameters obtained from an untrusted source could be\nvulnerable to a Denial of Service attack.\n\nThese functions are not called by OpenSSL itself on untrusted DSA keys so\nonly applications that directly call these functions may be vulnerable.\n\nAlso vulnerable are the OpenSSL pkey and pkeyparam command line applications\nwhen using the `-check` option.\n\nThe OpenSSL SSL/TLS implementation is not affected by this issue.\n\nThe OpenSSL 3.0 and 3.1 FIPS providers are affected by this issue.",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-4603",
+                    "publish_date": "2024-05-16",
+                    "modification_date": "2024-06-21",
+                    "vendor_score_v3": 5.3,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                    "aqua_score": 5.3,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "openssl",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.3",
+                    "vendor_publish_date": "2024-05-16"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "java",
+                "path": "/home/default/app.jar:BOOT-INF/lib/log4j-core-2.0-beta9.jar",
+                "name": "log4j-core",
+                "version": "2.0-beta9",
+                "cpe": "pkg:/java:*:org.apache.logging.log4j#log4j-core:2.0-beta9",
+                "layer": "/bin/sh -c #(nop) COPY file:459efca0e755286c9a8359c0e52119bd52da38f166e408c586538f85b09bd5c4 in app.jar ",
+                "layer_digest": "sha256:d6edc1ebe712a9ec97276d7a0518b05d0f063a2668d0ba4146cc212e127b8b9f"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-44228",
+                    "type": "vulnerability",
+                    "description": "Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0 (along with 2.12.2, 2.12.3, and 2.3.1), this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects.",
+                    "nvd_score": 9.3,
+                    "nvd_vectors": "AV:N/AC:M/Au:N/C:C/I:C/A:C",
+                    "nvd_severity": "high",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+                    "publish_date": "2021-12-10",
+                    "modification_date": "2024-07-24",
+                    "fix_version": "2.12.2, 2.15.0, 2.3.1",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.3.1, 2.12.2, 2.15.0 or above.",
+                    "nvd_score_v3": 10,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "aqua_score": 10,
+                    "aqua_severity": "critical",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 10.0",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 10.0",
+                    "exploitability": "http://www.exploit-db.com/exploits/50592",
+                    "exploit_type": "remote",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-20",
+                            "name": "Improper Input Validation"
+                        },
+                        {
+                            "Id": "CWE-400",
+                            "name": "Uncontrolled Resource Consumption"
+                        },
+                        {
+                            "Id": "CWE-502",
+                            "name": "Deserialization of Untrusted Data"
+                        },
+                        {
+                            "Id": "CWE-917",
+                            "name": "Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection')"
+                        }
+                    ],
+                    "cisa_publish_date": "2021-12-10",
+                    "cisa_due_date": "2021-12-24",
+                    "epss_score": 0.97466,
+                    "epss_percentile": 0.99959,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2021-45105",
+                    "type": "vulnerability",
+                    "description": "Apache Log4j2 versions 2.0-alpha1 through 2.16.0 (excluding 2.12.3 and 2.3.1) did not protect from uncontrolled recursion from self-referential lookups. This allows an attacker with control over Thread Context Map data to cause a denial of service when a crafted string is interpreted. This issue was fixed in Log4j 2.17.0, 2.12.3, and 2.3.1.",
+                    "nvd_score": 4.3,
+                    "nvd_vectors": "AV:N/AC:M/Au:N/C:N/I:N/A:P",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-45105",
+                    "publish_date": "2021-12-18",
+                    "modification_date": "2022-10-06",
+                    "fix_version": "2.12.3, 2.17.0, 2.3.1",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.3.1, 2.17.0, 2.12.3 or above.",
+                    "nvd_score_v3": 5.9,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "medium",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 5.9",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 5.9",
+                    "exploitability": "https://support.aquasec.com/a/solutions/articles/16000129998",
+                    "exploit_type": "dos",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-20",
+                            "name": "Improper Input Validation"
+                        },
+                        {
+                            "Id": "CWE-674",
+                            "name": "Uncontrolled Recursion"
+                        }
+                    ],
+                    "epss_score": 0.95969,
+                    "epss_percentile": 0.99346,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2021-45046",
+                    "type": "vulnerability",
+                    "description": "It was found that the fix to address CVE-2021-44228 in Apache Log4j 2.15.0 was incomplete in certain non-default configurations. This could allows attackers with control over Thread Context Map (MDC) input data when the logging configuration uses a non-default Pattern Layout with either a Context Lookup (for example, $${ctx:loginId}) or a Thread Context Map pattern (%X, %mdc, or %MDC) to craft malicious input data using a JNDI Lookup pattern resulting in an information leak and remote code execution in some environments and local code execution in all environments. Log4j 2.16.0 (Java 8) and 2.12.2 (Java 7) fix this issue by removing support for message lookup patterns and disabling JNDI functionality by default.",
+                    "nvd_score": 5.1,
+                    "nvd_vectors": "AV:N/AC:H/Au:N/C:P/I:P/A:P",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-45046",
+                    "publish_date": "2021-12-14",
+                    "modification_date": "2024-06-27",
+                    "fix_version": "2.12.2, 2.16.0",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.12.2, 2.16.0 or above.",
+                    "nvd_score_v3": 9,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "aqua_score": 9,
+                    "aqua_severity": "critical",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 9.0",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 9.0",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-917",
+                            "name": "Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection')"
+                        }
+                    ],
+                    "cisa_publish_date": "2023-05-01",
+                    "cisa_due_date": "2023-05-22",
+                    "epss_score": 0.97428,
+                    "epss_percentile": 0.99932,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2023-26464",
+                    "type": "vulnerability",
+                    "description": "** UNSUPPORTED WHEN ASSIGNED **\n\nWhen using the Chainsaw or SocketAppender components with Log4j 1.x on JRE less than 1.7, an attacker that manages to cause a logging entry involving a specially-crafted (ie, deeply nested) \nhashmap or hashtable (depending on which logging component is in use) to be processed could exhaust the available memory in the virtual machine and achieve Denial of Service when the object is deserialized.\n\nThis issue affects Apache Log4j before 2. Affected users are recommended to update to Log4j 2.x.\n\nNOTE: This vulnerability only affects products that are no longer supported by the maintainer.\n\n\n\n\n",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-26464",
+                    "publish_date": "2023-03-10",
+                    "modification_date": "2023-05-05",
+                    "fix_version": "2.0.0",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.0.0 or above.",
+                    "nvd_score_v3": 7.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "high",
+                    "aqua_score": 7.5,
+                    "aqua_severity": "high",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 7.5",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 7.5",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-502",
+                            "name": "Deserialization of Untrusted Data"
+                        }
+                    ],
+                    "epss_score": 0.00089,
+                    "epss_percentile": 0.37319,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2021-44832",
+                    "type": "vulnerability",
+                    "description": "Apache Log4j2 versions 2.0-beta7 through 2.17.0 (excluding security fix releases 2.3.2 and 2.12.4) are vulnerable to a remote code execution (RCE) attack when a configuration uses a JDBC Appender with a JNDI LDAP data source URI when an attacker has control of the target LDAP server. This issue is fixed by limiting JNDI data source names to the java protocol in Log4j2 versions 2.17.1, 2.12.4, and 2.3.2.",
+                    "nvd_score": 8.5,
+                    "nvd_vectors": "AV:N/AC:M/Au:S/C:C/I:C/A:C",
+                    "nvd_severity": "high",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44832",
+                    "publish_date": "2021-12-28",
+                    "modification_date": "2023-11-07",
+                    "fix_version": "2.12.4, 2.17.1, 2.3.2",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.17.1, 2.12.4, 2.3.2 or above.",
+                    "nvd_score_v3": 6.6,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "medium",
+                    "aqua_score": 6.6,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 6.6",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 6.6",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-20",
+                            "name": "Improper Input Validation"
+                        },
+                        {
+                            "Id": "CWE-74",
+                            "name": "Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection')"
+                        }
+                    ],
+                    "epss_score": 0.0305,
+                    "epss_percentile": 0.89995,
+                    "epss_date": "2024-01-22"
+                },
+                {
+                    "name": "CVE-2020-9488",
+                    "type": "vulnerability",
+                    "description": "Improper validation of certificate with host mismatch in Apache Log4j SMTP appender. This could allow an SMTPS connection to be intercepted by a man-in-the-middle attack which could leak any log messages sent through that appender. Fixed in Apache Log4j 2.12.3 and 2.13.1",
+                    "nvd_score": 4.3,
+                    "nvd_vectors": "AV:N/AC:M/Au:N/C:P/I:N/A:N",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-9488",
+                    "publish_date": "2020-04-27",
+                    "modification_date": "2023-11-07",
+                    "fix_version": "2.12.3, 2.13.2, 2.3.2",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.3.2, 2.12.3, 2.13.2 or above.",
+                    "nvd_score_v3": 3.7,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                    "nvd_severity_v3": "low",
+                    "aqua_score": 3.7,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 3.7",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 3.7",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-295",
+                            "name": "Improper Certificate Validation"
+                        }
+                    ],
+                    "epss_score": 0.00174,
+                    "epss_percentile": 0.54636,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "java",
+                "path": "/home/default/app.jar:BOOT-INF/lib/spring-webflux-5.3.15.jar",
+                "name": "spring-webflux",
+                "version": "5.3.15",
+                "cpe": "pkg:/java:*:org.springframework#spring-webflux:5.3.15",
+                "layer": "/bin/sh -c #(nop) COPY file:459efca0e755286c9a8359c0e52119bd52da38f166e408c586538f85b09bd5c4 in app.jar ",
+                "layer_digest": "sha256:d6edc1ebe712a9ec97276d7a0518b05d0f063a2668d0ba4146cc212e127b8b9f"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2022-22965",
+                    "type": "vulnerability",
+                    "description": "A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution (RCE) via data binding. The specific exploit requires the application to run on Tomcat as a WAR deployment. If the application is deployed as a Spring Boot executable jar, i.e. the default, it is not vulnerable to the exploit. However, the nature of the vulnerability is more general, and there may be other ways to exploit it.",
+                    "nvd_score": 7.5,
+                    "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+                    "nvd_severity": "high",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-22965",
+                    "publish_date": "2022-04-01",
+                    "modification_date": "2023-02-09",
+                    "fix_version": "5.2.20.RELEASE, 5.3.18",
+                    "solution": "Upgrade package org.springframework#spring-webflux to version 5.2.20.RELEASE, 5.3.18 or above.",
+                    "nvd_score_v3": 9.8,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "aqua_score": 9.8,
+                    "aqua_severity": "critical",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 9.8",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 9.8",
+                    "exploitability": "https://www.cyberkendra.com/2022/03/spring4shell",
+                    "exploit_type": "details",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-94",
+                            "name": "Improper Control of Generation of Code ('Code Injection')"
+                        }
+                    ],
+                    "cisa_publish_date": "2022-04-04",
+                    "cisa_due_date": "2022-04-25",
+                    "epss_score": 0.97438,
+                    "epss_percentile": 0.99944,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "python3",
+                "version": "3.9.18-3.el9_4.3",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:python3:3.9.18-3.el9_4.3",
+                "license": "Python",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "python3.9",
+                "src_version": "3.9.18"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-23336",
+                    "type": "vulnerability",
+                    "description": "The package python/cpython from 0 and before 3.6.13, from 3.7.0 and before 3.7.10, from 3.8.0 and before 3.8.8, from 3.9.0 and before 3.9.2 are vulnerable to Web Cache Poisoning via urllib.parse.parse_qsl and urllib.parse.parse_qs by using a vector called parameter cloaking. When the attacker can separate query parameters using a semicolon (;), they can cause a difference in the interpretation of the request between the proxy (running with default configuration) and the server. This can result in malicious requests being cached as completely safe ones, as the proxy would usually not see the semicolon as a separator, and therefore would not include it in a cache key of an unkeyed parameter.",
+                    "nvd_score": 4,
+                    "nvd_vectors": "AV:N/AC:H/Au:N/C:N/I:P/A:P",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-23336",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2021-23336",
+                    "publish_date": "2021-02-15",
+                    "modification_date": "2023-11-07",
+                    "nvd_score_v3": 5.9,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "python3.9",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2021-02-13",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-444",
+                            "name": "Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling')"
+                        }
+                    ],
+                    "epss_score": 0.00141,
+                    "epss_percentile": 0.49676,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "python3-libs",
+                "version": "3.9.18-3.el9_4.3",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:python3-libs:3.9.18-3.el9_4.3",
+                "license": "Python",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "python3.9",
+                "src_version": "3.9.18"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-23336",
+                    "type": "vulnerability",
+                    "description": "The package python/cpython from 0 and before 3.6.13, from 3.7.0 and before 3.7.10, from 3.8.0 and before 3.8.8, from 3.9.0 and before 3.9.2 are vulnerable to Web Cache Poisoning via urllib.parse.parse_qsl and urllib.parse.parse_qs by using a vector called parameter cloaking. When the attacker can separate query parameters using a semicolon (;), they can cause a difference in the interpretation of the request between the proxy (running with default configuration) and the server. This can result in malicious requests being cached as completely safe ones, as the proxy would usually not see the semicolon as a separator, and therefore would not include it in a cache key of an unkeyed parameter.",
+                    "nvd_score": 4,
+                    "nvd_vectors": "AV:N/AC:H/Au:N/C:N/I:P/A:P",
+                    "nvd_severity": "medium",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-23336",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2021-23336",
+                    "publish_date": "2021-02-15",
+                    "modification_date": "2023-11-07",
+                    "nvd_score_v3": 5.9,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 5.9,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_score": 5.9,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:L/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "python3.9",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.9",
+                    "vendor_publish_date": "2021-02-13",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-444",
+                            "name": "Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling')"
+                        }
+                    ],
+                    "epss_score": 0.00141,
+                    "epss_percentile": 0.49676,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "python3-pip-wheel",
+                "version": "21.2.3-8.el9",
+                "arch": "noarch",
+                "cpe": "pkg:/rhel:9.4:python3-pip-wheel:21.2.3-8.el9",
+                "license": "MIT and Python and ASL 2.0 and BSD and ISC and LGPLv2 and MPLv2.0 and (ASL 2.0 or BSD)",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "python-pip",
+                "src_version": "21.2.3"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-3572",
+                    "type": "vulnerability",
+                    "description": "A flaw was found in python-pip in the way it handled Unicode separators in git references. A remote attacker could possibly use this issue to install a different revision on a repository. The highest threat from this vulnerability is to data integrity. This is fixed in python-pip version 21.1.",
+                    "nvd_score": 3.5,
+                    "nvd_vectors": "AV:N/AC:M/Au:S/C:N/I:P/A:N",
+                    "nvd_severity": "low",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-3572",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2021-3572",
+                    "publish_date": "2021-11-10",
+                    "modification_date": "2024-06-21",
+                    "nvd_score_v3": 5.7,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:N/I:H/A:N",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 4.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:H/UI:R/S:U/C:N/I:H/A:N",
+                    "aqua_score": 4.5,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:H/UI:R/S:U/C:N/I:H/A:N",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "python-pip",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 4.5",
+                    "vendor_publish_date": "2021-04-24",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-20",
+                            "name": "Improper Input Validation"
+                        }
+                    ],
+                    "epss_score": 0.00057,
+                    "epss_percentile": 0.21346,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "python3-setuptools-wheel",
+                "version": "53.0.0-12.el9",
+                "arch": "noarch",
+                "cpe": "pkg:/rhel:9.4:python3-setuptools-wheel:53.0.0-12.el9",
+                "license": "MIT and (BSD or ASL 2.0)",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "python-setuptools",
+                "src_version": "53.0.0"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-6345",
+                    "type": "vulnerability",
+                    "description": "A vulnerability in the package_index module of pypa/setuptools versions up to 69.1.1 allows for remote code execution via its download functions. These functions, which are used to download packages from URLs provided by users or retrieved from package index servers, are susceptible to code injection. If these functions are exposed to user-controlled inputs, such as package URLs, they can execute arbitrary commands on the system. The issue is fixed in version 70.0.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-6345",
+                    "vendor_severity": "important",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-6345",
+                    "publish_date": "2024-07-15",
+                    "modification_date": "2024-07-15",
+                    "nvd_score_v3": 8.8,
+                    "nvd_vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                    "nvd_severity_v3": "high",
+                    "vendor_score_v3": 8.8,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                    "aqua_score": 8.8,
+                    "aqua_severity": "high",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "python-setuptools",
+                    "aqua_severity_classification": "Vendor Severity: important",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 8.8",
+                    "vendor_publish_date": "2024-07-15",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-94",
+                            "name": "Improper Control of Generation of Code ('Code Injection')"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "sqlite-libs",
+                "version": "3.34.1-7.el9_3",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:sqlite-libs:3.34.1-7.el9_3",
+                "license": "Public Domain",
+                "layer": "/bin/sh -c mv -fZ /tmp/ubi.repo /etc/yum.repos.d/ubi.repo || :",
+                "layer_digest": "sha256:0d3c6af0c57ce93e57433e8a6615044e6cedf3ac07a88afe30fc783562d04789",
+                "src_name": "sqlite",
+                "src_version": "3.34.1"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2024-0232",
+                    "type": "vulnerability",
+                    "description": "A heap use-after-free issue has been identified in SQLite in the jsonParseAddNodeArray() function in sqlite3.c. This flaw allows a local attacker to leverage a victim to pass specially crafted malicious input to the application, potentially causing a crash and leading to a denial of service.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-0232",
+                    "vendor_severity": "low",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2024-0232",
+                    "publish_date": "2024-01-16",
+                    "modification_date": "2024-03-15",
+                    "nvd_score_v3": 5.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 4.7,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                    "aqua_score": 4.7,
+                    "aqua_severity": "low",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "sqlite",
+                    "aqua_severity_classification": "Vendor Severity: low",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 4.7",
+                    "vendor_publish_date": "2023-10-12",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-416",
+                            "name": "Use After Free"
+                        }
+                    ],
+                    "epss_score": 0.0005,
+                    "epss_percentile": 0.16474,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        },
+        {
+            "resource": {
+                "format": "rpm",
+                "name": "systemd-libs",
+                "version": "252-32.el9_4.6",
+                "arch": "x86_64",
+                "cpe": "pkg:/rhel:9.4:systemd-libs:252-32.el9_4.6",
+                "license": "LGPLv2+ and MIT",
+                "layer": "/bin/sh -c #(nop) USER 185",
+                "layer_digest": "sha256:592af1a7c2d442d6aee5edfa402b5e38925b4b3687fb7f058f55723d53b74019",
+                "src_name": "systemd",
+                "src_version": "252"
+            },
+            "scanned": true,
+            "vulnerabilities": [
+                {
+                    "name": "CVE-2021-3997",
+                    "type": "vulnerability",
+                    "description": "A flaw was found in systemd. An uncontrolled recursion in systemd-tmpfiles may lead to a denial of service at boot time when too many nested directories are created in /tmp.",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-3997",
+                    "vendor_severity": "moderate",
+                    "vendor_url": "https://access.redhat.com/security/cve/CVE-2021-3997",
+                    "publish_date": "2022-08-23",
+                    "modification_date": "2023-05-03",
+                    "nvd_score_v3": 5.5,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "nvd_severity_v3": "medium",
+                    "vendor_score_v3": 5.5,
+                    "vendor_vectors_v3": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_score": 5.5,
+                    "aqua_severity": "medium",
+                    "aqua_vectors": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "ancestor_pkg": "systemd",
+                    "aqua_severity_classification": "Vendor Severity: moderate",
+                    "aqua_score_classification": "Vendor CVSS V3 Score: 5.5",
+                    "vendor_publish_date": "2022-01-10",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-674",
+                            "name": "Uncontrolled Recursion"
+                        }
+                    ],
+                    "epss_score": 0.00044,
+                    "epss_percentile": 0.10488,
+                    "epss_date": "2024-01-22"
+                }
+            ]
+        }
+    ],
+    "image_assurance_results": {
+        "disallowed": true,
+        "policy_failures": [
+            {
+                "policy_id": 13,
+                "policy_name": "CISOC-AppSec-Severity-Check",
+                "blocking": true,
+                "controls": [
+                    "max_severity"
+                ]
+            }
+        ],
+        "checks_performed": [
+            {
+                "policy_id": 6,
+                "policy_name": "Malware-Default-Policy",
+                "control": "malware",
+                "malware_file_scanned": 256
+            },
+            {
+                "policy_id": 7,
+                "policy_name": "Sensitive-Data-Default-Policy",
+                "control": "sensitive_data"
+            },
+            {
+                "failed": true,
+                "policy_id": 13,
+                "policy_name": "CISOC-AppSec-Severity-Check",
+                "control": "max_severity",
+                "maximum_severity_allowed": "high",
+                "maximum_severity_found": "critical"
+            }
+        ],
+        "block_required": true
+    },
+    "vulnerability_summary": {
+        "total": 44,
+        "critical": 3,
+        "high": 2,
+        "medium": 25,
+        "low": 14,
+        "score_average": 5.8636365
+    },
+    "scan_options": {
+        "scan_executables": true,
+        "scan_sensitive_data": true,
+        "scan_malware": true,
+        "scan_files": true,
+        "scan_timeout": 300000000000,
+        "manual_pull_fallback": true,
+        "save_adhoc_scans": true,
+        "use_cvss3": true,
+        "dockerless": true,
+        "system_image_platform": "amd64:::",
+        "enable_fast_scanning": true,
+        "memoryThrottling": true,
+        "suggest_os_upgrade": true,
+        "adhoc_scan_retention": 30,
+        "enable_diff_ids": true,
+        "is_trivy_enabled": true,
+        "register_image": true,
+        "socket": "docker"
+    },
+    "initiating_user": "vazquezq",
+    "build_number": "40",
+    "build_url": "https://jenkins-tcvedp-cd.apps.us-test.ocp.aws.boehringer.com/job/tcvedp-cd/job/tcvedp-cd-releasem-master/40/",
+    "pull_name": "image-registry.openshift-image-registry.svc:5000/tcvedp-cd/springbootaquafail:@sha256:12b5736830442cfae16e5571ac374b6c44372fbbe2ab1a056f635987ecd8ae9a",
+    "original_registry": "us-test",
+    "scan_id": 88855,
+    "required_image_platform": "amd64:::",
+    "scanned_image_platform": ":::",
+    "security_feeds_used": {
+        "executables": "178f286090fa6d"
+    },
+    "image_id": 72198,
+    "internal_digest_id": {
+        "id": 11243
+    },
+    "isAdhocRegister": true,
+    "OriginFromHostImage": true,
+    "FileHashEncoding": "zlib",
+    "registryType": 8
+}
