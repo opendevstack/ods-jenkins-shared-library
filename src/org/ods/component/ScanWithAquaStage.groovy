@@ -127,7 +127,7 @@ class ScanWithAquaStage extends Stage {
                 errorMessages += "<li>Error archiving Aqua reports</li>"
             }
         } else {
-            errorMessages += "<li>There were problems with Aqua service, scan response code received: ${returnCode}</li>"
+            errorMessages += "<li>There were problems with Aqua service, code received: ${returnCode}</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
 
@@ -137,7 +137,7 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityWithSolutionException("Remote critical vulnerabilities with solution found: " +
+            throw new AquaRemoteCriticalVulnerabilityWithSolutionException("Vulnerabilities found: " +
                 actionableVulnerabilities)
         }
 
