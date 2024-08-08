@@ -138,7 +138,8 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability found: " + actionableVulnerabilities)
+            throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability with solution found: " +
+                actionableVulnerabilities)
         }
 
         return
