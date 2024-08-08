@@ -315,14 +315,10 @@ class ScanWithAquaStage extends Stage {
                 replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
                 to: recipients
             )
-            setCurrentBuildUnstable()
+            this.steps.currentBuild.result = 'UNSTABLE'
         }
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    private void setCurrentBuildUnstable() {
-//        this.steps.currentBuild.result = 'UNSTABLE'
-    }
 
     private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
         List result = []
