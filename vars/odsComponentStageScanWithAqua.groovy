@@ -1,6 +1,6 @@
 import org.ods.component.ScanWithAquaStage
 import org.ods.component.IContext
-import org.ods.services.AquaRemoteCriticalVulnerabilityException
+import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -108,8 +108,8 @@ def call(IContext context, Map config = [:]) {
                 "in '${ScanWithAquaStage.AQUA_CONFIG_MAP_NAME}' " +
                 "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         }
-    } catch (AquaRemoteCriticalVulnerabilityException e) {
-        logger.warn("Aqua scan error: " + e.getMessage())
+    } catch (AquaRemoteCriticalVulnerabilityWithSolutionException e) {
+        logger.warn(e.getMessage())
         throw e
     } catch (err) {
         logger.warn("Error with Aqua due to: ${err}")

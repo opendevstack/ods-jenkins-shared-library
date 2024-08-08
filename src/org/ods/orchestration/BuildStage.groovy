@@ -110,9 +110,8 @@ class BuildStage extends Stage {
             }
         }
         def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
-        logger.info("aquaCriticalVulnerabilityRepos: " + aquaCriticalVulnerabilityRepos)
         if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-            String aquaFiledMessage = "Aqua critical vulnerability detected"
+            String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
             util.failBuild(aquaFiledMessage)
             throw new IllegalStateException(aquaFiledMessage)
         }

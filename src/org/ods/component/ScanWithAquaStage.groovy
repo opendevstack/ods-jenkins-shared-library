@@ -3,13 +3,11 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
-import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.services.AquaRemoteCriticalVulnerabilityException
+import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 
 @TypeChecked
@@ -50,6 +48,7 @@ class ScanWithAquaStage extends Stage {
 
     protected run() {
         String errorMessages = ''
+
         // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
         if (!alertEmails) {
@@ -138,7 +137,7 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('aquaCriticalVulnerability', 'true')
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityException("Remote critical vulnerability with solution found: " +
+            throw new AquaRemoteCriticalVulnerabilityWithSolutionException("Remote critical vulnerabilities with solution found: " +
                 actionableVulnerabilities)
         }
 
