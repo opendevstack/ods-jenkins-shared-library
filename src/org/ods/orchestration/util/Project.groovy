@@ -548,7 +548,7 @@ class Project {
     boolean hasGivenTypes(List<String> testTypes, testIssue) {
         def result = true
         if (testTypes) {
-            result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase())
+            result = testTypes*.toLowerCase().contains(testIssue.testType?.toLowerCase())
         }
         return result
     }
@@ -2018,13 +2018,11 @@ class Project {
 
         this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
-        // Resolve repo branch, if not provided
-        if (!repo.branch?.trim()) {
-            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                "from project meta data. Assuming 'master'.")
-            repo.branch = 'master'
+        // Fail the RM pipeline if the old branch flag is in use
+        if (repo.branch?.trim()) {
+            throw new IllegalArgumentException("Deprecated branch field is set in 'metadata.yml' " +
+                "inside Release Manager component for repo '${repo.id}'")
         }
-        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
     }
 
     void addDefaults(String component) {

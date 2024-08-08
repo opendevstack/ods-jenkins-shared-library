@@ -3,12 +3,28 @@
 ## Unreleased
 
 ### Added
+* In the release manager pipeline, use the default integration branch for component ([#1144](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1144)) 
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix NPE when the test type is null ([#1146](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1146))
+
+## [4.5.4] - 2024-07-17
+
+### Changed
+* In test results, labels not related to execution persist ([#1138](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1138))
+
+### Fixed
+* Fix excluded ods-infra components failing on deploy stage ([#1139](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1139))
+* Fix Finalize stage for ods-library components ([#1140](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1140))
+
+## [4.5.3] - 2024-07-08
+
+### Fixed
+* Fix deploy error for missing Jira config ([#1136](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1136))
 
 ## [4.5.2] - 2024-06-25
 

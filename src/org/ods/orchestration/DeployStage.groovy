@@ -142,23 +142,34 @@ class DeployStage extends Stage {
     }
 
     private void loadOdsInfraTypeData (Map repo) {
-        if (repo.data == null) { repo.data = [:] }
         ILogger logger = ServiceRegistry.instance.get(Logger)
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        if (repo.include) {
+            if (repo.data == null) {
+                repo.data = [:]
+            }
+            def steps = ServiceRegistry.instance.get(PipelineSteps)
 
-        // collect test results
-        if (repo.data.tests == null) { repo.data.tests = [:] }
-        repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
+            // collect test results
+            if (repo.data.tests == null) {
+                repo.data.tests = [:]
+            }
+            repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
 
-        // collect log data
-        if (repo.data.logs == null) { repo.data.logs = [:] }
-        repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
-        repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
-        repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
-        if (repo.data.logs.state.content) {
-            repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
+            // collect log data
+            if (repo.data.logs == null) {
+                repo.data.logs = [:]
+            }
+            repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
+            repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
+            repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
+            if (repo.data.logs.state.content) {
+                repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
+            } else {
+                logger.warn("No log state for ${repo.data} found!")
+            }
         } else {
-            logger.warn("No log state for ${repo.data} found!")
+            logger.debug("Include flag is set to false so not loading ODS Infrastructure/Configuration Management " +
+                "component type data for '${repo.id}'")
         }
     }
 
