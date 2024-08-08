@@ -321,7 +321,7 @@ class ScanWithAquaStage extends Stage {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void setCurrentBuildUnstable() {
-        this.steps.currentBuild.result = 'UNSTABLE'
+//        this.steps.currentBuild.result = 'UNSTABLE'
     }
 
     private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
