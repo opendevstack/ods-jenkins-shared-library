@@ -127,7 +127,6 @@ class ScanWithAquaStage extends Stage {
                 errorMessages += "<li>Error archiving Aqua reports</li>"
             }
         } else {
-            errorMessages += "<li>There were problems with Aqua service, code received: ${returnCode}</li>"
             createBitbucketCodeInsightReport(errorMessages)
         }
 

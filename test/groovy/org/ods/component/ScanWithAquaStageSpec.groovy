@@ -170,7 +170,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0, null)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus",
+            "internal", "12345", 0, null, [])
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -200,7 +201,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1, null)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal",
+            "12345", 1, null, [])
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -219,7 +221,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     value: "Message"
                 ]
             ],
-            details: "There was some problems with Aqua:",
+            details: "There were some problems with Aqua",
             result: "FAIL"
         ]
 
