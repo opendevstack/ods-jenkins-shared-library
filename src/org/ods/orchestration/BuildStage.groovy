@@ -91,19 +91,6 @@ class BuildStage extends Stage {
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
-
-        //TODO Check this
-        logger.debug("Check securityVulnerabilityRepos")
-        def securityVulnerabilityRepos = filterReposWithSecurityVulnerability(repos?.flatten().findAll())
-        logger.debug("securityVulnerabilityRepos size: " + securityVulnerabilityRepos.size())
-        if (securityVulnerabilityRepos?.size() > 0) {
-            String secVulReposCommaSeparated = buildReposCommaSeparatedString(securityVulnerabilityRepos)
-            logger.debug("secVulReposCommaSeparated: " +  secVulReposCommaSeparated.size())
-            String message = buildSecurityVulnerabilityMessage(secVulReposCommaSeparated)
-            logger.debug("buildSecurityVulnerabilityMessage: " +  message)
-            project.createOrUpdateSecurityVulnerabilityIssue(message)
-        }
-
         if (project.hasFailingTests() || failedRepos?.size > 0) {
             def baseErrMsg = "Failing build as repositories contain errors!" +
                 "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
@@ -116,21 +103,17 @@ class BuildStage extends Stage {
                 logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
                 jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
             }
-
-            //TODO Check this
-            securityVulnerabilityRepos = filterReposWithSecurityVulnerability(failedRepos)
-            if (securityVulnerabilityRepos?.size() > 0) {
-                String secVulReposCommaSeparated = buildReposCommaSeparatedString(securityVulnerabilityRepos)
-                String message = buildSecurityVulnerabilityMessage(secVulReposCommaSeparated)
-                logMessage += message
-                project.createOrUpdateSecurityVulnerabilityIssue(message)
-            }
-
             util.failBuild(logMessage)
             // If we are not in Developer Preview or we have a Tailor failure raise an exception
             if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
+        }
+        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+            String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
+            util.failBuild(aquaFiledMessage)
+            throw new IllegalStateException(aquaFiledMessage)
         }
     }
 
@@ -157,7 +140,7 @@ class BuildStage extends Stage {
         def index = 1
         def sanitizedRepos = failedRepos.collect { it ->
             (index++) + ".\tRepository id: " + it.id +
-            "\n\tBranch: " + it.branch + "\n\tRepository type: " + it.type }
+            "\n\tBranch: " + it.defaultBranch + "\n\tRepository type: " + it.type }
             .join("\n\n")
         return sanitizedRepos
     }
@@ -166,22 +149,16 @@ class BuildStage extends Stage {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
     }
 
-    String buildReposCommaSeparatedString(def repositories) {
-        def reposCommaSeparatedString = repositories
+    List filterReposWithAquaCriticalVulnerability(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
+    }
+
+    String buildReposCommaSeparatedString(def tailorFailedRepos) {
+        def reposCommaSeparatedString = tailorFailedRepos
             .collect { it -> "\"" + it.id + "\"" }
             .join(", ")
 
         return reposCommaSeparatedString
-    }
-
-    List filterReposWithSecurityVulnerability(def repos) {
-        return repos?.flatten()?.findAll { it -> it.data?.openshift?.securityVulnerability }
-    }
-
-    String buildSecurityVulnerabilityMessage(String securityVulnerabilityRepoNamesCommaSeparated) {
-        //TODO add actionable staff: links to vulnerable branch and aqua report
-        return "\n\nERROR: The following repositories have security vulnerabilities: " +
-            "${securityVulnerabilityRepoNamesCommaSeparated}."
     }
 
 }
