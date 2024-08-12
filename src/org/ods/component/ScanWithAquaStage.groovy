@@ -13,6 +13,8 @@ import org.ods.util.ILogger
 @TypeChecked
 class ScanWithAquaStage extends Stage {
 
+    static final String REMOTE_EXPLOIT_TYPE = 'remote'
+    static final String CRITICAL_AQUA_SEVERITY = 'critical'
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
     static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
@@ -216,19 +218,13 @@ class ScanWithAquaStage extends Stage {
             ])
         }
         if (actionableVulnerabilities?.size() > 0) {
-            if (data.messages) {
-                ((List) data.messages).add([
-                    title: "Blocking",
-                    value: "Yes"
-                ])
-            } else {
-                data.put("messages", [
-                    [
-                        title: "Blocking",
-                        value: "Yes"
-                    ]
-                ])
+            if (!data.messages) {
+                data.put("messages", [])
             }
+            ((List) data.messages).add([
+                title: "Blocking",
+                value: "Yes"
+            ])
         }
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
@@ -236,7 +232,7 @@ class ScanWithAquaStage extends Stage {
 
     private createBitbucketCodeInsightReport(String messages) {
         String title = "Aqua Security"
-        String details = "There were some problems with Aqua"
+        String details = "There were some problems with Aqua:"
 
         String result = "FAIL"
 
@@ -328,8 +324,8 @@ class ScanWithAquaStage extends Stage {
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
                 Map vulnerability = vul as Map
-                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase("remote")
-                    && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase("critical")
+                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
+                    && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
                     result.push(vulnerability)
                 }

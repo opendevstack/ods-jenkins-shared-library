@@ -397,6 +397,9 @@ class BitbucketService {
             }
             payload += "]" +
                 "}"
+
+            logger.info("BB payload: " + payload)
+
             try {
                 def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
                 script.sh(
