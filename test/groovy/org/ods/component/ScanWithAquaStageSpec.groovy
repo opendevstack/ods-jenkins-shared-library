@@ -221,7 +221,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     value: "Message"
                 ]
             ],
-            details: "There were some problems with Aqua",
+            details: "There were some problems with Aqua:",
             result: "FAIL"
         ]
 
