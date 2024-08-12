@@ -5,7 +5,7 @@ The "Aqua Security Scan" stage scans an image that was previously built in that 
 As a result, a Bitbucket Code Insight entry is added to the git commit (in Bitbucket) that basically
 contains a link to the scan result on the Aqua platform. The Bitbucket Code Insight entry can be seen in a pull request.
 The pull request in Bitbucket shows the Code Insight of the latest commit of the PR.
-In case the Aqua scan detects remotely exploitable security vulnerabilities the build fails until the issue is resolved.
+In case the Aqua scan detects remotely exploitable cirtical vulnerabilities with solutions the build fails until the solution is implemented.
 
 To get started, make sure you have a `ConfigMap` in OpenDevStack project namespace (usually ods) in OpenShift that has these fields:
 ----
