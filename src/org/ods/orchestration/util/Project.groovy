@@ -38,7 +38,7 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
 
-    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Security vulnerabilities detected by AquaSec"
+    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security vulnerabilities with solutions detected by Aqua"
 
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
