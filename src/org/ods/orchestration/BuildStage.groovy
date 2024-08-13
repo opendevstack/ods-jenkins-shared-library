@@ -110,12 +110,30 @@ class BuildStage extends Stage {
             }
         }
         def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
-        logger.info("aquaCriticalVulnerabilityRepos size: "+ aquaCriticalVulnerabilityRepos.size())
         if (aquaCriticalVulnerabilityRepos?.size() > 0) {
             String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
+            project.createOrUpdateSecurityVulnerabilityIssue(
+                buildSecurityVulnerabilityIssueDescription(aquaCriticalVulnerabilityRepos))
             util.failBuild(aquaFiledMessage)
             throw new IllegalStateException(aquaFiledMessage)
         }
+    }
+
+    String buildSecurityVulnerabilityIssueDescription(aquaCriticalVulnerabilityRepos) {
+        StringBuilder message = new StringBuilder()
+        message.append("Aqua scan found remotely exploitable critical vulnerabilities for the following repositories:\n")
+        def count = 1
+        for (def repo : aquaCriticalVulnerabilityRepos) {
+            message.append("\n${count++}. Vulnerabilities for repository " + repo.id)
+            def vulnerabilitiesCount = 1
+            for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
+                message.append("\n\t${count++}.${vulnerabilitiesCount} Vulnerability name: " + (vulnerability as Map).name as String)
+                message.append("\n\t  description: " + (vulnerability as Map).description as String)
+                message.append("\n\t  solution: " + (vulnerability as Map).solution as String)
+                message.append("\n")
+            }
+        }
+        return message.toString()
     }
 
     String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {

@@ -2075,6 +2075,7 @@ class Project {
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
+            //TODO update issue description or add comment
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount)
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
