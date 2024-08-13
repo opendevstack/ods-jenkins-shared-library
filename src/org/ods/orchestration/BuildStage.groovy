@@ -123,14 +123,12 @@ class BuildStage extends Stage {
         StringBuilder message = new StringBuilder()
         message.append("h3. Aqua scan found the following remotely exploitable critical vulnerabilities with solutions " +
             "that need to be addressed:\n")
-        def count = 1
         for (def repo : aquaCriticalVulnerabilityRepos) {
-            message.append("\nh4. ${count++}. Vulnerabilities for repository *" + repo.id + "*")
-            def vulnerabilitiesCount = 1
+            message.append("h4. Vulnerabilities for repository *" + repo.id + "*")
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                message.append("\n*${count++}.${vulnerabilitiesCount} Vulnerability name: " + (vulnerability as Map).name as String)
-                message.append("\n*description: " + (vulnerability as Map).description as String)
-                message.append("\n*solution: " + (vulnerability as Map).solution as String)
+                message.append("\n# Vulnerability name: " + (vulnerability as Map).name as String)
+                message.append("\n#* description: " + (vulnerability as Map).description as String)
+                message.append("\n#* solution: " + (vulnerability as Map).solution as String)
                 message.append("\n----")
             }
         }
