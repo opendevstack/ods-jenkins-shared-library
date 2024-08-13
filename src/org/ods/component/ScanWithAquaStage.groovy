@@ -135,14 +135,28 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-            context.addArtifactURI('aquaCriticalVulnerability', 'true')
+            context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityWithSolutionException("Vulnerabilities found: " +
-                actionableVulnerabilities)
+            throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
+                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities))
         }
 
         return
+    }
+
+    private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities) {
+        StringBuilder message = new StringBuilder();
+        message.append("Aqua scan found remotely exploitable critical vulnerabilities. " +
+            "For a successful pipeline build these vulnerabilities need to be solved by implementing " +
+            "the provided solution for each of them. Here is the list of vulnerabilities:\n");
+        for (def vulnerability : actionableVulnerabilities) {
+            message.append("\n\tVulnerability name:" + (vulnerability as Map).name as String)
+            message.append("\n\t\tdescription:" + (vulnerability as Map).description as String)
+            message.append("\n\t\tsolution:" + (vulnerability as Map).solution as String)
+            message.append("\n")
+        }
+        return message.toString()
     }
 
     private String getImageRef() {
