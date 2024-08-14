@@ -95,6 +95,12 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(errMessage)
             }
         }
+        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+            String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
+            util.failBuild(aquaFiledMessage)
+            throw new IllegalStateException(aquaFiledMessage)
+        }
     }
 
 }
