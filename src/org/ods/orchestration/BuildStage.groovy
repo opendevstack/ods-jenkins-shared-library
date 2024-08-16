@@ -120,9 +120,11 @@ class BuildStage extends Stage {
 
     void createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
         for (def repo : aquaCriticalVulnerabilityRepos) {
+            def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
                 def vulerabilityMap = vulnerability as Map
                 project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
+                    jiraComponentId,
                     buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
             }
         }
@@ -170,6 +172,10 @@ class BuildStage extends Stage {
 
     List filterReposWithAquaCriticalVulnerability(def repos) {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
+    }
+
+    String getJiraComponentId(def repo) {
+        return repo.data?.openshift?.jiraComponentId
     }
 
     String buildReposCommaSeparatedString(def tailorFailedRepos) {

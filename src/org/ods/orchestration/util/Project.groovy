@@ -28,6 +28,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
+    static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
     static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
     static final boolean IS_GXP_PROJECT_DEFAULT = true
@@ -2059,6 +2060,7 @@ class Project {
             "AND component = \"${jiraComponent}\" " +
             "AND summary ~ \"${issueSummary}\" "
 
+        logger.info("loadJiraSecurityVulnerabilityIssues: " + jql)
 
         def jqlQuery = [
             fields: fields,
@@ -2071,7 +2073,8 @@ class Project {
         return jiraSecurityVulnerabilityIssues
     }
 
-    def void createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String message) {
+    def void createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
+                                                      String message) {
         if (!this.jiraUseCase || !this.jiraUseCase.jira) {
             logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
             return
@@ -2084,11 +2087,10 @@ class Project {
         if (this.isVersioningEnabled) {
             fixVersion = this.getVersionName()
         }
-
-        def jiraComponent = null
+        def fullJiraComponentName = JIRA_COMPONENT_TECHNOLOGY_PREFIX + jiraComponentId
 
         List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues(issueSummary,
-            fixVersion, jiraComponent)
+            fixVersion, fullJiraComponentName)
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
@@ -2096,7 +2098,7 @@ class Project {
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
-                issueSummary, message, fixVersion, jiraComponent)
+                issueSummary, message, fixVersion, fullJiraComponentName)
         }
     }
 }

@@ -111,9 +111,6 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
-                logger.info("Context componentId: " + context.getComponentId())
-                logger.info("Context properties: " + context.getProperties())
-
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
@@ -139,6 +136,7 @@ class ScanWithAquaStage extends Stage {
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
+            context.addArtifactURI('jiraComponentId', context.getComponentId())
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
