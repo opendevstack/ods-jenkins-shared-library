@@ -112,26 +112,27 @@ class BuildStage extends Stage {
         def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
         if (aquaCriticalVulnerabilityRepos?.size() > 0) {
             String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
-            project.createOrUpdateSecurityVulnerabilityIssue(
-                buildSecurityVulnerabilityIssueDescription(aquaCriticalVulnerabilityRepos))
+            createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
             util.failBuild(aquaFiledMessage)
             throw new IllegalStateException(aquaFiledMessage)
         }
     }
 
-    String buildSecurityVulnerabilityIssueDescription(aquaCriticalVulnerabilityRepos) {
-        StringBuilder message = new StringBuilder()
-        message.append("h3. Aqua scan found the following remotely exploitable critical vulnerabilities with solutions " +
-            "that need to be addressed:\n")
+    void createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
         for (def repo : aquaCriticalVulnerabilityRepos) {
-            message.append("h4. Vulnerabilities for repository *" + repo.id + "*")
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                message.append("\n# Vulnerability name: " + (vulnerability as Map).name as String)
-                message.append("\n#* description: " + (vulnerability as Map).description as String)
-                message.append("\n#* solution: " + (vulnerability as Map).solution as String)
-                message.append("\n----")
+                def vulerabilityMap = vulnerability as Map
+                project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
+                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
             }
         }
+    }
+
+    String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
+        StringBuilder message = new StringBuilder()
+        message.append("\n# Vulnerability name: " + vulerability.name as String)
+        message.append("\n#* description: " + vulerability.description as String)
+        message.append("\n#* solution: " + vulerability.solution as String)
         return message.toString()
     }
 

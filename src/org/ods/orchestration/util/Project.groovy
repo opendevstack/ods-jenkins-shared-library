@@ -38,7 +38,9 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
 
-    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security vulnerabilities with solutions detected by Aqua"
+    private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
+    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
+        "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
 
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
@@ -2046,13 +2048,16 @@ class Project {
         }
     }
 
-    protected List loadJiraSecurityVulnerabilityIssues() {
+    protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,
+                                                       String jiraComponent) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         def jql = "project = \"${this.jiraProjectKey}\" AND issuetype = \"Security Vulnerability\" " +
-            "AND summary ~ \"${SECURITY_VULNERABILITY_ISSUE_SUMMARY}\""
+            "AND fixVersion = \"${fixVersion}\" " +
+            "AND component = \"${jiraComponent}\" " +
+            "AND summary ~ \"${issueSummary}\" "
 
 
         def jqlQuery = [
@@ -2066,21 +2071,32 @@ class Project {
         return jiraSecurityVulnerabilityIssues
     }
 
-    def void createOrUpdateSecurityVulnerabilityIssue(String message) {
+    def void createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String message) {
         if (!this.jiraUseCase || !this.jiraUseCase.jira) {
             logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
             return
         }
-        List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues()
+
+        def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
+            vulnerabilityName)
+
+        def fixVersion = null
+        if (this.isVersioningEnabled) {
+            fixVersion = this.getVersionName()
+        }
+
+        def jiraComponent = null
+
+        List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues(issueSummary,
+            fixVersion, jiraComponent)
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
-            //TODO update issue description or add comment
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount)
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
-                SECURITY_VULNERABILITY_ISSUE_SUMMARY, message)
+                issueSummary, message, fixVersion, jiraComponent)
         }
     }
 }
