@@ -14,6 +14,9 @@ abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
     @Override
     abstract Map<String, List<PodData>> deploy()
 
+    // Fetches original kubernetes revisions of deployment resources.
+    //
+    // returns a two level map with keys resourceKind -> resourceName -> revision (int)
     protected Map<String, Map<String, Integer>> fetchOriginalVersions(Map<String, List<String>> deploymentResources) {
         def originalVersions = [:]
         deploymentResources.each { resourceKind, resourceNames ->
