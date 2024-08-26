@@ -3255,4 +3255,22 @@ class ProjectSpec extends SpecHelper {
         !result
     }
 
+    def "check hasGivenTypes"() {
+        given:
+        def projectObj = new Project(steps, logger)
+
+        when:
+        def resulFromExecution = projectObj.hasGivenTypes(testTypes, testIssue)
+
+        then:
+        result == resulFromExecution
+
+        where:
+        testTypes                                               |   testIssue                   |   result
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: 'Unit']          |   true
+        ['Integration', 'Installation', 'Acceptance']           |   [testType: 'Unit']          |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: null]            |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [:]                         |   false
+    }
+
 }

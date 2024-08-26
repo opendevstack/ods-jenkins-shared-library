@@ -548,7 +548,7 @@ class Project {
     boolean hasGivenTypes(List<String> testTypes, testIssue) {
         def result = true
         if (testTypes) {
-            result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase())
+            result = testTypes*.toLowerCase().contains(testIssue.testType?.toLowerCase())
         }
         return result
     }
