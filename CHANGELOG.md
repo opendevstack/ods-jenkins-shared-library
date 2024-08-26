@@ -11,6 +11,10 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.5.5] - 2024-08-26
+
+### Fixed
 * Fix NPE when the test type is null ([#1146](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1146))
 
 ## [4.5.4] - 2024-07-17
