@@ -241,7 +241,7 @@ class JiraService {
                         ],
                         summary: summary,
                         description: description,
-                        component: component,
+                        components: component,
                         fixVersions: [
                            [name: fixVersion]
                         ],
