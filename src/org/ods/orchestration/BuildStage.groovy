@@ -106,9 +106,10 @@ class BuildStage extends Stage {
 
             def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
             if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                logMessage += "\n\nAqua scan detected at least one remotely exploitable critical vulnerability with solution"
-                jiraMessage += "\n\nAqua scan detected at least one remotely exploitable critical vulnerability with solution"
-                createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+                int vulnerabilitiesCount = createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+                String aquaMessage = buildAquaSecurityVulnerabilityMessage(vulnerabilitiesCount)
+                logMessage += aquaMessage
+                jiraMessage += aquaMessage
             }
 
             util.failBuild(logMessage)
@@ -120,7 +121,8 @@ class BuildStage extends Stage {
         }
     }
 
-    void createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
+    int createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
+        int vulnerabilitiesCount = 0;
         for (def repo : aquaCriticalVulnerabilityRepos) {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
@@ -128,8 +130,10 @@ class BuildStage extends Stage {
                 project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
                     jiraComponentId,
                     buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
+                vulnerabilitiesCount++
             }
         }
+        return vulnerabilitiesCount
     }
 
     String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
@@ -138,6 +142,16 @@ class BuildStage extends Stage {
         message.append("\n*Description:* " + vulerability.description as String)
         message.append("\n\n*Solution:* " + vulerability.solution as String)
         return message.toString()
+    }
+
+    String buildAquaSecurityVulnerabilityMessage(int vulnerabilitiesCount) {
+        if (vulnerabilitiesCount == 1) {
+            return "\n\nAqua scan detected one remotely exploitable critical " +
+                "vulnerability with solution that needs to be fixed"
+        } else {
+            return "\n\nAqua scan detected ${vulnerabilitiesCount} remotely exploitable critical " +
+                "vulnerabilities with solutions that need to be fixed"
+        }
     }
 
     String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {
