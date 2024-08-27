@@ -147,10 +147,10 @@ class BuildStage extends Stage {
     String buildAquaSecurityVulnerabilityMessage(int vulnerabilitiesCount) {
         if (vulnerabilitiesCount == 1) {
             return "\n\nAqua scan detected one remotely exploitable critical " +
-                "vulnerability with solution that needs to be fixed"
+                "vulnerability with solution that needs to be fixed.\n"
         } else {
             return "\n\nAqua scan detected ${vulnerabilitiesCount} remotely exploitable critical " +
-                "vulnerabilities with solutions that need to be fixed"
+                "vulnerabilities with solutions that need to be fixed.\n"
         }
     }
 
