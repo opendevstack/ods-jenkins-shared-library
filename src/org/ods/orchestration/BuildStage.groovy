@@ -132,9 +132,9 @@ class BuildStage extends Stage {
 
     String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
         StringBuilder message = new StringBuilder()
-        message.append("\nh4.Aqua security scan detected the following remotely exploitable security vulnerability: " + vulerability.name as String)
+        message.append("\nh3.Aqua security scan detected the following remotely exploitable security vulnerability: " + vulerability.name as String)
         message.append("\n*Description:* " + vulerability.description as String)
-        message.append("\n*Solution:* " + vulerability.solution as String)
+        message.append("\n\n*Solution:* " + vulerability.solution as String)
         return message.toString()
     }
 
