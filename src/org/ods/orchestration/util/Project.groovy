@@ -2074,7 +2074,7 @@ class Project {
     }
 
     def void createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
-                                                      String message) {
+                                                      String description) {
         if (!this.jiraUseCase || !this.jiraUseCase.jira) {
             logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
             return
@@ -2098,7 +2098,7 @@ class Project {
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
-                issueSummary, message, fixVersion, fullJiraComponentName)
+                issueSummary, description, fixVersion, fullJiraComponentName)
         }
     }
 }
