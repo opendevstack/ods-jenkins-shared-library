@@ -103,18 +103,20 @@ class BuildStage extends Stage {
                 logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
                 jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
             }
+
+            def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+            if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+                logMessage += "\n\nAqua scan detected at least one remotely exploitable critical vulnerability with solution"
+                jiraMessage += "\n\nAqua scan detected at least one remotely exploitable critical vulnerability with solution"
+                createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+            }
+
             util.failBuild(logMessage)
-            // If we are not in Developer Preview or we have a Tailor failure raise an exception
-            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0) {
+            // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable vulnerability
+            // with solution found then raise an exception
+            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0 || aquaCriticalVulnerabilityRepos?.size() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
-        }
-        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
-        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-            String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
-            createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
-            util.failBuild(aquaFiledMessage)
-            throw new IllegalStateException(aquaFiledMessage)
         }
     }
 
