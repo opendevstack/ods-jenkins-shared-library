@@ -149,14 +149,15 @@ class ScanWithAquaStage extends Stage {
     private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities) {
         StringBuilder message = new StringBuilder();
         message.append("Aqua scan found remotely exploitable critical vulnerabilities. " +
-            "For a successful pipeline build these vulnerabilities need to be solved by implementing " +
+            "For a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
         def count= 1;
         for (def vulnerability : actionableVulnerabilities) {
-            message.append("\n${count++}. Vulnerability name: " + (vulnerability as Map).name as String)
-            message.append("\n  description: " + (vulnerability as Map).description as String)
-            message.append("\n  solution: " + (vulnerability as Map).solution as String)
+            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
             message.append("\n")
+            count++
         }
         return message.toString()
     }
