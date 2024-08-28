@@ -106,6 +106,7 @@ class ScanWithAquaStage extends Stage {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
         List actionableVulnerabilities = null
+        String nexusReportLink = null
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
@@ -121,7 +122,8 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
+                nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
+                createBitbucketCodeInsightReport(url, nexusReportLink,
                     registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
@@ -140,16 +142,20 @@ class ScanWithAquaStage extends Stage {
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
-                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities))
+                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities, nexusReportLink))
         }
 
         return
     }
 
-    private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities) {
+    private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities,
+                                                                String nexusReportLink) {
         StringBuilder message = new StringBuilder();
-        message.append("Aqua scan found remotely exploitable critical vulnerabilities. " +
-            "For a successful build these vulnerabilities need to be solved by implementing " +
+        message.append("Aqua scan found remotely exploitable critical vulnerabilities. ")
+        if (nexusReportLink != null) {
+            message.append("You can check the report here: ${nexusReportLink} ")
+        }
+        message.append("For a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
         def count= 1;
         for (def vulnerability : actionableVulnerabilities) {
