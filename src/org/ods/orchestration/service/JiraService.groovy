@@ -821,7 +821,7 @@ class JiraService {
                 case "implement":
                 case "confirm dod":
                     doTransition(issueId, transition, logger)
-                    transitionIssueToToDo(issueId, maxTransitionCount)
+                    transitionIssueToToDo(issueId, maxTransitionCount, logger)
                     return
                 case "reopen":
                     doTransition(issueId, transition, logger)
@@ -887,7 +887,7 @@ class JiraService {
 
             throw new RuntimeException(message)
         }
-        logger.info("Issue with id ${issueId} transitioned to '${transition}'")
+        logger.info("Issue with id ${issueId} transitioned to '${transition?.name}'")
         return true
     }
 }
