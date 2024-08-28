@@ -817,6 +817,7 @@ class JiraServiceSpec extends SpecHelper {
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
                 fixVersion: null,
+                components: null,
                 type: "myType"
             ],
             headers: [
@@ -835,6 +836,9 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
+                components: [
+                    [name: result.data.components]
+                ],
                 fixVersions: [
                     [name: result.data.fixVersion]
                 ],
@@ -1031,7 +1035,8 @@ class JiraServiceSpec extends SpecHelper {
                 description: "myDescription",
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
-                fixVersion: "1.0"
+                fixVersion: "1.0",
+                components: null
             ],
             headers: [
                 "Accept": "application/json",
@@ -1049,6 +1054,9 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
+                components: [
+                    [name: result.data.components]
+                ],
                 fixVersions: [
                     [name: result.data.fixVersion]
                 ],
@@ -1062,6 +1070,54 @@ class JiraServiceSpec extends SpecHelper {
     }
 
     Map createIssueTypeBugResponseData(Map mixins = [:]) {
+        def result = [
+            status: 201
+        ]
+
+        return result << mixins
+    }
+
+    Map createIssueTypeSecurityVulnerabilityRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                description: "myDescription",
+                projectKey: "PROJECT-1",
+                summary: "mySummary",
+                fixVersion: "1.0",
+                components: null
+            ],
+            headers: [
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            ],
+            password: "password",
+            path: "/rest/api/2/issue",
+            username: "username"
+        ]
+
+        result.body = JsonOutput.toJson([
+            fields: [
+                project: [
+                    key: result.data.projectKey
+                ],
+                summary: result.data.summary,
+                description: result.data.description,
+                components: [
+                    [name: result.data.components]
+                ],
+                fixVersions: [
+                    [name: result.data.fixVersion]
+                ],
+                issuetype: [
+                    name: "Security Vulnerability"
+                ]
+            ]
+        ])
+
+        return result << mixins
+    }
+
+    Map createIssueTypeSecurityVulnerabilityResponseData(Map mixins = [:]) {
         def result = [
             status: 201
         ]
@@ -1115,6 +1171,9 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
+                components: [
+                    [name: null]
+                ],
                 fixVersions: [
                     [name: null]
                 ],
@@ -1185,6 +1244,135 @@ class JiraServiceSpec extends SpecHelper {
 
         when:
         service.createIssueTypeBug(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue type 'Security Vulnerability'"() {
+        given:
+        def request = createIssueTypeSecurityVulnerabilityRequestData()
+        def response = createIssueTypeSecurityVulnerabilityResponseData([
+            body: JsonOutput.toJson([
+                "JIRA-123": request.data.summary
+            ])
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.createIssueTypeSecurityVulnerability(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+
+        then:
+        result == [ "JIRA-123": request.data.summary ]
+
+        cleanup:
+        stopServer(server)
+    }
+
+    Map createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionAndComponents(Map mixins = [:]) {
+        def result = [
+            data: [
+                description: "myDescription",
+                projectKey: "PROJECT-1",
+                summary: "mySummary"
+            ],
+            headers: [
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            ],
+            password: "password",
+            path: "/rest/api/2/issue",
+            username: "username"
+        ]
+
+        result.body = JsonOutput.toJson([
+            fields: [
+                project: [
+                    key: result.data.projectKey
+                ],
+                summary: result.data.summary,
+                description: result.data.description,
+                components: [
+                    [name: null]
+                ],
+                fixVersions: [
+                    [name: null]
+                ],
+                issuetype: [
+                    name: "Security Vulnerability"
+                ]
+            ]
+        ])
+
+        return result << mixins
+    }
+
+    def "create issue type 'Security Vulnerability' without fix version"() {
+        given:
+        def request = createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionAndComponents()
+        def response = createIssueTypeSecurityVulnerabilityResponseData([
+            body: JsonOutput.toJson([
+                "JIRA-123": request.data.summary
+            ])
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.createIssueTypeSecurityVulnerability(
+            request.data.projectKey, request.data.summary, request.data.description)
+
+        then:
+        result == [ "JIRA-123": request.data.summary ]
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue type 'Security Vulnerability' with HTTP 404 failure"() {
+        given:
+        def request = createIssueTypeSecurityVulnerabilityRequestData()
+        def response = createIssueTypeSecurityVulnerabilityResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueTypeSecurityVulnerability(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue type 'Security Vulnerability' with HTTP 500 failure"() {
+        given:
+        def request = createIssueTypeSecurityVulnerabilityRequestData()
+        def response = createIssueTypeSecurityVulnerabilityResponseData([
+            body: "Sorry, doesn't work!",
+            status: 500
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueTypeSecurityVulnerability(
             request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
 
         then:
