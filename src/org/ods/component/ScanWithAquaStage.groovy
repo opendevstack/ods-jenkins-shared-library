@@ -139,6 +139,16 @@ class ScanWithAquaStage extends Stage {
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             context.addArtifactURI('jiraComponentId', context.getComponentId())
+
+            logger.info("context.getGitBranch(): " + context.getGitBranch())
+            logger.info("context.properties: " + context.getProperties())
+            logger.info("context.getBuildUrl: " + context.getBuildUrl())
+            logger.info("context.getBitbucketHost: " + context.getBitbucketHost())
+            logger.info("context.getBranchToEnvironmentMapping: " + context.getBranchToEnvironmentMapping())
+            logger.info("context.getBranchToEnvironmentMapping: " + context.getBuildArtifactURIs())
+            logger.info("context.getGitUrl: " + context.getGitUrl())
+            logger.info("context.getMetaPropertyValues: " + context.getMetaPropertyValues())
+
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
