@@ -113,9 +113,10 @@ class BuildStage extends Stage {
             }
 
             util.failBuild(logMessage)
-            // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable vulnerability
-            // with solution found then raise an exception
-            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0 || aquaCriticalVulnerabilityRepos?.size() > 0) {
+            // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
+            // vulnerability with solution found then raise an exception
+            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
+                || aquaCriticalVulnerabilityRepos?.size() > 0) {
                 throw new IllegalStateException(jiraMessage)
             }
         }
@@ -138,7 +139,8 @@ class BuildStage extends Stage {
 
     String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
         StringBuilder message = new StringBuilder()
-        message.append("\nh3.Aqua security scan detected the following remotely exploitable critical vulnerability: " + vulerability.name as String)
+        message.append("\nh3.Aqua security scan detected the following remotely exploitable critical " +
+            "vulnerability: " + vulerability.name as String)
         message.append("\n*Description:* " + vulerability.description as String)
         message.append("\n\n*Solution:* " + vulerability.solution as String)
         return message.toString()

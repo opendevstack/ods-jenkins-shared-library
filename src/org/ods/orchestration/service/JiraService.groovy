@@ -242,7 +242,7 @@ class JiraService {
                         summary: summary,
                         description: description,
                         components: [
-                            [name : component]
+                            [name: component]
                         ],
                         fixVersions: [
                             [name: fixVersion]
@@ -808,7 +808,6 @@ class JiraService {
     void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount) {
         if (maxTransitionCount.getValue() <= 0) {
             throw new RuntimeException("Unable to transaition the issue to To Do state.")
-            return
         }
         maxTransitionCount.decrement()
         def possibleTransitions = getTransitions(issueId)
@@ -854,7 +853,7 @@ class JiraService {
         }
         return new JsonSlurperClassic().parseText(response.getBody()).transitions.collect { transition ->
             [
-                id  : transition.id,
+                id: transition.id,
                 name: transition.name
             ]
         }
