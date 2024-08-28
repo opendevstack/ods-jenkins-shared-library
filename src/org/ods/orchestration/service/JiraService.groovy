@@ -805,7 +805,7 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount) {
+    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount, logger) {
         if (maxTransitionCount.getValue() <= 0) {
             throw new RuntimeException("Unable to transaition the issue to To Do state.")
             return
@@ -818,12 +818,13 @@ class JiraService {
                 case "confirm dor":
                     // Issue is already in TO DO state
                     return
+                case "implement":
                 case "confirm dod":
-                    doTransition(issueId, transition)
+                    doTransition(issueId, transition, logger)
                     transitionIssueToToDo(issueId, maxTransitionCount)
                     return
                 case "reopen":
-                    doTransition(issueId, transition)
+                    doTransition(issueId, transition, logger)
                     return
                 default:
                     // Another state like cancel, move to the next one
@@ -859,7 +860,7 @@ class JiraService {
         }
     }
 
-    def doTransition(issueId, transition) {
+    def doTransition(issueId, transition, logger) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
         }
@@ -886,6 +887,7 @@ class JiraService {
 
             throw new RuntimeException(message)
         }
+        logger.info("Issue with id ${issueId} transitioned to '${transition}'")
         return true
     }
 }
