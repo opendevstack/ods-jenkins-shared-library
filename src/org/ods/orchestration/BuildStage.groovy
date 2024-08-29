@@ -128,7 +128,8 @@ class BuildStage extends Stage {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
                 def vulerabilityMap = vulnerability as Map
-                securityVulnerabilityIssueKeys.add(project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
+                securityVulnerabilityIssueKeys.add(project.createOrUpdateSecurityVulnerabilityIssue(
+                    vulerabilityMap.name,
                     jiraComponentId,
                     buildSecurityVulnerabilityIssueDescription(vulerabilityMap)))
             }
