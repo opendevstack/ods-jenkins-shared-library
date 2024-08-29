@@ -1268,7 +1268,8 @@ class JiraServiceSpec extends SpecHelper {
 
         when:
         def result = service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+            request.data.projectKey, request.data.summary, request.data.description,
+            request.data.fixVersion, request.data.components)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1350,7 +1351,8 @@ class JiraServiceSpec extends SpecHelper {
 
         when:
         service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
+            request.data.components)
 
         then:
         def e = thrown(RuntimeException)
@@ -1373,7 +1375,8 @@ class JiraServiceSpec extends SpecHelper {
 
         when:
         service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
+            request.data.components)
 
         then:
         def e = thrown(RuntimeException)

@@ -245,7 +245,7 @@ class JiraService {
                             [name: component]
                         ],
                         priority: [
-                            [name: priority]
+                            name: priority
                         ],
                         fixVersions: [
                             [name: fixVersion]
