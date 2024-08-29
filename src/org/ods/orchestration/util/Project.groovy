@@ -42,6 +42,7 @@ class Project {
     private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
     private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
         "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
+    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "High"
 
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
@@ -2098,7 +2099,7 @@ class Project {
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
             this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
-                issueSummary, description, fixVersion, fullJiraComponentName)
+                issueSummary, description, fixVersion, fullJiraComponentName, SECURITY_VULNERABILITY_ISSUE_PRIORITY)
         }
     }
 }
