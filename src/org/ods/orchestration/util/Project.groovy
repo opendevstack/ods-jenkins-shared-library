@@ -2102,7 +2102,6 @@ class Project {
             return (this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
                 issueSummary, description, fixVersion, fullJiraComponentName, SECURITY_VULNERABILITY_ISSUE_PRIORITY)
                 as Map)?.key
-
         }
     }
 }
