@@ -818,6 +818,7 @@ class JiraServiceSpec extends SpecHelper {
                 summary: "mySummary",
                 fixVersion: null,
                 components: null,
+                priority: null,
                 type: "myType"
             ],
             headers: [
@@ -838,6 +839,9 @@ class JiraServiceSpec extends SpecHelper {
                 description: result.data.description,
                 components: [
                     [name: result.data.components]
+                ],
+                priority: [
+                    name: result.data.priority
                 ],
                 fixVersions: [
                     [name: result.data.fixVersion]
@@ -976,7 +980,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+        def result = service.createIssueType(request.data.type, request.data.projectKey, request.data.summary,
+            request.data.description)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1036,7 +1041,8 @@ class JiraServiceSpec extends SpecHelper {
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
                 fixVersion: "1.0",
-                components: null
+                components: null,
+                priority: null,
             ],
             headers: [
                 "Accept": "application/json",
@@ -1056,6 +1062,9 @@ class JiraServiceSpec extends SpecHelper {
                 description: result.data.description,
                 components: [
                     [name: result.data.components]
+                ],
+                priority: [
+                    name: result.data.priority
                 ],
                 fixVersions: [
                     [name: result.data.fixVersion]
@@ -1084,7 +1093,8 @@ class JiraServiceSpec extends SpecHelper {
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
                 fixVersion: "1.0",
-                components: null
+                components: "Technology-test-component",
+                priority: "High"
             ],
             headers: [
                 "Accept": "application/json",
@@ -1104,6 +1114,9 @@ class JiraServiceSpec extends SpecHelper {
                 description: result.data.description,
                 components: [
                     [name: result.data.components]
+                ],
+                priority: [
+                    name: result.data.priority
                 ],
                 fixVersions: [
                     [name: result.data.fixVersion]
@@ -1173,6 +1186,9 @@ class JiraServiceSpec extends SpecHelper {
                 description: result.data.description,
                 components: [
                     [name: null]
+                ],
+                priority: [
+                    name: null
                 ],
                 fixVersions: [
                     [name: null]
@@ -1269,7 +1285,7 @@ class JiraServiceSpec extends SpecHelper {
         when:
         def result = service.createIssueTypeSecurityVulnerability(
             request.data.projectKey, request.data.summary, request.data.description,
-            request.data.fixVersion, request.data.components)
+            request.data.fixVersion, request.data.components, request.data.priority)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1278,7 +1294,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    Map createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionAndComponents(Map mixins = [:]) {
+    Map createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionComponentsAndPriority(Map mixins = [:]) {
         def result = [
             data: [
                 description: "myDescription",
@@ -1304,6 +1320,9 @@ class JiraServiceSpec extends SpecHelper {
                 components: [
                     [name: null]
                 ],
+                priority: [
+                    name: null
+                ],
                 fixVersions: [
                     [name: null]
                 ],
@@ -1316,9 +1335,10 @@ class JiraServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    def "create issue type 'Security Vulnerability' without fix version"() {
+    def "create issue type 'Security Vulnerability' without fix version, components and priority"() {
         given:
-        def request = createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionAndComponents()
+        def request =
+            createIssueTypeSecurityVulnerabilityRequestDataWithoutVersionComponentsAndPriority()
         def response = createIssueTypeSecurityVulnerabilityResponseData([
             body: JsonOutput.toJson([
                 "JIRA-123": request.data.summary
@@ -1352,7 +1372,7 @@ class JiraServiceSpec extends SpecHelper {
         when:
         service.createIssueTypeSecurityVulnerability(
             request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
-            request.data.components)
+            request.data.components, request.data.priority)
 
         then:
         def e = thrown(RuntimeException)
@@ -1376,7 +1396,7 @@ class JiraServiceSpec extends SpecHelper {
         when:
         service.createIssueTypeSecurityVulnerability(
             request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
-            request.data.components)
+            request.data.components, request.data.priority)
 
         then:
         def e = thrown(RuntimeException)
