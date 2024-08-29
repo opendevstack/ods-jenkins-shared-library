@@ -2096,12 +2096,13 @@ class Project {
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount)
-            return securityVulnerabilityIssues.get(0).toString()
+            return (securityVulnerabilityIssues.get(0) as Map)?.key
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
-            return this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
+            return (this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
                 issueSummary, description, fixVersion, fullJiraComponentName, SECURITY_VULNERABILITY_ISSUE_PRIORITY)
-                .toString()
+                as Map)?.key
+
         }
     }
 }
