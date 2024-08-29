@@ -2074,7 +2074,7 @@ class Project {
         return jiraSecurityVulnerabilityIssues
     }
 
-    def void createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
+    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
                                                       String description) {
         if (!this.jiraUseCase || !this.jiraUseCase.jira) {
             logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
@@ -2096,10 +2096,12 @@ class Project {
             logger.debug("Transition the issue to \"TO DO\" state")
             MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
             this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount)
+            return securityVulnerabilityIssues.get(0).toString()
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
-            this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
+            return this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
                 issueSummary, description, fixVersion, fullJiraComponentName, SECURITY_VULNERABILITY_ISSUE_PRIORITY)
+                .toString()
         }
     }
 }

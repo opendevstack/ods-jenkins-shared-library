@@ -106,8 +106,8 @@ class BuildStage extends Stage {
 
             def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
             if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                int vulnerabilitiesCount = createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
-                String aquaMessage = buildAquaSecurityVulnerabilityMessage(vulnerabilitiesCount)
+                def securityVulnerabilityIssueKeys = createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+                String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
                 logMessage += aquaMessage
                 jiraMessage += aquaMessage
             }
@@ -122,19 +122,18 @@ class BuildStage extends Stage {
         }
     }
 
-    int createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
-        int vulnerabilitiesCount = 0;
+    List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
+        def securityVulnerabilityIssueKeys = [];
         for (def repo : aquaCriticalVulnerabilityRepos) {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
                 def vulerabilityMap = vulnerability as Map
-                project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
+                securityVulnerabilityIssueKeys.add(project.createOrUpdateSecurityVulnerabilityIssue(vulerabilityMap.name,
                     jiraComponentId,
-                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
-                vulnerabilitiesCount++
+                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap)))
             }
         }
-        return vulnerabilitiesCount
+        return securityVulnerabilityIssueKeys
     }
 
     String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
@@ -146,13 +145,15 @@ class BuildStage extends Stage {
         return message.toString()
     }
 
-    String buildAquaSecurityVulnerabilityMessage(int vulnerabilitiesCount) {
-        if (vulnerabilitiesCount == 1) {
+    String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
+        if (securityVulnerabilityIssueKeys?.size() == 1) {
             return "\n\nAqua scan detected one remotely exploitable critical " +
-                "vulnerability with solution that needs to be fixed.\n"
+                "vulnerability with solution that needs to be fixed and created the following Jira issue for it:" +
+                "${buildIssueKeysCommaSeparated(securityVulnerabilityIssueKeys)}.\n"
         } else {
-            return "\n\nAqua scan detected ${vulnerabilitiesCount} remotely exploitable critical " +
-                "vulnerabilities with solutions that need to be fixed.\n"
+            return "\n\nAqua scan detected ${securityVulnerabilityIssueKeys.size()} remotely exploitable critical " +
+                "vulnerabilities with solutions that need to be fixed and created the following Jira issues for " +
+                "them: ${buildIssueKeysCommaSeparated(securityVulnerabilityIssueKeys)}.\n"
         }
     }
 
@@ -202,6 +203,17 @@ class BuildStage extends Stage {
             .join(", ")
 
         return reposCommaSeparatedString
+    }
+
+    String buildIssueKeysCommaSeparated(List issueKeys) {
+        StringBuilder response = new StringBuilder()
+        for (String issueKey : issueKeys) {
+            if (response.length() > 0) {
+                response.append(", ")
+            }
+            response.append(issueKey)
+        }
+        return response
     }
 
 }
