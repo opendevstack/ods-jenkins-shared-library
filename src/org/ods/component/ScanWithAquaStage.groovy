@@ -137,6 +137,9 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
+
+            logger.info("actionableVulnerabilities: " + actionableVulnerabilities)
+
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             context.addArtifactURI('jiraComponentId', context.getComponentId())
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
