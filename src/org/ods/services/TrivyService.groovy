@@ -19,7 +19,7 @@ class TrivyService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int scanViaCli(String scanners, String vulType, String format, String flags,
+    int scanViaCli(String scanners, String pkgType, String format, String flags,
         String reportFile, String nexusRepository, String openshiftDomain ) {
         logger.info "Starting to scan via Trivy CLI..."
         int status = TRIVY_SUCCESS
@@ -33,7 +33,7 @@ class TrivyService {
                 --java-db-repository ${nexusRepository}.${openshiftDomain}/aquasecurity/trivy-java-db \
                 --cache-dir /tmp/.cache \
                 --scanners ${scanners} \
-                --vuln-type ${vulType} \
+                --pkg-types ${pkgType} \
                 --format ${format} \
                 --output ${reportFile} \
                 --license-full \
