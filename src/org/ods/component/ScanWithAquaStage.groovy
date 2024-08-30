@@ -138,7 +138,12 @@ class ScanWithAquaStage extends Stage {
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
 
-            logger.info("actionableVulnerabilities: " + actionableVulnerabilities)
+
+            logger.info("context.getGitUrl(): " + context.getGitUrl())
+            logger.info("context.getGitCommit(): " + context.getGitCommit())
+            logger.info("context.getRepoName(): " + context.getRepoName())
+            logger.info("context.getProjectId(): " + context.getProjectId())
+
 
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             context.addArtifactURI('jiraComponentId', context.getComponentId())
