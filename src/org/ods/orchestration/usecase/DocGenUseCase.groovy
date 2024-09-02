@@ -255,9 +255,16 @@ abstract class DocGenUseCase {
     protected void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
-            status = this.docGen.healthCheck()
-            if (status == 200) {
-                return
+            try {
+                status = this.docGen.healthCheck()
+                if (status == 200) {
+                    return
+                }
+            } catch (e) {
+                // There may be a lower-level error, such as a connection reset, for which there is no HTTP status.
+                // In these cases, healthCheck throws an exception.
+                // Given the lack of documentation about the possible exceptions, we have to consider all of them
+                // as retryable. Anyway, we have a MAX_RETRIES.
             }
             sleep(RETRY_WAIT_SECONDS)
         }
