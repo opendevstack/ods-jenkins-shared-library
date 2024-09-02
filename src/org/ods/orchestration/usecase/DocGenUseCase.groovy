@@ -1,6 +1,5 @@
 package org.ods.orchestration.usecase
 
-import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
@@ -19,7 +18,7 @@ import org.ods.orchestration.util.Project
     'DuplicateMapLiteral'])
 abstract class DocGenUseCase {
 
-    private static final int MAX_RETRIES = 24
+    private static final int MAX_RETRIES = 12
     private static final int RETRY_WAIT_SECONDS = 5
 
     static final String RESURRECTED = "resurrected"
@@ -251,7 +250,6 @@ abstract class DocGenUseCase {
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
-    @NonCPS
     protected void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
