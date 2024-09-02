@@ -7,8 +7,6 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 
-import java.net.URI
-
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -32,6 +30,12 @@ class DocGenService {
     }
 
     @NonCPS
+    int healthCheck() {
+        def response = Unirest.get("${this.baseURL}/health").asEmpty()
+        return response.getStatus()
+    }
+
+    @NonCPS
     byte[] createDocument(String type, String version, Map data) {
         def response = Unirest.post("${this.baseURL}/document")
             .header("Accept", "application/json")
@@ -41,7 +45,7 @@ class DocGenService {
                     type: type,
                     version: version
                 ],
-                data: data
+                data: data,
             ]))
             .asString()
 
@@ -65,4 +69,5 @@ class DocGenService {
     private static byte[] decodeBase64(String base64String) {
         return Base64.decoder.decode(base64String)
     }
+
 }

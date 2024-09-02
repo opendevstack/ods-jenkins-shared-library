@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
@@ -17,6 +18,9 @@ import org.ods.orchestration.util.Project
     'GStringAsMapKey',
     'DuplicateMapLiteral'])
 abstract class DocGenUseCase {
+
+    private static final int MAX_RETRIES = 12
+    private static final long RETRY_WAIT_MILLISECONDS = 5000L
 
     static final String RESURRECTED = "resurrected"
     protected Project project
@@ -38,6 +42,7 @@ abstract class DocGenUseCase {
     }
 
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
+        checkServiceReadiness()
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 
@@ -245,5 +250,25 @@ abstract class DocGenUseCase {
     abstract List<String> getSupportedDocuments()
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
+
+    @NonCPS
+    protected void checkServiceReadiness() {
+        int status
+        for (int i = 0; i < MAX_RETRIES; i++) {
+            try {
+                status = this.docGen.healthCheck()
+                if (status == 200) {
+                    return
+                }
+            } catch (ignored) {
+                // There may be a lower-level error, such as a connection reset, for which there is no HTTP status.
+                // In these cases, healthCheck throws an exception.
+                // Given the lack of documentation about the possible exceptions, we have to consider all of them
+                // as retryable. Anyway, we have a MAX_RETRIES.
+            }
+            sleep(RETRY_WAIT_MILLISECONDS)
+        }
+        throw new ServiceNotReadyException(status, "DocGen service is not ready.")
+    }
 
 }
