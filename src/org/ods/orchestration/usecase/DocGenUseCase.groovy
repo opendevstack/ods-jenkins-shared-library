@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
@@ -250,6 +251,7 @@ abstract class DocGenUseCase {
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
 
+    @NonCPS
     protected void checkServiceReadiness() {
         int status
         for (int i = 0; i < MAX_RETRIES; i++) {
@@ -264,7 +266,7 @@ abstract class DocGenUseCase {
                 // Given the lack of documentation about the possible exceptions, we have to consider all of them
                 // as retryable. Anyway, we have a MAX_RETRIES.
             }
-            sleep(RETRY_WAIT_SECONDS)
+            Thread.sleep(RETRY_WAIT_SECONDS)
         }
         throw new ServiceNotReadyException(status, "DocGen service is not ready.")
     }
