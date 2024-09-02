@@ -62,6 +62,11 @@ _String_
 |Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`.
 
 
+| *pkgType* +
+_String_
+|Comma-separated list of vulnerability types to scan. Defaults to `os,library`.
+
+
 | *reportFile* +
 _String_
 |Name of the file that will be archived in Jenkins and uploaded in Nexus.
@@ -76,10 +81,5 @@ _String_
 | *scanners* +
 _String_
 |Comma-separated list of what security issues to detect. Defaults to `vuln,config,secret,license`.
-
-
-| *vulType* +
-_String_
-|Comma-separated list of vulnerability types to scan. Defaults to `os,library`.
 
 |===
