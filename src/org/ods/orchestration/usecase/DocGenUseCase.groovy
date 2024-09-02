@@ -19,7 +19,7 @@ import org.ods.orchestration.util.Project
     'DuplicateMapLiteral'])
 abstract class DocGenUseCase {
 
-    private static final int MAX_RETRIES = 5
+    private static final int MAX_RETRIES = 24
     private static final int RETRY_WAIT_SECONDS = 5
 
     static final String RESURRECTED = "resurrected"
