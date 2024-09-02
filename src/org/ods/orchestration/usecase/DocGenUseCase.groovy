@@ -260,7 +260,7 @@ abstract class DocGenUseCase {
                 if (status == 200) {
                     return
                 }
-            } catch (e) {
+            } catch (ignored) {
                 // There may be a lower-level error, such as a connection reset, for which there is no HTTP status.
                 // In these cases, healthCheck throws an exception.
                 // Given the lack of documentation about the possible exceptions, we have to consider all of them
