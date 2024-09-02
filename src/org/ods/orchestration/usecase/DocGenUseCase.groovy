@@ -20,7 +20,7 @@ import org.ods.orchestration.util.Project
 abstract class DocGenUseCase {
 
     private static final int MAX_RETRIES = 12
-    private static final int RETRY_WAIT_SECONDS = 5
+    private static final long RETRY_WAIT_MILLISECONDS = 5000L
 
     static final String RESURRECTED = "resurrected"
     protected Project project
@@ -266,7 +266,7 @@ abstract class DocGenUseCase {
                 // Given the lack of documentation about the possible exceptions, we have to consider all of them
                 // as retryable. Anyway, we have a MAX_RETRIES.
             }
-            Thread.sleep(RETRY_WAIT_SECONDS)
+            sleep(RETRY_WAIT_MILLISECONDS)
         }
         throw new ServiceNotReadyException(status, "DocGen service is not ready.")
     }
