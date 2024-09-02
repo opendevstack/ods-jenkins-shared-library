@@ -31,7 +31,7 @@ class DocGenService {
 
     @NonCPS
     int healthCheck() {
-        def response = Unirest.head("${this.baseURL}/health").asEmpty()
+        def response = Unirest.get("${this.baseURL}/health").asEmpty()
         return response.getStatus()
     }
 
