@@ -159,14 +159,14 @@ class ScanWithAquaStage extends Stage {
         message.append("Aqua scan found remotely exploitable critical vulnerabilities " +
             "in branch '${gitBranch}' for the following git repository: ${gitUrl}. ")
         if (nexusReportLink != null) {
-            message.append("You can check the report here: ${nexusReportLink}. ")
+            message.append("\nYou can check the report here: ${nexusReportLink}.")
         }
         def prs = getPRsForCommit(gitCommit, repoName)
         if (prs.size() > 0) {
-            message.append("The git commit for this urls also contains the following PRs: ")
-            message.append(prs.join(", "))
+            message.append("\nThe git commit for this urls also contains the following PRs: ")
+            message.append(prs.join(", ")).append(".")
         }
-        message.append("For a successful build these vulnerabilities need to be solved by implementing " +
+        message.append("\nFor a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
         def count= 1;
         for (def vulnerability : actionableVulnerabilities) {
