@@ -163,7 +163,7 @@ class ScanWithAquaStage extends Stage {
         }
         def prs = getPRsForCommit(gitCommit, repoName)
         if (prs.size() > 0) {
-            message.append("\nThis commit exists in the following open Pull requests: ")
+            message.append("\nThis commit exists in the following open pull requests: ")
             def cnt = 1
             for (def pr : prs) {
                 message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
