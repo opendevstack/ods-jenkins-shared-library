@@ -810,7 +810,7 @@ class JiraServiceSpec extends SpecHelper {
     }
 
 
-    Map createIssueTypeRequestData(Map mixins = [:]) {
+    Map createIssueRequestData(Map mixins = [:]) {
         def result = [
             data: [
                 description: "myDescription",
@@ -865,7 +865,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid type"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
@@ -891,7 +891,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid projectKey"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
@@ -917,7 +917,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid summary"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
@@ -943,7 +943,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid description"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
@@ -969,7 +969,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
             body: JsonOutput.toJson([
                 "JIRA-123": request.data.summary
@@ -992,7 +992,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with HTTP 404 failure"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
             status: 404
         ])
@@ -1013,7 +1013,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with HTTP 500 failure"() {
         given:
-        def request = createIssueOfTypeRequestData()
+        def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
             body: "Sorry, doesn't work!",
             status: 500
