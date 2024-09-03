@@ -865,21 +865,21 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid type"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(null, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(null, request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'type' is undefined."
 
         when:
-        service.createIssueType(" ", request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(" ", request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -891,21 +891,21 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid projectKey"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(request.data.type, null, request.data.summary, request.data.description)
+        service.createIssue(request.data.type, null, request.data.summary, request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
 
         when:
-        service.createIssueType(request.data.type, " ", request.data.summary, request.data.description)
+        service.createIssue(request.data.type, " ", request.data.summary, request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -917,21 +917,21 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid summary"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, null, request.data.description)
+        service.createIssue(request.data.type, request.data.projectKey, null, request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'summary' is undefined."
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, " ", request.data.description)
+        service.createIssue(request.data.type, request.data.projectKey, " ", request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -943,21 +943,21 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with invalid description"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData()
 
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, null)
+        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'description' is undefined."
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, " ")
+        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, " ")
 
         then:
         e = thrown(IllegalArgumentException)
@@ -969,7 +969,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData([
             body: JsonOutput.toJson([
                 "JIRA-123": request.data.summary
@@ -980,7 +980,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssueType(request.data.type, request.data.projectKey, request.data.summary,
+        def result = service.createIssue(request.data.type, request.data.projectKey, request.data.summary,
             request.data.description)
 
         then:
@@ -992,7 +992,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with HTTP 404 failure"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData([
             status: 404
         ])
@@ -1001,7 +1001,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         def e = thrown(RuntimeException)
@@ -1013,7 +1013,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create issue type with HTTP 500 failure"() {
         given:
-        def request = createIssueTypeRequestData()
+        def request = createIssueOfTypeRequestData()
         def response = createIssueTypeResponseData([
             body: "Sorry, doesn't work!",
             status: 500
@@ -1023,7 +1023,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         def e = thrown(RuntimeException)

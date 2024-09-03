@@ -190,6 +190,24 @@ class BitbucketService {
         res
     }
 
+    // Get pull requests of "repo" for commit
+    String getPullRequestsForCommit(String repo, String commit) {
+        String res
+        withTokenCredentials { username, token ->
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
+            res = script.sh(
+                label: 'Get pullrequests for a commit via API',
+                script: """curl \\
+                  --fail \\
+                  -sS \\
+                  --header ${authHeader} \\
+                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits/${commit}/pull-requests""",
+                returnStdout: true
+            ).trim()
+        }
+        res
+    }
+
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
         String res

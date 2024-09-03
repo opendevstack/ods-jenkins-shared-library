@@ -137,21 +137,13 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-
-
-            logger.info("context.getGitUrl(): " + context.getGitUrl())
-            logger.info("context.getGitCommit(): " + context.getGitCommit())
-            logger.info("context.getRepoName(): " + context.getRepoName())
-            logger.info("context.getProjectId(): " + context.getProjectId())
-
-
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             context.addArtifactURI('jiraComponentId', context.getComponentId())
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
                 buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities, nexusReportLink,
-                    context.getGitUrl(), context.getGitBranch()))
+                    context.getGitUrl(), context.getGitBranch(), context.getGitCommit(), context.getRepoName()))
         }
 
         return
@@ -160,12 +152,19 @@ class ScanWithAquaStage extends Stage {
     private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities,
                                                                 String nexusReportLink,
                                                                 String gitUrl,
-                                                                String gitBranch) {
+                                                                String gitBranch,
+                                                                String gitCommit,
+                                                                String repoName) {
         StringBuilder message = new StringBuilder();
         message.append("Aqua scan found remotely exploitable critical vulnerabilities " +
             "in branch '${gitBranch}' for the following git repository: ${gitUrl}. ")
         if (nexusReportLink != null) {
             message.append("You can check the report here: ${nexusReportLink} ")
+        }
+        def prs = getPRsForCommit(gitCommit, repoName)
+        if (prs.size() > 0) {
+            message.append("The git commit for this urls also contains the following PRs: ")
+            message.append(prs.join(", "))
         }
         message.append("For a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
@@ -178,6 +177,31 @@ class ScanWithAquaStage extends Stage {
             count++
         }
         return message.toString()
+    }
+
+    private List getPRsForCommit(String gitCommit, String repoName) {
+        def apiResponse = bitbucket.getPullRequestsForCommit(repoName, gitCommit)
+        def prs = []
+        try {
+            def js = steps.readJSON(text: apiResponse) as Map
+            prs = js['values']
+            if (prs == null) {
+                throw new RuntimeException('Field "values" of JSON response must not be empty!')
+            }
+        } catch (Exception ex) {
+            logger.warn "Could not understand API response. Error was: ${ex}"
+            return []
+        }
+        def response = []
+        for (def i = 0; i < (prs as List).size(); i++) {
+            Map pr = (prs as List)[i] as Map
+            response.add([
+                title: pr.title,
+                state: pr.state,
+                link: (((pr.links as Map).self as List)[0] as Map).href
+            ])
+        }
+        response
     }
 
     private String getImageRef() {

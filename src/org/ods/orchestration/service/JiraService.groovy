@@ -211,8 +211,8 @@ class JiraService {
     }
 
     @NonCPS
-    Map createIssueType(String type, String projectKey, String summary, String description,
-                        String fixVersion = null, String component = null, String priority = null) {
+    Map createIssue(String type, String projectKey, String summary, String description,
+                    String fixVersion = null, String component = null, String priority = null) {
         if (!type?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
@@ -282,13 +282,13 @@ class JiraService {
             description = 'N/A - please check logs'
         }
 
-        return createIssueType("Bug", projectKey, summary, description, fixVersion)
+        return createIssue("Bug", projectKey, summary, description, fixVersion)
     }
 
     Map createIssueTypeSecurityVulnerability(String projectKey, String summary, String description,
                                              String fixVersion = null, String component = null,
                                              String priority = null) {
-        return createIssueType("Security Vulnerability", projectKey, summary, description,
+        return createIssue("Security Vulnerability", projectKey, summary, description,
             fixVersion, component, priority)
     }
 
