@@ -163,8 +163,14 @@ class ScanWithAquaStage extends Stage {
         }
         def prs = getPRsForCommit(gitCommit, repoName)
         if (prs.size() > 0) {
-            message.append("\nThe git commit for this urls also contains the following PRs: ")
-            message.append(prs.join(", ")).append(".")
+            message.append("\nThis commit exists in the following open Pull requests: ")
+            def cnt = 1
+            for (def pr : prs) {
+                message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
+                message.append("\n${cnt}.1.  Link: " + (pr as Map).link as String)
+                message.append("\n")
+                cnt++
+            }
         }
         message.append("\nFor a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
@@ -197,9 +203,11 @@ class ScanWithAquaStage extends Stage {
         def response = []
         for (def i = 0; i < (prs as List).size(); i++) {
             Map pr = (prs as List)[i] as Map
+            if (!(pr.open as Boolean)) { // We only consider Open PRs
+                continue
+            }
             response.add([
                 title: pr.title,
-                state: pr.state,
                 link: (((pr.links as Map).self as List)[0] as Map).href
             ])
         }
