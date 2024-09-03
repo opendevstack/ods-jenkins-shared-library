@@ -161,11 +161,11 @@ class ScanWithAquaStage extends Stage {
         if (nexusReportLink != null) {
             message.append("\nYou can check the report here: ${nexusReportLink}.")
         }
-        def prs = getPRsForCommit(gitCommit, repoName)
-        if (prs.size() > 0) {
+        def openPRs = getOpenPRsForCommit(gitCommit, repoName)
+        if (openPRs.size() > 0) {
             message.append("\nThis commit exists in the following open pull requests: ")
             def cnt = 1
-            for (def pr : prs) {
+            for (def pr : openPRs) {
                 message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
                 message.append("\n${cnt}.1.  Link: " + (pr as Map).link as String)
                 message.append("\n")
@@ -185,10 +185,8 @@ class ScanWithAquaStage extends Stage {
         return message.toString()
     }
 
-    private List getPRsForCommit(String gitCommit, String repoName) {
-        logger.info("Get PRs for repo ${repoName} and cmooit: ${gitCommit}")
+    private List getOpenPRsForCommit(String gitCommit, String repoName) {
         def apiResponse = bitbucket.getPullRequestsForCommit(repoName, gitCommit)
-        logger.info("Get PRs response: ${apiResponse}")
         def prs = []
         try {
             def js = steps.readJSON(text: apiResponse) as Map

@@ -193,8 +193,6 @@ class BitbucketService {
     // Get pull requests of "repo" for commit
     String getPullRequestsForCommit(String repo, String commit) {
         String res
-        String apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits/${commit}/pull-requests"
-        logger.info("getPullRequestsForCommit URL: ${apiUrl}")
         withTokenCredentials { username, token ->
             def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
             res = script.sh(
@@ -203,7 +201,7 @@ class BitbucketService {
                   --fail \\
                   -sS \\
                   --header ${authHeader} \\
-                  ${apiUrl}""",
+                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits/${commit}/pull-requests""",
                 returnStdout: true
             ).trim()
         }
