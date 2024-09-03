@@ -863,7 +863,7 @@ class JiraServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    def "create issue type with invalid type"() {
+    def "create issue with invalid type"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
@@ -889,7 +889,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with invalid projectKey"() {
+    def "create issue with invalid projectKey"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
@@ -915,7 +915,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with invalid summary"() {
+    def "create issue with invalid summary"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
@@ -941,7 +941,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with invalid description"() {
+    def "create issue with invalid description"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData()
@@ -967,7 +967,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type"() {
+    def "create issue"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
@@ -990,7 +990,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with HTTP 404 failure"() {
+    def "create issue with HTTP 404 failure"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
@@ -1011,7 +1011,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with HTTP 500 failure"() {
+    def "create issue with HTTP 500 failure"() {
         given:
         def request = createIssueRequestData()
         def response = createIssueTypeResponseData([
