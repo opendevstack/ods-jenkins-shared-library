@@ -159,7 +159,7 @@ class ScanWithAquaStage extends Stage {
         message.append("Aqua scan found remotely exploitable critical vulnerabilities " +
             "in branch '${gitBranch}' for the following git repository: ${gitUrl}. ")
         if (nexusReportLink != null) {
-            message.append("You can check the report here: ${nexusReportLink} ")
+            message.append("You can check the report here: ${nexusReportLink}. ")
         }
         def prs = getPRsForCommit(gitCommit, repoName)
         if (prs.size() > 0) {
@@ -180,7 +180,9 @@ class ScanWithAquaStage extends Stage {
     }
 
     private List getPRsForCommit(String gitCommit, String repoName) {
+        logger.info("Get PRs for repo ${repoName} and cmooit: ${gitCommit}")
         def apiResponse = bitbucket.getPullRequestsForCommit(repoName, gitCommit)
+        logger.info("Get PRs response: ${apiResponse}")
         def prs = []
         try {
             def js = steps.readJSON(text: apiResponse) as Map
