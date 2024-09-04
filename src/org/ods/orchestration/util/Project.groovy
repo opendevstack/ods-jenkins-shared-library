@@ -2099,8 +2099,9 @@ class Project {
             return (securityVulnerabilityIssues.get(0) as Map)?.key
         } else { // Create the issue
             logger.debug("Create security vulnerability issue")
-            return (this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(this.jiraProjectKey,
-                issueSummary, description, fixVersion, fullJiraComponentName, SECURITY_VULNERABILITY_ISSUE_PRIORITY)
+            return (this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(fixVersion, fullJiraComponentName,
+                SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: this.jiraProjectKey, summary: issueSummary,
+                description: description)
                 as Map)?.key
         }
     }

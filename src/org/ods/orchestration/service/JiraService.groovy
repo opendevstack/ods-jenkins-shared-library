@@ -211,21 +211,20 @@ class JiraService {
     }
 
     @NonCPS
-    Map createIssue(String type, String projectKey, String summary, String description,
-                    String fixVersion = null, String component = null, String priority = null) {
-        if (!type?.trim()) {
+    Map createIssue(Map args, String fixVersion = null, String component = null, String priority = null) {
+        if (!args.type?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
 
-        if (!projectKey?.trim()) {
+        if (!args.projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'projectKey\' is undefined.')
         }
 
-        if (!summary?.trim()) {
+        if (!args.summary?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'summary\' is undefined.')
         }
 
-        if (!description?.trim()) {
+        if (!args.description?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'description\' is undefined.')
         }
 
@@ -237,10 +236,10 @@ class JiraService {
                 [
                     fields: [
                         project: [
-                            key: projectKey.toUpperCase()
+                            key: args.projectKey.toUpperCase()
                         ],
-                        summary: summary,
-                        description: description,
+                        summary: args.summary,
+                        description: args.description,
                         components: [
                             [name: component]
                         ],
@@ -251,7 +250,7 @@ class JiraService {
                             [name: fixVersion]
                         ],
                         issuetype: [
-                            name: type
+                            name: args.type
                         ]
                     ]
                 ]
@@ -282,14 +281,13 @@ class JiraService {
             description = 'N/A - please check logs'
         }
 
-        return createIssue("Bug", projectKey, summary, description, fixVersion)
+        return createIssue(fixVersion, summary: summary, type: "Bug", projectKey: projectKey, description: description)
     }
 
-    Map createIssueTypeSecurityVulnerability(String projectKey, String summary, String description,
-                                             String fixVersion = null, String component = null,
+    Map createIssueTypeSecurityVulnerability(Map args, String fixVersion = null, String component = null,
                                              String priority = null) {
-        return createIssue("Security Vulnerability", projectKey, summary, description,
-            fixVersion, component, priority)
+        return createIssue(fixVersion, component, priority, summary: args.summary, type: "Security Vulnerability",
+            projectKey: args.projectKey, description: args.description)
     }
 
     @NonCPS

@@ -142,26 +142,22 @@ class ScanWithAquaStage extends Stage {
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
-                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities, nexusReportLink,
-                    context.getGitUrl(), context.getGitBranch(), context.getGitCommit(), context.getRepoName()))
+                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
+                    nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
+                    gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
         }
 
         return
     }
 
-    private String buildActionableMessageForAquaVulnerabilities(List actionableVulnerabilities,
-                                                                String nexusReportLink,
-                                                                String gitUrl,
-                                                                String gitBranch,
-                                                                String gitCommit,
-                                                                String repoName) {
+    private String buildActionableMessageForAquaVulnerabilities(Map args) {
         StringBuilder message = new StringBuilder();
         message.append("Aqua scan found remotely exploitable critical vulnerabilities " +
-            "in branch '${gitBranch}' for the following git repository: ${gitUrl}. ")
-        if (nexusReportLink != null) {
-            message.append("\nYou can check the report here: ${nexusReportLink}.")
+            "in branch '${args.gitBranch}' for the following git repository: ${args.gitUrl}. ")
+        if (args.nexusReportLink != null) {
+            message.append("\nYou can check the report here: ${args.nexusReportLink}.")
         }
-        def openPRs = getOpenPRsForCommit(gitCommit, repoName)
+        def openPRs = getOpenPRsForCommit(args.gitCommit as String, args.repoName as String)
         if (openPRs.size() > 0) {
             message.append("\nThis commit exists in the following open pull requests: ")
             def cnt = 1
@@ -175,7 +171,7 @@ class ScanWithAquaStage extends Stage {
         message.append("\nFor a successful build these vulnerabilities need to be solved by implementing " +
             "the provided solution for each of them. Here is the list of vulnerabilities:\n");
         def count= 1;
-        for (def vulnerability : actionableVulnerabilities) {
+        for (def vulnerability : args.actionableVulnerabilities) {
             message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
             message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
             message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)

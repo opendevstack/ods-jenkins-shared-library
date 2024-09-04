@@ -872,14 +872,14 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(null, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: null, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'type' is undefined."
 
         when:
-        service.createIssue(" ", request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: " ", projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -898,14 +898,14 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(request.data.type, null, request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: null, description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
 
         when:
-        service.createIssue(request.data.type, " ", request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: " ", description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -924,14 +924,14 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, null, request.data.description)
+        service.createIssue(summary: null, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'summary' is undefined."
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, " ", request.data.description)
+        service.createIssue(summary: " ", type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -950,14 +950,14 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, null)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'description' is undefined."
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, " ")
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: " ")
 
         then:
         e = thrown(IllegalArgumentException)
@@ -980,8 +980,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssue(request.data.type, request.data.projectKey, request.data.summary,
-            request.data.description)
+        def result = service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1001,7 +1000,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(RuntimeException)
@@ -1023,7 +1022,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(RuntimeException)
@@ -1284,8 +1283,8 @@ class JiraServiceSpec extends SpecHelper {
 
         when:
         def result = service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description,
-            request.data.fixVersion, request.data.components, request.data.priority)
+            description: request.data.description, request.data.fixVersion, request.data.components,
+            request.data.priority, projectKey: request.data.projectKey, summary: request.data.summary)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1349,8 +1348,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description)
+        def result = service.createIssueTypeSecurityVulnerability(summary: request.data.summary,
+            description:  request.data.description, projectKey: request.data.projectKey)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1370,9 +1369,9 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
-            request.data.components, request.data.priority)
+        service.createIssueTypeSecurityVulnerability(description:  request.data.description,
+            request.data.fixVersion, request.data.components, request.data.priority,
+            projectKey: request.data.projectKey, summary: request.data.summary)
 
         then:
         def e = thrown(RuntimeException)
@@ -1394,9 +1393,9 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueTypeSecurityVulnerability(
-            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion,
-            request.data.components, request.data.priority)
+        service.createIssueTypeSecurityVulnerability(description:  request.data.description,
+            request.data.fixVersion, request.data.components, request.data.priority,
+            projectKey: request.data.projectKey, summary: request.data.summary)
 
         then:
         def e = thrown(RuntimeException)
