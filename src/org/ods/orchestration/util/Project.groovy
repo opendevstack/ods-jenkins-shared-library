@@ -2,7 +2,6 @@ package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
-import org.apache.commons.lang3.mutable.MutableInt
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.usecase.JiraUseCase
@@ -28,7 +27,6 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
-    static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
     static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
     static final boolean IS_GXP_PROJECT_DEFAULT = true
@@ -39,10 +37,6 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
 
-    private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
-    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
-        "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
-    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "High"
 
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
@@ -2050,59 +2044,6 @@ class Project {
         }
     }
 
-    protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,
-                                                       String jiraComponent) {
-        if (!this.jiraUseCase) return [:]
-        if (!this.jiraUseCase.jira) return [:]
 
-        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
-        def jql = "project = \"${this.jiraProjectKey}\" AND issuetype = \"Security Vulnerability\" " +
-            "AND fixVersion = \"${fixVersion}\" " +
-            "AND component = \"${jiraComponent}\" " +
-            "AND summary ~ \"${issueSummary}\" "
 
-        logger.info("loadJiraSecurityVulnerabilityIssues: " + jql)
-
-        def jqlQuery = [
-            fields: fields,
-            jql: jql,
-            expand: []
-        ]
-
-        def jiraSecurityVulnerabilityIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
-
-        return jiraSecurityVulnerabilityIssues
-    }
-
-    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
-                                                      String description) {
-        if (!this.jiraUseCase || !this.jiraUseCase.jira) {
-            logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
-            return
-        }
-
-        def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
-            vulnerabilityName)
-
-        def fixVersion = null
-        if (this.isVersioningEnabled) {
-            fixVersion = this.getVersionName()
-        }
-        def fullJiraComponentName = JIRA_COMPONENT_TECHNOLOGY_PREFIX + jiraComponentId
-
-        List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues(issueSummary,
-            fixVersion, fullJiraComponentName)
-        if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
-            logger.debug("Transition the issue to \"TO DO\" state")
-            MutableInt maxTransitionCount = new MutableInt(5); // Just in case somebody modifies the workflow without notice
-            this.jiraUseCase.jira.transitionIssueToToDo(securityVulnerabilityIssues.get(0).id, maxTransitionCount)
-            return (securityVulnerabilityIssues.get(0) as Map)?.key
-        } else { // Create the issue
-            logger.debug("Create security vulnerability issue")
-            return (this.jiraUseCase.jira.createIssueTypeSecurityVulnerability(fixVersion, fullJiraComponentName,
-                SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: this.jiraProjectKey, summary: issueSummary,
-                description: description)
-                as Map)?.key
-        }
-    }
 }

@@ -16,6 +16,15 @@ class BuildStage extends Stage {
 
     public static final String JIRA_CUSTOM_PART = 'Follow the link below'
 
+    private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
+
+    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
+        "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
+
+    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "High"
+
+    private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
+
     public final String STAGE_NAME = 'Build'
 
     BuildStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
@@ -128,13 +137,74 @@ class BuildStage extends Stage {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
                 def vulerabilityMap = vulnerability as Map
-                securityVulnerabilityIssueKeys.add(project.createOrUpdateSecurityVulnerabilityIssue(
+                def issueKey = createOrUpdateSecurityVulnerabilityIssue(
                     vulerabilityMap.name,
                     jiraComponentId,
-                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap)))
+                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
+                securityVulnerabilityIssueKeys.add(issueKey)
             }
         }
         return securityVulnerabilityIssueKeys
+    }
+
+    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
+                                                    String description) {
+        if (!project.jiraUseCase || !project.jiraUseCase.jira) {
+            project.logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
+            return
+        }
+
+        def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
+            vulnerabilityName)
+
+        def fixVersion = null
+        if (project.isVersioningEnabled) {
+            fixVersion = project.getVersionName()
+        }
+        def fullJiraComponentName = JIRA_COMPONENT_TECHNOLOGY_PREFIX + jiraComponentId
+
+        List securityVulnerabilityIssues = project?.jiraUseCase?.jira?.loadJiraSecurityVulnerabilityIssues(issueSummary,
+            fixVersion, fullJiraComponentName, project.jiraProjectKey)
+        if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
+            transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
+            return (securityVulnerabilityIssues.get(0) as Map)?.key
+        } else { // Create the issue
+            return (createIssueTypeSecurityVulnerability(fixVersion, fullJiraComponentName,
+                SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: project.jiraProjectKey, summary: issueSummary,
+                description: description)
+                as Map)?.key
+        }
+    }
+
+    Map createIssueTypeSecurityVulnerability(Map args, String fixVersion = null, String component = null,
+                                             String priority = null) {
+        return project?.jiraUseCase?.jira?.createIssue(fixVersion, component, priority, summary: args.summary,
+            type: "Security Vulnerability", projectKey: args.projectKey, description: args.description)
+    }
+
+
+    void transitionIssueToToDo(String issueId) {
+        int maxAttemps = 10;
+        while (maxAttemps-- > 0) {
+            def possibleTransitions = project?.jiraUseCase?.jira?.getTransitions(issueId)
+            Map possibleTransitionsByName = possibleTransitions.collect {[it.name.toString().toLowerCase(), it]}
+            if (possibleTransitionsByName.containsKey("confirm dor")) { // Issue is already in TO DO state
+                return
+            } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transiton the issue
+                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("implement"))
+                continue
+            } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transiton the issue
+                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("confirm dod"))
+                continue
+            } else if (possibleTransitionsByName.containsKey("reopen")) { // We need to transiton the issue
+                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("reopen"))
+                return
+            } else {
+                throw new IllegalStateException("Unexpected issue transition states " +
+                    "found: ${possibleTransitionsByName.keySet()}")
+            }
+        }
+        throw new IllegalStateException("The issue could not be transitioned to TODO state.")
     }
 
     String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
@@ -150,11 +220,11 @@ class BuildStage extends Stage {
         if (securityVulnerabilityIssueKeys?.size() == 1) {
             return "\n\nAqua scan detected one remotely exploitable critical " +
                 "vulnerability with solution that needs to be fixed and created the following Jira issue for it:" +
-                "${buildIssueKeysCommaSeparated(securityVulnerabilityIssueKeys)}.\n"
+                "${securityVulnerabilityIssueKeys[0]}.\n"
         } else {
             return "\n\nAqua scan detected ${securityVulnerabilityIssueKeys.size()} remotely exploitable critical " +
                 "vulnerabilities with solutions that need to be fixed and created the following Jira issues for " +
-                "them: ${buildIssueKeysCommaSeparated(securityVulnerabilityIssueKeys)}.\n"
+                "them: ${securityVulnerabilityIssueKeys.join(", ")}.\n"
         }
     }
 
@@ -204,17 +274,6 @@ class BuildStage extends Stage {
             .join(", ")
 
         return reposCommaSeparatedString
-    }
-
-    String buildIssueKeysCommaSeparated(List issueKeys) {
-        StringBuilder response = new StringBuilder()
-        for (String issueKey : issueKeys) {
-            if (response.length() > 0) {
-                response.append(", ")
-            }
-            response.append(issueKey)
-        }
-        return response
     }
 
 }

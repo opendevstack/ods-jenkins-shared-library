@@ -6,7 +6,6 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-import org.apache.commons.lang3.mutable.MutableInt
 import org.ods.orchestration.util.StringCleanup
 
 import kong.unirest.Unirest
@@ -282,12 +281,6 @@ class JiraService {
         }
 
         return createIssue(fixVersion, summary: summary, type: "Bug", projectKey: projectKey, description: description)
-    }
-
-    Map createIssueTypeSecurityVulnerability(Map args, String fixVersion = null, String component = null,
-                                             String priority = null) {
-        return createIssue(fixVersion, component, priority, summary: args.summary, type: "Security Vulnerability",
-            projectKey: args.projectKey, description: args.description)
     }
 
     @NonCPS
@@ -807,31 +800,22 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    void transitionIssueToToDo(String issueId, MutableInt maxTransitionCount) {
-        if (maxTransitionCount.getValue() <= 0) {
-            throw new RuntimeException("Unable to transaition the issue to To Do state.")
-        }
-        maxTransitionCount.decrement()
-        def possibleTransitions = getTransitions(issueId)
-        for (def transition : possibleTransitions) {
-            def transitionNameLowerCase = transition.name.toString().toLowerCase()
-            switch (transitionNameLowerCase) {
-                case "confirm dor":
-                    // Issue is already in TO DO state
-                    return
-                case "implement":
-                case "confirm dod":
-                    doTransition(issueId, transition)
-                    transitionIssueToToDo(issueId, maxTransitionCount)
-                    return
-                case "reopen":
-                    doTransition(issueId, transition)
-                    return
-                default:
-                    // Another state like cancel, move to the next one
-                    break
-            }
-        }
+    protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,
+                                                       String jiraComponent, projectKey) {
+
+        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def jql = "project = \"${projectKey}\" AND issuetype = \"Security Vulnerability\" " +
+            "AND fixVersion = \"${fixVersion}\" " +
+            "AND component = \"${jiraComponent}\" " +
+            "AND summary ~ \"${issueSummary}\" "
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: []
+        ]
+
+        return getIssuesForJQLQuery(jqlQuery) ?: []
     }
 
     def getTransitions(issueId) {
