@@ -187,7 +187,7 @@ class BuildStage extends Stage {
         int maxAttemps = 10;
         while (maxAttemps-- > 0) {
             def possibleTransitions = project?.jiraUseCase?.jira?.getTransitions(issueId)
-            Map possibleTransitionsByName = possibleTransitions.collect {[it.name.toString().toLowerCase(), it]}
+            Map possibleTransitionsByName = possibleTransitions.collectEntries { t -> [t.name.toString().toLowerCase(), t] }
             if (possibleTransitionsByName.containsKey("confirm dor")) { // Issue is already in TO DO state
                 return
             } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transiton the issue
