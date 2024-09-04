@@ -196,7 +196,7 @@ class BuildStage extends Stage {
             } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transiton the issue
                 project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("confirm dod"))
                 continue
-            } else if (possibleTransitionsByName.containsKey("reopen")) { // We need to transiton the issue
+            } else if (possibleTransitionsByName.containsKey("reopen")) { // We need just one transiton
                 project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("reopen"))
                 return
             } else {
