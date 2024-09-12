@@ -223,7 +223,7 @@ class BuildStage extends Stage {
         message.append("\nAqua security scan detected the remotely exploitable critical " +
             "vulnerability with name *${vulnerability.name as String}* in repository *[${repoName}|${gitUrl}]* " +
             "in branch *${gitBranch}*." )
-        message.append("\n*Description:* " + vulnerability.description as String)
+        message.append("\n\n*Description:* " + vulnerability.description as String)
         message.append("\n\n*Solution:* " + vulnerability.solution as String)
 
         if (nexusReportLink != null) {
