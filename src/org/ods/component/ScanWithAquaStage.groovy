@@ -181,7 +181,7 @@ class ScanWithAquaStage extends Stage {
             }
         }
         if (args.nexusReportLink != null) {
-            message.append("\nYou can find the complete security scan report here: ${args.nexusReportLink}.")
+            message.append("\nYou can find the complete security scan report here: ${args.nexusReportLink}.\n")
         }
         return message.toString()
     }
