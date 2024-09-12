@@ -145,6 +145,7 @@ class BuildStage extends Stage {
                             vulerabilityMap,
                             repo.data.openshift.gitUrl,
                             repo.data.openshift.gitBranch,
+                            repo.data.openshift.repoName,
                             repo.data.openshift.nexusReportLink))
                     securityVulnerabilityIssueKeys.add(issueKey)
                 }
@@ -217,15 +218,16 @@ class BuildStage extends Stage {
     }
 
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
-                                                    String nexusReportLink) {
+                                                    String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
-        message.append("\nh3.Aqua security scan detected the remotely exploitable critical " +
-            "vulnerability with name '${vulnerability.name as String}' in ${gitUrl} in branch ${gitBranch}." )
+        message.append("\nAqua security scan detected the remotely exploitable critical " +
+            "vulnerability with name *${vulnerability.name as String}* in repository *[${repoName}:${gitUrl}]* " +
+            "in branch *${gitBranch}*." )
         message.append("\n*Description:* " + vulnerability.description as String)
         message.append("\n\n*Solution:* " + vulnerability.solution as String)
 
         if (nexusReportLink != null) {
-            message.append("\n\n*You can find the complete security scan report here:* " + nexusReportLink)
+            message.append("\n\nYou can find the complete security scan report *[here:${nexusReportLink}]*.")
         }
 
         return message.toString()

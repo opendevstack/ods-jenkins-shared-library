@@ -141,6 +141,7 @@ class ScanWithAquaStage extends Stage {
             context.addArtifactURI('jiraComponentId', context.getComponentId())
             context.addArtifactURI('gitUrl', context.getGitUrl())
             context.addArtifactURI('gitBranch', context.getGitBranch())
+            context.addArtifactURI('repoName', context.getRepoName())
             context.addArtifactURI('nexusReportLink', nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
