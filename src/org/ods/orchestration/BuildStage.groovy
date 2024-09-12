@@ -21,7 +21,7 @@ class BuildStage extends Stage {
     private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
         "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
 
-    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "High"
+    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "Highest"
 
     private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
 
@@ -133,16 +133,25 @@ class BuildStage extends Stage {
 
     List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
         def securityVulnerabilityIssueKeys = [];
-        for (def repo : aquaCriticalVulnerabilityRepos) {
-            def jiraComponentId = getJiraComponentId(repo)
-            for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                def vulerabilityMap = vulnerability as Map
-                def issueKey = createOrUpdateSecurityVulnerabilityIssue(
-                    vulerabilityMap.name,
-                    jiraComponentId,
-                    buildSecurityVulnerabilityIssueDescription(vulerabilityMap))
-                securityVulnerabilityIssueKeys.add(issueKey)
+        try {
+            for (def repo : aquaCriticalVulnerabilityRepos) {
+                def jiraComponentId = getJiraComponentId(repo)
+                for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
+                    def vulerabilityMap = vulnerability as Map
+                    def issueKey = createOrUpdateSecurityVulnerabilityIssue(
+                        vulerabilityMap.name,
+                        jiraComponentId,
+                        buildSecurityVulnerabilityIssueDescription(
+                            vulerabilityMap,
+                            repo.data.openshift.gitUrl,
+                            repo.data.openshift.gitBranch,
+                            repo.data.openshift.nexusReportLink))
+                    securityVulnerabilityIssueKeys.add(issueKey)
+                }
             }
+        } catch (JiraNotPresentException e) {
+            project.logger.warn(e.getMessage())
+            return []
         }
         return securityVulnerabilityIssueKeys
     }
@@ -150,8 +159,7 @@ class BuildStage extends Stage {
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
                                                     String description) {
         if (!project.jiraUseCase || !project.jiraUseCase.jira) {
-            project.logger.warn("JiraUseCase not present, cannot create security vulnerability issue.")
-            return
+            throw new JiraNotPresentException("JiraUseCase not present, cannot create security vulnerability issue.")
         }
 
         def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
@@ -208,24 +216,34 @@ class BuildStage extends Stage {
         throw new IllegalStateException("The issue could not be transitioned to TODO state.")
     }
 
-    String buildSecurityVulnerabilityIssueDescription(Map vulerability) {
+    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
+                                                    String nexusReportLink) {
         StringBuilder message = new StringBuilder()
-        message.append("\nh3.Aqua security scan detected the following remotely exploitable critical " +
-            "vulnerability: " + vulerability.name as String)
-        message.append("\n*Description:* " + vulerability.description as String)
-        message.append("\n\n*Solution:* " + vulerability.solution as String)
+        message.append("\nh3.Aqua security scan detected the remotely exploitable critical " +
+            "vulnerability with name '${vulnerability.name as String}' in ${gitUrl} in branch ${gitBranch}." )
+        message.append("\n*Description:* " + vulnerability.description as String)
+        message.append("\n\n*Solution:* " + vulnerability.solution as String)
+
+        if (nexusReportLink != null) {
+            message.append("\n\n*You can find the complete security scan report here:* " + nexusReportLink)
+        }
+
         return message.toString()
     }
 
     String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
-        if (securityVulnerabilityIssueKeys?.size() == 1) {
-            return "\n\nAqua scan detected one remotely exploitable critical " +
-                "vulnerability with solution that needs to be fixed and created the following Jira issue for it:" +
-                "${securityVulnerabilityIssueKeys[0]}.\n"
+        if (securityVulnerabilityIssueKeys?.size() == 0) { // No issue created as Jira is not connected
+            return "\n\nRemotely exploitable critical vulnerabilities were detected (see above). " +
+                "Due to their high severity, we must stop the delivery process until all vulnerabilities " +
+                "have been addressed.\n"
+        } else if (securityVulnerabilityIssueKeys?.size() == 1) {
+            return "\n\nA remotely exploitable critical vulnerability was detected and documented in " +
+                "the following Jira issue: ${securityVulnerabilityIssueKeys[0]}. Due to their high " +
+                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         } else {
-            return "\n\nAqua scan detected ${securityVulnerabilityIssueKeys.size()} remotely exploitable critical " +
-                "vulnerabilities with solutions that need to be fixed and created the following Jira issues for " +
-                "them: ${securityVulnerabilityIssueKeys.join(", ")}.\n"
+            return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
+                "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
+                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         }
     }
 

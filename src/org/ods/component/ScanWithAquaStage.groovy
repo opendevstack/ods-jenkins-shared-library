@@ -139,6 +139,9 @@ class ScanWithAquaStage extends Stage {
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
             context.addArtifactURI('jiraComponentId', context.getComponentId())
+            context.addArtifactURI('gitUrl', context.getGitUrl())
+            context.addArtifactURI('gitBranch', context.getGitBranch())
+            context.addArtifactURI('nexusReportLink', nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
@@ -152,10 +155,18 @@ class ScanWithAquaStage extends Stage {
 
     private String buildActionableMessageForAquaVulnerabilities(Map args) {
         StringBuilder message = new StringBuilder();
-        message.append("Aqua scan found remotely exploitable critical vulnerabilities " +
-            "in branch '${args.gitBranch}' for the following git repository: ${args.gitUrl}. ")
-        if (args.nexusReportLink != null) {
-            message.append("\nYou can check the report here: ${args.nexusReportLink}.")
+        message.append("We detected remotely exploitable critical vulnerabilities in ${args.gitUrl} " +
+            "in branch \"${args.gitBranch}\". Due to their high severity, we must stop the delivery " +
+            "process until all vulnerabilities have been addressed. ")
+
+        message.append("\n\nThe following vulnerabilities were found:\n");
+        def count= 1;
+        for (def vulnerability : args.actionableVulnerabilities) {
+            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
+            message.append("\n")
+            count++
         }
         def openPRs = getOpenPRsForCommit(args.gitCommit as String, args.repoName as String)
         if (openPRs.size() > 0) {
@@ -168,15 +179,8 @@ class ScanWithAquaStage extends Stage {
                 cnt++
             }
         }
-        message.append("\nFor a successful build these vulnerabilities need to be solved by implementing " +
-            "the provided solution for each of them. Here is the list of vulnerabilities:\n");
-        def count= 1;
-        for (def vulnerability : args.actionableVulnerabilities) {
-            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
-            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
-            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
-            message.append("\n")
-            count++
+        if (args.nexusReportLink != null) {
+            message.append("\nYou can find the complete security scan report here: ${args.nexusReportLink}.")
         }
         return message.toString()
     }
