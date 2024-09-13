@@ -1957,4 +1957,41 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         true  | CSD as String  | "IN PROGRESS" | "2"    || true
     }
 
+    @Unroll
+    def "fillRASections update section sec4s2s2 according to project property PROJECT.USES_POO"() {
+        given:
+        def sections = ["sec4s2s2":[]]
+        def risks = [[:]]
+        def proposedMeasuresDesription = [[:]]
+        def low = "low"
+        def medium = "medium"
+        def high = "high"
+        def project = Mock(Project)
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
+
+        when:
+        usecase.fillRASections(sections, risks, proposedMeasuresDesription)
+
+        then:
+        project.getProjectProperties() >> [
+            "PROJECT.NON-GXP_EVALUATION" : "",
+            "PROJECT.USES_POO" : poo,
+            "PROJECT.POO_CAT.LOW" : low,
+            "PROJECT.POO_CAT.MEDIUM" : medium,
+            "PROJECT.POO_CAT.HIGH": high
+        ]
+
+        and:
+        sections.sec4s2s2 == expectedResult
+
+        where:
+        poo             |  expectedResult
+        "true"          |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        "false"         |  [:]
+        "TRUE"          |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        "FALSE"         |  [:]
+        "invalidValue"  |  [:]
+        null            |  [:]
+    }
 }
