@@ -2022,8 +2022,11 @@ class Project {
 
         // Fail the RM pipeline if the old branch flag is in use
         if (repo.branch?.trim()) {
-            throw new IllegalArgumentException("Deprecated branch field is set in 'metadata.yml' " +
-                "inside Release Manager component for repo '${repo.id}'")
+            throw new IllegalArgumentException("The Release Manager's metadata.yml uses " +
+                "the 'branch' parameter with various repositories. This parameter has " +
+                "been removed and replaced with Bitbucket's 'default branch' setting. " +
+                "Please remove all 'branch' parameters from metadata.yml and set up your " +
+                "Bitbucket repositories' default branches as needed.")
         }
     }
 
