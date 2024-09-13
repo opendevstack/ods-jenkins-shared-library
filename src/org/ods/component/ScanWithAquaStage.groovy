@@ -137,12 +137,7 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-            context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
-            context.addArtifactURI('jiraComponentId', context.getComponentId())
-            context.addArtifactURI('gitUrl', context.getGitUrl())
-            context.addArtifactURI('gitBranch', context.getGitBranch())
-            context.addArtifactURI('repoName', context.getRepoName())
-            context.addArtifactURI('nexusReportLink', nexusReportLink)
+            addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
@@ -152,6 +147,15 @@ class ScanWithAquaStage extends Stage {
         }
 
         return
+    }
+
+    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink) {
+        context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
+        context.addArtifactURI('jiraComponentId', context.getComponentId())
+        context.addArtifactURI('gitUrl', context.getGitUrl())
+        context.addArtifactURI('gitBranch', context.getGitBranch())
+        context.addArtifactURI('repoName', context.getRepoName())
+        context.addArtifactURI('nexusReportLink', nexusReportLink)
     }
 
     private String buildActionableMessageForAquaVulnerabilities(Map args) {
