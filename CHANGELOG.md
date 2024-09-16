@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+* Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
+* Even if the POO property is set a true, this information is not present in the RA generated ([#1154](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1154))
 
 ### Added
 
