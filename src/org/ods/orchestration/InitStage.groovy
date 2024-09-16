@@ -69,7 +69,7 @@ class InitStage extends Stage {
             project.init()
         } catch (IllegalArgumentException e) {
             try {
-                addJiraUseCaseToRegistry(registry, logger, steps)
+                addJiraToRegistry(registry) // Needed to update the release status issue
             } catch (Exception ex) {
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
