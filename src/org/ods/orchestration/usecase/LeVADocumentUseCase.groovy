@@ -646,7 +646,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
-        if (Boolean.valueOf(this.project.getProjectProperties()."PROJECT.USES_POO") == Boolean.TRUE) {
+        if (Boolean.valueOf(this.project.getProjectProperties()."PROJECT.USES_POO")) {
             sections."sec4s2s2" = [
                 usesPoo          : "true",
                 lowDescription   : this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
