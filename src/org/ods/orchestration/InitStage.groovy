@@ -63,17 +63,22 @@ class InitStage extends Stage {
             hasErrorsDuringCheckout = true
         }
 
+        def registry = ServiceRegistry.instance
         logger.debug 'Load build params and metadata file information'
-        def projectInitException = null
         try {
             project.init()
         } catch (IllegalArgumentException e) {
-            projectInitException = e
+            try {
+                addJiraUseCaseToRegistry(registry, logger, steps)
+            } catch (Exception ex) {
+                logger.error 'Failed reporting project init error: ' + ex.getMessage()
+            }
+            throw e
         }
 
 
         logger.debug'Register global services'
-        def registry = ServiceRegistry.instance
+
         addServicesToRegistry(registry, git, steps, logger)
 
         if (hasErrorsDuringCheckout) {
@@ -86,11 +91,6 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
-
-        if (projectInitException != null) {
-            throw projectInitException
-        }
-
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
