@@ -63,7 +63,10 @@ class InitStage extends Stage {
             hasErrorsDuringCheckout = true
         }
 
+        logger.debug'Register global services'
         def registry = ServiceRegistry.instance
+        addServicesToRegistry(registry, git, steps, logger)
+
         BitbucketService bitbucket = registry.get(BitbucketService)
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
@@ -71,9 +74,6 @@ class InitStage extends Stage {
 
         logger.debug 'Load build params and metadata file information'
         project.init()
-
-        logger.debug'Register global services'
-        addServicesToRegistry(registry, git, steps, logger)
 
         if (hasErrorsDuringCheckout) {
             //throw an exception after project init
