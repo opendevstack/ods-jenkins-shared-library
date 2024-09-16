@@ -430,7 +430,7 @@ class InitStage extends Stage {
             logger
         )
 
-        if (project.hasCapability('Zephyr')) {
+        if (project?.hasCapability('Zephyr')) {
             jiraUseCase.setSupport(
                 new JiraUseCaseZephyrSupport(
                     project,
