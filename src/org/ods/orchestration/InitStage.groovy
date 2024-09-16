@@ -71,13 +71,16 @@ class InitStage extends Stage {
             try {
                 addJiraUseCaseToRegistry(registry, logger, steps)
             } catch (Exception ex) {
-                logger.error('Failed reporting project init error: ' + ex.getMessage(), ex)
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String exStackTrace = sw.toString();
+                logger.error('Failed reporting project init error: ' + ex.getMessage() + "\n" + exStackTrace)
             }
             throw e
         }
 
 
-        logger.debug'Register global services'
+        logger.debug 'Register global services'
 
         addServicesToRegistry(registry, git, steps, logger)
 
