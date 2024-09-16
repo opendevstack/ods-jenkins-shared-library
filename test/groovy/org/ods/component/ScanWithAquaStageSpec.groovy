@@ -170,7 +170,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0, null)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus",
+            "internal", "12345", 0, null, [])
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -200,7 +201,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1, null)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal",
+            "12345", 1, null, [])
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -219,7 +221,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     value: "Message"
                 ]
             ],
-            details: "There was some problems with Aqua:",
+            details: "There were some problems with Aqua:",
             result: "FAIL"
         ]
 
@@ -962,6 +964,21 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         // No warnings
         0 * stage.logger.warn(_)
+    }
+
+    def "Filter the vulnerabilities that are critical, remote and have a solution"() {
+        given:
+        def stage = createStage()
+        def aquaJsonFile = new File(getClass().getResource("aqua-test-result.json").toURI())
+        def pipelineSteps = new PipelineSteps()
+
+        when:
+        def aquaJsonAsMap = pipelineSteps.readJSON(text: aquaJsonFile.text) as Map
+        def result = stage.filterRemoteCriticalWithSolutionVulnerabilities(aquaJsonAsMap)
+
+        then:
+        assert result != null
+        assert result.size() == 1
     }
 
 }
