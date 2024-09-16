@@ -63,25 +63,11 @@ class InitStage extends Stage {
             hasErrorsDuringCheckout = true
         }
 
-        def registry = ServiceRegistry.instance
         logger.debug 'Load build params and metadata file information'
-        try {
-            project.init()
-        } catch (IllegalArgumentException e) {
-            try {
-                addJiraToRegistry(registry) // Needed to update the release status issue
-            } catch (Exception ex) {
-                StringWriter sw = new StringWriter();
-                ex.printStackTrace(new PrintWriter(sw));
-                String exStackTrace = sw.toString();
-                logger.error('Failed reporting project init error: ' + ex.getMessage() + "\n" + exStackTrace)
-            }
-            throw e
-        }
+        project.init()
 
-
-        logger.debug 'Register global services'
-
+        logger.debug'Register global services'
+        def registry = ServiceRegistry.instance
         addServicesToRegistry(registry, git, steps, logger)
 
         if (hasErrorsDuringCheckout) {
@@ -430,7 +416,7 @@ class InitStage extends Stage {
             logger
         )
 
-        if (project?.hasCapability('Zephyr')) {
+        if (project.hasCapability('Zephyr')) {
             jiraUseCase.setSupport(
                 new JiraUseCaseZephyrSupport(
                     project,
@@ -452,7 +438,7 @@ class InitStage extends Stage {
     private void addJiraToRegistry(registry) {
         script.withCredentials(
             [script.usernamePassword(
-                credentialsId: project.services?.jira?.credentials?.id,
+                credentialsId: project.services.jira.credentials.id,
                 usernameVariable: 'JIRA_USERNAME',
                 passwordVariable: 'JIRA_PASSWORD'
             )]
