@@ -63,17 +63,18 @@ class InitStage extends Stage {
             hasErrorsDuringCheckout = true
         }
 
+        logger.debug 'Load build params and metadata file information'
+        def projectInitException = null
+        try {
+            project.init()
+        } catch (IllegalArgumentException e) {
+            projectInitException = e
+        }
+
+
         logger.debug'Register global services'
         def registry = ServiceRegistry.instance
         addServicesToRegistry(registry, git, steps, logger)
-
-        BitbucketService bitbucket = registry.get(BitbucketService)
-        configureGit(git, steps, bitbucket)
-        def phase = MROPipelineUtil.PipelinePhases.INIT
-        project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
-
-        logger.debug 'Load build params and metadata file information'
-        project.init()
 
         if (hasErrorsDuringCheckout) {
             //throw an exception after project init
@@ -81,6 +82,15 @@ class InitStage extends Stage {
         }
 
         logger.debug 'Checkout repositories into the workspace'
+        BitbucketService bitbucket = registry.get(BitbucketService)
+        configureGit(git, steps, bitbucket)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
+
+        if (projectInitException != null) {
+            throw projectInitException
+        }
+
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
@@ -513,9 +523,9 @@ class InitStage extends Stage {
     }
 
     private Exception checkOutRepoInPromotionMode(GitService git,
-                                             Map buildParams,
-                                             String gitReleaseBranch,
-                                             Logger logger) {
+                                                  Map buildParams,
+                                                  String gitReleaseBranch,
+                                                  Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,
