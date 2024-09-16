@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
 
 ### Added
 
@@ -9,6 +10,11 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.5.6] - 2024-09-16
+
+### Fixed
+* Even if the POO property is set a true, this information is not present in the RA generated ([#1154](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1154))
 
 ## [4.5.5] - 2024-08-26
 
