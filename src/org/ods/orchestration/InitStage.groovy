@@ -71,7 +71,7 @@ class InitStage extends Stage {
             try {
                 addJiraUseCaseToRegistry(registry, logger, steps)
             } catch (Exception ex) {
-                logger.error 'Failed reporting project init error: ' + ex.getMessage()
+                logger.error('Failed reporting project init error: ' + ex.getMessage(), ex)
             }
             throw e
         }
