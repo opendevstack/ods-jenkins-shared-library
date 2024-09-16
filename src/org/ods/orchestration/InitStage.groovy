@@ -452,7 +452,7 @@ class InitStage extends Stage {
     private void addJiraToRegistry(registry) {
         script.withCredentials(
             [script.usernamePassword(
-                credentialsId: project.services.jira.credentials.id,
+                credentialsId: project.services?.jira?.credentials?.id,
                 usernameVariable: 'JIRA_USERNAME',
                 passwordVariable: 'JIRA_PASSWORD'
             )]
