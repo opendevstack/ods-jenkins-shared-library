@@ -1,32 +1,53 @@
 package org.ods.orchestration.usecase
 
 import groovy.json.JsonSlurper
-import groovy.util.logging.Log
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ods.util.ILogger
-import org.ods.services.ServiceRegistry
-import spock.lang.Unroll
-
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.DocumentHistory
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PDFUtil
+import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.SortUtil
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.service.*
-import org.ods.orchestration.util.*
+import org.ods.services.ServiceRegistry
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import spock.lang.Unroll
+import util.FixtureHelper
+import util.SpecHelper
 
-import javax.swing.text.Document
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 
-import static org.ods.orchestration.usecase.DocumentType.*
+import static org.ods.orchestration.usecase.DocumentType.CFTP
+import static org.ods.orchestration.usecase.DocumentType.CFTR
 import static org.ods.orchestration.usecase.DocumentType.CSD
-import static util.FixtureHelper.*
-
-import util.*
+import static org.ods.orchestration.usecase.DocumentType.DIL
+import static org.ods.orchestration.usecase.DocumentType.DTP
+import static org.ods.orchestration.usecase.DocumentType.DTR
+import static org.ods.orchestration.usecase.DocumentType.IVP
+import static org.ods.orchestration.usecase.DocumentType.IVR
+import static org.ods.orchestration.usecase.DocumentType.OVERALL_DTR
+import static org.ods.orchestration.usecase.DocumentType.OVERALL_TIR
+import static org.ods.orchestration.usecase.DocumentType.RA
+import static org.ods.orchestration.usecase.DocumentType.SSDS
+import static org.ods.orchestration.usecase.DocumentType.TCP
+import static org.ods.orchestration.usecase.DocumentType.TCR
+import static org.ods.orchestration.usecase.DocumentType.TIP
+import static org.ods.orchestration.usecase.DocumentType.TIR
+import static org.ods.orchestration.usecase.DocumentType.TRC
+import static util.FixtureHelper.createJUnitXMLTestResults
+import static util.FixtureHelper.createProject
+import static util.FixtureHelper.createProjectBuildEnvironment
+import static util.FixtureHelper.createSockShopJUnitXmlTestResults
 
 @Slf4j
 class LeVADocumentUseCaseSpec extends SpecHelper {
@@ -1993,5 +2014,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         "FALSE"         |  [:]
         "invalidValue"  |  [:]
         null            |  [:]
+        true            |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        false           |  [:]
     }
 }
