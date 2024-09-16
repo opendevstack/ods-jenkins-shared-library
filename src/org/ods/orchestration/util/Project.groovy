@@ -759,7 +759,7 @@ class Project {
 
     @NonCPS
     List getCapabilities() {
-        return this.data.metadata.capabilities
+        return this.data?.metadata?.capabilities
     }
 
     @NonCPS
