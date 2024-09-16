@@ -63,6 +63,11 @@ class InitStage extends Stage {
             hasErrorsDuringCheckout = true
         }
 
+        BitbucketService bitbucket = registry.get(BitbucketService)
+        configureGit(git, steps, bitbucket)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
+
         logger.debug 'Load build params and metadata file information'
         project.init()
 
@@ -76,10 +81,6 @@ class InitStage extends Stage {
         }
 
         logger.debug 'Checkout repositories into the workspace'
-        BitbucketService bitbucket = registry.get(BitbucketService)
-        configureGit(git, steps, bitbucket)
-        def phase = MROPipelineUtil.PipelinePhases.INIT
-        project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
