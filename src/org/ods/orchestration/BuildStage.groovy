@@ -106,7 +106,7 @@ class BuildStage extends Stage {
 
             def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
             if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                def securityVulnerabilityIssueKeys = project?.jiraUseCase?.
+                def securityVulnerabilityIssueKeys = project.jiraUseCase?.
                     createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
                 String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
                 logMessage += aquaMessage
