@@ -210,7 +210,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map createIssue(Map args, String fixVersion = null, String component = null, String priority = null) {
+    Map createIssue(Map args) {
         if (!args.type?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
@@ -240,13 +240,13 @@ class JiraService {
                         summary: args.summary,
                         description: args.description,
                         components: [
-                            [name: component]
+                            [name: args.component]
                         ],
                         priority: [
-                            name: priority
+                            name: args.priority
                         ],
                         fixVersions: [
-                            [name: fixVersion]
+                            [name: args.fixVersion]
                         ],
                         issuetype: [
                             name: args.type
@@ -280,7 +280,8 @@ class JiraService {
             description = 'N/A - please check logs'
         }
 
-        return createIssue(fixVersion, summary: summary, type: "Bug", projectKey: projectKey, description: description)
+        return createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
+            description: description)
     }
 
     @NonCPS
@@ -800,49 +801,36 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,
-                                                       String jiraComponent, projectKey) {
-
-        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
-        def jql = "project = \"${projectKey}\" AND issuetype = \"Security Vulnerability\" " +
-            "AND fixVersion = \"${fixVersion}\" " +
-            "AND component = \"${jiraComponent}\" " +
-            "AND summary ~ \"${issueSummary}\" "
-
-        def jqlQuery = [
-            fields: fields,
-            jql: jql,
-            expand: []
-        ]
-
-        return getIssuesForJQLQuery(jqlQuery) ?: []
-    }
-
-    def getTransitions(issueId) {
+    def getIssueStatusWithTransitions(issueId) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
         }
         def response =
-            Unirest.get("${this.baseURL}/rest/api/2/issue/${issueId}/transitions")
+            Unirest.get("${this.baseURL}/rest/api/2/issue/${issueId}?expand=transitions")
                 .basicAuth(this.username, this.password)
                 .header("Accept", "application/json")
                 .asString()
         response.ifFailure {
-            def message = "ERROR: unable to get issue transitions from Jira. " +
+            def message = "ERROR: unable to get issue with transitions from Jira. " +
                 "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.getBaseURL()}"
+                message = "ERROR: unable to get issue with transitions from Jira. " +
+                    "Jira could not be found at: ${this.getBaseURL()}"
             }
 
             throw new RuntimeException(message)
         }
-        return new JsonSlurperClassic().parseText(response.getBody()).transitions.collect { transition ->
-            [
-                id: transition.id,
-                name: transition.name
-            ]
-        }
+        def jsonResponse = new JsonSlurperClassic().parseText(response.getBody())
+        return [
+            transitions: jsonResponse.transitions.collect { transition ->
+                [
+                    id: transition.id,
+                    name: transition.name
+                ]
+            },
+            status: jsonResponse.fields.status.name
+        ]
     }
 
     def doTransition(issueId, transition) {

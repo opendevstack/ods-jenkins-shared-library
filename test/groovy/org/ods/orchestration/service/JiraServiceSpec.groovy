@@ -872,14 +872,16 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: request.data.summary, type: null, projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: null, projectKey: request.data.projectKey,
+            description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'type' is undefined."
 
         when:
-        service.createIssue(summary: request.data.summary, type: " ", projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: " ", projectKey: request.data.projectKey,
+            description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -898,14 +900,16 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: null, description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: null,
+            description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: " ", description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: " ",
+            description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -924,14 +928,16 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: null, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: null, type: request.data.type, projectKey: request.data.projectKey,
+            description: request.data.description)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'summary' is undefined."
 
         when:
-        service.createIssue(summary: " ", type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: " ", type: request.data.type, projectKey: request.data.projectKey,
+            description: request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -950,14 +956,16 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: null)
+        service.createIssue(summary: request.data.summary, type: request.data.type,
+            projectKey: request.data.projectKey, description: null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Jira issue. 'description' is undefined."
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: " ")
+        service.createIssue(summary: request.data.summary, type: request.data.type,
+            projectKey: request.data.projectKey, description: " ")
 
         then:
         e = thrown(IllegalArgumentException)
@@ -980,7 +988,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
+        def result = service.createIssue(summary: request.data.summary, type: request.data.type,
+            projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -1000,7 +1009,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type,
+            projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(RuntimeException)
@@ -1022,7 +1032,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssue(summary: request.data.summary, type: request.data.type, projectKey: request.data.projectKey, description: request.data.description)
+        service.createIssue(summary: request.data.summary, type: request.data.type,
+            projectKey: request.data.projectKey, description: request.data.description)
 
         then:
         def e = thrown(RuntimeException)

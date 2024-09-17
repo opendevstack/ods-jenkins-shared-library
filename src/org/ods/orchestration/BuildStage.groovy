@@ -172,40 +172,39 @@ class BuildStage extends Stage {
         }
         def fullJiraComponentName = JIRA_COMPONENT_TECHNOLOGY_PREFIX + jiraComponentId
 
-        List securityVulnerabilityIssues = project?.jiraUseCase?.jira?.loadJiraSecurityVulnerabilityIssues(issueSummary,
+        List securityVulnerabilityIssues = project?.jiraUseCase?.loadJiraSecurityVulnerabilityIssues(issueSummary,
             fixVersion, fullJiraComponentName, project.jiraProjectKey)
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
             return (securityVulnerabilityIssues.get(0) as Map)?.key
         } else { // Create the issue
-            return (createIssueTypeSecurityVulnerability(fixVersion, fullJiraComponentName,
-                SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: project.jiraProjectKey, summary: issueSummary,
-                description: description)
+            return (createIssueTypeSecurityVulnerability(fixVersion: fixVersion, component: fullJiraComponentName,
+                priority: SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: project.jiraProjectKey,
+                summary: issueSummary, description: description)
                 as Map)?.key
         }
     }
 
-    Map createIssueTypeSecurityVulnerability(Map args, String fixVersion = null, String component = null,
-                                             String priority = null) {
-        return project?.jiraUseCase?.jira?.createIssue(fixVersion, component, priority, summary: args.summary,
-            type: "Security Vulnerability", projectKey: args.projectKey, description: args.description)
+    Map createIssueTypeSecurityVulnerability(Map args) {
+        return project?.jiraUseCase?.jira?.createIssue(fixVersion: args.fixVersion, component: args.component,
+            priority: args.priority, summary: args.summary, type: "Security Vulnerability",
+            projectKey: args.projectKey, description: args.description)
     }
 
 
     void transitionIssueToToDo(String issueId) {
         int maxAttemps = 10;
         while (maxAttemps-- > 0) {
-            def possibleTransitions = project?.jiraUseCase?.jira?.getTransitions(issueId)
-            Map possibleTransitionsByName = possibleTransitions
-                .collectEntries { t -> [t.name.toString().toLowerCase(), t] }
-            if (possibleTransitionsByName.containsKey("confirm dor")) { // Issue is already in TO DO state
+            Map response = project?.jiraUseCase?.jira?.getIssueStatusWithTransitions(issueId)
+            String issueStatus = response.status
+            Map possibleTransitionsByName = response.transitions.
+                collectEntries { t -> [t.name.toString().toLowerCase(), t] }
+            if (issueStatus.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
                 return
-            } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transiton the issue
+            } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transition the issue
                 project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("implement"))
-                continue
-            } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transiton the issue
+            } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transition the issue
                 project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("confirm dod"))
-                continue
             } else if (possibleTransitionsByName.containsKey("reopen")) { // We need just one transiton
                 project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("reopen"))
                 return
@@ -214,7 +213,8 @@ class BuildStage extends Stage {
                     "found: ${possibleTransitionsByName.keySet()}")
             }
         }
-        throw new IllegalStateException("The issue could not be transitioned to TODO state.")
+        throw new IllegalStateException("The issue didn't reach the TODO state in a reasonable number of " +
+            "transitions. Please check the Issue workflow to detect potential loops.")
     }
 
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,

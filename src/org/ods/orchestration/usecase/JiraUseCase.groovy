@@ -464,4 +464,26 @@ class JiraUseCase {
         return jira.getComponents(projectKey, version)
     }
 
+    protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,
+                                                       String jiraComponent, projectKey) {
+        if (!this.jira) {
+            logger.warn("loadJiraSecurityVulnerabilityIssues: Could *NOT* retrieve security vulnerability type issues " +
+                "because jira has invalid value.")
+            return [:]
+        }
+
+        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def jql = "project = \"${projectKey}\" AND issuetype = \"Security Vulnerability\" " +
+            "AND fixVersion = \"${fixVersion}\" " +
+            "AND component = \"${jiraComponent}\" " +
+            "AND summary ~ \"${issueSummary}\" "
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: []
+        ]
+
+        return jira.getIssuesForJQLQuery(jqlQuery) ?: []
+    }
 }
