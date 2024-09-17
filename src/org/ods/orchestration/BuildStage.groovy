@@ -124,11 +124,12 @@ class BuildStage extends Stage {
     }
 
     String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
-        if (securityVulnerabilityIssueKeys?.size() == 0) { // No issue created as Jira is not connected
+        if (securityVulnerabilityIssueKeys == null || securityVulnerabilityIssueKeys.size() == 0) {
+            // No issue created as Jira is not connected
             return "\n\nRemotely exploitable critical vulnerabilities were detected (see above). " +
                 "Due to their high severity, we must stop the delivery process until all vulnerabilities " +
                 "have been addressed.\n"
-        } else if (securityVulnerabilityIssueKeys?.size() == 1) {
+        } else if (securityVulnerabilityIssueKeys.size() == 1) {
             return "\n\nA remotely exploitable critical vulnerability was detected and documented in " +
                 "the following Jira issue: ${securityVulnerabilityIssueKeys[0]}. Due to their high " +
                 "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"

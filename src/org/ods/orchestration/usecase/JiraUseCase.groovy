@@ -525,6 +525,9 @@ class JiraUseCase {
 
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
                                                     String description) {
+        if (!jira) {
+            throw new JiraNotPresentException("JiraUseCase not present, cannot create security vulnerability issue.")
+        }
 
         def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
             vulnerabilityName)
