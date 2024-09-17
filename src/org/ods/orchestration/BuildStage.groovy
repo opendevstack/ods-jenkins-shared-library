@@ -16,15 +16,6 @@ class BuildStage extends Stage {
 
     public static final String JIRA_CUSTOM_PART = 'Follow the link below'
 
-    private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
-
-    private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
-        "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
-
-    private static final String SECURITY_VULNERABILITY_ISSUE_PRIORITY = "Highest"
-
-    private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
-
     public final String STAGE_NAME = 'Build'
 
     BuildStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
@@ -115,7 +106,8 @@ class BuildStage extends Stage {
 
             def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
             if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                def securityVulnerabilityIssueKeys = createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+                def securityVulnerabilityIssueKeys = project?.jiraUseCase?.
+                    createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
                 String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
                 logMessage += aquaMessage
                 jiraMessage += aquaMessage
@@ -129,108 +121,6 @@ class BuildStage extends Stage {
                 throw new IllegalStateException(jiraMessage)
             }
         }
-    }
-
-    List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
-        def securityVulnerabilityIssueKeys = [];
-        try {
-            for (def repo : aquaCriticalVulnerabilityRepos) {
-                def jiraComponentId = getJiraComponentId(repo)
-                for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                    def vulerabilityMap = vulnerability as Map
-                    def issueKey = createOrUpdateSecurityVulnerabilityIssue(
-                        vulerabilityMap.name,
-                        jiraComponentId,
-                        buildSecurityVulnerabilityIssueDescription(
-                            vulerabilityMap,
-                            repo.data.openshift.gitUrl,
-                            repo.data.openshift.gitBranch,
-                            repo.data.openshift.repoName,
-                            repo.data.openshift.nexusReportLink))
-                    securityVulnerabilityIssueKeys.add(issueKey)
-                }
-            }
-        } catch (JiraNotPresentException e) {
-            project.logger.warn(e.getMessage())
-            return []
-        }
-        return securityVulnerabilityIssueKeys
-    }
-
-    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
-                                                    String description) {
-        if (!project.jiraUseCase || !project.jiraUseCase.jira) {
-            throw new JiraNotPresentException("JiraUseCase not present, cannot create security vulnerability issue.")
-        }
-
-        def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
-            vulnerabilityName)
-
-        def fixVersion = null
-        if (project.isVersioningEnabled) {
-            fixVersion = project.getVersionName()
-        }
-        def fullJiraComponentName = JIRA_COMPONENT_TECHNOLOGY_PREFIX + jiraComponentId
-
-        List securityVulnerabilityIssues = project?.jiraUseCase?.loadJiraSecurityVulnerabilityIssues(issueSummary,
-            fixVersion, fullJiraComponentName, project.jiraProjectKey)
-        if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
-            transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
-            return (securityVulnerabilityIssues.get(0) as Map)?.key
-        } else { // Create the issue
-            return (createIssueTypeSecurityVulnerability(fixVersion: fixVersion, component: fullJiraComponentName,
-                priority: SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: project.jiraProjectKey,
-                summary: issueSummary, description: description)
-                as Map)?.key
-        }
-    }
-
-    Map createIssueTypeSecurityVulnerability(Map args) {
-        return project?.jiraUseCase?.jira?.createIssue(fixVersion: args.fixVersion, component: args.component,
-            priority: args.priority, summary: args.summary, type: "Security Vulnerability",
-            projectKey: args.projectKey, description: args.description)
-    }
-
-
-    void transitionIssueToToDo(String issueId) {
-        int maxAttemps = 10;
-        while (maxAttemps-- > 0) {
-            Map response = project?.jiraUseCase?.jira?.getIssueStatusWithTransitions(issueId)
-            String issueStatus = response.status
-            Map possibleTransitionsByName = response.transitions.
-                collectEntries { t -> [t.name.toString().toLowerCase(), t] }
-            if (issueStatus.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
-                return
-            } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transition the issue
-                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("implement"))
-            } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transition the issue
-                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("confirm dod"))
-            } else if (possibleTransitionsByName.containsKey("reopen")) { // We need just one transiton
-                project?.jiraUseCase?.jira?.doTransition(issueId, possibleTransitionsByName.get("reopen"))
-                return
-            } else {
-                throw new IllegalStateException("Unexpected issue transition states " +
-                    "found: ${possibleTransitionsByName.keySet()}")
-            }
-        }
-        throw new IllegalStateException("The issue didn't reach the TODO state in a reasonable number of " +
-            "transitions. Please check the Issue workflow to detect potential loops.")
-    }
-
-    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
-                                                    String repoName, String nexusReportLink) {
-        StringBuilder message = new StringBuilder()
-        message.append("\nAqua security scan detected the remotely exploitable critical " +
-            "vulnerability with name *${vulnerability.name as String}* in repository *[${repoName}|${gitUrl}]* " +
-            "in branch *${gitBranch}*." )
-        message.append("\n\n*Description:* " + vulnerability.description as String)
-        message.append("\n\n*Solution:* " + vulnerability.solution as String)
-
-        if (nexusReportLink != null) {
-            message.append("\n\nYou can find the complete security scan report *[here|${nexusReportLink}]*.")
-        }
-
-        return message.toString()
     }
 
     String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
@@ -283,10 +173,6 @@ class BuildStage extends Stage {
 
     List filterReposWithAquaCriticalVulnerability(def repos) {
         return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
-    }
-
-    String getJiraComponentId(def repo) {
-        return repo.data?.openshift?.jiraComponentId
     }
 
     String buildReposCommaSeparatedString(def tailorFailedRepos) {
