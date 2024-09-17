@@ -84,7 +84,7 @@ class InitStage extends Stage {
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
 
-        //Check for load errors
+        // Check for load errors now that we also have Jira service instantiated
         if (project.getLoadErrors().size() > 0) {
             throw new RuntimeException("During project init the following errors occured: " +
                 project.getLoadErrors().collect { " - ${it}" }.join("\n"))
