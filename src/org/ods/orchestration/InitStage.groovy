@@ -83,6 +83,13 @@ class InitStage extends Stage {
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
+
+        //Check for load errors
+        if (project.getLoadErrors().size() > 0) {
+            throw new RuntimeException("During project init the following errors occured: " +
+                project.getLoadErrors().collect { " - ${it}" }.join("\n"))
+        }
+
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
         def check = project.getComponentsFromJira()
