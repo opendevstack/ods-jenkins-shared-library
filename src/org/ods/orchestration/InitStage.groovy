@@ -83,7 +83,7 @@ class InitStage extends Stage {
 
         // Check for init errors now that we also have Jira service instantiated for notifying release status
         if (project.getInitErrors().size() > 0) {
-            throw new RuntimeException(project.getLoadErrors().collect { "${it}" }.join("\n"))
+            throw new RuntimeException(project.getInitErrors().collect { "${it}" }.join("\n"))
         }
 
         logger.debugClocked('Project#load')
