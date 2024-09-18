@@ -80,15 +80,15 @@ class InitStage extends Stage {
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
-
-        // Check for init errors now that we also have Jira service instantiated for notifying release status
-        if (project.getInitErrors().size() > 0) {
-            throw new RuntimeException(project.getInitErrors().collect { "${it}" }.join("\n"))
-        }
-
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
+
+        // Check for init errors now that we also have Jira service instantiated for notifying release status
+        if (project.getInitErrors().size() > 0) {
+            throw new RuntimeException(project.getInitErrors().collect { "${it.getMessage()}" }.join("\n"))
+        }
+
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
         def check = project.getComponentsFromJira()
