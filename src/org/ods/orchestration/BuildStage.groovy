@@ -86,20 +86,53 @@ class BuildStage extends Stage {
         // failed unit tests as possible
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
-        def failedRepos = repos.flatten().findAll { it.data?.failedStage }
-        if (project.hasFailingTests() || failedRepos.size > 0) {
-            def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
-            util.failBuild(errMessage)
-            // If we are not in Developer Preview raise a exception
-            if (!project.isWorkInProgress) {
-                throw new IllegalStateException(errMessage)
+        def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
+        if (project.hasFailingTests() || failedRepos?.size > 0) {
+            def baseErrMsg = "Failing build as repositories contain errors!" +
+                "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
+
+            def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
+            def jiraMessage = baseErrMsg
+            def logMessage = baseErrMsg
+            if (tailorFailedRepos?.size() > 0) {
+                String failedReposCommaSeparated = buildReposCommaSeparatedString(tailorFailedRepos)
+                logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
+                jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
+            }
+
+            def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+            if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+                def securityVulnerabilityIssueKeys = project.jiraUseCase?.
+                    createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+                String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
+                logMessage += aquaMessage
+                jiraMessage += aquaMessage
+            }
+
+            util.failBuild(logMessage)
+            // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
+            // vulnerability with solution found then raise an exception
+            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
+                || aquaCriticalVulnerabilityRepos?.size() > 0) {
+                throw new IllegalStateException(jiraMessage)
             }
         }
-        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
-        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-            String aquaFiledMessage = "Aqua critical vulnerability with solution detected"
-            util.failBuild(aquaFiledMessage)
-            throw new IllegalStateException(aquaFiledMessage)
+    }
+
+    String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
+        if (securityVulnerabilityIssueKeys == null || securityVulnerabilityIssueKeys.size() == 0) {
+            // No issue created as Jira is not connected
+            return "\n\nRemotely exploitable critical vulnerabilities were detected (see above). " +
+                "Due to their high severity, we must stop the delivery process until all vulnerabilities " +
+                "have been addressed.\n"
+        } else if (securityVulnerabilityIssueKeys.size() == 1) {
+            return "\n\nA remotely exploitable critical vulnerability was detected and documented in " +
+                "the following Jira issue: ${securityVulnerabilityIssueKeys[0]}. Due to their high " +
+                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
+        } else {
+            return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
+                "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
+                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         }
     }
 

@@ -83,6 +83,12 @@ class InitStage extends Stage {
         logger.debugClocked('Project#load')
         project.load(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
+
+        // Check for init errors now that we also have Jira service instantiated for notifying release status
+        if (project.getInitErrors().size() > 0) {
+            throw new RuntimeException(project.getInitErrors().collect { "${it.getMessage()}" }.join("\n"))
+        }
+
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
         def check = project.getComponentsFromJira()
@@ -512,9 +518,9 @@ class InitStage extends Stage {
     }
 
     private Exception checkOutRepoInPromotionMode(GitService git,
-                                             Map buildParams,
-                                             String gitReleaseBranch,
-                                             Logger logger) {
+                                                  Map buildParams,
+                                                  String gitReleaseBranch,
+                                                  Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,
