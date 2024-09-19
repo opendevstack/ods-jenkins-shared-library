@@ -496,7 +496,6 @@ class JiraUseCase {
         return jira.getIssuesForJQLQuery(jqlQuery) ?: []
     }
 
-    @NonCPS
     List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
         if (!jira) {
             logger.warn("createSecurityVulnerabilityIssues: Could *NOT* create security vulnerability issues " +
@@ -523,7 +522,6 @@ class JiraUseCase {
         return securityVulnerabilityIssueKeys
     }
 
-    @NonCPS
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
                                                     String description) {
         def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
@@ -548,7 +546,6 @@ class JiraUseCase {
         }
     }
 
-    @NonCPS
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
@@ -565,14 +562,12 @@ class JiraUseCase {
         return message.toString()
     }
 
-    @NonCPS
     Map createIssueTypeSecurityVulnerability(Map args) {
         return jira?.createIssue(fixVersion: args.fixVersion, component: args.component,
             priority: args.priority, summary: args.summary, type: "Security Vulnerability",
             projectKey: args.projectKey, description: args.description)
     }
 
-    @NonCPS
     void transitionIssueToToDo(String issueId) {
         int maxAttemps = 10;
         while (maxAttemps-- > 0) {
@@ -597,7 +592,6 @@ class JiraUseCase {
             "transitions. Please check the Issue workflow to detect potential loops.")
     }
 
-    @NonCPS
     String getJiraComponentId(def repo) {
         return repo.data?.openshift?.jiraComponentId
     }
