@@ -577,18 +577,17 @@ class JiraUseCase {
         int maxAttemps = 10;
         while (maxAttemps-- > 0) {
             Map response = jira?.getIssueStatusWithTransitions(issueId)
-            String issueStatus = response.status
+            if (response.status.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
+                return
+            }
             Map possibleTransitionsByName = response.transitions.
                 collectEntries { t -> [t.name.toString().toLowerCase(), t] }
-            if (issueStatus.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
-                return
-            } else if (possibleTransitionsByName.containsKey("implement")) { // We need to transition the issue
+            if (possibleTransitionsByName.containsKey("implement")) { // We need to transition the issue
                 jira?.doTransition(issueId, possibleTransitionsByName.get("implement"))
             } else if (possibleTransitionsByName.containsKey("confirm dod")) { // We need to transition the issue
                 jira?.doTransition(issueId, possibleTransitionsByName.get("confirm dod"))
             } else if (possibleTransitionsByName.containsKey("reopen")) { // We need just one transiton
                 jira?.doTransition(issueId, possibleTransitionsByName.get("reopen"))
-                return
             } else {
                 throw new IllegalStateException("Unexpected issue transition states " +
                     "found: ${possibleTransitionsByName.keySet()}")
