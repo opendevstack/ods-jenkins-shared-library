@@ -1,7 +1,6 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import org.ods.orchestration.JiraNotPresentException
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
@@ -497,38 +496,36 @@ class JiraUseCase {
         return jira.getIssuesForJQLQuery(jqlQuery) ?: []
     }
 
+    @NonCPS
     List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
-        def securityVulnerabilityIssueKeys = [];
-        try {
-            for (def repo : aquaCriticalVulnerabilityRepos) {
-                def jiraComponentId = getJiraComponentId(repo)
-                for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                    def vulerabilityMap = vulnerability as Map
-                    def issueKey = createOrUpdateSecurityVulnerabilityIssue(
-                        vulerabilityMap.name,
-                        jiraComponentId,
-                        buildSecurityVulnerabilityIssueDescription(
-                            vulerabilityMap,
-                            repo.data.openshift.gitUrl,
-                            repo.data.openshift.gitBranch,
-                            repo.data.openshift.repoName,
-                            repo.data.openshift.nexusReportLink))
-                    securityVulnerabilityIssueKeys.add(issueKey)
-                }
-            }
-        } catch (JiraNotPresentException e) {
-            logger.warn(e.getMessage())
+        if (!jira) {
+            logger.warn("createSecurityVulnerabilityIssues: Could *NOT* create security vulnerability issues " +
+                "because jira has invalid value.")
             return []
+        }
+        def securityVulnerabilityIssueKeys = [];
+        for (def repo : aquaCriticalVulnerabilityRepos) {
+            def jiraComponentId = getJiraComponentId(repo)
+            for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
+                def vulerabilityMap = vulnerability as Map
+                def issueKey = createOrUpdateSecurityVulnerabilityIssue(
+                    vulerabilityMap.name,
+                    jiraComponentId,
+                    buildSecurityVulnerabilityIssueDescription(
+                        vulerabilityMap,
+                        repo.data.openshift.gitUrl,
+                        repo.data.openshift.gitBranch,
+                        repo.data.openshift.repoName,
+                        repo.data.openshift.nexusReportLink))
+                securityVulnerabilityIssueKeys.add(issueKey)
+            }
         }
         return securityVulnerabilityIssueKeys
     }
 
+    @NonCPS
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
                                                     String description) {
-        if (!jira) {
-            throw new JiraNotPresentException("JiraUseCase not present, cannot create security vulnerability issue.")
-        }
-
         def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
             vulnerabilityName)
 
@@ -551,6 +548,7 @@ class JiraUseCase {
         }
     }
 
+    @NonCPS
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
@@ -567,17 +565,19 @@ class JiraUseCase {
         return message.toString()
     }
 
+    @NonCPS
     Map createIssueTypeSecurityVulnerability(Map args) {
         return jira?.createIssue(fixVersion: args.fixVersion, component: args.component,
             priority: args.priority, summary: args.summary, type: "Security Vulnerability",
             projectKey: args.projectKey, description: args.description)
     }
 
+    @NonCPS
     void transitionIssueToToDo(String issueId) {
         int maxAttemps = 10;
         while (maxAttemps-- > 0) {
-            Map response = jira?.getIssueStatusWithTransitions(issueId)
-            if (response.status.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
+            Map response = jira?.getIssue(issueId, "transitions")
+            if (response.fields.status.name.equalsIgnoreCase("to do")) { // Issue is already in TO DO state
                 return
             }
             Map possibleTransitionsByName = response.transitions.
@@ -597,6 +597,7 @@ class JiraUseCase {
             "transitions. Please check the Issue workflow to detect potential loops.")
     }
 
+    @NonCPS
     String getJiraComponentId(def repo) {
         return repo.data?.openshift?.jiraComponentId
     }

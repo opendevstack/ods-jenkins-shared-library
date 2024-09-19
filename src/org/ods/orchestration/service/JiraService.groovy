@@ -801,12 +801,16 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    def getIssueStatusWithTransitions(issueId) {
+    def getIssue(String issueId, String expand = null) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
         }
+        def url = "${this.baseURL}/rest/api/2/issue/${issueId}"
+        if (expand) {
+            url += "?expand=${expand}"
+        }
         def response =
-            Unirest.get("${this.baseURL}/rest/api/2/issue/${issueId}?expand=transitions")
+            Unirest.get(url)
                 .basicAuth(this.username, this.password)
                 .header("Accept", "application/json")
                 .asString()
@@ -821,16 +825,7 @@ class JiraService {
 
             throw new RuntimeException(message)
         }
-        def jsonResponse = new JsonSlurperClassic().parseText(response.getBody())
-        return [
-            transitions: jsonResponse.transitions.collect { transition ->
-                [
-                    id: transition.id,
-                    name: transition.name
-                ]
-            },
-            status: jsonResponse.fields.status.name
-        ]
+        return new JsonSlurperClassic().parseText(response.getBody())
     }
 
     def doTransition(issueId, transition) {
