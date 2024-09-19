@@ -546,6 +546,7 @@ class JiraUseCase {
         }
     }
 
+    @NonCPS
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
@@ -592,6 +593,7 @@ class JiraUseCase {
             "transitions. Please check the Issue workflow to detect potential loops.")
     }
 
+    @NonCPS
     String getJiraComponentId(def repo) {
         return repo.data?.openshift?.jiraComponentId
     }
