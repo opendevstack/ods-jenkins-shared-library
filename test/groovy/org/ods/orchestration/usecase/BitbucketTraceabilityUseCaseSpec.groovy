@@ -1,11 +1,12 @@
 package org.ods.orchestration.usecase
 
-import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.core.test.LoggerStub
+import org.ods.core.test.wiremock.BitbucketServiceMock
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
@@ -13,11 +14,7 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import spock.lang.Specification
 import util.FixtureHelper
-import org.ods.core.test.LoggerStub
 import util.PipelineSteps
-import org.ods.core.test.wiremock.BitbucketServiceMock
-
-import static org.assertj.core.api.Assertions.*
 
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
@@ -70,6 +67,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         project.data.buildParams.targetEnvironmentToken = "D"
         project.data.buildParams.version = "WIP"
         project.data.buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-123"
+        project.repositories.forEach { repo -> repo.defaultBranch = "master"}
         return project
     }
 

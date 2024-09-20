@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 
 class BitbucketTraceabilityUseCase {
 
-    private static final int PAGE_LIMIT = 10
+    private static final int PAGE_LIMIT = 50
     protected static Map CHARACTER_REMOVEABLE = [
         '/': '/\u200B',
         '@': '@\u200B',
@@ -96,7 +96,8 @@ class BitbucketTraceabilityUseCase {
         int reposSize = repos.size()
         for (def i = 0; i < reposSize; i++) {
             def repository = repos[i]
-            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
+            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}",
+                       defaultBranch: repository.defaultBranch]
         }
         return result
     }
@@ -107,34 +108,49 @@ class BitbucketTraceabilityUseCase {
         boolean nextPage = true
         int nextPageStart = 0
         while (nextPage) {
-            Map commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
-            if (commits.isLastPage) {
+            Map pullRequests = bitbucketService.getMergedPullRequestsForIntegrationBranch(token, repo,
+                PAGE_LIMIT, nextPageStart)
+            if (pullRequests.isLastPage) {
                 nextPage = false
             } else {
-                nextPageStart = commits.nextPageStart
+                nextPageStart = pullRequests.nextPageStart
             }
-            records += processCommits(token, repo, commits)
+
+            records += pullRequests.values.collectMany { pullRequest ->
+                processPullRequest(token, repo, pullRequest)}
+
         }
         return records
     }
 
     @NonCPS
-    private List<Record> processCommits(String token, Map repo, Map commits) {
-        return commits.values.collect { commit ->
-            Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
-            // Only changes in PR and destiny integration branch
-            if (mergedPR.values
-                && mergedPR.values[0].toRef.displayId == repo.branch) {
-                def record = new Record(getDateWithFormat(commit.committerTimestamp),
-                    getAuthor(commit.author),
-                    getReviewers(mergedPR.values[0].reviewers),
-                    mergedPR.values[0].links.self[(0)].href,
-                    commit.id,
-                    repo.repo)
-                return record
+    private List<Record> processPullRequest(String token, Map repo, Map pullRequest) {
+        def records = []
+        boolean nextPage = true
+        int nextPageStart = 0
+        while (nextPage) {
+            Map commits = bitbucketService.getCommmitsForPullRequest(token, repo.repo, pullRequest.id,
+                PAGE_LIMIT, nextPageStart)
+            if (commits.isLastPage) {
+                nextPage = false
+            } else {
+                nextPageStart = commits.nextPageStart
             }
-            return null
-        }.findAll { it != null }
+            records += processCommits(repo, commits, pullRequest)
+        }
+        return records.sort { it.commitTimestamp }
+    }
+
+    @NonCPS
+    private List<Record> processCommits(Map repo, Map commits, Map pullRequest) {
+        return commits.values.collect { commit ->
+            return new Record(commit.committerTimestamp,
+                getAuthor(commit.author),
+                getReviewers(pullRequest.reviewers),
+                pullRequest.links.self[(0)].href,
+                commit.id,
+                repo.repo)
+        }
     }
 
     @NonCPS
@@ -158,14 +174,9 @@ class BitbucketTraceabilityUseCase {
         return approvals
     }
 
-    @NonCPS
-    private String getDateWithFormat(Long timestamp) {
-        Date dateObj =  new Date(timestamp)
-        return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
-    }
-
     private class Record {
 
+        long commitTimestamp
         String commitDate
         Developer author
         List<Developer> reviewers
@@ -174,9 +185,10 @@ class BitbucketTraceabilityUseCase {
         String componentName
 
         @SuppressWarnings(['ParameterCount'])
-        Record(String date, Developer author, List<Developer> reviewers, String mergeRequestURL,
+        Record(long commitTimestamp, Developer author, List<Developer> reviewers, String mergeRequestURL,
                String mergeCommitSHA, String componentName) {
-            this.commitDate = date
+            this.commitTimestamp = commitTimestamp
+            this.commitDate = getDateWithFormat(commitTimestamp)
             this.author = author
             this.reviewers = reviewers
             this.mergeRequestURL = mergeRequestURL
@@ -184,6 +196,11 @@ class BitbucketTraceabilityUseCase {
             this.componentName = componentName
         }
 
+        @NonCPS
+        private String getDateWithFormat(Long timestamp) {
+            Date dateObj =  new Date(timestamp)
+            return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
+        }
     }
 
     private class Developer {

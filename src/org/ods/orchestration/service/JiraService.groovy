@@ -210,20 +210,20 @@ class JiraService {
     }
 
     @NonCPS
-    Map createIssueType(String type, String projectKey, String summary, String description, String fixVersion = null) {
-        if (!type?.trim()) {
+    Map createIssue(Map args) {
+        if (!args.type?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
 
-        if (!projectKey?.trim()) {
+        if (!args.projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'projectKey\' is undefined.')
         }
 
-        if (!summary?.trim()) {
+        if (!args.summary?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'summary\' is undefined.')
         }
 
-        if (!description?.trim()) {
+        if (!args.description?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'description\' is undefined.')
         }
 
@@ -235,15 +235,21 @@ class JiraService {
                 [
                     fields: [
                         project: [
-                            key: projectKey.toUpperCase()
+                            key: args.projectKey.toUpperCase()
                         ],
-                        summary: summary,
-                        description: description,
+                        summary: args.summary,
+                        description: args.description,
+                        components: [
+                            [name: args.component]
+                        ],
+                        priority: [
+                            name: args.priority
+                        ],
                         fixVersions: [
-                           [name: fixVersion]
+                            [name: args.fixVersion]
                         ],
                         issuetype: [
-                            name: type
+                            name: args.type
                         ]
                     ]
                 ]
@@ -274,7 +280,8 @@ class JiraService {
             description = 'N/A - please check logs'
         }
 
-        return createIssueType("Bug", projectKey, summary, description, fixVersion)
+        return createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
+            description: description)
     }
 
     @NonCPS
@@ -792,5 +799,62 @@ class JiraService {
             throw new RuntimeException(message)
         }
         return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    def getIssue(String issueId, String expand = null) {
+        if (!issueId?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
+        }
+        def url = "${this.baseURL}/rest/api/2/issue/${issueId}"
+        if (expand) {
+            url += "?expand=${expand}"
+        }
+        def response =
+            Unirest.get(url)
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .asString()
+        response.ifFailure {
+            def message = "ERROR: unable to get issue with transitions from Jira. " +
+                "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "ERROR: unable to get issue with transitions from Jira. " +
+                    "Jira could not be found at: ${this.getBaseURL()}"
+            }
+
+            throw new RuntimeException(message)
+        }
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    def doTransition(issueId, transition) {
+        if (!issueId?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to transition issue. 'issueId' is undefined.")
+        }
+        if (!transition || !transition.id?.trim()) {
+            throw new IllegalArgumentException("ERROR: unable to transition issue. Transition id is undefined.")
+        }
+
+        def response =
+            Unirest.post("${this.baseURL}/rest/api/2/issue/${issueId}/transitions")
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(JsonOutput.toJson(
+                    [transition: ["id": transition.id]]
+                ))
+                .asString()
+        response.ifFailure {
+            def message = "ERROR: unable to issue transitions from Jira. " +
+                "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.getBaseURL()}"
+            }
+
+            throw new RuntimeException(message)
+        }
+        return true
     }
 }

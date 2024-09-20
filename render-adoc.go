@@ -30,15 +30,19 @@ import (
 // optimization for later?
 
 const (
-	groovydocComponentPath     = "build/docs/groovydoc/org/ods/component"
-	antoraPartialsPath         = "docs/modules/jenkins-shared-library/partials"
+	pathSep                    = string(os.PathSeparator)
 	globalComponentStagePrefix = "odsComponentStage"
 	adocTemplateSuffix         = ".adoc.tmpl"
 )
 
+var (
+	groovydocComponentPath = filepath.FromSlash("build/docs/groovydoc/org/ods/component")
+	antoraPartialsPath     = filepath.FromSlash("docs/modules/jenkins-shared-library/partials")
+)
+
 func main() {
-	adocTemplatePrefix := fmt.Sprintf("%s/%s", antoraPartialsPath, globalComponentStagePrefix)
-	templateFiles, err := filepath.Glob(fmt.Sprintf("%s/*%s", antoraPartialsPath, adocTemplateSuffix))
+	adocTemplatePrefix := fmt.Sprintf(filepath.FromSlash("%s/%s"), antoraPartialsPath, globalComponentStagePrefix)
+	templateFiles, err := filepath.Glob(fmt.Sprintf(filepath.FromSlash("%s/*%s"), antoraPartialsPath, adocTemplateSuffix))
 	check(err)
 	for _, templateFile := range templateFiles {
 		stageName := strings.TrimPrefix(templateFile, adocTemplatePrefix)

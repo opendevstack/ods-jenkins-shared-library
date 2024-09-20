@@ -14,7 +14,7 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
         ])
 
         when:
-        def result = service.scanViaCli("vuln,config,secret,license", "os,library",
+        def result = service.scanViaCli("vuln,misconfig,secret,license", "os,library",
            "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
@@ -26,8 +26,8 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--db-repository docker-group-ods.openshift-domain.com/aquasecurity/trivy-db')
             assert it.script.toString().contains('--java-db-repository docker-group-ods.openshift-domain.com/aquasecurity/trivy-java-db')
             assert it.script.toString().contains('--cache-dir /tmp/.cache')
-            assert it.script.toString().contains('--scanners vuln,config,secret,license')
-            assert it.script.toString().contains('--vuln-type os,library')
+            assert it.script.toString().contains('--scanners vuln,misconfig,secret,license')
+            assert it.script.toString().contains('--pkg-types os,library')
             assert it.script.toString().contains('--format cyclonedx')
             assert it.script.toString().contains('--output trivy-sbom.json')
             assert it.script.toString().contains('--license-full')

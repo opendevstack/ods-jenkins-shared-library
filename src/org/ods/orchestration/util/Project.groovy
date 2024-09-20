@@ -36,6 +36,8 @@ class Project {
             'SSDS': ['1', '2.1', '3.1', '5.4'],
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+
+
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
@@ -283,6 +285,8 @@ class Project {
 
     protected static String METADATA_FILE_NAME = 'metadata.yml'
 
+    protected List initErrors = []
+
     protected IPipelineSteps steps
     protected GitService git
     protected JiraUseCase jiraUseCase
@@ -429,6 +433,11 @@ class Project {
     }
 
     @NonCPS
+    List getInitErrors() {
+        return this.initErrors
+    }
+
+    @NonCPS
     Map<String, List> getWipJiraIssues() {
         return this.data.jira.undone
     }
@@ -548,7 +557,7 @@ class Project {
     boolean hasGivenTypes(List<String> testTypes, testIssue) {
         def result = true
         if (testTypes) {
-            result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase())
+            result = testTypes*.toLowerCase().contains(testIssue.testType?.toLowerCase())
         }
         return result
     }
@@ -2018,13 +2027,14 @@ class Project {
 
         this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
-        // Resolve repo branch, if not provided
-        if (!repo.branch?.trim()) {
-            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                "from project meta data. Assuming 'master'.")
-            repo.branch = 'master'
+        // Fail the RM pipeline if the old branch flag is in use
+        if (repo.branch?.trim()) {
+            this.initErrors.add(new IllegalArgumentException("The Release Manager's metadata.yml uses " +
+                "the 'branch' parameter with various repositories. This parameter has " +
+                "been removed and replaced with Bitbucket's 'default branch' setting. " +
+                "Please remove all 'branch' parameters from metadata.yml and set up your " +
+                "Bitbucket repositories' default branches as needed."))
         }
-        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
     }
 
     void addDefaults(String component) {
@@ -2043,4 +2053,7 @@ class Project {
             this.data.metadata.repositories.add(repo)
         }
     }
+
+
+
 }

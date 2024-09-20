@@ -1,0 +1,28 @@
+{
+  "id" : "0ed6c4f1-fe90-4ac6-aea7-7686c6721717",
+  "name" : "rest_api_10_projects_edpt3_repos_edpt3-demo-app-front-end_pull-requests_3_commits",
+  "request" : {
+    "url" : "/rest/api/1.0/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests/3/commits?limit=50",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"values\":[{\"id\":\"f9e7ce8fe819dac98980e7a8949f1ae7fa3c1682\",\"displayId\":\"f9e7ce8fe81\",\"author\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"authorTimestamp\":1711449083000,\"committer\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"committerTimestamp\":1711449083000,\"message\":\"Pull request #2: created jenkinsfile\\n\\nMerge in EDPT3/front-end from chore/one to shape/one\\n\\n* commit '83f1c5026e2727bbccfbfa03fef517a91063295a':\\n  created jenkinsfile\",\"parents\":[{\"id\":\"659b5d6fc3d2e7794880965eb5630e3f217a40a1\",\"displayId\":\"659b5d6fc3d\"},{\"id\":\"83f1c5026e2727bbccfbfa03fef517a91063295a\",\"displayId\":\"83f1c5026e2\"}]},{\"id\":\"83f1c5026e2727bbccfbfa03fef517a91063295a\",\"displayId\":\"83f1c5026e2\",\"author\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"authorTimestamp\":1711448991000,\"committer\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"committerTimestamp\":1711448991000,\"message\":\"created jenkinsfile\",\"parents\":[{\"id\":\"3e92d34df96f9ce8cbef3cc56cf43e8ed9b695b2\",\"displayId\":\"3e92d34df96\"}]},{\"id\":\"659b5d6fc3d2e7794880965eb5630e3f217a40a1\",\"displayId\":\"659b5d6fc3d\",\"author\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"authorTimestamp\":1711448834000,\"committer\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"committerTimestamp\":1711448834000,\"message\":\"Pull request #1: updated readme\\n\\nMerge in EDPT3/front-end from feature/one to shape/one\\n\\n* commit 'e48750fc61d9f665b3780ef37b70633fd44035d5':\\n  updated readme\",\"parents\":[{\"id\":\"3e92d34df96f9ce8cbef3cc56cf43e8ed9b695b2\",\"displayId\":\"3e92d34df96\"},{\"id\":\"e48750fc61d9f665b3780ef37b70633fd44035d5\",\"displayId\":\"e48750fc61d\"}]},{\"id\":\"e48750fc61d9f665b3780ef37b70633fd44035d5\",\"displayId\":\"e48750fc61d\",\"author\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"authorTimestamp\":1711448588000,\"committer\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"committerTimestamp\":1711448588000,\"message\":\"updated readme\",\"parents\":[{\"id\":\"3e92d34df96f9ce8cbef3cc56cf43e8ed9b695b2\",\"displayId\":\"3e92d34df96\"}]}],\"size\":4,\"isLastPage\":true,\"start\":0,\"limit\":50,\"nextPageStart\":null}",
+    "headers" : {
+      "x-arequestid" : "@HQR5YOx682x6759x0",
+      "set-cookie" : [ "BITBUCKETSESSIONID=28F105335CD3D46059F3289EE280B0BE; Max-Age=1209600; Expires=Tue, 09 Apr 2024 11:22:18 GMT; Path=/; Secure; HttpOnly", "19d0370914135915316d464d8a926ddb=16504e94a33263d578ae4e2084cf74d2; path=/; HttpOnly; Secure; SameSite=None" ],
+      "x-auserid" : "2",
+      "x-ausername" : "x2odsedpipam%40boehringer-ingelheim.com",
+      "x-asessionid" : "1yeoyck",
+      "cache-control" : [ "private, no-cache", "no-cache, no-transform" ],
+      "pragma" : "no-cache",
+      "vary" : "x-ausername,x-auserid,cookie,accept-encoding",
+      "x-content-type-options" : "nosniff",
+      "content-type" : "application/json;charset=UTF-8",
+      "date" : "Tue, 26 Mar 2024 11:22:18 GMT"
+    }
+  },
+  "uuid" : "0ed6c4f1-fe90-4ac6-aea7-7686c6721717",
+  "persistent" : true,
+  "insertionIndex" : 10
+}
