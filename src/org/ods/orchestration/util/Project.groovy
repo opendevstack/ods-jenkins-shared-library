@@ -36,6 +36,8 @@ class Project {
             'SSDS': ['1', '2.1', '3.1', '5.4'],
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+
+
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
@@ -283,6 +285,8 @@ class Project {
 
     protected static String METADATA_FILE_NAME = 'metadata.yml'
 
+    protected List initErrors = []
+
     protected IPipelineSteps steps
     protected GitService git
     protected JiraUseCase jiraUseCase
@@ -426,6 +430,11 @@ class Project {
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
         return this
+    }
+
+    @NonCPS
+    List getInitErrors() {
+        return this.initErrors
     }
 
     @NonCPS
@@ -2020,8 +2029,11 @@ class Project {
 
         // Fail the RM pipeline if the old branch flag is in use
         if (repo.branch?.trim()) {
-            throw new IllegalArgumentException("Deprecated branch field is set in 'metadata.yml' " +
-                "inside Release Manager component for repo '${repo.id}'")
+            this.initErrors.add(new IllegalArgumentException("The Release Manager's metadata.yml uses " +
+                "the 'branch' parameter with various repositories. This parameter has " +
+                "been removed and replaced with Bitbucket's 'default branch' setting. " +
+                "Please remove all 'branch' parameters from metadata.yml and set up your " +
+                "Bitbucket repositories' default branches as needed."))
         }
     }
 
@@ -2041,4 +2053,7 @@ class Project {
             this.data.metadata.repositories.add(repo)
         }
     }
+
+
+
 }

@@ -106,6 +106,7 @@ class ScanWithAquaStage extends Stage {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
         List actionableVulnerabilities = null
+        String nexusReportLink = null
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
@@ -121,7 +122,8 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
+                nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
+                createBitbucketCodeInsightReport(url, nexusReportLink,
                     registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
@@ -135,14 +137,84 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-            context.addArtifactURI('aquaCriticalVulnerability', 'true')
+            addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.debug("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityWithSolutionException("Vulnerabilities found: " +
-                actionableVulnerabilities)
+            throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
+                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
+                    nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
+                    gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
         }
 
         return
+    }
+
+    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink) {
+        context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
+        context.addArtifactURI('jiraComponentId', context.getComponentId())
+        context.addArtifactURI('gitUrl', context.getGitUrl())
+        context.addArtifactURI('gitBranch', context.getGitBranch())
+        context.addArtifactURI('repoName', context.getRepoName())
+        context.addArtifactURI('nexusReportLink', nexusReportLink)
+    }
+
+    private String buildActionableMessageForAquaVulnerabilities(Map args) {
+        StringBuilder message = new StringBuilder();
+        message.append("We detected remotely exploitable critical vulnerabilities in ${args.gitUrl} " +
+            "in branch \"${args.gitBranch}\". Due to their high severity, we must stop the delivery " +
+            "process until all vulnerabilities have been addressed. ")
+
+        message.append("\n\nThe following vulnerabilities were found:\n");
+        def count= 1;
+        for (def vulnerability : args.actionableVulnerabilities) {
+            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
+            message.append("\n")
+            count++
+        }
+        def openPRs = getOpenPRsForCommit(args.gitCommit as String, args.repoName as String)
+        if (openPRs.size() > 0) {
+            message.append("\nThis commit exists in the following open pull requests: ")
+            def cnt = 1
+            for (def pr : openPRs) {
+                message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
+                message.append("\n${cnt}.1.  Link: " + (pr as Map).link as String)
+                message.append("\n")
+                cnt++
+            }
+        }
+        if (args.nexusReportLink != null) {
+            message.append("\nYou can find the complete security scan report here: ${args.nexusReportLink}.\n")
+        }
+        return message.toString()
+    }
+
+    private List getOpenPRsForCommit(String gitCommit, String repoName) {
+        def apiResponse = bitbucket.getPullRequestsForCommit(repoName, gitCommit)
+        def prs = []
+        try {
+            def js = steps.readJSON(text: apiResponse) as Map
+            prs = js['values']
+            if (prs == null) {
+                throw new RuntimeException('Field "values" of JSON response must not be empty!')
+            }
+        } catch (Exception ex) {
+            logger.warn "Could not understand API response. Error was: ${ex}"
+            return []
+        }
+        def response = []
+        for (def i = 0; i < (prs as List).size(); i++) {
+            Map pr = (prs as List)[i] as Map
+            if (!(pr.open as Boolean)) { // We only consider Open PRs
+                continue
+            }
+            response.add([
+                title: pr.title,
+                link: (((pr.links as Map).self as List)[0] as Map).href
+            ])
+        }
+        response
     }
 
     private String getImageRef() {
