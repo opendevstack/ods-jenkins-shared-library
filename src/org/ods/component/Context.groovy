@@ -708,12 +708,8 @@ class Context implements IContext {
             // in case code is already checked out, OpenShift build config can not be used for retrieving branch
             branch = script.sh(
                 returnStdout: true,
-                script: 'git rev-parse --abbrev-ref HEAD',
+                script: 'git branch --show-current',
                 label: 'getting GIT branch to build').trim()
-            branch = script.sh(
-                returnStdout: true,
-                script: "git name-rev ${branch} | cut -d ' ' -f2  | sed -e 's|remotes/origin/||g'",
-                label: 'resolving to real GIT branch to build').trim()
         }
         logger.debug "resolved branch ${branch}"
         return branch

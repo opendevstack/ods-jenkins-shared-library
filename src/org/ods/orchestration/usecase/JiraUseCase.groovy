@@ -547,12 +547,15 @@ class JiraUseCase {
     }
 
     @NonCPS
-    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
+    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitRepoUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
+        String gitBaseUrl = extractGitBaseUrlFromRepoUrl(gitRepoUrl)
+        String gitRepoUrlWithBranch =
+            "${gitBaseUrl}/projects/${project.getKey()}/repos/${repoName}/browse?at=refs%2Fheads%2F${gitBranch}"
         message.append("\nAqua security scan detected the remotely exploitable critical " +
-            "vulnerability with name *${vulnerability.name as String}* in repository *[${repoName}|${gitUrl}]* " +
-            "in branch *${gitBranch}*." )
+            "vulnerability with name *${vulnerability.name as String}* in repository " +
+            "*[${repoName}|${gitRepoUrlWithBranch}]*." )
         message.append("\n\n*Description:* " + vulnerability.description as String)
         message.append("\n\n*Solution:* " + vulnerability.solution as String)
 
@@ -561,6 +564,13 @@ class JiraUseCase {
         }
 
         return message.toString()
+    }
+
+    private String extractGitBaseUrlFromRepoUrl(String gitRepoUrl) {
+        if (gitRepoUrl == null) {
+            return null
+        }
+        return gitRepoUrl.substring(0, gitRepoUrl.indexOf("/scm/"))
     }
 
     Map createIssueTypeSecurityVulnerability(Map args) {

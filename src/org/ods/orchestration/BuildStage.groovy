@@ -92,7 +92,7 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos?.size > 0) {
-            def baseErrMsg = "Failing build as repositories contain errors!" +
+            def baseErrMsg = "Failing build as repositories contain errors!\n" +
                 "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
