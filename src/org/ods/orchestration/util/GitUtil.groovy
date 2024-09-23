@@ -7,7 +7,6 @@ class GitUtil {
     private GitUtil() { // This is a utility class
     }
 
-    @NonCPS
     static String buildGitBranchUrl(String gitRepoUrl, String projectKey, String repoName, String gitBranch) {
         if (gitRepoUrl == null) {
             return null

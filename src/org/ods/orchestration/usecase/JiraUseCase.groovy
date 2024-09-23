@@ -547,7 +547,6 @@ class JiraUseCase {
         }
     }
 
-    @NonCPS
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitRepoUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
