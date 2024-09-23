@@ -163,8 +163,8 @@ class ScanWithAquaStage extends Stage {
         StringBuilder message = new StringBuilder();
         String gitBranchUrl = GitUtil.buildGitBranchUrl(args.gitUrl as String, context.getProjectId(),
             args.repoName as String, args.gitBranch as String)
-        message.append("We detected remotely exploitable critical vulnerabilities in ${gitBranchUrl} " +
-            ". Due to their high severity, we must stop the delivery " +
+        message.append("We detected remotely exploitable critical vulnerabilities in ${gitBranchUrl}. " +
+            "Due to their high severity, we must stop the delivery " +
             "process until all vulnerabilities have been addressed. ")
 
         message.append("\n\nThe following vulnerabilities were found:\n");
