@@ -4,6 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
+import org.ods.orchestration.util.GitUtil
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -550,12 +551,10 @@ class JiraUseCase {
     String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitRepoUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
-        String gitBaseUrl = extractGitBaseUrlFromRepoUrl(gitRepoUrl)
-        String gitRepoUrlWithBranch =
-            "${gitBaseUrl}/projects/${project.getKey()}/repos/${repoName}/browse?at=refs%2Fheads%2F${gitBranch}"
+        String gitBranchUrl = GitUtil.buildGitBranchUrl(gitRepoUrl, project.getKey(), repoName, gitBranch)
         message.append("\nAqua security scan detected the remotely exploitable critical " +
             "vulnerability with name *${vulnerability.name as String}* in repository " +
-            "*[${repoName}|${gitRepoUrlWithBranch}]*." )
+            "*[${repoName}|${gitBranchUrl}]*." )
         message.append("\n\n*Description:* " + vulnerability.description as String)
         message.append("\n\n*Solution:* " + vulnerability.solution as String)
 
@@ -564,13 +563,6 @@ class JiraUseCase {
         }
 
         return message.toString()
-    }
-
-    private String extractGitBaseUrlFromRepoUrl(String gitRepoUrl) {
-        if (gitRepoUrl == null) {
-            return null
-        }
-        return gitRepoUrl.substring(0, gitRepoUrl.indexOf("/scm/"))
     }
 
     Map createIssueTypeSecurityVulnerability(Map args) {
