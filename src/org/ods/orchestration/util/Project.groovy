@@ -1315,7 +1315,7 @@ class Project {
         return result
     }
 
-    protected Map loadJiraDataSecurityVulnerabilities(String versionaName = null) {
+    protected Map loadJiraDataSecurityVulnerabilities(String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
