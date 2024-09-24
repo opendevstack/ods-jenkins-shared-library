@@ -1339,7 +1339,10 @@ class Project {
             def issue = [
                 key     : secVul.key,
                 name    : secVul.fields.summary,
-                assignee: secVul.fields.assignee ? [secVul.fields.assignee.displayName, secVul.fields.assignee.name, secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
+                assignee: secVul.fields.assignee ?
+                    [secVul.fields.assignee.displayName,
+                     secVul.fields.assignee.name,
+                     secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate : '',
                 status  : secVul.fields.status.name,
                 versions: secVul.fields.fixVersions.collect { it.name }
