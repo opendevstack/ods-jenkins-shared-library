@@ -10,6 +10,7 @@
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
+* Use riskPriority value as number instead of its value as text in RA ([#1156](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1156))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
