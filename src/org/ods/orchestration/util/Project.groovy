@@ -59,6 +59,7 @@ class Project {
         static final String TYPE_TESTS = 'tests'
         static final String TYPE_DOCS = 'docs'
         static final String TYPE_DOCTRACKING = 'docTrackings'
+        static final String TYPE_SECURITY_VULNERABILITIES = 'securityVulnerabilities'
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -70,6 +71,7 @@ class Project {
             TYPE_TECHSPECS,
             TYPE_TESTS,
             TYPE_DOCS,
+            TYPE_SECURITY_VULNERABILITIES,
         ]
 
         static final List TYPES_WITH_STATUS = [
@@ -81,6 +83,7 @@ class Project {
             TYPE_TECHSPECS,
             TYPE_TESTS,
             TYPE_DOCS,
+            TYPE_SECURITY_VULNERABILITIES,
         ]
 
         static final List REGULAR_ISSUE_TYPES = [
@@ -91,6 +94,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_SECURITY_VULNERABILITIES,
         ]
 
         static final String ISSUE_STATUS_TODO = 'to do'
