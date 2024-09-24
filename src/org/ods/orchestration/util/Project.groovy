@@ -1333,7 +1333,19 @@ class Project {
             expand: []
         ]
 
-        return this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+        def securityVulnerabilities = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+
+        return securityVulnerabilities.collectEntries { secVul ->
+            def issue = [
+                key     : secVul.key,
+                name    : secVul.fields.summary,
+                assignee: secVul.fields.assignee ? [secVul.fields.assignee.displayName, secVul.fields.assignee.name, secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
+                dueDate : '',
+                status  : secVul.fields.status.name,
+                versions: secVul.fields.fixVersions.collect { it.name }
+            ]
+            return [secVul.key, issue]
+        }
     }
 
     protected Map loadJiraDataBugs(Map tests, String versionName = null) {
