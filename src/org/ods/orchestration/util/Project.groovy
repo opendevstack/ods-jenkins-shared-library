@@ -388,6 +388,7 @@ class Project {
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
         // REST endpoint, not plain Jira
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests, version) // TODO removeme when endpoint is updated
+        this.data.jira.securityVulnerabilities = this.loadJiraDataSecurityVulnerabilities(version)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
@@ -1312,6 +1313,27 @@ class Project {
         result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
 
         return result
+    }
+
+    protected Map loadJiraDataSecurityVulnerabilities(String versionaName = null) {
+        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase.jira) return [:]
+
+        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = 'Security Vulnerability' AND status != Done"
+
+        if (versionName) {
+            fields << 'fixVersions'
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: []
+        ]
+
+        return this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
     }
 
     protected Map loadJiraDataBugs(Map tests, String versionName = null) {
