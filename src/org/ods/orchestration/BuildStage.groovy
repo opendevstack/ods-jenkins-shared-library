@@ -113,7 +113,7 @@ class BuildStage extends Stage {
                 jiraMessage += aquaMessage
             }
 
-            util.failBuild(logMessage)
+            util.failBuild(logMessage, false)
             // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
             // vulnerability with solution found then raise an exception
             if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
