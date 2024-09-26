@@ -404,7 +404,7 @@ class JiraUseCase {
 
         def status = isError ? 'Failed' : 'Successful'
 
-        logger.info("Updating Jira release status with result ${status} and comment ${message}")
+        logger.debug("Updating Jira release status with result ${status} and comment ${message}")
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
@@ -423,7 +423,7 @@ class JiraUseCase {
             String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
             logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
             this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
-            logger.info("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+            logger.debug("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
         } else {
             logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
