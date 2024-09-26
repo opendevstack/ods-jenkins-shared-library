@@ -27,17 +27,18 @@ class ProjectMessagesUtil {
         if (StringUtils.isEmpty(input)) {
             return ""
         }
-        StringBuilder output = new StringBuilder(input.length() * 2);
-        output.append(input.charAt(0));
+        StringBuilder output = new StringBuilder(input.length() * 2)
+        output.append(input.charAt(0))
 
         for (int i = 1; i < input.length(); i++) {
             char currentChar = input.charAt(i);
             if (Character.isUpperCase(currentChar)) {
-                output.append(' ');
+                output.append(' ')
             }
-            output.append(currentChar);
+            output.append(currentChar)
         }
 
-        return output.toString();
+        return output.toString()
     }
+
 }

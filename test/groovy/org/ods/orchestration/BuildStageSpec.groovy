@@ -18,6 +18,7 @@ import static util.FixtureHelper.createProject
 class BuildStageSpec extends SpecHelper {
 
     static String TAILOR_FAILURE_LOG_MESSAGE = """Failing build as repositories contain errors!
+
 Failed repositories:
 1.\tRepository id: golang
 \tBranch: master
@@ -41,6 +42,7 @@ Please follow these steps to resolve and restart your deployment:
 \t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
 
     static String TAILOR_FAILURE_JIRA_COMMENT = """Failing build as repositories contain errors!
+
 Failed repositories:
 1.\tRepository id: golang
 \tBranch: master
@@ -133,7 +135,7 @@ Please follow these steps to resolve and restart your deployment:
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed repositories:\n'
+        ex.message == 'Failing build as repositories contain errors!\n\nFailed repositories:\n'
     }
 
     def "tailor failure logs correct message and adds correct Jira comment"() {

@@ -37,7 +37,6 @@ class Project {
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
 
-
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
@@ -70,8 +69,8 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
             TYPE_SECURITY_VULNERABILITIES,
+            TYPE_DOCS,
         ]
 
         static final List TYPES_WITH_STATUS = [
@@ -82,8 +81,8 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
-            TYPE_DOCS,
             TYPE_SECURITY_VULNERABILITIES,
+            TYPE_DOCS,
         ]
 
         static final List REGULAR_ISSUE_TYPES = [
@@ -482,7 +481,7 @@ class Project {
         def defaultingWrapper = docChaptersPerDocument.withDefault { [] }
         Map <String, Map> wipDocs = computeWIPDocChapters(data)
 
-        wipDocs?.each {chapterKey, docChapter ->
+        wipDocs?.each { chapterKey, docChapter ->
             docChapter.documents.each { document ->
                 defaultingWrapper[document] << chapterKey
             }
@@ -1337,14 +1336,14 @@ class Project {
 
         return securityVulnerabilities.collectEntries { secVul ->
             def issue = [
-                key     : secVul.key,
-                name    : secVul.fields.summary,
+                key: secVul.key,
+                name: secVul.fields.summary,
                 assignee: secVul.fields.assignee ?
                     [secVul.fields.assignee.displayName,
                      secVul.fields.assignee.name,
                      secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
-                dueDate : '',
-                status  : secVul.fields.status.name,
+                dueDate: '',
+                status: secVul.fields.status.name,
                 versions: secVul.fields.fixVersions.collect { it.name }
             ]
             return [secVul.key, issue]
@@ -2094,7 +2093,5 @@ class Project {
             this.data.metadata.repositories.add(repo)
         }
     }
-
-
 
 }
