@@ -27,6 +27,9 @@ class ProjectMessagesUtil {
         if (StringUtils.isEmpty(input)) {
             return ""
         }
+        if (input.length() < 2) {
+            return input
+        }
         StringBuilder output = new StringBuilder(input.length() * 2)
         output.append(input.charAt(0))
 
