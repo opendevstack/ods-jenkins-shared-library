@@ -92,8 +92,8 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos?.size > 0) {
-            def baseErrMsg = "Failing build as repositories contain errors!\n" +
-                "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
+            def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
+                "\n${sanitizeFailedRepos(failedRepos)}"
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
@@ -160,10 +160,9 @@ class BuildStage extends Stage {
     }
 
     String sanitizeFailedRepos(def failedRepos) {
-        def index = 1
         def sanitizedRepos = failedRepos.collect { it ->
-            (index++) + ".\tRepository id: " + it.id +
-            "\n\tBranch: " + it.defaultBranch + "\n\tRepository type: " + it.type }
+            "Repository: " + it.name +
+            "\nBranch: " + it.defaultBranch }
             .join("\n\n")
         return sanitizedRepos
     }
