@@ -140,7 +140,7 @@ class ScanWithAquaStage extends Stage {
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
-            logger.debug("Delete image response: " + response)
+            logger.info("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
                 buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
                     nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
