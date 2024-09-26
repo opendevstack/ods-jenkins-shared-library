@@ -91,6 +91,9 @@ class BuildStage extends Stage {
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
+
+        logger.info("Failed repos: ${failedRepos}")
+
         if (project.hasFailingTests() || failedRepos?.size > 0) {
             def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
                 "\n${sanitizeFailedRepos(failedRepos)}"
