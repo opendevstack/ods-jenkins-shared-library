@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Aqua remotely exploitable critical vulnerabilities improvements ([#1157](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1157))
 * Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
 * Fail the release manager pipeline and create security vulnerability issues or move them to TODO state if already present ([#1151](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1151))
 
