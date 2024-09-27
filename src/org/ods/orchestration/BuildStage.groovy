@@ -92,8 +92,8 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos?.size > 0) {
-            def baseErrMsg = "Failing build as repositories contain errors!" +
-                "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
+            def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
+                "\n${sanitizeFailedRepos(failedRepos)}"
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
@@ -113,7 +113,7 @@ class BuildStage extends Stage {
                 jiraMessage += aquaMessage
             }
 
-            util.failBuild(logMessage)
+            util.failBuild(logMessage, false)
             // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
             // vulnerability with solution found then raise an exception
             if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
@@ -160,12 +160,19 @@ class BuildStage extends Stage {
     }
 
     String sanitizeFailedRepos(def failedRepos) {
-        def index = 1
         def sanitizedRepos = failedRepos.collect { it ->
-            (index++) + ".\tRepository id: " + it.id +
-            "\n\tBranch: " + it.defaultBranch + "\n\tRepository type: " + it.type }
+            "Repository: " + getRepoName(it, project.getKey()) +
+            "\nBranch: " + it.defaultBranch }
             .join("\n\n")
         return sanitizedRepos
+    }
+
+    String getRepoName(def repo, String projectKey) {
+        def name = repo?.data?.openshift?.repoName
+        if (!name) {
+            name = projectKey + "-" + repo.id
+        }
+        return name
     }
 
     List filterReposWithTailorFailure(def repos) {

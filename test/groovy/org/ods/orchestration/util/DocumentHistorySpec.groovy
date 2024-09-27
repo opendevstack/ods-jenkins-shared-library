@@ -71,6 +71,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.jiraData10 = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : firstProjectVersion,
             previousVersion: null,
             components  : [(cmp1.key):cmp1],
@@ -86,6 +87,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.noJiraData = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : fourthProjectVersion,
             previousVersion: secondProjectVersion,
             components  : [:],
@@ -101,6 +103,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.noJiraDataTwo = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : fifthProjectVersion,
             previousVersion: fourthProjectVersion,
             components  : [:],
@@ -116,6 +119,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries10 = [new DocumentHistoryEntry([
             bugs                  : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components            : [[key: cmp1.key, action: 'add']],
             epics                 : [],
@@ -128,6 +132,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.jiraData11_first = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : secondProjectVersion,
             previousVersion: firstProjectVersion,
             components  : [(cmp1.key):cmp1],
@@ -143,6 +148,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries11_first = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [[key: epc1.key, action:'add']],
@@ -155,6 +161,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.jiraDataFix = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : bugfixProjectVersion,
             previousVersion: firstProjectVersion,
             components  : [(cmp1.key):cmp1, (cmp2.key): cmp2],
@@ -170,6 +177,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entriesFix = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
@@ -183,6 +191,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.jiraData11_second = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : secondProjectVersion,
             previousVersion: bugfixProjectVersion,
             components  : [(cmp1.key):cmp1],
@@ -198,6 +207,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries11_second = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [[key: epc1.key, action:'add']],
@@ -211,6 +221,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.jiraData20 = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : fourthProjectVersion,
             previousVersion: secondProjectVersion,
             components  : [(cmp1.key):cmp1],
@@ -230,6 +241,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries20 = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
@@ -242,6 +254,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries20Alt = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [[key: epc2.key, action: 'add']],
@@ -254,6 +267,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.noEntries = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
@@ -266,6 +280,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.noEntriesOne = [new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
@@ -471,6 +486,7 @@ class DocumentHistorySpec extends SpecHelper {
           DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'DocType'])
           def existingHistory = [new DocumentHistoryEntry([
               bugs        : [],
+              securityVulnerabilities         : [],
               docs        : [],
               components  : [],
               epics       : [],
@@ -485,6 +501,7 @@ class DocumentHistorySpec extends SpecHelper {
 
           def currentVersionData = [
               bugs                   : [:],
+              securityVulnerabilities         : [:],
               components             : [:],
               epics                  : [:],
               mitigations            : [:],
@@ -547,6 +564,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def base_saved_data = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : "1",
             components  : [:],
             epics       : [:],
@@ -645,6 +663,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def base_saved_data = [
             bugs                   : [:],
+            securityVulnerabilities         : [:],
             version                : "1",
             components             : [:],
             epics                  : [:],
@@ -724,6 +743,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedProjVersion = 'version'
         def savedData = [[
                 bugs                  : [],
+                securityVulnerabilities         : [],
                 (Project.JiraDataItem.TYPE_DOCS): [],
                 components            : [[key: "CMP", action: 'add']],
                 epics                 : [[key: "EPC", action: 'add']],
@@ -839,6 +859,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def jiraData = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : firstProjectVersion,
             previousVersion: null,
             components  : [(cmp1.key):cmp1],
@@ -854,6 +875,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def result = [new DocumentHistoryEntry([
             bugs                  : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components            : [],
             epics                 : [],
@@ -911,6 +933,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def jiraData = [
             bugs        : [:],
+            securityVulnerabilities         : [:],
             version     : secondProjectVersion,
             previousVersion: firstProjectVersion,
             components  : [(cmp1.key):cmp1],
@@ -926,6 +949,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def savedData = [new DocumentHistoryEntry([
             bugs                  : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components            : [],
             epics                 : [],
@@ -938,6 +962,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         def result = new DocumentHistoryEntry([
             bugs        : [],
+            securityVulnerabilities         : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
