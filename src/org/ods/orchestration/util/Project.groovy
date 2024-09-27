@@ -1342,7 +1342,6 @@ class Project {
                     [secVul.fields.assignee.displayName,
                      secVul.fields.assignee.name,
                      secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
-                dueDate: '',
                 status: secVul.fields.status.name,
                 versions: secVul.fields.fixVersions.collect { it.name }
             ]
