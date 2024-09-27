@@ -17,19 +17,16 @@ import static util.FixtureHelper.createProject
 
 class BuildStageSpec extends SpecHelper {
 
-    static String TAILOR_FAILURE_LOG_MESSAGE = """Failing build as repositories contain errors!
-Failed repositories:
-1.\tRepository id: golang
-\tBranch: master
-\tRepository type: ods
+    static String TAILOR_FAILURE_LOG_MESSAGE = """Delivery failed since the following Bitbucket repositories contain errors:
 
-2.\tRepository id: other
-\tBranch: master
-\tRepository type: ods
+Repository: net-golang
+Branch: master
 
-3.\tRepository id: third
-\tBranch: master
-\tRepository type: ods
+Repository: net-other
+Branch: master
+
+Repository: net-third
+Branch: master
 
 ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
 
@@ -40,19 +37,16 @@ Please follow these steps to resolve and restart your deployment:
 \t1. See the logs above to review the differences we found.
 \t2. Please update your configuration stored in Bitbucket or the configuration in the target environment as needed so that they match."""
 
-    static String TAILOR_FAILURE_JIRA_COMMENT = """Failing build as repositories contain errors!
-Failed repositories:
-1.\tRepository id: golang
-\tBranch: master
-\tRepository type: ods
+    static String TAILOR_FAILURE_JIRA_COMMENT = """Delivery failed since the following Bitbucket repositories contain errors:
 
-2.\tRepository id: other
-\tBranch: master
-\tRepository type: ods
+Repository: net-golang
+Branch: master
 
-3.\tRepository id: third
-\tBranch: master
-\tRepository type: ods
+Repository: net-other
+Branch: master
+
+Repository: net-third
+Branch: master
 
 ERROR: We detected an undesired configuration drift. A drift occurs when changes in a target environment are not covered by configuration files in Git (regarded as the source of truth). Resulting differences may be due to manual changes in the configuration of the target environment or automatic changes performed by OpenShift/Kubernetes.
 
@@ -118,7 +112,7 @@ Please follow these steps to resolve and restart your deployment:
         then:
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-        1 * util.failBuild(_)
+        1 * util.failBuild(_,_)
     }
 
     def "unit test errors in X version break the stage"() {
@@ -131,9 +125,9 @@ Please follow these steps to resolve and restart your deployment:
         then:
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-        1 * util.failBuild(_)
+        1 * util.failBuild(_,_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed repositories:\n'
+        ex.message == 'Delivery failed since the following Bitbucket repositories contain errors:\n\n'
     }
 
     def "tailor failure logs correct message and adds correct Jira comment"() {
@@ -161,7 +155,7 @@ Please follow these steps to resolve and restart your deployment:
         buildStage.run()
 
         then:
-        1 * util.failBuild(TAILOR_FAILURE_LOG_MESSAGE)
+        1 * util.failBuild(TAILOR_FAILURE_LOG_MESSAGE, false)
         IllegalStateException ex = thrown()
         ex.message == TAILOR_FAILURE_JIRA_COMMENT
 
