@@ -1318,7 +1318,7 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def fields = ['assignee', 'status', 'summary']
         def jql = "project = ${this.jiraProjectKey} AND issuetype = 'Security Vulnerability' AND status != Done"
 
         if (versionName) {
