@@ -4,6 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
+import org.ods.orchestration.util.GitUtil
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -403,7 +404,7 @@ class JiraUseCase {
 
         def status = isError ? 'Failed' : 'Successful'
 
-        logger.info("Updating Jira release status with result ${status} and comment ${message}")
+        logger.debug("Updating Jira release status with result ${status} and comment ${message}")
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
@@ -422,7 +423,7 @@ class JiraUseCase {
             String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
             logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
             this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
-            logger.info("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+            logger.debug("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
         } else {
             logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
         }
@@ -546,13 +547,13 @@ class JiraUseCase {
         }
     }
 
-    @NonCPS
-    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitUrl, String gitBranch,
+    String buildSecurityVulnerabilityIssueDescription(Map vulnerability, String gitRepoUrl, String gitBranch,
                                                       String repoName, String nexusReportLink) {
         StringBuilder message = new StringBuilder()
+        String gitBranchUrl = GitUtil.buildGitBranchUrl(gitRepoUrl, project.getKey(), repoName, gitBranch)
         message.append("\nAqua security scan detected the remotely exploitable critical " +
-            "vulnerability with name *${vulnerability.name as String}* in repository *[${repoName}|${gitUrl}]* " +
-            "in branch *${gitBranch}*." )
+            "vulnerability with name *${vulnerability.name as String}* in repository " +
+            "*[${repoName}|${gitBranchUrl}]*." )
         message.append("\n\n*Description:* " + vulnerability.description as String)
         message.append("\n\n*Solution:* " + vulnerability.solution as String)
 

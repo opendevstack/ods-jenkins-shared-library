@@ -88,8 +88,8 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
         if (project.hasFailingTests() || failedRepos?.size > 0) {
-            def baseErrMsg = "Failing build as repositories contain errors!" +
-                "\nFailed repositories:\n${sanitizeFailedRepos(failedRepos)}"
+            def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
+                "\n${sanitizeFailedRepos(failedRepos)}"
 
             def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
             def jiraMessage = baseErrMsg
@@ -109,7 +109,7 @@ class BuildStage extends Stage {
                 jiraMessage += aquaMessage
             }
 
-            util.failBuild(logMessage)
+            util.failBuild(logMessage, false)
             // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
             // vulnerability with solution found then raise an exception
             if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
@@ -134,6 +134,38 @@ class BuildStage extends Stage {
                 "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
                 "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         }
+    }
+
+    String sanitizeFailedRepos(def failedRepos) {
+        def sanitizedRepos = failedRepos.collect { it ->
+            "Repository: " + getRepoName(it, project.getKey()) +
+            "\nBranch: " + it.defaultBranch }
+            .join("\n\n")
+        return sanitizedRepos
+    }
+
+    String getRepoName(def repo, String projectKey) {
+        def name = repo?.data?.openshift?.repoName
+        if (!name) {
+            name = projectKey + "-" + repo.id
+        }
+        return name
+    }
+
+    List filterReposWithTailorFailure(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.tailorFailure }
+    }
+
+    List filterReposWithAquaCriticalVulnerability(def repos) {
+        return repos?.flatten()?.findAll { it -> it.data?.openshift?.aquaCriticalVulnerability }
+    }
+
+    String buildReposCommaSeparatedString(def tailorFailedRepos) {
+        def reposCommaSeparatedString = tailorFailedRepos
+            .collect { it -> "\"" + it.id + "\"" }
+            .join(", ")
+
+        return reposCommaSeparatedString
     }
 
 }
