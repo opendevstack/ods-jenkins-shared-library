@@ -109,7 +109,6 @@ def call(IContext context, Map config = [:]) {
                 "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         }
     } catch (AquaRemoteCriticalVulnerabilityWithSolutionException e) {
-        logger.error(e.getMessage())
         throw e
     } catch (err) {
         logger.warn("Error with Aqua due to: ${err}")

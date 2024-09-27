@@ -3,6 +3,7 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
+import org.ods.orchestration.util.GitUtil
 import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
@@ -139,7 +140,7 @@ class ScanWithAquaStage extends Stage {
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
             addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
-            logger.debug("Delete image response: " + response)
+            logger.info("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
                 buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
                     nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
@@ -160,8 +161,10 @@ class ScanWithAquaStage extends Stage {
 
     private String buildActionableMessageForAquaVulnerabilities(Map args) {
         StringBuilder message = new StringBuilder();
-        message.append("We detected remotely exploitable critical vulnerabilities in ${args.gitUrl} " +
-            "in branch \"${args.gitBranch}\". Due to their high severity, we must stop the delivery " +
+        String gitBranchUrl = GitUtil.buildGitBranchUrl(args.gitUrl as String, context.getProjectId(),
+            args.repoName as String, args.gitBranch as String)
+        message.append("We detected remotely exploitable critical vulnerabilities in repository ${gitBranchUrl}. " +
+            "Due to their high severity, we must stop the delivery " +
             "process until all vulnerabilities have been addressed. ")
 
         message.append("\n\nThe following vulnerabilities were found:\n");
