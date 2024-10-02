@@ -268,7 +268,7 @@ class Pipeline implements Serializable {
                         script.stage('odsPipeline error') {
                             logger.warnClocked("${context.componentId}",
                                 "***** Finished ODS Pipeline for ${context.componentId} (with error) *****")
-                            logger.warn "Error: ${err}"
+                            logger.error "${err}"
                             updateBuildStatus('FAILURE')
                             setBitbucketBuildStatus('FAILED')
                             if (err instanceof TailorDeploymentException) {

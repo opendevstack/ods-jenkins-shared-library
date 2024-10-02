@@ -167,7 +167,7 @@ class ScanWithAquaStage extends Stage {
             "Due to their high severity, we must stop the delivery " +
             "process until all vulnerabilities have been addressed. ")
 
-        message.append("\n\nThe following vulnerabilities were found:\n");
+        message.append("\n\nThe following vulnerabilities were found:");
         def count= 1;
         for (def vulnerability : args.actionableVulnerabilities) {
             message.append("\n\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
