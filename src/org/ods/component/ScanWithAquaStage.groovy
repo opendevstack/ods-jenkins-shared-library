@@ -170,9 +170,9 @@ class ScanWithAquaStage extends Stage {
         message.append("\n\nThe following vulnerabilities were found:\n");
         def count= 1;
         for (def vulnerability : args.actionableVulnerabilities) {
-            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
-            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
-            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
+            message.append("\n\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
             message.append("\n")
             count++
         }
