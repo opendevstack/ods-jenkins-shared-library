@@ -113,6 +113,8 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
+                logger.info("ResultInfo: ${resultInfo}")
+
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
