@@ -113,7 +113,12 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
-                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
+                List whitelistedRECVs = []
+                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
+                    whitelistedRECVs);
+                if (whitelistedRECVs.size() > 0) {
+                    logger.warn(buildWhiteListedRECVsMessage(whitelistedRECVs))
+                }
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
@@ -157,6 +162,13 @@ class ScanWithAquaStage extends Stage {
         context.addArtifactURI('gitBranch', context.getGitBranch())
         context.addArtifactURI('repoName', context.getRepoName())
         context.addArtifactURI('nexusReportLink', nexusReportLink)
+    }
+
+    private String buildWhiteListedRECVsMessage(List whiteListedRECVs) {
+        StringBuilder message = new StringBuilder("The aqua scan detected the following remotely " +
+            "exploitable critical vulnerabilities which were whitelisted on the Aqua side: ")
+        message.append(whiteListedRECVs.join(", "))
+        return message.toString()
     }
 
     private String buildActionableMessageForAquaVulnerabilities(Map args) {
@@ -388,7 +400,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, List whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
@@ -396,9 +408,12 @@ class ScanWithAquaStage extends Stage {
                 if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())
-                    && !(vulnerability?.already_acknowledged)
                 ) {
-                    result.push(vulnerability)
+                    if (vulnerability?.already_acknowledged) {
+                        whitelistedRECVs.add(vulnerability.name)
+                    } else {
+                        result.push(vulnerability)
+                    }
                 }
             }
         }
