@@ -116,6 +116,9 @@ class ScanWithAquaStage extends Stage {
                 List whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
                     whitelistedRECVs);
+                logger.info("Result info: ${resultInfo}")
+                logger.info("Actionable vulnerabilities: ${actionableVulnerabilities}")
+                logger.info("Whitelisted: ${whitelistedRECVs}")
                 if (whitelistedRECVs.size() > 0) {
                     logger.warn(buildWhiteListedRECVsMessage(whitelistedRECVs))
                 }
@@ -407,8 +410,8 @@ class ScanWithAquaStage extends Stage {
                 Map vulnerability = vul as Map
                 if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
-                    && !StringUtils.isEmpty((vulnerability?.solution as String).trim())
-                ) {
+                    && !StringUtils.isEmpty((vulnerability?.solution as String).trim()))
+                {
                     if (!!vulnerability?.already_acknowledged) {
                         whitelistedRECVs.add(vulnerability.name)
                     } else {
@@ -419,4 +422,5 @@ class ScanWithAquaStage extends Stage {
         }
         return result
     }
+
 }
