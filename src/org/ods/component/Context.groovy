@@ -735,7 +735,7 @@ class Context implements IContext {
     }
 
 
-    @Override
+    @NonCPS
     public String toString() {
         return "Context{" +
             "excludeFromContextDebugConfig=" + excludeFromContextDebugConfig +
