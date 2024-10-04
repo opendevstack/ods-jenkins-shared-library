@@ -116,7 +116,7 @@ class ScanWithAquaStage extends Stage {
 
                 logger.info("CCContext:")
                 context.class.declaredMethods.each { method ->
-                    logger.info("Method ${method.name}: ${method.invoke(object)}")
+                    logger.info("Method ${method.name}: ${method.invoke(context)}")
                 }
 
 
