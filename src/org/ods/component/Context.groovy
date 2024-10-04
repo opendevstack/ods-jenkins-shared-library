@@ -734,4 +734,18 @@ class Context implements IContext {
         }
     }
 
+
+    @Override
+    public String toString() {
+        return "Context{" +
+            "excludeFromContextDebugConfig=" + excludeFromContextDebugConfig +
+            ", script=" + script +
+            ", config=" + config +
+            ", steps=" + steps +
+            ", logger=" + logger +
+            ", artifactUriStore=" + artifactUriStore +
+            ", localCheckoutEnabled=" + localCheckoutEnabled +
+            ", appDomain='" + appDomain + '\'' +
+            '}';
+    }
 }
