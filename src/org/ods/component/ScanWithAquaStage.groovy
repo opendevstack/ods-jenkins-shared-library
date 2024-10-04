@@ -113,12 +113,12 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
+
+                logger.info("Config: ${config}")
+
                 List whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
                     whitelistedRECVs);
-                logger.info("Result info: ${resultInfo}")
-                logger.info("Actionable vulnerabilities: ${actionableVulnerabilities}")
-                logger.info("Whitelisted: ${whitelistedRECVs}")
                 if (whitelistedRECVs.size() > 0) {
                     logger.warn(buildWhiteListedRECVsMessage(whitelistedRECVs))
                 }
