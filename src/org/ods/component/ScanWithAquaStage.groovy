@@ -115,6 +115,8 @@ class ScanWithAquaStage extends Stage {
 
 
                 logger.info("CCContext: ${context}")
+                logger.info("steps: ${steps}")
+                logger.info("configurationAquaProject: ${configurationAquaProject}")
 
 
                 List whitelistedRECVs = []
