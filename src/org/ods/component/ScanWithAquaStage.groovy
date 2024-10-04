@@ -169,7 +169,7 @@ class ScanWithAquaStage extends Stage {
 
     private String buildWhiteListedRECVsMessage(List whiteListedRECVs) {
         StringBuilder message = new StringBuilder("The Aqua scan detected the following remotely " +
-            "exploitable critical vulnerabilities which were whitelisted on the Aqua side: ")
+            "exploitable critical vulnerabilities which were whitelisted in Aqua: ")
         message.append(whiteListedRECVs.join(", "))
         return message.toString()
     }
