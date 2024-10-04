@@ -114,7 +114,11 @@ class ScanWithAquaStage extends Stage {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
 
-                logger.info("CCContext: ${context}")
+                logger.info("CCContext:")
+                context.class.declaredMethods.each { method ->
+                    logger.info("Method ${method.name}: ${method.invoke(object)}")
+                }
+
 
                 List whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
