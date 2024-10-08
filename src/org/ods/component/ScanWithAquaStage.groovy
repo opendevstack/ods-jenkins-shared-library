@@ -145,23 +145,25 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-            addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
+            def scannedBranch = computeScannedBranch()
+            addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink, scannedBranch)
             String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
             logger.info("Delete image response: " + response)
             throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
                 buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
-                    nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
+                    nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: scannedBranch,
                     gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
         }
 
         return
     }
 
-    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink) {
+    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink,
+            String scannedBranch) {
         context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
         context.addArtifactURI('jiraComponentId', context.getComponentId())
         context.addArtifactURI('gitUrl', context.getGitUrl())
-        context.addArtifactURI('gitBranch', context.getGitBranch())
+        context.addArtifactURI('gitBranch', scannedBranch)
         context.addArtifactURI('repoName', context.getRepoName())
         context.addArtifactURI('nexusReportLink', nexusReportLink)
     }
@@ -195,8 +197,8 @@ class ScanWithAquaStage extends Stage {
             message.append("\nThis commit exists in the following open pull requests: ")
             def cnt = 1
             for (def pr : openPRs) {
-                message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
-                message.append("\n${cnt}.1.  Link: " + (pr as Map).link as String)
+                message.append("\n\n${cnt}.    Pull request: " + (pr as Map).title as String)
+                message.append("\n\n${cnt}.1.  Link: " + (pr as Map).link as String)
                 message.append("\n")
                 cnt++
             }
@@ -422,4 +424,11 @@ class ScanWithAquaStage extends Stage {
         return result
     }
 
+    private String computeScannedBranch() {
+        def scannedBranch = context.getGitBranch();
+        if (scannedBranch.toLowerCase().startsWith("release/")) { // We scanned the default integration branch
+            scannedBranch = bitbucket.getDefaultBranch(context.getRepoName())
+        }
+        return scannedBranch
+    }
 }
