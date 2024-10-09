@@ -242,7 +242,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "12345",
-            "cd-user", "report.html", "report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "report.html", "report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         1 * stage.logger.info("Finished scan via Aqua CLI successfully!")
         AquaService.AQUA_SUCCESS == result
     }
@@ -257,7 +257,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "12345",
-            "cd-user", "report.html", "report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
+            "cd-user", "report.html", "report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
         1 * stage.logger.info("The image scanned failed at least one of the Image Assurance Policies specified.")
         AquaService.AQUA_POLICIES_ERROR == result
     }
@@ -272,7 +272,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "12345",
-            "cd-user", "report.html", "report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "report.html", "report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         1 * stage.logger.info("An error occurred in processing the scan request " +
             "(e.g. invalid command line options, image not pulled, operational error).")
         AquaService.AQUA_OPERATIONAL_ERROR == result
@@ -288,7 +288,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "12345",
-            "cd-user", "report.html", "report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
+            "cd-user", "report.html", "report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
         1 * stage.logger.info("An unknown return code was returned: 127")
         127 == result
     }
@@ -359,7 +359,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
@@ -436,7 +436,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "prj1-cd-custom-secret", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "prj1-cd-custom-secret", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
@@ -545,7 +545,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
@@ -621,7 +621,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 1, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 1, malware: 0]]"]) >> [
@@ -697,7 +697,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 1]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 1]]"]) >> [
@@ -754,7 +754,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -792,7 +792,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json","aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -849,7 +849,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", "aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
         1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
@@ -901,7 +901,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli(null, null, "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", "aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -943,7 +943,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli(null, null, "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", "aqua-report.txt", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail without to
         1 * stage.script.emailext(
             [
