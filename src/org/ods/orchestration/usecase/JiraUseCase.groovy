@@ -497,13 +497,13 @@ class JiraUseCase {
         return jira.getIssuesForJQLQuery(jqlQuery) ?: []
     }
 
-    List createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
+    Set createSecurityVulnerabilityIssues(List aquaCriticalVulnerabilityRepos) {
         if (!jira) {
             logger.warn("createSecurityVulnerabilityIssues: Could *NOT* create security vulnerability issues " +
                 "because jira has invalid value.")
             return []
         }
-        def securityVulnerabilityIssueKeys = [];
+        Set securityVulnerabilityIssueKeys = [];
         for (def repo : aquaCriticalVulnerabilityRepos) {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
