@@ -102,7 +102,8 @@ class ScanWithAquaStage extends Stage {
 
         String reportFile = "aqua-report.html"
         String jsonFile = "aqua-report.json"
-        int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
+        String textFile = "aqua-report.txt"
+        int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile, textFile)
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
@@ -112,8 +113,10 @@ class ScanWithAquaStage extends Stage {
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
+                def text = steps.readFile(file: textFile) as String
 
                 logger.info("ResultInfo: ${resultInfo}")
+                logger.info("\n\n\nTextInfo: ${text}")
 
                 List whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
@@ -249,10 +252,10 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private int scanViaCli(String aquaUrl, String registry, String imageRef,
-                           String credentialsId, String reportFile, String jsonFile) {
+                           String credentialsId, String reportFile, String jsonFile, String textFile) {
         logger.startClocked(options.resourceName)
         int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile, jsonFile,
-            options.scanTimeoutSeconds)
+            textFile, options.scanTimeoutSeconds)
         // see possible return codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
         switch (returnCode) {
             case AquaService.AQUA_SUCCESS:

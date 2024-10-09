@@ -21,7 +21,8 @@ class AquaService {
 
     @SuppressWarnings('ParameterCount')
     int scanViaCli(String aquaUrl, String registry, String imageRef,
-                   String credentialsId, String reportFile, String jsonFile, Integer timeout) {
+                   String credentialsId, String reportFile, String jsonFile,
+                   String textFile, Integer timeout) {
         logger.info "Starting to scan via Aqua CLI..."
         int status = AQUA_SUCCESS
         withCredentials(credentialsId) { username, password ->
@@ -37,6 +38,7 @@ class AquaService {
                   --scan-timeout ${timeout} \
                   --htmlfile '${reportFile}' \
                   --jsonfile '${jsonFile}' \
+                  --textfile '${textFile}' \\
                   -w /tmp/aqua \
                   -U '${username}' \
                   -P '${password}' \
