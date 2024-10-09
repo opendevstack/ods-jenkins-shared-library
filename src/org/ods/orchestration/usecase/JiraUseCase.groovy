@@ -517,6 +517,9 @@ class JiraUseCase {
                         repo.data.openshift.gitBranch,
                         repo.data.openshift.repoName,
                         repo.data.openshift.nexusReportLink))
+                logger.debug("Create/update security vulnerability issue with key ${issueKey} " +
+                    "for ${vulerabilityMap.name}, component ${jiraComponentId}, " +
+                    "repo ${repo.data.openshift.repoName}")
                 securityVulnerabilityIssueKeys.add(issueKey)
             }
         }
