@@ -192,7 +192,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                         'helmValuesFiles': options.helmValuesFiles,
                         'helmValues': options.helmValues,
                         'helmDefaultFlags': options.helmDefaultFlags,
-                        'helmAdditionalFlags': options.helmAdditionalFlags
+                        'helmAdditionalFlags': options.helmAdditionalFlags,
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
