@@ -16,6 +16,8 @@ class JiraUseCase {
 
     private static final String VULNERABILITY_NAME_PLACEHOLDER = "<CVE>"
 
+    private static final String SOLUTION_PARAGRAPH_TITLE = "*Solution:*"
+
     private static final String SECURITY_VULNERABILITY_ISSUE_SUMMARY = "Remotely exploitable security " +
         "vulnerability with solution detected by Aqua with name " + VULNERABILITY_NAME_PLACEHOLDER
 
@@ -507,18 +509,19 @@ class JiraUseCase {
         for (def repo : aquaCriticalVulnerabilityRepos) {
             def jiraComponentId = getJiraComponentId(repo)
             for (def vulnerability : repo.data.openshift.aquaCriticalVulnerability) {
-                def vulerabilityMap = vulnerability as Map
+                def vulnerabilityMap = vulnerability as Map
                 def issueKey = createOrUpdateSecurityVulnerabilityIssue(
-                    vulerabilityMap.name,
+                    vulnerabilityMap.name,
+                    vulnerabilityMap.solution,
                     jiraComponentId,
                     buildSecurityVulnerabilityIssueDescription(
-                        vulerabilityMap,
+                        vulnerabilityMap,
                         repo.data.openshift.gitUrl,
                         repo.data.openshift.gitBranch,
                         repo.data.openshift.repoName,
                         repo.data.openshift.nexusReportLink))
                 logger.debug("Create/update security vulnerability issue with key ${issueKey} " +
-                    "for ${vulerabilityMap.name}, component ${jiraComponentId}, " +
+                    "for ${vulnerabilityMap.name}, component ${jiraComponentId}, " +
                     "repo ${repo.data.openshift.repoName}")
                 securityVulnerabilityIssueKeys.add(issueKey)
             }
@@ -526,7 +529,12 @@ class JiraUseCase {
         return securityVulnerabilityIssueKeys
     }
 
-    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String jiraComponentId,
+    void checkIssueSolutionAndUpdate(Map issue, String solution) {
+        logger.info("Issue: ${issue}")
+        logger.info("Solution: ${solution}")
+    }
+
+    String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String solution, String jiraComponentId,
                                                     String description) {
         def issueSummary =  SECURITY_VULNERABILITY_ISSUE_SUMMARY.replace(VULNERABILITY_NAME_PLACEHOLDER,
             vulnerabilityName)
@@ -540,7 +548,9 @@ class JiraUseCase {
         List securityVulnerabilityIssues = loadJiraSecurityVulnerabilityIssues(issueSummary,
             fixVersion, fullJiraComponentName, project.jiraProjectKey)
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
-            transitionIssueToToDo(securityVulnerabilityIssues.get(0).id)
+            def foundIssue = securityVulnerabilityIssues.get(0)
+            transitionIssueToToDo(foundIssue.id)
+            checkIssueSolutionAndUpdate(foundIssue, solution)
             return (securityVulnerabilityIssues.get(0) as Map)?.key
         } else { // Create the issue
             return (createIssueTypeSecurityVulnerability(fixVersion: fixVersion, component: fullJiraComponentName,
@@ -558,7 +568,7 @@ class JiraUseCase {
             "vulnerability with name *${vulnerability.name as String}* in repository " +
             "*[${repoName}|${gitBranchUrl}]*." )
         message.append("\n\n*Description:* " + vulnerability.description as String)
-        message.append("\n\n*Solution:* " + vulnerability.solution as String)
+        message.append("\n\n${SOLUTION_PARAGRAPH_TITLE} " + vulnerability.solution as String)
 
         if (nexusReportLink != null) {
             message.append("\n\nYou can find the complete security scan report *[here|${nexusReportLink}]*.")
