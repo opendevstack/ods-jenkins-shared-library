@@ -529,9 +529,21 @@ class JiraUseCase {
         return securityVulnerabilityIssueKeys
     }
 
-    void checkIssueSolutionAndUpdate(Map issue, String solution) {
+    void checkIssueConstainsSolutionAndUpdateIfNeeeded(Map issue, String solution) {
+
         logger.info("Issue: ${issue}")
         logger.info("Solution: ${solution}")
+
+        String issueDescription = issue.fields.description as String
+        if (issueDescription.contains(solution)) {
+            // Nothing to do
+            return
+        } else {
+            String updatedDescription = issueDescription.replace(SOLUTION_PARAGRAPH_TITLE,
+                SOLUTION_PARAGRAPH_TITLE + " " + solution)
+            jira.updateTextFieldsOnIssue(issue.id, ["description": "${updatedDescription}"])
+            logger.debug("Updated description for issue ${issue.id} to ${updatedDescription}")
+        }
     }
 
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String solution, String jiraComponentId,
@@ -550,7 +562,7 @@ class JiraUseCase {
         if (securityVulnerabilityIssues?.size() >= 1) { // Transition the issue to "TO DO" state
             def foundIssue = securityVulnerabilityIssues.get(0)
             transitionIssueToToDo(foundIssue.id)
-            checkIssueSolutionAndUpdate(foundIssue, solution)
+            checkIssueConstainsSolutionAndUpdateIfNeeeded(foundIssue, solution)
             return (securityVulnerabilityIssues.get(0) as Map)?.key
         } else { // Create the issue
             return (createIssueTypeSecurityVulnerability(fixVersion: fixVersion, component: fullJiraComponentName,
