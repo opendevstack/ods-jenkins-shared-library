@@ -152,8 +152,11 @@ class Context implements IContext {
 
         logger.debug 'Retrieving Git information ...'
         config.gitUrl = retrieveGitUrl()
+        logger.debug("Retrieved Git Url: ${config.gitUrl}")
         config.gitBranch = retrieveGitBranch()
+        logger.debug("Retrieved Git Branch: ${config.gitBranch}")
         config.gitCommit = retrieveGitCommit()
+        logger.debug("Retrieved Git Commit: ${config.gitCommit}")
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
         config.gitCommitRawMessage = retrieveGitCommitRawMessage()
@@ -708,8 +711,13 @@ class Context implements IContext {
             // in case code is already checked out, OpenShift build config can not be used for retrieving branch
             branch = script.sh(
                 returnStdout: true,
-                script: 'git branch --show-current',
+                script: 'git rev-parse --abbrev-ref HEAD',
                 label: 'getting GIT branch to build').trim()
+            branch = script.sh(
+                returnStdout: true,
+                script: "git name-rev --name-only --exclude=tags/* ${branch} | cut -d ' ' -f2  |" +
+                    " sed -e 's|remotes/origin/||g'",
+                label: 'resolving to real GIT branch to build').trim()
         }
         logger.debug "resolved branch ${branch}"
         return branch

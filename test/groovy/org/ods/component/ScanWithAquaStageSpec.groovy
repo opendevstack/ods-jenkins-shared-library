@@ -971,14 +971,16 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
         def aquaJsonFile = new File(getClass().getResource("aqua-test-result.json").toURI())
         def pipelineSteps = new PipelineSteps()
+        def whiteListed = []
 
         when:
         def aquaJsonAsMap = pipelineSteps.readJSON(text: aquaJsonFile.text) as Map
-        def result = stage.filterRemoteCriticalWithSolutionVulnerabilities(aquaJsonAsMap)
+        def result = stage.filterRemoteCriticalWithSolutionVulnerabilities(aquaJsonAsMap, whiteListed)
 
         then:
         assert result != null
         assert result.size() == 1
+        assert whiteListed.size() == 1
     }
 
 }

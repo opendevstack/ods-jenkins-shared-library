@@ -102,7 +102,7 @@ class BuildStage extends Stage {
 
             def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
             if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                def securityVulnerabilityIssueKeys = project.jiraUseCase?.
+                Set securityVulnerabilityIssueKeys = project.jiraUseCase?.
                     createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
                 String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
                 logMessage += aquaMessage
@@ -119,7 +119,7 @@ class BuildStage extends Stage {
         }
     }
 
-    String buildAquaSecurityVulnerabilityMessage(List securityVulnerabilityIssueKeys) {
+    String buildAquaSecurityVulnerabilityMessage(Set securityVulnerabilityIssueKeys) {
         if (securityVulnerabilityIssueKeys == null || securityVulnerabilityIssueKeys.size() == 0) {
             // No issue created as Jira is not connected
             return "\n\nRemotely exploitable critical vulnerabilities were detected (see above). " +
