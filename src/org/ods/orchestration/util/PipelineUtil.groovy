@@ -159,9 +159,11 @@ class PipelineUtil {
         }
     }
 
-    void failBuild(String message) {
+    void failBuild(String message, def isShowWarning = true) {
         this.steps.currentBuild.result = 'FAILURE'
-        this.logger.warn(message)
+        if (isShowWarning) {
+            this.logger.warn(message)
+        }
     }
 
     void warnBuild(String message) {

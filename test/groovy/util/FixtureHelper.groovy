@@ -64,6 +64,7 @@ class FakeProject extends Project {
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
+        this.data.jira.securityVulnerabilities = this.loadJiraDataSecurityVulnerabilities()
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
@@ -120,6 +121,10 @@ class FakeProject extends Project {
         }
 
         return bugs
+    }
+
+    protected Map loadJiraDataSecurityVulnerabilities() {
+        return FixtureHelper.createProjectJiraSecurityVulnerabilities()
     }
 
     protected Map loadJiraDataTrackingDocs() {
@@ -184,6 +189,10 @@ class FixtureHelper {
     static Map createProjectJiraData() {
         def file = new FixtureHelper().getResource("project-jira-data.json")
         return new JsonSlurperClassic().parse(file)
+    }
+
+    static Map createProjectJiraSecurityVulnerabilities() {
+        return [:]
     }
 
     static Map createProjectJiraDataBugs() {
