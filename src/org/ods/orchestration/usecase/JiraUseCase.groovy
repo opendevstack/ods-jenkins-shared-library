@@ -484,7 +484,7 @@ class JiraUseCase {
             return [:]
         }
 
-        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def fields = ['assignee', 'status', 'summary', 'description']
         def jql = "project = \"${projectKey}\" AND issuetype = \"Security Vulnerability\" " +
             "AND fixVersion = \"${fixVersion}\" " +
             "AND component = \"${jiraComponent}\" " +
