@@ -25,8 +25,8 @@ class ScanWithAquaStage extends Stage {
     private final OpenShiftService openShift
     private final NexusService nexus
     private final ScanWithAquaOptions options
-    private Map configurationAquaCluster
-    private Map configurationAquaProject
+    private final Map configurationAquaCluster
+    private final Map configurationAquaProject
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -113,7 +113,12 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
-                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo);
+                List whitelistedRECVs = []
+                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
+                    whitelistedRECVs)
+                if (whitelistedRECVs.size() > 0) {
+                    logger.warn(buildWhiteListedRECVsMessage(whitelistedRECVs))
+                }
 
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
@@ -138,41 +143,54 @@ class ScanWithAquaStage extends Stage {
         notifyAquaProblem(alertEmails, errorMessages)
 
         if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
-            addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink)
-            String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
-            logger.info("Delete image response: " + response)
-            throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
-                buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
-                    nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: context.getGitBranch(),
-                    gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
+            performActionsForRECVs(actionableVulnerabilities, nexusReportLink)
         }
 
         return
     }
 
-    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink) {
+    private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
+        def scannedBranch = computeScannedBranch()
+        addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink, scannedBranch)
+        String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
+        logger.info("Delete image response: " + response)
+        throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
+            buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
+                nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: scannedBranch,
+                gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
+    }
+
+    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink,
+            String scannedBranch) {
         context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
         context.addArtifactURI('jiraComponentId', context.getComponentId())
         context.addArtifactURI('gitUrl', context.getGitUrl())
-        context.addArtifactURI('gitBranch', context.getGitBranch())
+        context.addArtifactURI('gitBranch', scannedBranch)
         context.addArtifactURI('repoName', context.getRepoName())
         context.addArtifactURI('nexusReportLink', nexusReportLink)
     }
 
+    private String buildWhiteListedRECVsMessage(List whiteListedRECVs) {
+        StringBuilder message = new StringBuilder("The Aqua scan detected the following remotely " +
+            "exploitable critical vulnerabilities which were whitelisted in Aqua: ")
+        message.append(whiteListedRECVs.join(", "))
+        return message.toString()
+    }
+
     private String buildActionableMessageForAquaVulnerabilities(Map args) {
-        StringBuilder message = new StringBuilder();
+        StringBuilder message = new StringBuilder()
         String gitBranchUrl = GitUtil.buildGitBranchUrl(args.gitUrl as String, context.getProjectId(),
             args.repoName as String, args.gitBranch as String)
         message.append("We detected remotely exploitable critical vulnerabilities in repository ${gitBranchUrl}. " +
             "Due to their high severity, we must stop the delivery " +
             "process until all vulnerabilities have been addressed. ")
 
-        message.append("\n\nThe following vulnerabilities were found:\n");
-        def count= 1;
+        message.append("\n\nThe following vulnerabilities were found:")
+        def count = 1
         for (def vulnerability : args.actionableVulnerabilities) {
-            message.append("\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
-            message.append("\n${count}.1.  Description: " + (vulnerability as Map).description as String)
-            message.append("\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
+            message.append("\n\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
             message.append("\n")
             count++
         }
@@ -181,8 +199,8 @@ class ScanWithAquaStage extends Stage {
             message.append("\nThis commit exists in the following open pull requests: ")
             def cnt = 1
             for (def pr : openPRs) {
-                message.append("\n${cnt}.    Pull request: " + (pr as Map).title as String)
-                message.append("\n${cnt}.1.  Link: " + (pr as Map).link as String)
+                message.append("\n\n${cnt}.    Pull request: " + (pr as Map).title as String)
+                message.append("\n\n${cnt}.1.  Link: " + (pr as Map).link as String)
                 message.append("\n")
                 cnt++
             }
@@ -214,7 +232,7 @@ class ScanWithAquaStage extends Stage {
             }
             response.add([
                 title: pr.title,
-                link: (((pr.links as Map).self as List)[0] as Map).href
+                link: (((pr.links as Map).self as List)[0] as Map).href,
             ])
         }
         response
@@ -298,7 +316,7 @@ class ScanWithAquaStage extends Stage {
             }
             ((List) data.messages).add([
                 title: "Blocking",
-                value: "Yes"
+                value: "Yes",
             ])
         }
 
@@ -388,7 +406,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap) {
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, List whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
@@ -396,10 +414,23 @@ class ScanWithAquaStage extends Stage {
                 if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
-                    result.push(vulnerability)
+                    if (Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {
+                        whitelistedRECVs.add(vulnerability.name)
+                    } else {
+                        result.push(vulnerability)
+                    }
                 }
             }
         }
         return result
     }
+
+    private String computeScannedBranch() {
+        def scannedBranch = context.getGitBranch()
+        if (scannedBranch.toLowerCase().startsWith("release/")) { // We scanned the default integration branch
+            scannedBranch = bitbucket.getDefaultBranch(context.getRepoName())
+        }
+        return scannedBranch
+    }
+
 }

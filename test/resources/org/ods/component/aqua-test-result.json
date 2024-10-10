@@ -1140,6 +1140,55 @@
                     "epss_date": "2024-01-22"
                 },
                 {
+                    "name": "CVE-2021-Whitelisted",
+                    "type": "vulnerability",
+                    "description": "Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0 (along with 2.12.2, 2.12.3, and 2.3.1), this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects.",
+                    "nvd_score": 9.3,
+                    "nvd_vectors": "AV:N/AC:M/Au:N/C:C/I:C/A:C",
+                    "nvd_severity": "high",
+                    "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+                    "publish_date": "2021-12-10",
+                    "modification_date": "2024-07-24",
+                    "fix_version": "2.12.2, 2.15.0, 2.3.1",
+                    "solution": "Upgrade package org.apache.logging.log4j#log4j-core to version 2.3.1, 2.12.2, 2.15.0 or above.",
+                    "nvd_score_v3": 10,
+                    "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "nvd_severity_v3": "critical",
+                    "aqua_score": 10,
+                    "aqua_severity": "critical",
+                    "aqua_vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                    "aqua_scoring_system": "CVSS V3",
+                    "heuristic_ref_id": 265547,
+                    "aqua_severity_classification": "NVD CVSS V3 Score: 10.0",
+                    "aqua_score_classification": "NVD CVSS V3 Score: 10.0",
+                    "exploitability": "http://www.exploit-db.com/exploits/50592",
+                    "already_acknowledged": "true",
+                    "exploit_type": "remote",
+                    "cwe_info": [
+                        {
+                            "Id": "CWE-20",
+                            "name": "Improper Input Validation"
+                        },
+                        {
+                            "Id": "CWE-400",
+                            "name": "Uncontrolled Resource Consumption"
+                        },
+                        {
+                            "Id": "CWE-502",
+                            "name": "Deserialization of Untrusted Data"
+                        },
+                        {
+                            "Id": "CWE-917",
+                            "name": "Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection')"
+                        }
+                    ],
+                    "cisa_publish_date": "2021-12-10",
+                    "cisa_due_date": "2021-12-24",
+                    "epss_score": 0.97466,
+                    "epss_percentile": 0.99959,
+                    "epss_date": "2024-01-22"
+                },
+                {
                     "name": "CVE-2021-45105",
                     "type": "vulnerability",
                     "description": "Apache Log4j2 versions 2.0-alpha1 through 2.16.0 (excluding 2.12.3 and 2.3.1) did not protect from uncontrolled recursion from self-referential lookups. This allows an attacker with control over Thread Context Map data to cause a denial of service when a crafted string is interpreted. This issue was fixed in Log4j 2.17.0, 2.12.3, and 2.3.1.",

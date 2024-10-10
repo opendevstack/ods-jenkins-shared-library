@@ -837,12 +837,6 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
-                components: [
-                    [name: result.data.components]
-                ],
-                priority: [
-                    name: result.data.priority
-                ],
                 fixVersions: [
                     [name: result.data.fixVersion]
                 ],
@@ -1070,12 +1064,6 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
-                components: [
-                    [name: result.data.components]
-                ],
-                priority: [
-                    name: result.data.priority
-                ],
                 fixVersions: [
                     [name: result.data.fixVersion]
                 ],
@@ -1142,12 +1130,6 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
-                components: [
-                    [name: null]
-                ],
-                priority: [
-                    name: null
-                ],
                 fixVersions: [
                     [name: null]
                 ],

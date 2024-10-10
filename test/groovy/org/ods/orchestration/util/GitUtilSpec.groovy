@@ -6,7 +6,7 @@ class GitUtilSpec extends SpecHelper {
 
     def "verify git branch url building"() {
         given:
-        String gitRepoUrl = "http://git.test.url"
+        String gitRepoUrl = "http://git.test.url/scm/myrepo.git"
         String projectKey = "TestPRJ"
         String repoName = "myRepo"
         String gitBranch = "myBranch"
