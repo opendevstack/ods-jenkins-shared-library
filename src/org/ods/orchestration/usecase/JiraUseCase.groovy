@@ -538,7 +538,7 @@ class JiraUseCase {
             String updatedDescription = issueDescription.replace(SOLUTION_PARAGRAPH_TITLE,
                 SOLUTION_PARAGRAPH_TITLE + " " + solution)
             jira.updateTextFieldsOnIssue(issue.id, ["description": "${updatedDescription}"])
-            logger.debug("Updated description for issue ${issue.id} to ${updatedDescription}")
+            logger.debug("Updated description for issue ${issue.key} to ${updatedDescription}")
         }
     }
 
@@ -559,7 +559,7 @@ class JiraUseCase {
             def foundIssue = securityVulnerabilityIssues.get(0)
             transitionIssueToToDo(foundIssue.id)
             checkIssueConstainsSolutionAndUpdateIfNeeeded(foundIssue, solution)
-            return (securityVulnerabilityIssues.get(0) as Map)?.key
+            return (foundIssue as Map).key
         } else { // Create the issue
             return (createIssueTypeSecurityVulnerability(fixVersion: fixVersion, component: fullJiraComponentName,
                 priority: SECURITY_VULNERABILITY_ISSUE_PRIORITY, projectKey: project.jiraProjectKey,
