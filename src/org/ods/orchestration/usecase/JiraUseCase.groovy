@@ -531,10 +531,7 @@ class JiraUseCase {
 
     void checkIssueConstainsSolutionAndUpdateIfNeeeded(Map issue, String solution) {
         String issueDescription = issue.fields.description as String
-        if (issueDescription.contains(solution)) {
-            // Nothing to do
-            return
-        } else {
+        if (!issueDescription.contains(solution)) {
             String updatedDescription = issueDescription.replace(SOLUTION_PARAGRAPH_TITLE,
                 SOLUTION_PARAGRAPH_TITLE + " " + solution)
             jira.updateTextFieldsOnIssue(issue.id, ["description": "${updatedDescription}"])
