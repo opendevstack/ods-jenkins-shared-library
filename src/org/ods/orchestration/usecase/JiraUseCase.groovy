@@ -530,10 +530,6 @@ class JiraUseCase {
     }
 
     void checkIssueConstainsSolutionAndUpdateIfNeeeded(Map issue, String solution) {
-
-        logger.info("Issue: ${issue}")
-        logger.info("Solution: ${solution}")
-
         String issueDescription = issue.fields.description as String
         if (issueDescription.contains(solution)) {
             // Nothing to do
