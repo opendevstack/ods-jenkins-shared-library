@@ -5,6 +5,7 @@ package org.ods.services
 import groovy.json.JsonSlurperClassic
 import kong.unirest.Unirest
 import org.apache.commons.lang3.StringUtils
+import org.ods.orchestration.util.GitUtil
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -340,7 +341,8 @@ class BitbucketService {
 
     @SuppressWarnings('LineLength')
     String getDefaultBranch(String repo) {
-        logger.debugClocked("defaultbranch-${project}-${repo}")
+        repo = GitUtil.buildFullRepoName(project, repo)
+        logger.debugClocked("defaultbranch-${repo}")
         String displayId = ""
         withTokenCredentials { username, token ->
             def maxAttempts = 3
@@ -356,7 +358,7 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${project}-${repo}/branches/default"""
+                                ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/branches/default"""
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
@@ -368,17 +370,18 @@ class BitbucketService {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
                 } catch (err) {
-                    logger.warn("Could not get Bitbucket repo '${project}-${repo}' default branch due to: ${err}")
+                    logger.warn("Could not get Bitbucket repo '${repo}' default branch due to: ${err}")
                 }
             }
         }
-        logger.debugClocked("defaultbranch-${project}-${project}-${repo}")
+        logger.debugClocked("defaultbranch-${repo}")
         return displayId
     }
 
     Map findRepoBranchesStartingWith(String repo, String filterText) {
-        logger.debugClocked("findRepoBranchesStartingWith-${project}-${repo}")
-        def apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${project}-${repo}/branches" +
+        repo = GitUtil.buildFullRepoName(project, repo)
+        logger.debugClocked("findRepoBranchesStartingWith-${repo}")
+        def apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/branches" +
             "?boostMatches=true"
         if (StringUtils.isNotEmpty(filterText)) {
             apiUrl += "&filterText=${filterText}"
@@ -409,11 +412,11 @@ class BitbucketService {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
                 } catch (err) {
-                    logger.warn("Could not get Bitbucket repo '${project}-${repo}' branchs due to: ${err}")
+                    logger.warn("Could not get Bitbucket repo '${repo}' branchs due to: ${err}")
                 }
             }
         }
-        logger.debugClocked("findRepoBranchesStartingWith-${project}-${repo}")
+        logger.debugClocked("findRepoBranchesStartingWith-${repo}")
         return [:]
     }
 
