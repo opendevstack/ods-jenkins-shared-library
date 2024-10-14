@@ -411,6 +411,44 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         1 * logger.warn("Could not create Bitbucket Code Insight report due to: java.lang.Exception: Error with curl")
     }
 
+    def "get default branch"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.getDefaultBranch("repo-name")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
+            assert it.label == ['Get bitbucket repo default branch via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request GET')
+            // sh will not run and hence not replace the value with the token from an env var
+            assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/api/1.0/' +
+                'projects/FOO/repos/FOO-repo-name/branches/default' )
+            return "{\n" +
+                "    \"id\": \"refs/heads/develop\",\n" +
+                "    \"displayId\": \"develop\",\n" +
+                "    \"type\": \"BRANCH\",\n" +
+                "    \"latestCommit\": \"141772c02deb10a725dfc5f1666de0a8261e2b72\",\n" +
+                "    \"latestChangeset\": \"141772c02deb10a725dfc5f1666de0a8261e2b72\",\n" +
+                "    \"isDefault\": true\n" +
+                "}"
+        }
+    }
+
     protected String readResource(String name) {
         def classLoader = getClass().getClassLoader();
         def file = new File(classLoader.getResource(name).getFile());

@@ -7,7 +7,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v4.1.6
+              uses: actions/checkout@v4.2.1
 
             - name: check the value of github.workspace and runner.temp
               run: |

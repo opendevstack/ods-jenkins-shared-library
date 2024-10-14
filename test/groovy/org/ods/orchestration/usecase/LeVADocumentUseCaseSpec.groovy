@@ -12,23 +12,49 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.PodData
 import spock.lang.Unroll
 
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.DocumentHistory
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PDFUtil
+import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.SortUtil
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.service.*
-import org.ods.orchestration.util.*
+import org.ods.services.ServiceRegistry
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import spock.lang.Unroll
+import util.FixtureHelper
+import util.SpecHelper
 
-import javax.swing.text.Document
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 
-import static org.ods.orchestration.usecase.DocumentType.*
+import static org.ods.orchestration.usecase.DocumentType.CFTP
+import static org.ods.orchestration.usecase.DocumentType.CFTR
 import static org.ods.orchestration.usecase.DocumentType.CSD
-import static util.FixtureHelper.*
-
-import util.*
+import static org.ods.orchestration.usecase.DocumentType.DIL
+import static org.ods.orchestration.usecase.DocumentType.DTP
+import static org.ods.orchestration.usecase.DocumentType.DTR
+import static org.ods.orchestration.usecase.DocumentType.IVP
+import static org.ods.orchestration.usecase.DocumentType.IVR
+import static org.ods.orchestration.usecase.DocumentType.OVERALL_DTR
+import static org.ods.orchestration.usecase.DocumentType.OVERALL_TIR
+import static org.ods.orchestration.usecase.DocumentType.RA
+import static org.ods.orchestration.usecase.DocumentType.SSDS
+import static org.ods.orchestration.usecase.DocumentType.TCP
+import static org.ods.orchestration.usecase.DocumentType.TCR
+import static org.ods.orchestration.usecase.DocumentType.TIP
+import static org.ods.orchestration.usecase.DocumentType.TIR
+import static org.ods.orchestration.usecase.DocumentType.TRC
+import static util.FixtureHelper.createJUnitXMLTestResults
+import static util.FixtureHelper.createProject
+import static util.FixtureHelper.createProjectBuildEnvironment
+import static util.FixtureHelper.createSockShopJUnitXmlTestResults
 
 @Slf4j
 class LeVADocumentUseCaseSpec extends SpecHelper {
@@ -892,7 +918,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
-
     def "create IVR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
@@ -963,10 +988,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def version = (odsRepoType == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'WIP' : '1.0'
 
         def expectedSpecifications = systemDesignSpec
-            ? ["key":"NET-128",
-               "req_key":"NET-125",
-               "description":systemDesignSpec]
-            : null
+                                    ? ["key":"NET-128",
+                                      "req_key":"NET-125",
+                                      "description":systemDesignSpec]
+                                    : null
         def expectedComponents = ["key":"Technology-demo-app-catalogue",
                                   "nameOfSoftware":"demo-app-catalogue",
                                   "componentType":componentTypeLong,
@@ -1076,7 +1101,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             "risks": ["NET-126"],
             "tests": ["NET-127"]
         }''',
-                           '''
+                     '''
           {
             "key": "NET-128",
             "id": "128",
@@ -1090,7 +1115,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             "risks": ["NET-126"],
             "tests": ["NET-127"]
         }''',
-                           '''
+                     '''
           {
             "key": "NET-128",
             "id": "128",
@@ -1772,14 +1797,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                                ]
                            ]]
 
-        when:
-        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null,
-            null, null, null, null)
-        def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
+            when:
+            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null)
+            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
 
-        then:
-        ordered.get(0).orderId == 1
+            then:
+            ordered.get(0).orderId == 1
     }
 
     def "referenced documents version"() {
@@ -2061,4 +2086,43 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         true  | CSD as String  | "IN PROGRESS" | "2"    || true
     }
 
+    @Unroll
+    def "fillRASections update section sec4s2s2 according to project property PROJECT.USES_POO"() {
+        given:
+        def sections = ["sec4s2s2":[]]
+        def risks = [[:]]
+        def proposedMeasuresDesription = [[:]]
+        def low = "low"
+        def medium = "medium"
+        def high = "high"
+        def project = Mock(Project)
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
+
+        when:
+        usecase.fillRASections(sections, risks, proposedMeasuresDesription)
+
+        then:
+        project.getProjectProperties() >> [
+            "PROJECT.NON-GXP_EVALUATION" : "",
+            "PROJECT.USES_POO" : poo,
+            "PROJECT.POO_CAT.LOW" : low,
+            "PROJECT.POO_CAT.MEDIUM" : medium,
+            "PROJECT.POO_CAT.HIGH": high
+        ]
+
+        and:
+        sections.sec4s2s2 == expectedResult
+
+        where:
+        poo             |  expectedResult
+        "true"          |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        "false"         |  [:]
+        "TRUE"          |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        "FALSE"         |  [:]
+        "invalidValue"  |  [:]
+        null            |  [:]
+        true            |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
+        false           |  [:]
+    }
 }

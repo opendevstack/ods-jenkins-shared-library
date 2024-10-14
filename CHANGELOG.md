@@ -1,15 +1,46 @@
 # Changelog
 
 ## Unreleased
+* Aqua log readability update and whitelisting mechanism fix ([#1161](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1161))
+* Aqua remotely exploitable critical vulnerabilities improvements ([#1157](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1157))
+* Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
+* Fail the release manager pipeline and create security vulnerability issues or move them to TODO state if already present ([#1151](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1151))
 
 ### Added
+* In the release manager pipeline, use the default integration branch for component ([#1144](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1144))
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
+* Use riskPriority value as number instead of its value as text in RA ([#1156](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1156))
 * TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.5.6] - 2024-09-16
+
+### Fixed
+* Even if the POO property is set a true, this information is not present in the RA generated ([#1154](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1154))
+
+## [4.5.5] - 2024-08-26
+
+### Fixed
+* Fix NPE when the test type is null ([#1146](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1146))
+
+## [4.5.4] - 2024-07-17
+
+### Changed
+* In test results, labels not related to execution persist ([#1138](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1138))
+
+### Fixed
+* Fix excluded ods-infra components failing on deploy stage ([#1139](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1139))
+* Fix Finalize stage for ods-library components ([#1140](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1140))
+
+## [4.5.3] - 2024-07-08
+
+### Fixed
+* Fix deploy error for missing Jira config ([#1136](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1136))
 
 ## [4.5.2] - 2024-06-25
 
