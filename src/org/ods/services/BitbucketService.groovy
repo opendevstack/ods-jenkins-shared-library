@@ -406,6 +406,7 @@ class BitbucketService {
                     try {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
+                        logger.info("Curl response: ${res}")
                         def js = script.readJSON(text: res)
                         return js
                     } catch (Exception ex) {
