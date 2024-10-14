@@ -429,7 +429,7 @@ class ScanWithAquaStage extends Stage {
     private String computeScannedBranch() {
         def scannedBranch = context.getGitBranch()
         if (scannedBranch.toLowerCase().startsWith("release/")) { // We scanned the default integration branch
-            def branchesResponse = bitbucket.findRepoBranchesStartingWith(context.getRepoName(), scannedBranch)
+            Map branchesResponse = bitbucket.findRepoBranchesStartingWith(context.getRepoName(), scannedBranch)
             logger.info("BranchesResponse: ${branchesResponse}")
             List matchedBranches = branchesResponse['values'] as List
             logger.info("matchedBranches: ${matchedBranches}")

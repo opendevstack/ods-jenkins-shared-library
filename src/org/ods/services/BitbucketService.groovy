@@ -380,7 +380,6 @@ class BitbucketService {
 
     Map findRepoBranchesStartingWith(String repo, String filterText) {
         repo = GitUtil.buildFullRepoName(project, repo)
-        logger.debugClocked("findRepoBranchesStartingWith-${repo}")
         StringBuilder apiUrl = new StringBuilder("${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}")
         apiUrl.append("/branches?boostMatches=true")
         if (StringUtils.isNotEmpty(filterText)) {
@@ -401,15 +400,15 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${apiUrl.toString()}"""
+                                '${apiUrl.toString()}' \\
+                                """
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
-                        logger.info("Curl response: ${res}")
-                        def js = script.readJSON(text: res)
-                        logger.info("Res in js: ${js}")
-                        return js
+                        Map branchesJson = script.readJSON(text: res) as Map
+                        logger.info("Res in json: ${branchesJson}")
+                        return branchesJson
                     } catch (Exception ex) {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
@@ -418,8 +417,6 @@ class BitbucketService {
                 }
             }
         }
-        logger.debugClocked("findRepoBranchesStartingWith-${repo}")
-        logger.info("Should not reach this")
         return [:]
     }
 
