@@ -113,7 +113,7 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
-                List whitelistedRECVs = []
+                Set whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
                     whitelistedRECVs)
                 if (whitelistedRECVs.size() > 0) {
@@ -170,7 +170,7 @@ class ScanWithAquaStage extends Stage {
         context.addArtifactURI('nexusReportLink', nexusReportLink)
     }
 
-    private String buildWhiteListedRECVsMessage(List whiteListedRECVs) {
+    private String buildWhiteListedRECVsMessage(Set whiteListedRECVs) {
         StringBuilder message = new StringBuilder("The Aqua scan detected the following remotely " +
             "exploitable critical vulnerabilities which were whitelisted in Aqua: ")
         message.append(whiteListedRECVs.join(", "))
@@ -406,7 +406,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, List whitelistedRECVs) {
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, Set whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
