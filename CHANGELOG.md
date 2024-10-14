@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix branch calculation for re-deploy ([#1162](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1162))
 * Aqua log readability update and whitelisting mechanism fix ([#1161](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1161))
 * Aqua remotely exploitable critical vulnerabilities improvements ([#1157](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1157))
 * Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
