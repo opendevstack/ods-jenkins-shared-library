@@ -4,6 +4,7 @@ package org.ods.services
 
 import groovy.json.JsonSlurperClassic
 import kong.unirest.Unirest
+import org.apache.commons.lang3.StringUtils
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -373,6 +374,46 @@ class BitbucketService {
         }
         logger.debugClocked("defaultbranch-${project}-${project}-${repo}")
         return displayId
+    }
+
+    Map findRepoBranchesStartingWith(String repo, String filterText) {
+        logger.debugClocked("findRepoBranchesStartingWith-${project}-${repo}")
+        def apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${project}-${repo}/branches" +
+            "?boostMatches=true"
+        if (StringUtils.isNotEmpty(filterText)) {
+            apiUrl += "&filterText=${filterText}"
+        }
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            while (retries++ < maxAttempts) {
+                try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"'
+                    def res = script.sh(
+                        returnStdout: true,
+                        label: 'Get bitbucket repo branches via API',
+                        script: """curl \\
+                                --fail \\
+                                -sS \\
+                                --request GET \\
+                                --header ${authHeader} \\
+                                ${apiUrl}"""
+                    ).trim()
+                    try {
+                        // call readJSON inside of withCredentials block,
+                        // otherwise token will be displayed in output
+                        def js = script.readJSON(text: res)
+                        return js
+                    } catch (Exception ex) {
+                        logger.warn "Could not understand API response. Error was: ${ex}"
+                    }
+                } catch (err) {
+                    logger.warn("Could not get Bitbucket repo '${project}-${repo}' branchs due to: ${err}")
+                }
+            }
+        }
+        logger.debugClocked("findRepoBranchesStartingWith-${project}-${repo}")
+        return [:]
     }
 
     /**

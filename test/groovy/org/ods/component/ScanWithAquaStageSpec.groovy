@@ -11,19 +11,22 @@ import util.PipelineSteps
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
-    ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
+    ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:],
+            extraConfig = [:]) {
         def script = Spy(PipelineScript)
         def steps = Spy(PipelineSteps)
         def logger = Spy(new Logger(steps, false))
-        IContext context = new Context(steps,
-            [componentId: "component1",
-             projectId: "prj1",
-             buildUrl: "http://buidl",
-             buildNumber: "56",
-             repoName: "component1",
-             gitCommit: "12112121212121",
-             cdProject: "prj1-cd",
-             credentialsId: "cd-user"], logger)
+        Map contextConfig =  [componentId: "component1",
+                       projectId: "prj1",
+                       buildUrl: "http://buidl",
+                       buildNumber: "56",
+                       repoName: "component1",
+                       gitCommit: "12112121212121",
+                       cdProject: "prj1-cd",
+                       credentialsId: "cd-user"]
+        contextConfig << extraConfig
+
+        IContext context = new Context(steps, contextConfig, logger)
         def config = [:]
         def aqua = Spy(new AquaService(steps, logger))
         def bitbucket = Spy(new BitbucketService (steps,
@@ -981,6 +984,71 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         assert result != null
         assert result.size() == 1
         assert whiteListed.size() == 1
+    }
+
+    def "Check compute scanned branch for valid release branch"() {
+        given:
+        def releaseBranch = "release/2.0"
+        def stage = createStage([:], [:],
+            [
+                gitBranch : releaseBranch
+            ]
+        )
+        def branchesReponse = new File(getClass().getResource("branches-response.json").toURI())
+        def pipelineSteps = new PipelineSteps()
+
+        and:
+        Map branchesReponseAsMap = pipelineSteps.readJSON(text: branchesReponse.text) as Map
+        1 * stage.bitbucket.findRepoBranchesStartingWith(_, _) >> branchesReponseAsMap
+
+        when:
+        def result = stage.computeScannedBranch()
+
+        then:
+        0 * stage.bitbucket.getDefaultBranch(_)
+        assert result == releaseBranch
+    }
+
+    def "Check compute scanned branch for missing release branch"() {
+        given:
+        def releaseBranch = "release/missing"
+        def defaultBranch = "master"
+        def stage = createStage([:], [:],
+            [
+                gitBranch : releaseBranch
+            ]
+        )
+        def branchesReponse = new File(getClass().getResource("branches-response.json").toURI())
+        def pipelineSteps = new PipelineSteps()
+
+        and:
+        def branchesReponseAsMap = pipelineSteps.readJSON(text: branchesReponse.text) as Map
+        1 * stage.bitbucket.findRepoBranchesStartingWith(_, _) >> branchesReponseAsMap
+        1 * stage.bitbucket.getDefaultBranch(_) >> defaultBranch
+
+        when:
+        def result = stage.computeScannedBranch()
+
+        then:
+        assert result == defaultBranch
+    }
+
+    def "Check compute scanned branch for non release branch"() {
+        given:
+        def devBranch = "dev"
+        def stage = createStage([:], [:],
+            [
+                gitBranch : devBranch
+            ]
+        )
+
+        when:
+        def result = stage.computeScannedBranch()
+
+        then:
+        0 * stage.bitbucket.findRepoBranchesStartingWith(_, _)
+        0 * stage.bitbucket.getDefaultBranch(_)
+        assert result == devBranch
     }
 
 }
