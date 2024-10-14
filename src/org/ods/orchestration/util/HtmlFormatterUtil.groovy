@@ -26,7 +26,7 @@ class HtmlFormatterUtil {
         def resolve = resolver({ HtmlFormatterUtil.toUl(it, selector) })
 
         def li = { it ->
-            it instanceof Map.Entry
+            it in Map.Entry
                 ? "<li>${it.key}: ${resolve(it.value)}</li>"
                 : "<li>${resolve(it)}</li>"
         }
@@ -44,7 +44,7 @@ class HtmlFormatterUtil {
         def resolve = resolver({ HtmlFormatterUtil.toSpan(it, selector, sep) })
 
         def spanContent = { it ->
-            it instanceof Map.Entry
+            it in Map.Entry
                 ? "${it.key}: ${resolve(it.value)}"
                 : "${resolve(it)}"
         }
@@ -56,7 +56,7 @@ class HtmlFormatterUtil {
 
     private static Closure<String> resolver(Closure<String> collectionValue) {
         { value ->
-            value instanceof Collection
+            value in Collection
                 ? collectionValue(value)
                 : value
         }

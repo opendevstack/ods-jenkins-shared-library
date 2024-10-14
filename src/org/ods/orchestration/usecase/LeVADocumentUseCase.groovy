@@ -632,7 +632,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * return the technical specification task
      * otherwise, return the system requirements
      * @param risk
-     * @return
+     * @return the requirement
      */
     private Project.JiraDataItem getRequirement(Project.JiraDataItem risk) {
         List<Project.JiraDataItem> requirements = risk.getResolvedTechnicalSpecifications()
@@ -1149,7 +1149,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(documentType, repo, documentData, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
     }
 
-    private static def formatDocumentTIRData(Map data) {
+    private def formatDocumentTIRData(Map data) {
         if (data.openShiftData?.builds) {
             formatTIRBuilds(data)
         }
@@ -1159,14 +1159,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private static def formatTIRBuilds(Map data) {
+    private def formatTIRBuilds(Map data) {
         def builds = data.openShiftData.builds as Map
 
         def capitalizeKey = { entry ->
             [(StringUtils.capitalize(entry.key)): entry.value ]
         }
 
-        def formattedBuilds = builds.collectEntries {res, resValue ->
+        def formattedBuilds = builds.collectEntries { res, resValue ->
             def newResValue = resValue.collectEntries { capitalizeKey(it) }
 
             [(res): newResValue]
@@ -1175,7 +1175,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         data.openShiftData.builds = formattedBuilds
     }
 
-    private static def formatTIRHelmDeployment(Map data) {
+    private def formatTIRHelmDeployment(Map data) {
         def htmlOrDefault = { value, defaultVal, toHtml ->
             value?.isEmpty()
                 ? defaultVal
@@ -1193,8 +1193,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         mean.selector = mean.selector.replaceAll("=", ": ")
         mean.helmValues = htmlOrDefault(mean.helmValues, 'None', HtmlFormatterUtil.&toUl)
         mean.helmValuesFiles = htmlOrDefault(mean.helmValuesFiles, 'None', HtmlFormatterUtil.&toUl)
-        mean.helmDefaultFlags = htmlOrDefault(mean.helmDefaultFlags, 'None', { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") })
-        mean.helmAdditionalFlags = htmlOrDefault(mean.helmAdditionalFlags, 'None', { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") })
+        mean.helmDefaultFlags = htmlOrDefault(mean.helmDefaultFlags, 'None') { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") }
+        mean.helmAdditionalFlags = htmlOrDefault(mean.helmAdditionalFlags, 'None') { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") }
         mean.helmEnvBasedValuesFiles = htmlOrDefault(mean.helmEnvBasedValuesFiles, 'None', HtmlFormatterUtil.&toUl)
 
         status.deployStatus = (status.status == "deployed")
