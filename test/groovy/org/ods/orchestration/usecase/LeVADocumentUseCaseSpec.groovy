@@ -2,16 +2,10 @@ package org.ods.orchestration.usecase
 
 import groovy.json.JsonSlurper
 import groovy.json.JsonSlurperClassic
-import groovy.util.logging.Log
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ods.util.ILogger
-import org.ods.services.ServiceRegistry
-import org.ods.util.PodData
-import spock.lang.Unroll
-
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService

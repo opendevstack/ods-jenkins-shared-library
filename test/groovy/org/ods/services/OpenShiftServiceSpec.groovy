@@ -2,7 +2,6 @@
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
-import org.ods.util.HelmStatusSimpleData
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
