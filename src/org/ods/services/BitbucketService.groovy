@@ -383,7 +383,7 @@ class BitbucketService {
         if (StringUtils.isNotEmpty(filterText)) {
             apiUrl += "&filterText=${filterText}"
         }
-        logger.debug("findRepoBranchesStartingWith api URL: ${apiUrl}")
+        logger.info("findRepoBranchesStartingWith api URL: ${apiUrl}")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0

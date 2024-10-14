@@ -151,7 +151,7 @@ class ScanWithAquaStage extends Stage {
 
     private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
         def scannedBranch = computeScannedBranch()
-        logger.debug("Aqua scanned branch: ${scannedBranch}")
+        logger.info("Aqua scanned branch: ${scannedBranch}")
         addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink, scannedBranch)
         String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
         logger.info("Delete image response: " + response)
@@ -430,7 +430,7 @@ class ScanWithAquaStage extends Stage {
         def scannedBranch = context.getGitBranch()
         if (scannedBranch.toLowerCase().startsWith("release/")) { // We scanned the default integration branch
             Map branchesResponse = bitbucket.findRepoBranchesStartingWith(context.getRepoName(), scannedBranch)
-            logger.debug("BranchesResponse: ${branchesResponse}")
+            logger.info("BranchesResponse: ${branchesResponse}")
             List matchedBranches = branchesResponse['values'] as List
             if (matchedBranches?.size() > 0) {
                 for (def i = 0; i < matchedBranches.size(); i++) {
