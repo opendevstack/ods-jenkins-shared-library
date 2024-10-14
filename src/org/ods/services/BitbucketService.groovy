@@ -382,9 +382,9 @@ class BitbucketService {
         repo = GitUtil.buildFullRepoName(project, repo)
         logger.debugClocked("findRepoBranchesStartingWith-${repo}")
         String apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/branches" +
-            "?boostMatches=true"
+            "%3FboostMatches=true"
         if (StringUtils.isNotEmpty(filterText)) {
-            apiUrl += "&filterText=${filterText}"
+            apiUrl += "%26filterText=${filterText}"
         }
         logger.info("findRepoBranchesStartingWith api URL: ${apiUrl}")
         withTokenCredentials { username, token ->
