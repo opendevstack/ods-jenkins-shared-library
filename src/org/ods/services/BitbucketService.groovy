@@ -386,6 +386,7 @@ class BitbucketService {
             apiUrl.append("&filterText=${filterText}")
         }
         logger.info("findRepoBranchesStartingWith api URL: ${apiUrl.toString()}")
+        Map branchesJson = [:]
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
@@ -400,13 +401,13 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                '${apiUrl.toString()}' \\
+                                ${apiUrl.toString()} \\
                                 """
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
-                        Map branchesJson = script.readJSON(text: res) as Map
+                        branchesJson = script.readJSON(text: res) as Map
                         logger.info("Res in json: ${branchesJson}")
                         return branchesJson
                     } catch (Exception ex) {
@@ -417,7 +418,7 @@ class BitbucketService {
                 }
             }
         }
-        return [:]
+        return branchesJson
     }
 
     /**
