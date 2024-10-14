@@ -91,7 +91,7 @@ class ProjectMessageUtilSpec extends SpecHelper  {
 
         Risks: NET-126
 
-        TechSpecs: NET-128
+        Tech Specs: NET-128
 
         Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
 
@@ -120,7 +120,7 @@ class ProjectMessageUtilSpec extends SpecHelper  {
 
         Risks: NET-126
 
-        TechSpecs: NET-128
+        Tech Specs: NET-128
 
         Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
 

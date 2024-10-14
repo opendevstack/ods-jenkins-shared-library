@@ -51,6 +51,14 @@ class ProjectSpec extends SpecHelper {
             project.loadJiraDataTrackingDocs(*_) >> { return FixtureHelper.createProjectJiraDataDocs() }
         }
 
+        if (mixins.containsKey("loadJiraDataSecurityVulnerabilities")) {
+            project.loadJiraDataSecurityVulnerabilities(*_) >> { mixins["loadJiraDataSecurityVulnerabilities"]() }
+        } else {
+            project.loadJiraDataSecurityVulnerabilities(*_) >> {
+                return FixtureHelper.createProjectJiraSecurityVulnerabilities()
+            }
+        }
+
         if (mixins.containsKey("loadJiraDataIssueTypes")) {
             project.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
         } else {
@@ -809,6 +817,22 @@ class ProjectSpec extends SpecHelper {
                         status: "DONE"
                     ]
                 ]
+            },
+            "loadJiraDataSecurityVulnerabilities": {
+                return [
+                    "securityVulnerabilities-1": [
+                        status: "DONE"
+                    ],
+                    "securityVulnerabilities-2": [
+                        status: "DONE"
+                    ],
+                    "securityVulnerabilities-3": [
+                        status: "DONE"
+                    ],
+                    "securityVulnerabilities-4": [
+                        status: "DONE"
+                    ]
+                ]
             }
         ]).init()
 
@@ -847,7 +871,8 @@ class ProjectSpec extends SpecHelper {
 
         def expectedMessage = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress: "
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
+            expectedMessage += "\n\n" +
+                "${ProjectMessagesUtil.insertSpaceBeforeCapitals(type.capitalize())}: ${type}-1, ${type}-2"
         }
         expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
 
@@ -864,6 +889,22 @@ class ProjectSpec extends SpecHelper {
                         status: "DOING"
                     ],
                     "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            },
+            "loadJiraDataSecurityVulnerabilities": {
+                return [
+                    "securityVulnerabilities-1": [
+                        status: "TODO"
+                    ],
+                    "securityVulnerabilities-2": [
+                        status: "IN PROGRESS"
+                    ],
+                    "securityVulnerabilities-3": [
+                        status: "DONE"
+                    ],
+                    "securityVulnerabilities-4": [
                         status: "DONE"
                     ]
                 ]
@@ -961,11 +1002,14 @@ class ProjectSpec extends SpecHelper {
             expected[type] = ["${type}-1", "${type}-2"]
         }
 
-        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+        def expectedMessage = "The pipeline failed since the following issues are work in progress " +
+            "(no documents were generated): "
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
+            expectedMessage += "\n\n${ProjectMessagesUtil.insertSpaceBeforeCapitals(type.capitalize())}: " +
+                "${type}-1, ${type}-2"
         }
-        expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues need to be in status Done."
+        expectedMessage += "\n\nPlease note that for a successful Deploy to D, the above-mentioned issues " +
+            "need to be in status Done."
 
         project = createProject([
             "loadJiraData"    : {
@@ -980,6 +1024,22 @@ class ProjectSpec extends SpecHelper {
                         status: "DOING"
                     ],
                     "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            },
+            "loadJiraDataSecurityVulnerabilities": {
+                return [
+                    "securityVulnerabilities-1": [
+                        status: "TODO"
+                    ],
+                    "securityVulnerabilities-2": [
+                        status: "IN PROGRESS"
+                    ],
+                    "securityVulnerabilities-3": [
+                        status: "DONE"
+                    ],
+                    "securityVulnerabilities-4": [
                         status: "DONE"
                     ]
                 ]
@@ -1034,6 +1094,13 @@ class ProjectSpec extends SpecHelper {
             "loadJiraDataBugs": {
                 return [
                     "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            },
+            "loadJiraDataSecurityVulnerabilities": {
+                return [
+                    "securityVulnerabilities-4": [
                         status: "DONE"
                     ]
                 ]
@@ -1095,6 +1162,13 @@ class ProjectSpec extends SpecHelper {
             "loadJiraDataBugs": {
                 return [
                     "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            },
+            "loadJiraDataSecurityVulnerabilities": {
+                return [
+                    "securityVulnerabilities-4": [
                         status: "DONE"
                     ]
                 ]
@@ -3252,6 +3326,24 @@ class ProjectSpec extends SpecHelper {
 
         then:
         !result
+    }
+
+    def "check hasGivenTypes"() {
+        given:
+        def projectObj = new Project(steps, logger)
+
+        when:
+        def resulFromExecution = projectObj.hasGivenTypes(testTypes, testIssue)
+
+        then:
+        result == resulFromExecution
+
+        where:
+        testTypes                                               |   testIssue                   |   result
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: 'Unit']          |   true
+        ['Integration', 'Installation', 'Acceptance']           |   [testType: 'Unit']          |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [testType: null]            |   false
+        ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [:]                         |   false
     }
 
 }

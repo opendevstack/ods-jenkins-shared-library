@@ -116,9 +116,8 @@ class BitbucketTraceabilityUseCase {
                 nextPageStart = pullRequests.nextPageStart
             }
 
-            records += pullRequests.values.collect { pullRequest ->
+            records += pullRequests.values.collectMany { pullRequest ->
                 processPullRequest(token, repo, pullRequest)}
-                .flatten()
 
         }
         return records

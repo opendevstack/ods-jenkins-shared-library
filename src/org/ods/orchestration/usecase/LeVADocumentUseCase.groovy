@@ -590,7 +590,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
                     probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                    riskPriority: riskPriority ? riskPriority."short" : "None",
+                    riskPriority: riskPriority ? riskPriority."value" : "None",
                     riskPriorityNumber: (r.riskPriorityNumber != null) ? r.riskPriorityNumber : "N/A",
                     riskComment: r.riskComment ? r.riskComment : "N/A",
                 ]
@@ -646,7 +646,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
-        if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
+        if (Boolean.valueOf(this.project.getProjectProperties()."PROJECT.USES_POO")) {
             sections."sec4s2s2" = [
                 usesPoo          : "true",
                 lowDescription   : this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
