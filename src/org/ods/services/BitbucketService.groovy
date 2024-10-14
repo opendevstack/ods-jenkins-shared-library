@@ -401,7 +401,7 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${apiUrl.toString()} \\
+                                '${apiUrl.toString()}' \\
                                 """
                     ).trim()
                     try {
@@ -418,6 +418,7 @@ class BitbucketService {
                 }
             }
         }
+        logger.info("Nooooooooooooooo")
         return branchesJson
     }
 
