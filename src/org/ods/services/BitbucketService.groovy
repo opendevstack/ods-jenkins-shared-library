@@ -381,12 +381,12 @@ class BitbucketService {
     Map findRepoBranchesStartingWith(String repo, String filterText) {
         repo = GitUtil.buildFullRepoName(project, repo)
         logger.debugClocked("findRepoBranchesStartingWith-${repo}")
-        String apiUrl = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/branches" +
-            "%3FboostMatches=true"
+        StringBuilder apiUrl = new StringBuilder("${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}")
+        apiUrl.append("/branches?boostMatches=true")
         if (StringUtils.isNotEmpty(filterText)) {
-            apiUrl += "%26filterText=${filterText}"
+            apiUrl.append("&filterText=${filterText}")
         }
-        logger.info("findRepoBranchesStartingWith api URL: ${apiUrl}")
+        logger.info("findRepoBranchesStartingWith api URL: ${apiUrl.toString()}")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
@@ -401,7 +401,7 @@ class BitbucketService {
                                 -sS \\
                                 --request GET \\
                                 --header ${authHeader} \\
-                                ${apiUrl}"""
+                                ${apiUrl.toString()}"""
                     ).trim()
                     try {
                         // call readJSON inside of withCredentials block,
