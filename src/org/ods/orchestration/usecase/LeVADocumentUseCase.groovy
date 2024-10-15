@@ -1131,9 +1131,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
+        // This will alter the data_ map, due to documentData being a reference to data_, not a deep copy
         def documentData = data_
 
-        // This will alter the data_ map, due to documentData being a reference to data_, not a deep copy
         formatDocumentTIRData(documentData)
 
         return this.createDocument(documentType, repo, documentData, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
@@ -1176,8 +1176,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def mean = data.deployment.mean
         def status = data.deployment.status
 
-        mean.releaseName = status?.name ?: "None"
-        mean.releaseRevision = status?.version ?: "None"
         mean.namespace = status?.namespace ?: "None"
 
         mean.selector = mean.selector.replaceAll("=", ": ")
@@ -1195,8 +1193,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // These fields are not needed anymore due to their values
         // being moved to their final place
-        status?.remove("name")
-        status?.remove("version")
         status?.remove("namespace")
         status?.remove("status")
         status?.remove("resourcesByKind")
