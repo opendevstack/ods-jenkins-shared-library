@@ -113,7 +113,7 @@ class ScanWithAquaStage extends Stage {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
 
-                List whitelistedRECVs = []
+                Set whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
                     whitelistedRECVs)
                 if (whitelistedRECVs.size() > 0) {
@@ -151,6 +151,7 @@ class ScanWithAquaStage extends Stage {
 
     private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
         def scannedBranch = computeScannedBranch()
+        logger.info("Aqua scanned branch: ${scannedBranch}")
         addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink, scannedBranch)
         String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
         logger.info("Delete image response: " + response)
@@ -170,7 +171,7 @@ class ScanWithAquaStage extends Stage {
         context.addArtifactURI('nexusReportLink', nexusReportLink)
     }
 
-    private String buildWhiteListedRECVsMessage(List whiteListedRECVs) {
+    private String buildWhiteListedRECVsMessage(Set whiteListedRECVs) {
         StringBuilder message = new StringBuilder("The Aqua scan detected the following remotely " +
             "exploitable critical vulnerabilities which were whitelisted in Aqua: ")
         message.append(whiteListedRECVs.join(", "))
@@ -406,7 +407,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, List whitelistedRECVs) {
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, Set whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
@@ -427,7 +428,18 @@ class ScanWithAquaStage extends Stage {
 
     private String computeScannedBranch() {
         def scannedBranch = context.getGitBranch()
-        if (scannedBranch.toLowerCase().startsWith("release/")) { // We scanned the default integration branch
+        if (scannedBranch.toLowerCase().startsWith("release/")) {
+            // We need to check that the branch was created in BitBucket otherwise we scanned the default branch
+            Map branchesResponse = bitbucket.findRepoBranches(context.getRepoName(), scannedBranch)
+            List matchedBranches = branchesResponse['values'] as List
+            if (matchedBranches?.size() > 0) {
+                for (def i = 0; i < matchedBranches.size(); i++) {
+                    Map branch = matchedBranches[i]
+                    if (branch.displayId == scannedBranch) {
+                        return scannedBranch
+                    }
+                }
+            }
             scannedBranch = bitbucket.getDefaultBranch(context.getRepoName())
         }
         return scannedBranch
