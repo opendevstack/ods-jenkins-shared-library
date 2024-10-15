@@ -408,6 +408,7 @@ class BitbucketService {
                         // call readJSON inside of withCredentials block,
                         // otherwise token will be displayed in output
                         branchesJson = script.readJSON(text: res) as Map
+                        return branchesJson
                     } catch (Exception ex) {
                         logger.warn "Could not understand API response. Error was: ${ex}"
                     }
