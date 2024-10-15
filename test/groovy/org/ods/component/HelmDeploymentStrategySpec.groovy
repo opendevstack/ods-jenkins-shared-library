@@ -101,7 +101,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
 
         when:
-        strategy.getRolloutData(helmStatus)
+        strategy.getRolloutData(helmStatus as HelmStatusSimpleData)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
 

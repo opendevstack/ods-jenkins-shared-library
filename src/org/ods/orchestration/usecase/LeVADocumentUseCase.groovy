@@ -1071,8 +1071,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
-
         def documentType = DocumentType.TIR as String
 
         def installationTestData = data?.tests?.installation
