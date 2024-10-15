@@ -378,7 +378,7 @@ class BitbucketService {
         return displayId
     }
 
-    Map findRepoBranchesStartingWith(String repo, String filterText) {
+    Map findRepoBranches(String repo, String filterText) {
         repo = GitUtil.buildFullRepoName(project, repo)
         StringBuilder apiUrl = new StringBuilder("${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}")
         apiUrl.append("/branches?boostMatches=true")

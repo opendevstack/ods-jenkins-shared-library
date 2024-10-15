@@ -999,7 +999,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         and:
         Map branchesReponseAsMap = pipelineSteps.readJSON(text: branchesReponse.text) as Map
-        1 * stage.bitbucket.findRepoBranchesStartingWith(_, _) >> branchesReponseAsMap
+        1 * stage.bitbucket.findRepoBranches(_, _) >> branchesReponseAsMap
 
         when:
         def result = stage.computeScannedBranch()
@@ -1023,7 +1023,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         and:
         def branchesReponseAsMap = pipelineSteps.readJSON(text: branchesReponse.text) as Map
-        1 * stage.bitbucket.findRepoBranchesStartingWith(_, _) >> branchesReponseAsMap
+        1 * stage.bitbucket.findRepoBranches(_, _) >> branchesReponseAsMap
         1 * stage.bitbucket.getDefaultBranch(_) >> defaultBranch
 
         when:
@@ -1046,7 +1046,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def result = stage.computeScannedBranch()
 
         then:
-        0 * stage.bitbucket.findRepoBranchesStartingWith(_, _)
+        0 * stage.bitbucket.findRepoBranches(_, _)
         0 * stage.bitbucket.getDefaultBranch(_)
         assert result == devBranch
     }
