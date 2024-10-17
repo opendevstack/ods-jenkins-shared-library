@@ -1301,6 +1301,8 @@ class Project {
             logger.info("loadJiraData: Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
+            mergedData = this.overrideDeltaDocgenDataLinks(mergedData, newData)
+            mergedData = this.removeObsoleteIssuesFromComponents(mergedData)
             result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
@@ -1347,6 +1349,75 @@ class Project {
             ]
             return [secVul.key, issue]
         }
+    }
+
+    /**
+     * It uses the data from the deltadocgen of the latest version as a source of truth in terms of links.
+     * If an issue appears in the deltadocgen report, we use all its data adding the expanded predecessors.
+     * If an issue appears as a link in the old data but in the deltadocgen report doesn't show the same link in the other
+     * direction, then we remove that link.
+     *
+     * @param mergedData resulting data of merging last release json report and deltadocgen
+     * @param deltaDocgenData result of deltadocgen endpoint for the latest version
+     * @return the merged data with the proper links
+     */
+    protected Map overrideDeltaDocgenDataLinks(Map<String,Map> mergedData, Map<String,Map> deltaDocgenData) {
+        mergedData.findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { issueType, issues ->
+            issues.values().each { Map issueToUpdate ->
+                if(deltaDocgenData[issueType] && deltaDocgenData[issueType][issueToUpdate.key]) {
+                    def resultData = deltaDocgenData[issueType][issueToUpdate.key]
+                    resultData << [expandedPredecessors: mergedData[issueType][issueToUpdate.key]['expandedPredecessors']]
+                    mergedData[issueType][issueToUpdate.key] = resultData
+                } else {
+                    mergedData[issueType][issueToUpdate.key].findAll { JiraDataItem.REGULAR_ISSUE_TYPES.contains(it.key) }.each { relatedIssueType, relatedIssues ->
+                        def relatedIssuesToRemove = findRelatedIssuesToRemove(relatedIssues, deltaDocgenData, relatedIssueType, issueType, issueToUpdate)
+                        mergedData[issueType][issueToUpdate.key][relatedIssueType].removeAll { relatedIssuesToRemove.contains(it) }
+                    }
+                }
+            }
+        }
+        return mergedData
+    }
+
+    /**
+     * The method checks each issue in the 'relatedIssues' list against the related issues in the 'deltaDocgenData'.
+     * If the issueToUpdate key does not appear in the deltaDocgenData as a related issue but the deltaDocGen has some
+     * issues related for that issue type, the issue is added to the list of issues to be removed.
+     *
+     * @param relatedIssues A list of related issues to be examined.
+     * @param deltaDocgenData A map containing data from the deltaDocGen
+     * @param relatedIssueType The type of the related issue.
+     * @param issueType The type of the issue.
+     * @param issueToUpdate A map containing the issue to be updated.
+     *
+     * @return A list of related issues that need to be removed.
+     */
+    protected static List findRelatedIssuesToRemove(List<String> relatedIssues, Map deltaDocgenData, String relatedIssueType, String issueType, Map issueToUpdate) {
+        def relatedIssuesToRemove = []
+        relatedIssues.each {
+            if (deltaDocgenData[relatedIssueType][it] && deltaDocgenData[relatedIssueType][it][issueType] && !deltaDocgenData[relatedIssueType][it][issueType].contains(issueToUpdate.key)) {
+                relatedIssuesToRemove.add(it)
+            }
+        }
+        return relatedIssuesToRemove
+    }
+
+    /**
+     * It removes any issue in the components map that does not appear under the technology map it should belong
+     *
+     * @param mergedData resulting data of merging last release json report and deltadocgen
+     * @return the merged data with the proper issues in the components map
+     */
+    protected Map removeObsoleteIssuesFromComponents(Map<String,Map> mergedData) {
+        mergedData[JiraDataItem.TYPE_COMPONENTS].collectEntries { component, componentIssues ->
+            JiraDataItem.REGULAR_ISSUE_TYPES.each { issueType ->
+                if(componentIssues[issueType]) {
+                    componentIssues[issueType].removeAll { !mergedData[issueType].keySet().contains(it) }
+                }
+            }
+            [(component): componentIssues]
+        }
+        return mergedData
     }
 
     protected Map loadJiraDataBugs(Map tests, String versionName = null) {
