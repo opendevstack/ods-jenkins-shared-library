@@ -227,33 +227,34 @@ class JiraService {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'description\' is undefined.')
         }
 
+        def request = [
+            fields: [
+                project: [
+                    key: args.projectKey.toUpperCase()
+                ],
+                summary: args.summary,
+                description: args.description,
+                fixVersions: [
+                    [name: args.fixVersion]
+                ],
+                issuetype: [
+                    name: args.type
+                ]
+            ]
+        ]
+
+        if (args.component) {
+            request.fields << [components: [[name: args.component]]]
+        }
+        if (args.priority) {
+            request.fields << [priority: [name: args.priority]]
+        }
+
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue")
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .body(JsonOutput.toJson(
-                [
-                    fields: [
-                        project: [
-                            key: args.projectKey.toUpperCase()
-                        ],
-                        summary: args.summary,
-                        description: args.description,
-                        components: [
-                            [name: args.component]
-                        ],
-                        priority: [
-                            name: args.priority
-                        ],
-                        fixVersions: [
-                            [name: args.fixVersion]
-                        ],
-                        issuetype: [
-                            name: args.type
-                        ]
-                    ]
-                ]
-            ))
+            .body(JsonOutput.toJson(request))
             .asString()
 
         response.ifSuccess {
