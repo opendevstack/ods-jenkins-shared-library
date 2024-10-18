@@ -13,4 +13,14 @@ class GitUtil {
         return "${gitBaseUrl}/projects/${projectKey}/repos/${repoName}/browse?at=refs%2Fheads%2F${gitBranch}"
     }
 
+    static String buildFullRepoName(String projectKey, String repoName) {
+        if (projectKey == null || repoName == null) {
+            return repoName
+        }
+        if (!repoName.toLowerCase().startsWith(projectKey.toLowerCase() + "-")) {
+            return "${projectKey}-${repoName}"
+        }
+        return repoName
+    }
+
 }

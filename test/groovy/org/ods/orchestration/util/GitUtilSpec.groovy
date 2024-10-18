@@ -19,4 +19,24 @@ class GitUtilSpec extends SpecHelper {
         result == expected
     }
 
+    def "verify full repo name building"() {
+        given:
+
+        when:
+        def result = GitUtil.buildFullRepoName(projectKey, repoName)
+
+        then:
+        result == expected
+
+        where:
+        expected                        ||      repoName                |   projectKey
+        null                            ||      null                    |   null
+        null                            ||      null                    |   'prj'
+        'repo'                          ||      'repo'                  |   null
+        'projectKey-repo'               ||      'projectKey-repo'       |   'ProjectKey'
+        '2-1'                           ||      '1'                     |   '2'
+        'PRJ-REPO'                      ||      'REPO'                  |   'PRJ'
+
+    }
+
 }
