@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix branch calculation for re-deploy ([#1162](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1162))
 * Aqua log readability update and whitelisting mechanism fix ([#1161](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1161))
 * Aqua remotely exploitable critical vulnerabilities improvements ([#1157](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1157))
 * Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
@@ -13,6 +14,7 @@
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
 * Use riskPriority value as number instead of its value as text in RA ([#1156](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1156))
+* Preserve quickstarter files in case a repository already contain files with same names ([#1165](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1165))
 * TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
