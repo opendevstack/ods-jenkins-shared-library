@@ -12,11 +12,12 @@ class HelmStatusSpec extends SpecHelper {
 
         when:
         def jsonObject = new JsonSlurperClassic().parseText(file.text)
-        def helmStatus = HelmStatusSimpleData.fromJsonObject(jsonObject)
+        def helmStatus = HelmStatus.fromJsonObject(jsonObject)
         def simpleStatusMap = helmStatus.toMap()
         def simpleStatusNoResources = simpleStatusMap.findAll { k,v -> k != "resourcesByKind"}
-        def deploymentResources = helmStatus.getResourcesByKind([
-            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
+        def helmStatusResources = helmStatus.getResources()
+        def deploymentResources = helmStatusResources.subMap([
+            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND])
         then:
         simpleStatusNoResources == [
             name: 'standalone-app',
@@ -38,4 +39,5 @@ class HelmStatusSpec extends SpecHelper {
         ]
 
     }
+    // TODO add tests for fromJsonData()
 }

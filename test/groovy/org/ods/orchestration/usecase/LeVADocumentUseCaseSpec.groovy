@@ -23,6 +23,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import spock.lang.Unroll
 import util.FixtureHelper
+import util.OpenShiftHelper
 import util.SpecHelper
 
 import java.nio.file.Files
@@ -1303,7 +1304,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "assemble deploymentInfo for TIR with helm"() {
         given:
         def file = new FixtureHelper().getResource("deployments-data-helm.json")
-        os.isDeploymentKind(*_) >> true
+        OpenShiftHelper.isDeploymentKind(*_) >> true
 
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)
@@ -1365,7 +1366,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "assemble deploymentInfo for TIR with tailor"() {
         given:
         def file = new FixtureHelper().getResource("deployments-data-tailor.json")
-        os.isDeploymentKind(*_) >> true
+        OpenShiftHelper.isDeploymentKind(*_) >> true
 
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)

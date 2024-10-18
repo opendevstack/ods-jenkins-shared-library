@@ -4,7 +4,7 @@ import groovy.json.JsonSlurperClassic
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.util.HelmStatusSimpleData
+import org.ods.util.HelmStatus
 import org.ods.util.Logger
 import org.ods.util.PodData
 import spock.lang.Shared
@@ -86,7 +86,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         def config = [:]
 
         def helmStatusFile = new FixtureHelper().getResource("helmstatus.json")
-        def helmStatus = HelmStatusSimpleData.fromJsonObject(new JsonSlurperClassic().parseText(helmStatusFile.text))
+        def helmStatus = HelmStatus.fromJsonObject(new JsonSlurperClassic().parseText(helmStatusFile.text))
 
         def ctxData = contextData + [environment: 'test', targetProject: 'guardians-test', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
         IContext context = new Context(null, ctxData, logger)
@@ -101,7 +101,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
 
         when:
-        strategy.getRolloutData(helmStatus as HelmStatusSimpleData)
+        strategy.getRolloutData(helmStatus as HelmStatus)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
 

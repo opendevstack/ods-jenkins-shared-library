@@ -1,5 +1,6 @@
 package org.ods.core.test
 
+import groovy.json.JsonOutput
 import org.ods.util.ILogger
 
 class LoggerStub implements ILogger, Serializable {
@@ -17,8 +18,16 @@ class LoggerStub implements ILogger, Serializable {
         logger.debug message
     }
 
+    String jsonDebug(Object jsonObject, String message = null,  boolean pretty = true) {
+        debug(jsonMessage(jsonObject, message, pretty))
+    }
+
     String info(String message) {
         logger.info message
+    }
+
+    String jsonInfo(Object jsonObject, String message = null,  boolean pretty = true) {
+        info(jsonMessage(jsonObject, message, pretty))
     }
 
     String warn(String message) {
@@ -29,8 +38,16 @@ class LoggerStub implements ILogger, Serializable {
         debug(timedCall(component, message))
     }
 
+    String jsonDebugClocked(String component, Object jsonObject, String message = null, boolean pretty = true) {
+        debug(timedCall(component, jsonMessage(jsonObject, message, pretty)))
+    }
+
     String infoClocked(String component, String message = null) {
         info(timedCall(component, message))
+    }
+
+    String jsonInfoClocked(String component, Object jsonObject, String message = null, boolean pretty = true) {
+        info(timedCall(component, jsonMessage(jsonObject, message, pretty)))
     }
 
     String warnClocked(String component, String message = null) {
@@ -60,6 +77,21 @@ class LoggerStub implements ILogger, Serializable {
 
     String startClocked(String component) {
         timedCall (component)
+    }
+
+    private def toJson(Object jsonObject, boolean pretty = true) {
+        def json = JsonOutput.toJson(jsonObject)
+        json = pretty ? JsonOutput.prettyPrint(json) : json
+        return json
+    }
+
+    private def jsonMessage(Object jsonObject, String message, boolean pretty) {
+        def json = toJson(jsonObject, pretty)
+        def prefix = message ? "${message}, json" : 'json'
+
+        def msg = "${prefix}: ${json}"
+
+        return msg
     }
 
     @SuppressWarnings(['GStringAsMapKey', 'UnnecessaryElseStatement'])

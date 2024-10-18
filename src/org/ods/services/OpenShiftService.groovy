@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.util.HelmStatusSimpleData
+import org.ods.util.HelmStatus
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -156,7 +156,7 @@ class OpenShiftService {
         }
     }
 
-    HelmStatusSimpleData helmStatus(
+    HelmStatus helmStatus(
         String project,
         String release
     ) {
@@ -167,7 +167,7 @@ class OpenShiftService {
                 returnStdout: true
             ).toString().trim()
             def helmStatusMap = new JsonSlurperClassic().parseText(helmStdout)
-            return HelmStatusSimpleData.fromJsonObject(helmStatusMap)
+            return HelmStatus.fromJsonObject(helmStatusMap)
         } catch (ex) {
             throw new RuntimeException("Helm status Failed (${ex.message})!" +
                 "Helm could not gather status of ${release} in ${project}")
@@ -446,11 +446,6 @@ class OpenShiftService {
         importImageFromSourceRegistry(
             project, sourceRegistrySecret, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}"
         )
-    }
-
-    boolean isDeploymentKind(String kind) {
-        boolean b = kind in [DEPLOYMENTCONFIG_KIND, DEPLOYMENT_KIND]
-        b
     }
 
             // Returns data about the pods (replicas) of the deployment.

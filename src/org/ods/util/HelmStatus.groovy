@@ -1,10 +1,8 @@
 package org.ods.util
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.transform.TypeChecked
 
-@TypeChecked
-class HelmStatusSimpleData {
+class HelmStatus {
 
     String name
     String version
@@ -17,9 +15,8 @@ class HelmStatusSimpleData {
      */
     Map<String, List<String> > resourcesByKind
 
-    @SuppressWarnings(['Instanceof'])
     @NonCPS
-        static HelmStatusSimpleData fromJsonObject(Object object) {
+        static HelmStatus fromJsonObject(Object object) {
         try {
             def rootObject = ensureMap(object, "")
 
@@ -39,7 +36,7 @@ class HelmStatusSimpleData {
             def att = "version"
             if (!rootObject.containsKey(att)) {
                 missingKeys << att
-            } else if (!(rootObject[att] instanceof Integer)) {
+            } else if (!(rootObject[att] in Integer)) {
                 badTypes << "${att}: expected Integer, found ${rootObject[att].getClass()}"
             }
             handleMissingKeysOrBadTypes(missingKeys, badTypes)
@@ -59,7 +56,7 @@ class HelmStatusSimpleData {
                     }
                 }
             }
-            def hs = new HelmStatusSimpleData()
+            def hs = new HelmStatus()
             hs.with {
                 name = rootObject.name
                 version = rootObject.version as String
@@ -79,8 +76,11 @@ class HelmStatusSimpleData {
     }
 
     @NonCPS
-    Map<String, List<String>> getResourcesByKind(List<String> kinds) {
-        return resourcesByKind.subMap(kinds)
+    Map<String, List<String>> getResources() {
+        // Return a cloned copy of the map
+        return resourcesByKind.collectEntries { kind, names ->
+            [ kind, names.collect() ]
+        }
     }
 
     @NonCPS
@@ -96,6 +96,7 @@ class HelmStatusSimpleData {
         ]
         return result
     }
+
 
     @NonCPS
     String toString() {
@@ -124,13 +125,12 @@ class HelmStatusSimpleData {
         return new Tuple2(resource.kind, resource.name)
     }
 
-    @SuppressWarnings(['Instanceof'])
     @NonCPS
     private static Map ensureMap(Object obj, String context) {
         if (obj == null) {
             return [:]
         }
-        if (!(obj instanceof Map)) {
+        if (!(obj in Map)) {
             def msg = context ?
                 "${context}: expected JSON object, found ${obj.getClass()}" :
                 "Expected JSON object, found ${obj.getClass()}"
@@ -140,20 +140,19 @@ class HelmStatusSimpleData {
         return obj as Map
     }
 
-    @SuppressWarnings(['Instanceof'])
     @NonCPS
     private static List ensureList(Object obj, String context) {
         if (obj == null) {
             return []
         }
-        if (!(obj instanceof List)) {
+        if (!(obj in List)) {
             throw new IllegalArgumentException(
                 "${context}: expected JSON array, found ${obj.getClass()}")
         }
         return obj as List
     }
 
-    @SuppressWarnings(['Instanceof'])
+
     @NonCPS
     private static Tuple2<List<String>, List<String>> collectMissingStringAttributes(
         Map<String, Object> jsonObject, List<String> stringAttributes) {
@@ -162,7 +161,7 @@ class HelmStatusSimpleData {
         for (att in stringAttributes) {
             if (! (jsonObject.containsKey(att) && jsonObject[att])) {
                 missingOrEmptyKeys << att
-            } else if (!(jsonObject[att] instanceof String)) {
+            } else if (!(jsonObject[att] in String)) {
                 badTypes << "${att}: expected String, found ${jsonObject[att].getClass()}"
             }
         }

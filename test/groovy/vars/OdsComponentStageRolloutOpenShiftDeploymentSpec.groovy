@@ -9,7 +9,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 
-import org.ods.util.HelmStatusSimpleData
+import org.ods.util.HelmStatus
 import org.ods.util.Logger
 import org.ods.util.PodData
 import util.FixtureHelper
@@ -165,7 +165,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.helmStatus('guardians-test', 'standalone-app') >> HelmStatusSimpleData.fromJsonObject(new JsonSlurperClassic().parseText(helmJsonText))
+    openShiftService.helmStatus('guardians-test', 'standalone-app') >> HelmStatus.fromJsonObject(new JsonSlurperClassic().parseText(helmJsonText))
     // todo: verify that we did not want to ensure that build images are tagged here.
     // - the org.ods.component.Context.artifactUriStore is not initialized with c when created above!
     // - as a consequence the build artifacts are empty so no retagging happens here.

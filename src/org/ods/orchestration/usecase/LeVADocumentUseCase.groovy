@@ -1071,6 +1071,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
+        logger.debug("createTIR - repo:${repo}, data:${data}")
+
         def documentType = DocumentType.TIR as String
 
         def installationTestData = data?.tests?.installation
@@ -1112,6 +1114,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (helmStatusAndMean) {
             data_ << [deployment: helmStatusAndMean]
         }
+
+        logger.jsonDebug(data_, "createTIR - assembled data:")
 
         // Code review report - in the special case of NO jira ..
         def codeReviewReport
@@ -1166,12 +1170,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private def formatTIRHelmDeployment(Map data) {
-        def htmlOrDefault = { value, defaultVal, toHtml ->
-            value?.isEmpty()
-                ? defaultVal
-                : toHtml(value)
-        }
-
         // Move values to its final place and format them accordingly
         def mean = data.deployment.mean
         def status = data.deployment.status
@@ -1179,17 +1177,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         mean.namespace = status?.namespace ?: "None"
 
         mean.selector = mean.selector.replaceAll("=", ": ")
-        mean.helmValues = htmlOrDefault(mean.helmValues, 'None', HtmlFormatterUtil.&toUl)
-        mean.helmValuesFiles = htmlOrDefault(mean.helmValuesFiles, 'None', HtmlFormatterUtil.&toUl)
-        mean.helmDefaultFlags = htmlOrDefault(mean.helmDefaultFlags, 'None') { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") }
-        mean.helmAdditionalFlags = htmlOrDefault(mean.helmAdditionalFlags, 'None') { HtmlFormatterUtil.toSpan(it as List, "inner-span", " ") }
-        mean.helmEnvBasedValuesFiles = htmlOrDefault(mean.helmEnvBasedValuesFiles, 'None', HtmlFormatterUtil.&toUl)
+        mean.helmDefaultFlags = mean.helmDefaultFlags.join(" ") ?: 'None'
+        mean.helmAdditionalFlags = mean.helmAdditionalFlags.join(" ") ?: 'None'
+        mean.helmValues = HtmlFormatterUtil.toUl(mean.helmValues as List, 'None')
+        mean.helmValuesFiles = HtmlFormatterUtil.toUl(mean.helmValuesFiles as List, 'None')
+        mean.helmEnvBasedValuesFiles = HtmlFormatterUtil.toUl(mean.helmEnvBasedValuesFiles as List, 'None')
 
-        status.deployStatus = (status.status == "deployed")
-            ? "Successfully deployed"
-            : status.status
-
-        status?.resources = htmlOrDefault(status?.resourcesByKind, 'None', HtmlFormatterUtil.&toUl)
+        status.deployStatus = (status.status == "deployed") ? "Successfully deployed" : status.status
+        status?.resources = HtmlFormatterUtil.toUl(status.resourcesByKind as Map, 'None')
 
         // These fields are not needed anymore due to their values
         // being moved to their final place

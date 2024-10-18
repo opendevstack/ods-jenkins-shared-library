@@ -11,7 +11,6 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.util.JsonLogUtil
 import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
@@ -42,8 +41,7 @@ class DeployOdsComponent {
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
-                JsonLogUtil.debug(logger, "DeploymentDescriptor '${openShiftDir}': ".toString(),
-                    deploymentDescriptor.deployments)
+                logger.jsonDebug(deploymentDescriptor.deployments, "DeploymentDescriptor '${openShiftDir}': ")
             }
             if (!repo.data.openshift.deployments) {
                 repo.data.openshift.deployments = [:]
@@ -81,7 +79,7 @@ class DeployOdsComponent {
                     if (!podData) {
                         throw new RuntimeException(msgPodsNotFound)
                     }
-                    JsonLogUtil.debug(logger, "Helm podData for '${podDataContext.join(', ')}': ".toString(), podData)
+                    logger.jsonDebug(podData, "Helm podData for '${podDataContext.join(', ')}': ")
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -241,7 +239,7 @@ class DeployOdsComponent {
                     def helmStatus = os.helmStatus(project.targetProject, deploymentMean.helmReleaseName)
                     def helmStatusMap = helmStatus.toMap()
                     deploymentMean.helmStatus = helmStatusMap
-                    JsonLogUtil.debug(logger, "${this.class.name} -- HELM STATUS".toString(), helmStatusMap)
+                    logger.jsonDebug(helmStatusMap, "${this.class.name} -- HELM STATUS")
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->
