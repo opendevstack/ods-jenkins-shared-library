@@ -1,5 +1,8 @@
 package org.ods.util
 
+
+import groovy.json.JsonOutput
+
 class Logger implements ILogger, Serializable {
 
     private final Object script
@@ -20,6 +23,10 @@ class Logger implements ILogger, Serializable {
         }
     }
 
+    String jsonDebug(def jsonObject, String message = null,  boolean pretty = true) {
+        debug(jsonMessage(jsonObject, message, pretty))
+    }
+
     String logWithThrow(String message) {
         this.script.echo("About to throw: ${message}")
         this.script.currentBuild.result = 'FAILURE'
@@ -31,6 +38,10 @@ class Logger implements ILogger, Serializable {
         message
     }
 
+    String jsonInfo(Object jsonObject, String message = null,  boolean pretty = true) {
+        info(jsonMessage(jsonObject, message, pretty))
+    }
+
     String warn(String message) {
         message = "WARN: ${message}"
         info(message)
@@ -40,8 +51,16 @@ class Logger implements ILogger, Serializable {
         debug(timedCall(component, message))
     }
 
+    String jsonDebugClocked(String component, Object jsonObject, String message = null, boolean pretty = true) {
+        debug(timedCall(component, jsonMessage(jsonObject, message, pretty)))
+    }
+
     String infoClocked(String component, String message = null) {
         info(timedCall(component, message))
+    }
+
+    String jsonInfoClocked(String component, Object jsonObject, String message = null, boolean pretty = true) {
+        info(timedCall(component, jsonMessage(jsonObject, message, pretty)))
     }
 
     String warnClocked(String component, String message = null) {
@@ -62,6 +81,21 @@ class Logger implements ILogger, Serializable {
 
     String startClocked(String component) {
         timedCall(component)
+    }
+
+    private def toJson(Object jsonObject, boolean pretty = true) {
+        def json = JsonOutput.toJson(jsonObject)
+        json = pretty ? JsonOutput.prettyPrint(json) : json
+        return json
+    }
+
+    private def jsonMessage(Object jsonObject, String message, boolean pretty) {
+        def json = toJson(jsonObject, pretty)
+        def prefix = message ? "${message}, json" : 'json'
+
+        def msg = "${prefix}: ${json}"
+
+        return msg
     }
 
     @SuppressWarnings(['GStringAsMapKey', 'UnnecessaryElseStatement'])
