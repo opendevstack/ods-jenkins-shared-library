@@ -195,14 +195,57 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                         'helmAdditionalFlags': options.helmAdditionalFlags,
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
+
+                // Here we determine the most recent pod and store it as an artifact.
+                // And we fail if there are multiple pods with different images.
+                def latestPods = multipleMax(podData) { it.podMetaDataCreationTimestamp }
+                def equal = areEqual(latestPods) { a,b ->
+                    def imagesA = a.containers.values() as Set
+                    def imagesB = b.containers.values() as Set
+                    return imagesA == imagesB
+                }
+                if (!equal) {
+                    throw new RuntimeException("Unable to determine the most recent Pod. Multiple pods running with different creation timestamps and images found for ${resourceName}")
+                }
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
                 // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
+                context.addDeploymentToArtifactURIs(resourceName, latestPods[0]?.toMap())
             }
         }
         rolloutData
     }
 
+    private List multipleMax(Collection c, Closure comp) {
+        List res = []
+        if (!c) {
+            return res
+        }
+        def max = null;
+        c.each {
+            def current = comp(it)
+            if (current.is(null) || current > max) {
+                max = current
+                res = [it]
+            } else if (current == max) {
+                res += it
+            }
+        }
+        return res
+    }
+
+    private boolean areEqual(Collection c, Closure equals) {
+        if (c?.size() > 1) {
+            def base = null
+            c.each {
+                if (base.is(null)) {
+                    base = it
+                } else if (!equals(base, it)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
 }
