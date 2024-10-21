@@ -15,6 +15,7 @@
 * Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
 * Use riskPriority value as number instead of its value as text in RA ([#1156](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1156))
 * Preserve quickstarter files in case a repository already contain files with same names ([#1165](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1165))
+* TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))

@@ -1,0 +1,21 @@
+{
+    "deployments": {
+        "backend-first": {
+            "containers": {
+                "backend-first": "backend-first@sha256:fc5fb63f4ac45e207a4a1ceba37534814489c16e82306cf46aca76627c0f5e1e"
+            }
+        },
+        "backend-first-deploymentMean": {
+            "type": "tailor",
+            "selector": "app=kraemerh-backend-first",
+            "tailorSelectors": {
+                "selector": "app=kraemerh-backend-first",
+                "exclude": "bc,is"
+            },
+            "tailorParamFile": "",
+            "tailorParams": [],
+            "tailorPreserve": [],
+            "tailorVerify": true
+        }
+    }
+}

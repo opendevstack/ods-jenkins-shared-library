@@ -57,6 +57,8 @@ class Context implements IContext {
         }
 
         if (executedWithErrors) {
+            // FIXME this ExecutionException() constructor is protected,
+            //  if there are errors, this exception will fail to be created due to constructor's access restrictions
             throw new ExecutionException("Jenkins serialization issue, when: context.assemble()")
         }
     }
