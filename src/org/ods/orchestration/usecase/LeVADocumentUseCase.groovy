@@ -1090,13 +1090,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
-
+        def deployments = repo.data.openshift.deployments ?: [:] as Map<String, Map<String, Object>>
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
-                deployments: getNonHelmDeployments(repo.data.openshift.deployments ?: [:]),
+                deployments: prepareDeploymentInfo(deployments),
             ],
             testResults: [
                 installation: installationTestData?.testResults
@@ -1106,14 +1106,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
-            ]
+            ],
+            deploymentMean: prepareDeploymentMeanInfo(deployments)
         ]
-
-        def helmStatusAndMean = getHelmStatusAndMean(repo.data.openshift.deployments ?: [:])
-
-        if (helmStatusAndMean) {
-            data_ << [deployment: helmStatusAndMean]
-        }
 
         logger.jsonDebug(data_, "createTIR - assembled data:")
 
@@ -1193,88 +1188,60 @@ class LeVADocumentUseCase extends DocGenUseCase {
         status?.remove("resourcesByKind")
     }
 
-    /**
-     * Retrieves first helm release in deployments.
-     *
-     * @return An empty map if there is no helm release in deployments.
-     *      Otherwise keys 'status' and 'means' each contain a
-     *      map suited to format the information in a template.
+    /*
+     * Retrieves the deployment mean and fills empty values with proper defaults
      */
-    Map<String, Map<String, Object>> getHelmStatusAndMean(Map<String, Map<String, Object>> deployments) {
-        // collect first helm release
-        def deploymentMeanHelm = deployments.find {
-            it.key.endsWith('-deploymentMean') && it.value.type == "helm"
-        }
-
-        def meanHelm = deploymentMeanHelm?.value
-
-        if (!meanHelm) {
-            return [:]
-        }
-
-        String releaseName = meanHelm?.helmReleaseName
-        if (!releaseName) {
-            logger.warn("No helmReleaseName name in ${meanHelm}: skipping")
-            return [:]
-        }
-        def helmStatus = (meanHelm?.helmStatus ?: [:]) as Map<String, Object>
-        def meanHelmWithoutStatus = meanHelm.findAll { k, v -> k != 'helmStatus' }
-
-        return [
-            status: helmStatus,
-            mean  : meanHelmWithoutStatus
-        ]
+    @NonCPS
+    private static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments) {
+        def deploymentMean =
+            deployments.find { it.key.endsWith('-deploymentMean') }.value
+        return setEmptyValuesDefaults(deploymentMean)
     }
 
     /**
-     * Retrieves all non-helm deployments.
+     * Retrieves all deployments.
      *
      * The processed map is suited to format the resource information in the TIR.
+     * This method doesn't return deployment means.
      *
-     * @return An empty map if no such deployments exist.
-     *      Otherwise keys indicate the deployment resource or deployment mean if they
-     *      have a suffix of -deploymentMean.
+     * @return A Map with all the deployments.
      */
-    Map<String, Object> getNonHelmDeployments(Map<String, Map<String, Object>> deployments) {
-        // collect non helm deployments
-        def deploymentsNotHelm = deployments.findAll {
-            !it.key.endsWith('-deploymentMean') || it.value?.type != "helm"
-        }
+    @NonCPS
+    protected static Map<String, Map<String, Object>> prepareDeploymentInfo(Map<String, Map<String, Object>> deployments) {
         Map<String, Map<String, Object>> deploymentsForTir = [:]
-        deploymentsNotHelm.each { String deploymentName, Map<String, Object> deployment ->
-            if (deploymentName.endsWith('-deploymentMean')) {
-                deploymentsForTir.put(deploymentName, setEmptyValuesDefaults(deployment))
-            } else {
-                deploymentsForTir.put(deploymentName, deployment.findAll { k, v -> k != 'podName' })
+        deployments.each { String deploymentName, Map<String, Object> deployment ->
+            if (!deploymentName.endsWith('-deploymentMean')) {
+                def filteredFields = deployment.findAll { k, v -> k != 'podName' }
+                deploymentsForTir.put(deploymentName, filteredFields)
             }
         }
         return deploymentsForTir
     }
 
-    Map<String, Object> setEmptyValuesDefaults(Map<String, Object> deployment) {
+    @NonCPS
+    private static Map<String, Object> setEmptyValuesDefaults(Map<String, Object> deployment) {
+        def defaultValues = [
+            helmAdditionalFlags    : 'None',
+            helmEnvBasedValuesFiles: 'None',
+            helmValues             : 'None',
+        ]
         if (deployment?.type == 'tailor') {
-            def tailorEmptyValues = [
+            defaultValues = [
                 tailorParamFile: 'None',
                 tailorParams   : 'None',
                 tailorPreserve : 'No extra resources specified to be preserved'
             ]
-            return deployment.collectEntries { k, v ->
-                def newValue = (tailorEmptyValues.containsKey(k) && !v) ? tailorEmptyValues[k] : v
-                [(k): newValue]
-            }
         }
-        if (deployment?.type == 'helm') {
-            def helmEmptyValues = [
-                helmAdditionalFlags    : 'None',
-                helmEnvBasedValuesFiles: 'None',
-                helmValues             : 'None',
-            ]
-            return deployment.collectEntries { k, v ->
-                def newValue = (helmEmptyValues.containsKey(k) && !v) ? helmEmptyValues[k] : v
-                [(k): newValue]
+        def newDeployment = deployment.collectEntries { k, v ->
+            if (!v) {
+                def defaultValue = defaultValues[k]
+                if (defaultValue) {
+                    return [(k): defaultValue]
+                }
             }
-        }
-        return deployment
+            return [(k): v]
+        } as Map<String, Object>
+        return newDeployment
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {

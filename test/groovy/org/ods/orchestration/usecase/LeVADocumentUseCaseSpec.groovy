@@ -1309,7 +1309,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)
         def helmStatusAndMean = usecase.getHelmStatusAndMean(deploymentsData.deployments)
-        def nonHelmDeployments = usecase.getNonHelmDeployments(deploymentsData.deployments)
+        def nonHelmDeployments = usecase.prepareDeploymentInfo(deploymentsData.deployments)
 
         then:
 
@@ -1371,7 +1371,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         when:
         def deploymentsData = new JsonSlurperClassic().parseText(file.text)
         def helmStatusAndMean = usecase.getHelmStatusAndMean(deploymentsData.deployments)
-        def nonHelmDeployments = usecase.getNonHelmDeployments(deploymentsData.deployments)
+        def nonHelmDeployments = usecase.prepareDeploymentInfo(deploymentsData.deployments)
         def data = [:]
         if (helmStatusAndMean) {  // must be falsy
             data << [deployment: helmStatusAndMean]
