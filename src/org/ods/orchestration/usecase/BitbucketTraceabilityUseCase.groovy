@@ -125,7 +125,7 @@ class BitbucketTraceabilityUseCase {
             Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
             // Only changes in PR and destiny integration branch
             if (mergedPR.values
-                && mergedPR.values[0].toRef.displayId == repo.branch) {
+                && mergedPR.values[0].toRef.displayId == repo.defaultBranch) {
                 def record = new Record(getDateWithFormat(commit.committerTimestamp),
                     getAuthor(commit.author),
                     getReviewers(mergedPR.values[0].reviewers),
