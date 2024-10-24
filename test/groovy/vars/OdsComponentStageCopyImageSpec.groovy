@@ -19,6 +19,7 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         def cfg = [
             sourceImageUrlIncludingRegistry: sourceImageUrlIncludingRegistry,
             verifyTLS                      : verifyTLS,
+            preserveDigests                : preserveDigests,
             tagIntoTargetEnv               : tagIntoTargetEnv,
         ]
         def ctxCfg = [
@@ -51,7 +52,8 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         assertCallStackContains("Resolved source Image data: ${sourceImageUrlIncludingRegistry}")
         assertCallStackContains("importing into: docker://internal-registry/project-cd/${imageName}:${imageTag}")
         // FIXME: this should probably verify that the steps.sh is called with the correct string rather than checking the full callstack
-        assertCallStackContains("skopeo copy --src-tls-verify=${expectedVerifyTLS}                  docker://${sourceImageUrlIncludingRegistry}                 --dest-creds openshift:secret-token                 docker://internal-registry/project-cd/image:1f3d1                 --dest-tls-verify=${expectedVerifyTLS}")
+        assertCallStackContains("skopeo copy ${expectedCopyParams}")
+        assertCallStackContains("--src-tls-verify=${expectedVerifyTLS}                  docker://${sourceImageUrlIncludingRegistry}                 --dest-creds openshift:secret-token                 docker://internal-registry/project-cd/image:1f3d1                 --dest-tls-verify=${expectedVerifyTLS}")
         if (tagIntoTargetEnv) {
             1 * openShiftService.importImageTagFromProject('project-dev', imageName, 'project-cd', imageTag, imageTag)
             1 * openShiftService.findOrCreateImageStream('project-dev', imageName)
@@ -60,13 +62,13 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         assertJobStatusSuccess()
 
         where:
-        registry      || repo   || imageName || imageTag || verifyTLS || expectedVerifyTLS || tagIntoTargetEnv
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true      || true              || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true      || true              || false
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false     || false             || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false     || false             || false
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null      || true              || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null      || true              || false
+        registry      || repo   || imageName || imageTag || preserveDigests || expectedCopyParams          || verifyTLS || expectedVerifyTLS || tagIntoTargetEnv
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || true
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || false
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || true
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || false
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || true
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || false
 
     }
 }

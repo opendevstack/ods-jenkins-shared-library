@@ -27,6 +27,13 @@ _List<String>_
  Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`).
 
 
+| *preserveDigests* +
+_Boolean_
+|preserveDigests allows to sync the source and destination image digests
+
+ The default is false, set to true to preserve digests
+
+
 | *sourceCredential* +
 _String_
 |sourceCredential is the token to use, if any, to access the source registry
