@@ -2,6 +2,9 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.apache.commons.lang3.StringUtils
+import org.ods.orchestration.util.GitUtil
+import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -11,6 +14,8 @@ import org.ods.util.ILogger
 @TypeChecked
 class ScanWithAquaStage extends Stage {
 
+    static final String REMOTE_EXPLOIT_TYPE = 'remote'
+    static final String CRITICAL_AQUA_SEVERITY = 'critical'
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
     static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
@@ -20,8 +25,8 @@ class ScanWithAquaStage extends Stage {
     private final OpenShiftService openShift
     private final NexusService nexus
     private final ScanWithAquaOptions options
-    private Map configurationAquaCluster
-    private Map configurationAquaProject
+    private final Map configurationAquaCluster
+    private final Map configurationAquaProject
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -101,10 +106,20 @@ class ScanWithAquaStage extends Stage {
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
+        List actionableVulnerabilities = null
+        String nexusReportLink = null
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
                 def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
+
+                Set whitelistedRECVs = []
+                actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
+                    whitelistedRECVs)
+                if (whitelistedRECVs.size() > 0) {
+                    logger.warn(buildWhiteListedRECVsMessage(whitelistedRECVs))
+                }
+
                 Map vulnerabilities = resultInfo.vulnerability_summary as Map
                 // returnCode is 0 --> Success or 4 --> Error policies
                 // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
@@ -113,8 +128,9 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                createBitbucketCodeInsightReport(url, nexusRepository ? reportUriNexus.toString() : null,
-                    registry, imageRef, errorCodes.sum() as int, errorMessages)
+                nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
+                createBitbucketCodeInsightReport(url, nexusReportLink,
+                    registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
@@ -125,7 +141,102 @@ class ScanWithAquaStage extends Stage {
         }
 
         notifyAquaProblem(alertEmails, errorMessages)
+
+        if (actionableVulnerabilities?.size() > 0) { // We need to mark the pipeline and delete the image
+            performActionsForRECVs(actionableVulnerabilities, nexusReportLink)
+        }
+
         return
+    }
+
+    private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
+        def scannedBranch = computeScannedBranch()
+        logger.info("Aqua scanned branch: ${scannedBranch}")
+        addAquaVulnerabilityObjectsToContext(actionableVulnerabilities, nexusReportLink, scannedBranch)
+        String response = openShift.deleteImage(context.getComponentId() + ":" + context.getShortGitCommit())
+        logger.info("Delete image response: " + response)
+        throw new AquaRemoteCriticalVulnerabilityWithSolutionException(
+            buildActionableMessageForAquaVulnerabilities(actionableVulnerabilities: actionableVulnerabilities,
+                nexusReportLink: nexusReportLink, gitUrl: context.getGitUrl(), gitBranch: scannedBranch,
+                gitCommit: context.getGitCommit(), repoName: context.getRepoName()))
+    }
+
+    private void addAquaVulnerabilityObjectsToContext(List actionableVulnerabilities, String nexusReportLink,
+            String scannedBranch) {
+        context.addArtifactURI('aquaCriticalVulnerability', actionableVulnerabilities)
+        context.addArtifactURI('jiraComponentId', context.getComponentId())
+        context.addArtifactURI('gitUrl', context.getGitUrl())
+        context.addArtifactURI('gitBranch', scannedBranch)
+        context.addArtifactURI('repoName', context.getRepoName())
+        context.addArtifactURI('nexusReportLink', nexusReportLink)
+    }
+
+    private String buildWhiteListedRECVsMessage(Set whiteListedRECVs) {
+        StringBuilder message = new StringBuilder("The Aqua scan detected the following remotely " +
+            "exploitable critical vulnerabilities which were whitelisted in Aqua: ")
+        message.append(whiteListedRECVs.join(", "))
+        return message.toString()
+    }
+
+    private String buildActionableMessageForAquaVulnerabilities(Map args) {
+        StringBuilder message = new StringBuilder()
+        String gitBranchUrl = GitUtil.buildGitBranchUrl(args.gitUrl as String, context.getProjectId(),
+            args.repoName as String, args.gitBranch as String)
+        message.append("We detected remotely exploitable critical vulnerabilities in repository ${gitBranchUrl}. " +
+            "Due to their high severity, we must stop the delivery " +
+            "process until all vulnerabilities have been addressed. ")
+
+        message.append("\n\nThe following vulnerabilities were found:")
+        def count = 1
+        for (def vulnerability : args.actionableVulnerabilities) {
+            message.append("\n\n${count}.    Vulnerability name: " + (vulnerability as Map).name as String)
+            message.append("\n\n${count}.1.  Description: " + (vulnerability as Map).description as String)
+            message.append("\n\n${count}.2.  Solution: " + (vulnerability as Map).solution as String)
+            message.append("\n")
+            count++
+        }
+        def openPRs = getOpenPRsForCommit(args.gitCommit as String, args.repoName as String)
+        if (openPRs.size() > 0) {
+            message.append("\nThis commit exists in the following open pull requests: ")
+            def cnt = 1
+            for (def pr : openPRs) {
+                message.append("\n\n${cnt}.    Pull request: " + (pr as Map).title as String)
+                message.append("\n\n${cnt}.1.  Link: " + (pr as Map).link as String)
+                message.append("\n")
+                cnt++
+            }
+        }
+        if (args.nexusReportLink != null) {
+            message.append("\nYou can find the complete security scan report here: ${args.nexusReportLink}.\n")
+        }
+        return message.toString()
+    }
+
+    private List getOpenPRsForCommit(String gitCommit, String repoName) {
+        def apiResponse = bitbucket.getPullRequestsForCommit(repoName, gitCommit)
+        def prs = []
+        try {
+            def js = steps.readJSON(text: apiResponse) as Map
+            prs = js['values']
+            if (prs == null) {
+                throw new RuntimeException('Field "values" of JSON response must not be empty!')
+            }
+        } catch (Exception ex) {
+            logger.warn "Could not understand API response. Error was: ${ex}"
+            return []
+        }
+        def response = []
+        for (def i = 0; i < (prs as List).size(); i++) {
+            Map pr = (prs as List)[i] as Map
+            if (!(pr.open as Boolean)) { // We only consider Open PRs
+                continue
+            }
+            response.add([
+                title: pr.title,
+                link: (((pr.links as Map).self as List)[0] as Map).href,
+            ])
+        }
+        response
     }
 
     private String getImageRef() {
@@ -166,7 +277,8 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
-                                             String registry, String imageRef, int returnCode, String messages) {
+                                             String registry, String imageRef, int returnCode, String messages,
+                                                List actionableVulnerabilities) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following links to review the Aqua Security scan report:"
@@ -199,13 +311,22 @@ class ScanWithAquaStage extends Stage {
                 [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
             ])
         }
+        if (actionableVulnerabilities?.size() > 0) {
+            if (!data.messages) {
+                data.put("messages", [])
+            }
+            ((List) data.messages).add([
+                title: "Blocking",
+                value: "Yes",
+            ])
+        }
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
     private createBitbucketCodeInsightReport(String messages) {
         String title = "Aqua Security"
-        String details = "There was some problems with Aqua:"
+        String details = "There were some problems with Aqua:"
 
         String result = "FAIL"
 
@@ -284,6 +405,44 @@ class ScanWithAquaStage extends Stage {
                 to: recipients
             )
         }
+    }
+
+    private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, Set whitelistedRECVs) {
+        List result = []
+        aquaJsonMap.resources.each { it ->
+            (it as Map).vulnerabilities.each { vul ->
+                Map vulnerability = vul as Map
+                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
+                    && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
+                    && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
+                    if (Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {
+                        whitelistedRECVs.add(vulnerability.name)
+                    } else {
+                        result.push(vulnerability)
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    private String computeScannedBranch() {
+        def scannedBranch = context.getGitBranch()
+        if (scannedBranch.toLowerCase().startsWith("release/")) {
+            // We need to check that the branch was created in BitBucket otherwise we scanned the default branch
+            Map branchesResponse = bitbucket.findRepoBranches(context.getRepoName(), scannedBranch)
+            List matchedBranches = branchesResponse['values'] as List
+            if (matchedBranches?.size() > 0) {
+                for (def i = 0; i < matchedBranches.size(); i++) {
+                    Map branch = matchedBranches[i]
+                    if (branch.displayId == scannedBranch) {
+                        return scannedBranch
+                    }
+                }
+            }
+            scannedBranch = bitbucket.getDefaultBranch(context.getRepoName())
+        }
+        return scannedBranch
     }
 
 }

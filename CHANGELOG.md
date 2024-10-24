@@ -1,15 +1,29 @@
 # Changelog
 
 ## Unreleased
-* Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
 
 ### Added
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.6.0] - 2024-10-23
+
+### Changed
+* Fail builds when aqua scan detects remotely exploitable security vulnerabilities with solutions ([#1147](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1147))
+* Fail the release manager pipeline and create security vulnerability issues or move them to TODO state if already present ([#1151](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1151))
+* Aqua log readability update and whitelisting mechanism fix ([#1161](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1161))
+* Aqua remotely exploitable critical vulnerabilities improvements ([#1157](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1157))
+* In the release manager pipeline, use the default integration branch for component ([#1144](https://github.com/opendevstack/od-jenkins-shared-library/pull/1144))
+* Use riskPriority value as number instead of its value as text in RA ([#1156](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1156))
+
+### Fixed
+* Fix branch calculation for re-deploy ([#1162](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1162))
+* Preserve quickstarter files in case a repository already contain files with same names ([#1165](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1165))
 
 ## [4.5.6] - 2024-09-16
 

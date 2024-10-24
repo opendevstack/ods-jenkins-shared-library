@@ -42,7 +42,7 @@ class PushToRemoteStage extends Stage {
                       git remote add origin ${context.gitUrlHttp}
                     else
                       echo "Upgrading existing project: ${context.gitUrlHttp}"
-                      mv "\$clonedGitFolderName"/* .
+                      mv -n "\$clonedGitFolderName"/* .
                       mv "\$clonedGitFolderName"/.[!.]* .
                     fi
                     rm -rf \$clonedGitFolderName

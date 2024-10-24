@@ -4,6 +4,8 @@ package org.ods.services
 
 import groovy.json.JsonSlurperClassic
 import kong.unirest.Unirest
+import org.apache.commons.lang3.StringUtils
+import org.ods.orchestration.util.GitUtil
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -190,6 +192,24 @@ class BitbucketService {
         res
     }
 
+    // Get pull requests of "repo" for commit
+    String getPullRequestsForCommit(String repo, String commit) {
+        String res
+        withTokenCredentials { username, token ->
+            def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
+            res = script.sh(
+                label: 'Get pullrequests for a commit via API',
+                script: """curl \\
+                  --fail \\
+                  -sS \\
+                  --header ${authHeader} \\
+                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits/${commit}/pull-requests""",
+                returnStdout: true
+            ).trim()
+        }
+        res
+    }
+
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
         String res
@@ -317,6 +337,87 @@ class BitbucketService {
             }
         }
         logger.debugClocked("buildstatus-${buildName}-${state}")
+    }
+
+    @SuppressWarnings('LineLength')
+    String getDefaultBranch(String repo) {
+        repo = GitUtil.buildFullRepoName(project, repo)
+        logger.debugClocked("defaultbranch-${repo}")
+        String displayId = ""
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            while (retries++ < maxAttempts) {
+                try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"' // codenarc-disable GStringExpressionWithinString
+                    def res = script.sh(
+                        returnStdout: true,
+                        label: 'Get bitbucket repo default branch via API',
+                        script: """curl \\
+                                --fail \\
+                                -sS \\
+                                --request GET \\
+                                --header ${authHeader} \\
+                                ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/branches/default"""
+                    ).trim()
+                    try {
+                        // call readJSON inside of withCredentials block,
+                        // otherwise token will be displayed in output
+                        def js = script.readJSON(text: res)
+                        displayId = js['displayId']
+                        return displayId
+                    } catch (Exception ex) {
+                        logger.warn "Could not understand API response. Error was: ${ex}"
+                    }
+                } catch (err) {
+                    logger.warn("Could not get Bitbucket repo '${repo}' default branch due to: ${err}")
+                }
+            }
+        }
+        logger.debugClocked("defaultbranch-${repo}")
+        return displayId
+    }
+
+    Map findRepoBranches(String repo, String filterText) {
+        repo = GitUtil.buildFullRepoName(project, repo)
+        StringBuilder apiUrl = new StringBuilder("${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}")
+        apiUrl.append("/branches?boostMatches=true")
+        if (StringUtils.isNotEmpty(filterText)) {
+            apiUrl.append("&filterText=${filterText}")
+        }
+        logger.info("findRepoBranchesStartingWith api URL: ${apiUrl.toString()}")
+        Map branchesJson = [:]
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            while (retries++ < maxAttempts) {
+                try {
+                    def authHeader = '\"Authorization: Bearer $TOKEN\"'
+                    def res = script.sh(
+                        returnStdout: true,
+                        label: 'Get bitbucket repo branches via API',
+                        script: """curl \\
+                                --fail \\
+                                -sS \\
+                                --request GET \\
+                                --header ${authHeader} \\
+                                '${apiUrl.toString()}' \\
+                                """
+                    ).trim()
+                    try {
+                        // call readJSON inside of withCredentials block,
+                        // otherwise token will be displayed in output
+                        branchesJson = script.readJSON(text: res) as Map
+                        return branchesJson
+                    } catch (Exception ex) {
+                        logger.warn "Could not understand API response. Error was: ${ex}"
+                    }
+                } catch (err) {
+                    logger.warn("Could not get Bitbucket repo '${repo}' branchs due to: ${err}")
+                }
+            }
+        }
+        return branchesJson
     }
 
     /**

@@ -96,7 +96,8 @@ class BitbucketTraceabilityUseCase {
         int reposSize = repos.size()
         for (def i = 0; i < reposSize; i++) {
             def repository = repos[i]
-            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
+            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}",
+                       defaultBranch: repository.defaultBranch]
         }
         return result
     }
@@ -124,7 +125,7 @@ class BitbucketTraceabilityUseCase {
             Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
             // Only changes in PR and destiny integration branch
             if (mergedPR.values
-                && mergedPR.values[0].toRef.displayId == repo.branch) {
+                && mergedPR.values[0].toRef.displayId == repo.defaultBranch) {
                 def record = new Record(getDateWithFormat(commit.committerTimestamp),
                     getAuthor(commit.author),
                     getReviewers(mergedPR.values[0].reviewers),

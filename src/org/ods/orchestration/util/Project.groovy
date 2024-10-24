@@ -36,6 +36,7 @@ class Project {
             'SSDS': ['1', '2.1', '3.1', '5.4'],
         ]
     private static final Map<String, Set<String>> MANDATORY_CHAPTER_INDEX = [:]
+
     static {
         def index = MANDATORY_CHAPTER_INDEX.withDefault { [] as Set<String> }
         MANDATORY_CHAPTERS.each { document, headingNumbers ->
@@ -57,6 +58,7 @@ class Project {
         static final String TYPE_TESTS = 'tests'
         static final String TYPE_DOCS = 'docs'
         static final String TYPE_DOCTRACKING = 'docTrackings'
+        static final String TYPE_SECURITY_VULNERABILITIES = 'securityVulnerabilities'
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -67,6 +69,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_SECURITY_VULNERABILITIES,
             TYPE_DOCS,
         ]
 
@@ -78,6 +81,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_SECURITY_VULNERABILITIES,
             TYPE_DOCS,
         ]
 
@@ -89,6 +93,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_SECURITY_VULNERABILITIES,
         ]
 
         static final String ISSUE_STATUS_TODO = 'to do'
@@ -283,6 +288,8 @@ class Project {
 
     protected static String METADATA_FILE_NAME = 'metadata.yml'
 
+    protected List initErrors = []
+
     protected IPipelineSteps steps
     protected GitService git
     protected JiraUseCase jiraUseCase
@@ -380,6 +387,7 @@ class Project {
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
         // REST endpoint, not plain Jira
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests, version) // TODO removeme when endpoint is updated
+        this.data.jira.securityVulnerabilities = this.loadJiraDataSecurityVulnerabilities(version)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
@@ -429,6 +437,11 @@ class Project {
     }
 
     @NonCPS
+    List getInitErrors() {
+        return this.initErrors
+    }
+
+    @NonCPS
     Map<String, List> getWipJiraIssues() {
         return this.data.jira.undone
     }
@@ -468,7 +481,7 @@ class Project {
         def defaultingWrapper = docChaptersPerDocument.withDefault { [] }
         Map <String, Map> wipDocs = computeWIPDocChapters(data)
 
-        wipDocs?.each {chapterKey, docChapter ->
+        wipDocs?.each { chapterKey, docChapter ->
             docChapter.documents.each { document ->
                 defaultingWrapper[document] << chapterKey
             }
@@ -1301,6 +1314,41 @@ class Project {
         return result
     }
 
+    protected Map loadJiraDataSecurityVulnerabilities(String versionName = null) {
+        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase.jira) return [:]
+
+        def fields = ['assignee', 'status', 'summary']
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = 'Security Vulnerability' AND status != Done"
+
+        if (versionName) {
+            fields << 'fixVersions'
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: []
+        ]
+
+        def securityVulnerabilities = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+
+        return securityVulnerabilities.collectEntries { secVul ->
+            def issue = [
+                key: secVul.key,
+                name: secVul.fields.summary,
+                assignee: secVul.fields.assignee ?
+                    [secVul.fields.assignee.displayName,
+                     secVul.fields.assignee.name,
+                     secVul.fields.assignee.emailAddress].find { it != null } : "Unassigned",
+                status: secVul.fields.status.name,
+                versions: secVul.fields.fixVersions.collect { it.name }
+            ]
+            return [secVul.key, issue]
+        }
+    }
+
     protected Map loadJiraDataBugs(Map tests, String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
@@ -2018,13 +2066,14 @@ class Project {
 
         this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
 
-        // Resolve repo branch, if not provided
-        if (!repo.branch?.trim()) {
-            this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                "from project meta data. Assuming 'master'.")
-            repo.branch = 'master'
+        // Fail the RM pipeline if the old branch flag is in use
+        if (repo.branch?.trim()) {
+            this.initErrors.add(new IllegalArgumentException("The Release Manager's metadata.yml uses " +
+                "the 'branch' parameter with various repositories. This parameter has " +
+                "been removed and replaced with Bitbucket's 'default branch' setting. " +
+                "Please remove all 'branch' parameters from metadata.yml and set up your " +
+                "Bitbucket repositories' default branches as needed."))
         }
-        this.logger.debug("Set default (used for WIP) git branch for repo '${repo.id}' to ${repo.branch} ")
     }
 
     void addDefaults(String component) {
@@ -2043,4 +2092,5 @@ class Project {
             this.data.metadata.repositories.add(repo)
         }
     }
+
 }

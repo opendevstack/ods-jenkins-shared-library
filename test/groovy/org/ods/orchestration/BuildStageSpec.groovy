@@ -71,7 +71,7 @@ class BuildStageSpec extends SpecHelper {
         then:
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-        1 * util.failBuild(_)
+        1 * util.failBuild(_,_)
     }
 
     def "unit test errors in X version break the stage"() {
@@ -84,9 +84,9 @@ class BuildStageSpec extends SpecHelper {
         then:
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         1 * levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
-        1 * util.failBuild(_)
+        1 * util.failBuild(_,_)
         IllegalStateException ex = thrown()
-        ex.message == 'Failing build as repositories contain errors!\nFailed: []'
+        ex.message == 'Delivery failed since the following Bitbucket repositories contain errors:\n\n'
     }
 
 }
