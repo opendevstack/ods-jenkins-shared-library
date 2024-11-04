@@ -91,11 +91,14 @@ class CopyImageStage extends Stage {
     }
 
     private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol, String copyparams) {
+        def registryPath = this.options.repo ? \
+           "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
+           "${this.options.registry}/${this.options.image}"
         int status = steps.sh(
             script: """
                 skopeo copy ${copyparams} \
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
-                ${this.options.registry}/${this.options.repo}/${this.options.image} \
+                ${registryPath} \
                 --dest-creds openshift:${targetInternalRegistryToken} \
                 ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
                 --dest-tls-verify=${this.options.verifyTLS}
@@ -107,9 +110,12 @@ class CopyImageStage extends Stage {
     }
 
     protected String stageLabel() {
+        def registryPath = this.options.repo ? \
+            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
+            "${this.options.registry}/${this.options.image}"
         return "${STAGE_NAME} " +
             "(${context.componentId}) " +
-            "${this.options.registry}/${this.options.repo}/${this.options.image}'"
+            "${registryPath}'"
     }
 
 }
