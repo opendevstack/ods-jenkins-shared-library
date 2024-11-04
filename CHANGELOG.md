@@ -3,12 +3,14 @@
 ## Unreleased
 
 ### Added
+* add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
 * Add preserve-digests cli option to skopeo copy command in CopyImageStage ([#1166](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1166))
 * Allow registry/image:tag sources in CopyImageStage instead of directly falling back to internal registry ([#1177](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1177))
+
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
