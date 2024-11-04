@@ -1,5 +1,6 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
@@ -196,16 +197,17 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     ])
                 rolloutData["${resourceKind}/${resourceName}"] = podData
 
-                // Here we determine the most recent pod and store it as an artifact.
-                // And we fail if there are multiple pods with different images.
-                def latestPods = multipleMax(podData) { it.podMetaDataCreationTimestamp }
-                def equal = areEqual(latestPods) { a,b ->
-                    def imagesA = a.containers.values() as Set
-                    def imagesB = b.containers.values() as Set
-                    return imagesA == imagesB
-                }
-                if (!equal) {
-                    throw new RuntimeException("Unable to determine the most recent Pod. Multiple pods running with different creation timestamps and images found for ${resourceName}")
+                // We need to find the pod that was created as a result of the deployment.
+                // The previous pod may still be alive when we use a rollout strategy.
+                // We can tell one from the other using their creation timestamp
+                def latestPods = getLatestPods(podData)
+                // While very unlikely, it may happen that there is more than one pod with the same timestamp.
+                // Note that timestamp resolution is seconds.
+                // If that happens, we are unable to know which is the correct pod.
+                // However, we it doesn't matter which pod is the right one, if they all have the same images.
+                def sameImages = haveSameImages(latestPods)
+                if (!sameImages) {
+                    throw new RuntimeException("Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for ${resourceName}")
                 }
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
@@ -214,33 +216,82 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 context.addDeploymentToArtifactURIs(resourceName, latestPods[0]?.toMap())
             }
         }
-        rolloutData
+        return rolloutData
     }
 
-    private List multipleMax(Collection c, Closure comp) {
-        List res = []
-        if (!c) {
-            return res
+    /**
+     * Returns the pods with the latest creation timestamp.
+     * Note that the resolution of this timestamp is seconds and there may be more than one pod with the same
+     * latest timestamp.
+     *
+     * @param pods the pods over which to find the latest ones.
+     * @return a list with all the pods sharing the same, latest timestamp.
+     */
+    @NonCPS
+    private static List getLatestPods(Iterable pods) {
+        return maxElements(pods) { it.podMetaDataCreationTimestamp }
+    }
+
+    /**
+     * Checks whether all the given pods contain the same images, ignoring order and multiplicity.
+     *
+     * @param pods the pods to check for image equality.
+     * @return true if all the pods have the same images or false otherwise.
+     */
+    @NonCPS
+    private static boolean haveSameImages(Iterable pods) {
+        return areEqual(pods) { a, b ->
+            def imagesA = a.containers.values() as Set
+            def imagesB = b.containers.values() as Set
+            return imagesA == imagesB
         }
-        def max = null;
-        c.each {
-            def current = comp(it)
-            if (current.is(null) || current > max) {
-                max = current
-                res = [it]
-            } else if (current == max) {
-                res += it
+    }
+
+    /**
+     * Selects the items in the iterable which when passed as a parameter to the supplied closure return the maximum value.
+     * A null return value represents the least possible return value,
+     * so any item for which the supplied closure returns null, won't be selected (unless all items return null).
+     * The return list contains all the elements that returned the maximum value.
+     *
+     * @param iterable the iterable over which to search for maximum values.
+     * @param getValue a closure returning the value that corresponds to each element.
+     * @return the list of all the elements for which the closure returns the maximum value.
+     */
+    @NonCPS
+    private static List maxElements(Iterable iterable, Closure getValue) {
+        List elements = null
+        if (!iterable) {
+            return []
+        }
+        def maxValue = null;
+        iterable.each {
+            def value = getValue(it)
+            if (!elements || value > maxValue) {
+                maxValue = value
+                elements = [it]
+            } else if (value == maxValue) {
+                elements += it
             }
         }
-        return res
+        return elements
     }
 
-    private boolean areEqual(Collection c, Closure equals) {
-        if (c?.size() > 1) {
+    /**
+     * Checks whether all the elements in the given iterable are deemed as equal by the given closure.
+     *
+     * @param iterable the iterable over which to check for element equality.
+     * @param equals a closure that checks two elements for equality.
+     * @return true if all the elements are equal or false otherwise.
+     */
+    @NonCPS
+    private static boolean areEqual(Iterable iterable, Closure equals) {
+        if (iterable) {
+            def first = true
             def base = null
-            c.each {
-                if (base.is(null)) {
+            iterable.each {
+                if (first) {
                     base = it
+                    first = false
                 } else if (!equals(base, it)) {
                     return false
                 }
