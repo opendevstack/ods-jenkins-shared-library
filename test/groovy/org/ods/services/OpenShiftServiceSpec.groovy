@@ -260,16 +260,16 @@ class OpenShiftServiceSpec extends SpecHelper {
         def helmJsonText = new FixtureHelper().getResource("helmstatus.json").text
 
         when:
-        def helmStatusData = service.helmStatus('guardians-test', 'standalone-app')
-//            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
+        def helmStatusData = service.helmStatus('myproject-dev', 'backend-helm-monorepo')
+
         then:
         1 * steps.sh(
-            script: 'helm -n guardians-test status standalone-app --show-resources  -o json',
-            label: 'Gather Helm status for release standalone-app in guardians-test',
+            script: 'helm -n myproject-dev status backend-helm-monorepo --show-resources  -o json',
+            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev',
             returnStdout: true,
         ) >> helmJsonText
-        helmStatusData.name == 'standalone-app'
-        helmStatusData.namespace == 'guardians-test'
+        helmStatusData.name == 'backend-helm-monorepo'
+        helmStatusData.namespace == 'myproject-dev'
     }
 
     def "helm status data extraction bad content"() {
@@ -277,27 +277,27 @@ class OpenShiftServiceSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def service = new OpenShiftService(steps, new Logger(steps, false))
         def helmJsonText = """
-{
-  "name": "standalone-app",
-  "info": {
-    "first_deployed": "2022-12-19T09:44:32.164490076Z",
-    "last_deployed": "2024-03-04T15:21:09.34520527Z",
-    "deleted": "",
-    "description": "Upgrade complete",
-    "status": "deployed",
-    "resources" : {}
-   }
-}
+            {
+              "name": "backend-helm-monorepo",
+              "info": {
+                "first_deployed": "2022-12-19T09:44:32.164490076Z",
+                "last_deployed": "2024-03-04T15:21:09.34520527Z",
+                "deleted": "",
+                "description": "Upgrade complete",
+                "status": "deployed",
+                "resources" : {}
+               }
+            }
         """
         when:
-        def helmStatusData = service.helmStatus('guardians-test', 'standalone-app')
+        service.helmStatus('myproject-dev ', 'backend-helm-monorepo')
 //            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
         then:
         1 * steps.sh(
-            script: 'helm -n guardians-test status standalone-app --show-resources  -o json',
-            label: 'Gather Helm status for release standalone-app in guardians-test',
+            script: 'helm -n myproject-dev  status backend-helm-monorepo --show-resources  -o json',
+            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev ',
             returnStdout: true,
-        )
+        ) >> helmJsonText
         thrown RuntimeException
     }
 

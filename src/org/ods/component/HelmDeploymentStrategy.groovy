@@ -4,34 +4,29 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
-import org.ods.util.HelmStatus
-import org.ods.util.ILogger
-import org.ods.util.PipelineSteps
-import org.ods.util.PodData
+import org.ods.util.*
 
 class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // Constructor arguments
-    private final Script script
     private final IContext context
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
 
     // assigned in constructor
-    private def steps
+    private IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     HelmDeploymentStrategy(
-        def script,
+        IPipelineSteps steps,
         IContext context,
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
         ILogger logger
     ) {
-
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -72,10 +67,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
-        this.script = script
         this.context = context
         this.logger = logger
-        this.steps = new PipelineSteps(script)
+        this.steps = steps
 
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
@@ -92,12 +86,12 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // Tag images which have been built in this pipeline from cd project into target project
         retagImages(context.targetProject, getBuiltImages())
 
-        logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
+        logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)
         HelmStatus helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
         if (logger.debugMode) {
             def helmStatusMap = helmStatus.toMap()
-            logger.jsonDebug(helmStatusMap, "${this.class.name} -- HELM STATUS")
+            logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
         }
 
         // // FIXME: pauseRollouts is non trivial to determine!
@@ -105,7 +99,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
         def rolloutData = getRolloutData(helmStatus)
-        logger.jsonDebug(rolloutData)
         return rolloutData
     }
 
@@ -121,7 +114,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 options.helmValues['componentId'] = context.componentId
 
                 // we persist the original ones set from outside - here we just add ours
-                def mergedHelmValues = [:]
+                Map<String, String> mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
 
                 // we add the global ones - this allows usage in subcharts
@@ -138,18 +131,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
-                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
 
-                options.helmEnvBasedValuesFiles.each { envValueFile ->
-                    mergedHelmValuesFiles << envValueFile.replace('.env',
-                        ".${context.environment}")
+                options.helmEnvBasedValuesFiles = options.helmEnvBasedValuesFiles.collect {
+                    it.replace('.env.',".${context.environment}.")
                 }
+
+                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
+                mergedHelmValuesFiles.addAll(options.helmEnvBasedValuesFiles)
 
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
                     mergedHelmValuesFiles,
-                    mergedHelmValues as Map<String, String>,
+                    mergedHelmValues,
                     options.helmDefaultFlags,
                     options.helmAdditionalFlags,
                     options.helmDiff
@@ -162,77 +156,59 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private Map<String, List<PodData>> getRolloutData(
         HelmStatus helmStatus
     ) {
-        // Why do we need podData when helm should take care of the install
-        // 1. FinalizeOdsComponent#verifyDeploymentsBuiltByODS() will fail at:
-        //    commit: 7aab67dad73298b1388eca3517a1a2ea856a2b8e
-        //    ...
-        //    def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
-        //    ...
-        //    unless it can associate all pods with a deployment resource.
-        // 2. DeploymentDescriptor requires to have for each deployment resource
-        //    a deployment mean with postfix -deploymentMean
-        // 3. Image importing in DeployOdsComponent at
-        //    commit: 97463eebc986f1558c37d5ff5a84ec188f9e92d0
-        //    requires to have a deployment resource for each image.
-        //    ...
-        //    if (!openShiftDir.startsWith('openshift')) {
-        //        deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-        //    ...
-        //    currently is driven by images in PodData#containers.
-        //
-        // If possible this should be redesigned so that the shared library does not have to
-        // concern itself with pods anymore.
-        def rolloutData = [:]
+        // TODO This is still needed for several reasons, still pending refactoring in order to
+        //  remove the need for pod data
+        Map<String, List<PodData>> rolloutData = [:]
 
-        def deploymentKinds = helmStatus.resourcesByKind
-            .findAll { it.key in DEPLOYMENT_KINDS }
-            .collectEntries { it }
+        Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
+                .findAll { kind, _ -> kind in DEPLOYMENT_KINDS }
 
         deploymentKinds.each { kind, names ->
-            names.each { name ->
-                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
-                    [
-                        type: 'helm',
-                        selector: options.selector,
-                        chartDir: options.chartDir,
-                        helmReleaseName: options.helmReleaseName,
-                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
-                        helmValuesFiles: options.helmValuesFiles,
-                        helmValues: options.helmValues,
-                        helmDefaultFlags: options.helmDefaultFlags,
-                        helmAdditionalFlags: options.helmAdditionalFlags,
-                        helmStatus: helmStatus.toMap(),
+                names.each { name ->
+                    context.addDeploymentToArtifactURIs("${name}-deploymentMean",
+                        [
+                            type: 'helm',
+                            selector: options.selector,
+                            namespace: context.targetProject,
+                            chartDir: options.chartDir,
+                            helmReleaseName: options.helmReleaseName,
+                            helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+                            helmValuesFiles: options.helmValuesFiles,
+                            helmValues: options.helmValues,
+                            helmDefaultFlags: options.helmDefaultFlags,
+                            helmAdditionalFlags: options.helmAdditionalFlags,
+                            helmStatus: helmStatus.toMap(),
+                        ]
+                    )
+                    def podDataContext = [
+                        "targetProject=${context.targetProject}",
+                        "selector=${options.selector}",
+                        "name=${name}",
                     ]
-                )
-                def podDataContext = [
-                    "targetProject=${context.targetProject}",
-                    "selector=${options.selector}",
-                    "name=${name}",
-                ]
-                def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-                List<PodData> podData = null
-                for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
-                    if (podData) {
-                        break
+                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                    List<PodData> podData = null
+                    for (def i = 0; i < options.deployTimeoutRetries; i++) {
+                        podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                        if (podData) {
+                            break
+                        }
+                        steps.echo("${msgPodsNotFound} - waiting")
+                        steps.sleep(12)
                     }
-                    steps.echo("${msgPodsNotFound} - waiting")
-                    steps.sleep(12)
-                }
-                if (!podData) {
-                    throw new RuntimeException(msgPodsNotFound)
-                }
-                logger.jsonDebug(podData, "Helm podData for ${podDataContext.join(', ')}:")
+                    if (!podData) {
+                        throw new RuntimeException(msgPodsNotFound)
+                    }
+                    logger.debug("Helm podData for ${podDataContext.join(', ')}: ${podData}")
 
-                rolloutData["${kind}/${name}"] = podData
-                // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                // update this to store multiple pod artifacts.
-                // TODO: Potential conflict if resourceName is duplicated between
-                // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
+                    rolloutData["${kind}/${name}"] = podData
+                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                    //  update this to store multiple pod artifacts.
+                    // TODO: Potential conflict if resourceName is duplicated between
+                    //  Deployment and DeploymentConfig resource.
+                    context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
+                }
             }
-        }
-        rolloutData
+            return rolloutData
     }
 
 }

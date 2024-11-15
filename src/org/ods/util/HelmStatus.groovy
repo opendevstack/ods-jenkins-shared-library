@@ -4,22 +4,21 @@ import com.cloudbees.groovy.cps.NonCPS
 
 class HelmStatus {
 
-    String name
-    String version
-    String namespace
-    String status
-    String description
-    String lastDeployed
+    private String name
+    private String version
+    private String namespace
+    private String status
+    private String description
+    private String lastDeployed
     /**
      * Resources names by kind
      */
-    Map<String, List<String> > resourcesByKind
+    private Map<String, List<String> > resourcesByKind
 
     @NonCPS
-        static HelmStatus fromJsonObject(Object object) {
+    static HelmStatus fromJsonObject(Object object) {
         try {
             def rootObject = ensureMap(object, "")
-
             def infoObject = ensureMap(rootObject.info, "info")
 
             // validation of missing keys or types
@@ -57,14 +56,14 @@ class HelmStatus {
                 }
             }
             def hs = new HelmStatus()
-            hs.with {
-                name = rootObject.name
-                version = rootObject.version as String
-                namespace = rootObject.namespace
-                status = infoObject.status
-                description = infoObject.description
-                lastDeployed = infoObject["last_deployed"]
-            }
+
+            hs.name = rootObject.name
+            hs.version = rootObject.version as String
+            hs.namespace = rootObject.namespace
+            hs.status = infoObject.status
+            hs.description = infoObject.description
+            hs.lastDeployed = infoObject["last_deployed"]
+
             hs.resourcesByKind = resourcesByKind.collectEntries { kind, names ->
                 [ kind, names.collect() ]
             } as Map<String, List<String> >
@@ -84,6 +83,76 @@ class HelmStatus {
     }
 
     @NonCPS
+    String getName() {
+        return name
+    }
+
+    @NonCPS
+    void setName(String name) {
+        this.name = name
+    }
+
+    @NonCPS
+    String getVersion() {
+        return version
+    }
+
+    @NonCPS
+    void setVersion(String version) {
+        this.version = version
+    }
+
+    @NonCPS
+    String getNamespace() {
+        return namespace
+    }
+
+    @NonCPS
+    void setNamespace(String namespace) {
+        this.namespace = namespace
+    }
+
+    @NonCPS
+    String getStatus() {
+        return status
+    }
+
+    @NonCPS
+    void setStatus(String status) {
+        this.status = status
+    }
+
+    @NonCPS
+    String getDescription() {
+        return description
+    }
+
+    @NonCPS
+    void setDescription(String description) {
+        this.description = description
+    }
+
+    @NonCPS
+    String getLastDeployed() {
+        return lastDeployed
+    }
+
+    @NonCPS
+    void setLastDeployed(String lastDeployed) {
+        this.lastDeployed = lastDeployed
+    }
+
+    @NonCPS
+    Map<String, List<String>> getResourcesByKind() {
+        return resourcesByKind
+    }
+
+    @NonCPS
+    void setResourcesByKind(Map<String, List<String>> resourcesByKind) {
+        this.resourcesByKind = resourcesByKind
+    }
+
+    @NonCPS
     Map<String, Object> toMap() {
         def result = [
             name: name,
@@ -98,12 +167,12 @@ class HelmStatus {
     }
 
 
-    @NonCPS
+     @NonCPS
     String toString() {
         return toMap().toMapString()
     }
 
-    @NonCPS
+     @NonCPS
     private static Tuple2<String, String> extractResource(
         resourceJsonObject, String context) {
         def resourceObject = ensureMap(resourceJsonObject, context)

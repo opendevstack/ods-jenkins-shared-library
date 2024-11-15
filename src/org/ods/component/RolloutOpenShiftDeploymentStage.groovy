@@ -2,9 +2,10 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
+import org.ods.util.PipelineSteps
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -123,13 +124,13 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // (1) We have an openshiftDir
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
-            deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new TailorDeploymentStrategy(new PipelineSteps(script), context, config, openShift, jenkins, logger)
             String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
             def msg =steps.libraryResource(resourcePath)
             logger.warn(msg)
         }
         if (isHelmDeployment) {
-            deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new HelmDeploymentStrategy(new PipelineSteps(script), context, config, openShift, jenkins, logger)
         }
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()

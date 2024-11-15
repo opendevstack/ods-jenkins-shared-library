@@ -1,21 +1,20 @@
 package vars
 
 
-import groovy.json.JsonSlurperClassic
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import org.ods.component.Context
 import org.ods.component.IContext
-import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-
 import org.ods.util.HelmStatus
 import org.ods.util.Logger
 import org.ods.util.PodData
+import spock.lang.Shared
+import spock.lang.Unroll
 import util.FixtureHelper
 import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
-import spock.lang.*
 
 class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestBase {
 
@@ -155,17 +154,16 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
   def "run successfully with Helm"() {
     given:
     def c = config + [
-        projectId: 'guardians',
+        projectId: 'myproject',
         componentId: 'core',
-        environment: 'test',
-        targetProject: 'guardians-test',
+        environment: 'dev',
+        targetProject: 'myproject-dev',
         openshiftRolloutTimeoutRetries: 5,
         chartDir: 'chart']
-    def helmJsonText = new FixtureHelper().getResource("helmstatus.json").text
 
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.helmStatus('guardians-test', 'standalone-app') >> HelmStatus.fromJsonObject(new JsonSlurperClassic().parseText(helmJsonText))
+    openShiftService.helmStatus('myproject-dev', 'backend-helm-monorepo') >> HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
     // todo: verify that we did not want to ensure that build images are tagged here.
     // - the org.ods.component.Context.artifactUriStore is not initialized with c when created above!
     // - as a consequence the build artifacts are empty so no retagging happens here.
@@ -205,7 +203,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
         }
     }
     def deploymentInfo = script.call(context, [
-        helmReleaseName: "standalone-app",
+        helmReleaseName: "backend-helm-monorepo",
     ])
 
     then:
@@ -218,7 +216,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     buildArtifacts.size() > 0
     buildArtifacts.deployments['core-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade('guardians-test', 'standalone-app', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'guardians-test', 'imageTag':'cd3e9082', 'global.imageNamespace':'guardians-test', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll

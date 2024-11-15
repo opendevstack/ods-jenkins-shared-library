@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+
 import org.apache.commons.lang.StringUtils
 import org.ods.orchestration.util.HtmlFormatterUtil
 
@@ -22,6 +23,7 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import org.ods.orchestration.util.MROPipelineUtil.PipelineConfig
 
 import java.time.LocalDateTime
 
@@ -83,12 +85,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     ]
 
     static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
+        (PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
+        (PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
+        (PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
+        (PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
+        (PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
+        (PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
@@ -680,11 +682,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def testsOfRepoTypeOdsCode = []
         def testsOfRepoTypeOdsService = []
         testsGroupedByRepoType.each { repoTypes, tests ->
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
+            if (repoTypes.contains(PipelineConfig.REPO_TYPE_ODS_CODE)) {
                 testsOfRepoTypeOdsCode.addAll(tests)
             }
 
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
+            if (repoTypes.contains(PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
                 testsOfRepoTypeOdsService.addAll(tests)
             }
         }
@@ -693,7 +695,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.findAll { it ->
-            MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
+            PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
         }
 
         def data_ = [
@@ -744,11 +746,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def testsOfRepoTypeOdsService = []
         def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
         testsGroupedByRepoType.each { repoTypes, tests ->
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
+            if (repoTypes.contains(PipelineConfig.REPO_TYPE_ODS_CODE)) {
                 testsOfRepoTypeOdsCode.addAll(tests)
             }
 
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
+            if (repoTypes.contains(PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
                 testsOfRepoTypeOdsService.addAll(tests)
             }
         }
@@ -757,7 +759,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.findAll { it ->
-            MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
+            PipelineConfig.INSTALLABLE_REPO_TYPES.contains(it.type)
         }
 
         def data_ = [
@@ -986,7 +988,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
         def modules = componentsMetadata
-            .findAll {  it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+            .findAll {  it.odsRepoType.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
             .collect {  component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
                 component.requirements = component.requirements.findAll { it != null }.collect { r ->
@@ -1090,12 +1092,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
-        def deployments = repo.data.openshift.deployments ?: [:] as Map<String, Map<String, Object>>
-        def data_ = [
+        Map<String, Map<String, Object>> deployments = repo.data.openshift.deployments ?: [:]
+        Map<String, Object> deploymentMean = prepareDeploymentMeanInfo(deployments)
+
+        def documentData = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
             openShiftData: [
-                builds     : repo.data.openshift.builds ?: '',
+                builds     : formatTIRBuilds(repo.data.openshift.builds),
                 deployments: prepareDeploymentInfo(deployments),
             ],
             testResults: [
@@ -1107,95 +1111,38 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
             ],
-            deploymentMean: prepareDeploymentMeanInfo(deployments)
+            deploymentMean: deploymentMean,
+            legacy: deploymentMean?.type == 'tailor'
         ]
 
-        logger.jsonDebug(data_, "createTIR - assembled data:")
-
         // Code review report - in the special case of NO jira ..
-        def codeReviewReport
-        if (this.project.isAssembleMode && !this.jiraUseCase.jira &&
-            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase()) {
-            def currentRepoAsList = [repo]
-            codeReviewReport = obtainCodeReviewReport(currentRepoAsList)
+        def isOdsCodeRepo = repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase()
+
+        List<byte[]> codeReviewReport = (this.project.isAssembleMode && !this.jiraUseCase.jira && isOdsCodeRepo)
+            ? obtainCodeReviewReport([repo])
+            : null
+
+        def modifier = { byte[] document ->
+            codeReviewReport
+                ? this.pdf.merge(this.steps.env.WORKSPACE as String, [document] + codeReviewReport)
+                : document
         }
-
-        def modifier = { document ->
-            if (codeReviewReport) {
-                List documents = [document]
-                documents += codeReviewReport
-                // Merge the current document with the code review report
-                return this.pdf.merge(this.steps.env.WORKSPACE, documents)
-            }
-            return document
-        }
-
-        // This will alter the data_ map, due to documentData being a reference to data_, not a deep copy
-        def documentData = data_
-
-        formatDocumentTIRData(documentData)
 
         return this.createDocument(documentType, repo, documentData, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
-    }
-
-    private def formatDocumentTIRData(Map data) {
-        if (data.openShiftData?.builds) {
-            formatTIRBuilds(data)
-        }
-
-        if (data.deployment?.mean?.type == "helm") {
-            formatTIRHelmDeployment(data)
-        }
-    }
-
-    private def formatTIRBuilds(Map data) {
-        def builds = data.openShiftData.builds as Map
-
-        def capitalizeKey = { entry ->
-            [(StringUtils.capitalize(entry.key)): entry.value ]
-        }
-
-        def formattedBuilds = builds.collectEntries { res, resValue ->
-            def newResValue = resValue.collectEntries { capitalizeKey(it) }
-
-            [(res): newResValue]
-        }
-
-        data.openShiftData.builds = formattedBuilds
-    }
-
-    private def formatTIRHelmDeployment(Map data) {
-        // Move values to its final place and format them accordingly
-        def mean = data.deployment.mean
-        def status = data.deployment.status
-
-        mean.namespace = status?.namespace ?: "None"
-
-        mean.selector = mean.selector.replaceAll("=", ": ")
-        mean.helmDefaultFlags = mean.helmDefaultFlags.join(" ") ?: 'None'
-        mean.helmAdditionalFlags = mean.helmAdditionalFlags.join(" ") ?: 'None'
-        mean.helmValues = HtmlFormatterUtil.toUl(mean.helmValues as List, 'None')
-        mean.helmValuesFiles = HtmlFormatterUtil.toUl(mean.helmValuesFiles as List, 'None')
-        mean.helmEnvBasedValuesFiles = HtmlFormatterUtil.toUl(mean.helmEnvBasedValuesFiles as List, 'None')
-
-        status.deployStatus = (status.status == "deployed") ? "Successfully deployed" : status.status
-        status?.resources = HtmlFormatterUtil.toUl(status.resourcesByKind as Map, 'None')
-
-        // These fields are not needed anymore due to their values
-        // being moved to their final place
-        status?.remove("namespace")
-        status?.remove("status")
-        status?.remove("resourcesByKind")
     }
 
     /*
      * Retrieves the deployment mean and fills empty values with proper defaults
      */
-    @NonCPS
-    private static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments) {
-        def deploymentMean =
+    protected static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments) {
+        Map<String, Object> deploymentMean =
             deployments.find { it.key.endsWith('-deploymentMean') }.value
-        return setEmptyValuesDefaults(deploymentMean)
+
+        if(deploymentMean.type == 'tailor') {
+            return formatTIRTailorDeploymentMean(deploymentMean)
+        }
+
+        return formatTIRHelmDeploymentMean(deploymentMean)
     }
 
     /**
@@ -1206,42 +1153,64 @@ class LeVADocumentUseCase extends DocGenUseCase {
      *
      * @return A Map with all the deployments.
      */
-    @NonCPS
     protected static Map<String, Map<String, Object>> prepareDeploymentInfo(Map<String, Map<String, Object>> deployments) {
-        Map<String, Map<String, Object>> deploymentsForTir = [:]
-        deployments.each { String deploymentName, Map<String, Object> deployment ->
-            if (!deploymentName.endsWith('-deploymentMean')) {
+        return deployments
+            .findAll { ! it.key.endsWith('-deploymentMean') }
+            .collectEntries { String deploymentName, Map<String, Object> deployment ->
                 def filteredFields = deployment.findAll { k, v -> k != 'podName' }
-                deploymentsForTir.put(deploymentName, filteredFields)
-            }
-        }
-        return deploymentsForTir
+                return [(deploymentName): filteredFields]
+            } as Map<String, Map<String, Object>>
     }
 
-    @NonCPS
-    private static Map<String, Object> setEmptyValuesDefaults(Map<String, Object> deployment) {
-        def defaultValues = [
-            helmAdditionalFlags    : 'None',
-            helmEnvBasedValuesFiles: 'None',
-            helmValues             : 'None',
-        ]
-        if (deployment?.type == 'tailor') {
-            defaultValues = [
-                tailorParamFile: 'None',
-                tailorParams   : 'None',
-                tailorPreserve : 'No extra resources specified to be preserved'
-            ]
+    private static Map<String, Map<String, Object>> formatTIRBuilds(Map<String, Map<String, Object>> builds) {
+
+        if (!builds) {
+            return [:] as Map<String, Map<String, Object>>
         }
-        def newDeployment = deployment.collectEntries { k, v ->
-            if (!v) {
-                def defaultValue = defaultValues[k]
-                if (defaultValue) {
-                    return [(k): defaultValue]
-                }
-            }
-            return [(k): v]
+
+        return builds.collectEntries { String buildKey, Map<String, Object> build ->
+            Map<String, Object> formattedBuild = build
+                .collectEntries { String key, Object value -> [(StringUtils.capitalize(key)): value] }
+            return [(buildKey): formattedBuild]
+        } as Map<String, Map<String, Object>>
+    }
+
+    protected static Map<String, Object> formatTIRHelmDeploymentMean(Map<String, Object> mean) {
+        Map<String, Object> formattedMean = [:]
+
+        formattedMean.namespace = mean.namespace ?: 'None'
+        formattedMean.type = mean.type
+        formattedMean.descriptorPath = mean.chartDir ?: '.'
+        formattedMean.defaultCmdLineArgs = mean.helmDefaultFlags.join(' ') ?: 'None'
+        formattedMean.additionalCmdLineArgs = mean.helmAdditionalFlags.join(' ') ?: 'None'
+        formattedMean.configParams = HtmlFormatterUtil.toUl(mean.helmValues as Map, 'None')
+        formattedMean.configFiles = HtmlFormatterUtil.toUl(mean.helmValuesFiles as List, 'None')
+        formattedMean.envConfigFiles = HtmlFormatterUtil.toUl(mean.helmEnvBasedValuesFiles as List, 'None')
+
+        Map<String, Object> formattedStatus = [:]
+
+        formattedStatus.deployStatus = (mean.helmStatus.status == "deployed")
+            ? "Successfully deployed"
+            : mean.helmStatus.status
+        formattedStatus.resultMessage = mean.helmStatus.description
+        formattedStatus.lastDeployed = mean.helmStatus.lastDeployed
+        formattedStatus.resources = HtmlFormatterUtil.toUl(mean.helmStatus.resourcesByKind as Map, 'None')
+
+        formattedMean.deploymentStatus = formattedStatus
+
+        return formattedMean
+    }
+
+    protected static Map<String, Object> formatTIRTailorDeploymentMean(Map<String, Object> mean) {
+        Map<String, String> defaultValues = [
+            tailorParamFile: 'None',
+            tailorParams   : 'None',
+            tailorPreserve : 'No extra resources specified to be preserved'
+        ].withDefault {'N/A'}
+
+        return mean.collectEntries { k, v ->
+            [(k): v ?: defaultValues[k]]
         } as Map<String, Object>
-        return newDeployment
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {
@@ -1343,7 +1312,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def suffix = ""
         // compute suffix based on repository type
         if (repo != null) {
-            if (repo.type.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+            if (repo.type.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_INFRA) {
                 if (documentType == DocumentType.TIR as String) {
                     suffix += "-infra"
                 }
@@ -1594,13 +1563,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
                     componentType     : INTERNAL_TO_EXT_COMPONENT_TYPES.get(repo_.type?.toLowerCase()),
-                    doInstall         : MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo_.type),
+                    doInstall         : PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo_.type),
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : normComponentName ?: metadata.name,
                     references        : metadata.references ?: 'N/A',
                     supplier          : metadata.supplier,
-                    version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
+                    version           : (repo_.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) ?
                         this.project.buildParams.version :
                         metadata.version,
                     requirements      : component.getResolvedSystemRequirements(),
