@@ -4,7 +4,10 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
-import org.ods.util.*
+import org.ods.util.HelmStatus
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PodData
 
 class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
@@ -15,7 +18,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final ILogger logger
 
     // assigned in constructor
-    private IPipelineSteps steps
+    private final IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
@@ -133,7 +136,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 def mergedHelmValuesFiles = []
 
                 options.helmEnvBasedValuesFiles = options.helmEnvBasedValuesFiles.collect {
-                    it.replace('.env.',".${context.environment}.")
+                    it.replace('.env.', ".${context.environment}.")
                 }
 
                 mergedHelmValuesFiles.addAll(options.helmValuesFiles)
@@ -161,54 +164,54 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, List<PodData>> rolloutData = [:]
 
         Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
-                .findAll { kind, _ -> kind in DEPLOYMENT_KINDS }
+                .findAll { kind, res -> kind in DEPLOYMENT_KINDS }
 
         deploymentKinds.each { kind, names ->
-                names.each { name ->
-                    context.addDeploymentToArtifactURIs("${name}-deploymentMean",
-                        [
-                            type: 'helm',
-                            selector: options.selector,
-                            namespace: context.targetProject,
-                            chartDir: options.chartDir,
-                            helmReleaseName: options.helmReleaseName,
-                            helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
-                            helmValuesFiles: options.helmValuesFiles,
-                            helmValues: options.helmValues,
-                            helmDefaultFlags: options.helmDefaultFlags,
-                            helmAdditionalFlags: options.helmAdditionalFlags,
-                            helmStatus: helmStatus.toMap(),
-                        ]
-                    )
-                    def podDataContext = [
-                        "targetProject=${context.targetProject}",
-                        "selector=${options.selector}",
-                        "name=${name}",
+            names.each { name ->
+                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
+                    [
+                        type: 'helm',
+                        selector: options.selector,
+                        namespace: context.targetProject,
+                        chartDir: options.chartDir,
+                        helmReleaseName: options.helmReleaseName,
+                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+                        helmValuesFiles: options.helmValuesFiles,
+                        helmValues: options.helmValues,
+                        helmDefaultFlags: options.helmDefaultFlags,
+                        helmAdditionalFlags: options.helmAdditionalFlags,
+                        helmStatus: helmStatus.toMap(),
                     ]
-                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-                    List<PodData> podData = null
-                    for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                        podData = openShift.checkForPodData(context.targetProject, options.selector, name)
-                        if (podData) {
-                            break
-                        }
-                        steps.echo("${msgPodsNotFound} - waiting")
-                        steps.sleep(12)
+                )
+                def podDataContext = [
+                    "targetProject=${context.targetProject}",
+                    "selector=${options.selector}",
+                    "name=${name}",
+                ]
+                def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                List<PodData> podData = null
+                for (def i = 0; i < options.deployTimeoutRetries; i++) {
+                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                    if (podData) {
+                        break
                     }
-                    if (!podData) {
-                        throw new RuntimeException(msgPodsNotFound)
-                    }
-                    logger.debug("Helm podData for ${podDataContext.join(', ')}: ${podData}")
-
-                    rolloutData["${kind}/${name}"] = podData
-                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                    //  update this to store multiple pod artifacts.
-                    // TODO: Potential conflict if resourceName is duplicated between
-                    //  Deployment and DeploymentConfig resource.
-                    context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
+                    steps.echo("${msgPodsNotFound} - waiting")
+                    steps.sleep(12)
                 }
+                if (!podData) {
+                    throw new RuntimeException(msgPodsNotFound)
+                }
+                logger.debug("Helm podData for ${podDataContext.join(', ')}: ${podData}")
+
+                rolloutData["${kind}/${name}"] = podData
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                //  update this to store multiple pod artifacts.
+                // TODO: Potential conflict if resourceName is duplicated between
+                //  Deployment and DeploymentConfig resource.
+                context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
             }
-            return rolloutData
+        }
+        return rolloutData
     }
 
 }

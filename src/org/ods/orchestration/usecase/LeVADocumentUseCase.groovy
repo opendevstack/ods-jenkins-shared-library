@@ -1,6 +1,5 @@
 package org.ods.orchestration.usecase
 
-
 import org.apache.commons.lang.StringUtils
 import org.ods.orchestration.util.HtmlFormatterUtil
 
@@ -1043,13 +1042,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             //Add break space in url in manufacturer
             def p = ~'https?://\\S*'
             def m = it.metadata.supplier =~ p
-            StringBuffer sb = new StringBuffer();
+            StringBuffer sb = new StringBuffer()
             while (m.find()) {
-                String url = m.group();
+                String url = m.group()
                 url = url.replaceAll('/+', '$0\u200B')
-                m.appendReplacement(sb, url);
+                m.appendReplacement(sb, url)
             }
-            m.appendTail(sb);
+            m.appendTail(sb)
             clone.printsupplier = sb.toString()
 
             return clone
@@ -1138,7 +1137,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         Map<String, Object> deploymentMean =
             deployments.find { it.key.endsWith('-deploymentMean') }.value
 
-        if(deploymentMean.type == 'tailor') {
+        if (deploymentMean.type == 'tailor') {
             return formatTIRTailorDeploymentMean(deploymentMean)
         }
 
@@ -1163,9 +1162,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private static Map<String, Map<String, Object>> formatTIRBuilds(Map<String, Map<String, Object>> builds) {
-
         if (!builds) {
-            return [:] as Map<String, Map<String, Object>>
+            return [:]
         }
 
         return builds.collectEntries { String buildKey, Map<String, Object> build ->
@@ -1206,7 +1204,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             tailorParamFile: 'None',
             tailorParams   : 'None',
             tailorPreserve : 'No extra resources specified to be preserved'
-        ].withDefault {'N/A'}
+        ].withDefault { 'N/A' }
 
         return mean.collectEntries { k, v ->
             [(k): v ?: defaultValues[k]]
@@ -1596,7 +1594,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 id: it.id,
                 description: it.metadata?.description,
-                tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
+                tests: componentTestMapping[it.id] ? componentTestMapping[it.id].join(", ") : "None defined"
             ]
         }
     }

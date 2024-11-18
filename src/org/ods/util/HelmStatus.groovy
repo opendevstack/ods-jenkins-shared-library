@@ -166,7 +166,6 @@ class HelmStatus {
         return result
     }
 
-
     @NonCPS
     String toString() {
         return toMap().toMapString()
@@ -220,7 +219,6 @@ class HelmStatus {
         }
         return obj as List
     }
-
 
     @NonCPS
     private static Tuple2<List<String>, List<String>> collectMissingStringAttributes(

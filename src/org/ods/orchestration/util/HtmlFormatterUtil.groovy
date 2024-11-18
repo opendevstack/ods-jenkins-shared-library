@@ -17,7 +17,6 @@ class HtmlFormatterUtil {
     }
 
     private static String itemsUl(items, String emptyDefault, String cssClass, Closure formatItem) {
-
         if (!items) {
             return emptyDefault
         }
@@ -26,4 +25,5 @@ class HtmlFormatterUtil {
 
         return "<ul class='${cssClass}'>${body}</ul>"
     }
+
 }

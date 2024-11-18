@@ -17,7 +17,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     private final ILogger logger
 
     // assigned in constructor
-    private IPipelineSteps steps
+    private final IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
