@@ -1,8 +1,5 @@
 package org.ods.util
 
-
-import groovy.json.JsonOutput
-
 class Logger implements ILogger, Serializable {
 
     private final Object script

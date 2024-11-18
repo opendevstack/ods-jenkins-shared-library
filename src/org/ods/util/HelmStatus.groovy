@@ -167,12 +167,12 @@ class HelmStatus {
     }
 
 
-     @NonCPS
+    @NonCPS
     String toString() {
         return toMap().toMapString()
     }
 
-     @NonCPS
+    @NonCPS
     private static Tuple2<String, String> extractResource(
         resourceJsonObject, String context) {
         def resourceObject = ensureMap(resourceJsonObject, context)
