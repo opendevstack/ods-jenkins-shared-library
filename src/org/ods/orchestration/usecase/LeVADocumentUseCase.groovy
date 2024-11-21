@@ -1074,6 +1074,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data) {
         logger.debug("createTIR - repo:${repo}, data:${data}")
 
+        // TODO Determine where to get the target environment in a straightforward way
+        def targetEnvironment = Project.getConcreteEnvironment(
+            project.buildParams.targetEnvironment,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+
         def documentType = DocumentType.TIR as String
 
         def installationTestData = data?.tests?.installation
@@ -1092,7 +1099,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
         Map<String, Map<String, Object>> deployments = repo.data.openshift.deployments ?: [:]
-        Map<String, Object> deploymentMean = prepareDeploymentMeanInfo(deployments)
+        Map<String, Object> deploymentMean = prepareDeploymentMeanInfo(deployments, targetEnvironment)
 
         def documentData = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1133,7 +1140,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     /*
      * Retrieves the deployment mean and fills empty values with proper defaults
      */
-    protected static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments) {
+    protected static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments, String targetEnvironment) {
         Map<String, Object> deploymentMean =
             deployments.find { it.key.endsWith('-deploymentMean') }.value
 
@@ -1141,7 +1148,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return formatTIRTailorDeploymentMean(deploymentMean)
         }
 
-        return formatTIRHelmDeploymentMean(deploymentMean)
+        return formatTIRHelmDeploymentMean(deploymentMean, targetEnvironment)
     }
 
     /**
@@ -1173,8 +1180,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         } as Map<String, Map<String, Object>>
     }
 
-    protected static Map<String, Object> formatTIRHelmDeploymentMean(Map<String, Object> mean) {
+    protected static Map<String, Object> formatTIRHelmDeploymentMean(Map<String, Object> mean, String targetEnvironment) {
         Map<String, Object> formattedMean = [:]
+
+        def envConfigFiles = mean.helmEnvBasedValuesFiles?.collect{ filenamePattern ->
+            filenamePattern.replace('.env.', ".${targetEnvironment}.")
+        }
 
         formattedMean.namespace = mean.namespace ?: 'None'
         formattedMean.type = mean.type
@@ -1183,7 +1194,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         formattedMean.additionalCmdLineArgs = mean.helmAdditionalFlags.join(' ') ?: 'None'
         formattedMean.configParams = HtmlFormatterUtil.toUl(mean.helmValues as Map, 'None')
         formattedMean.configFiles = HtmlFormatterUtil.toUl(mean.helmValuesFiles as List, 'None')
-        formattedMean.envConfigFiles = HtmlFormatterUtil.toUl(mean.helmEnvBasedValuesFiles as List, 'None')
+        formattedMean.envConfigFiles = HtmlFormatterUtil.toUl(envConfigFiles as List, 'None')
 
         Map<String, Object> formattedStatus = [:]
 

@@ -15,9 +15,9 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
+    private final IPipelineSteps steps
 
     // assigned in constructor
-    private final IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])

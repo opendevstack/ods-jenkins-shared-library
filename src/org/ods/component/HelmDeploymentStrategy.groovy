@@ -16,9 +16,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
-
+    private IPipelineSteps steps
     // assigned in constructor
-    private final IPipelineSteps steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
@@ -135,12 +134,12 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
 
-                options.helmEnvBasedValuesFiles = options.helmEnvBasedValuesFiles.collect {
-                    it.replace('.env.', ".${context.environment}.")
+                def  envConfigFiles = options.helmEnvBasedValuesFiles.collect {filenamePattern ->
+                    filenamePattern.replace('.env.', ".${context.environment}.")
                 }
 
                 mergedHelmValuesFiles.addAll(options.helmValuesFiles)
-                mergedHelmValuesFiles.addAll(options.helmEnvBasedValuesFiles)
+                mergedHelmValuesFiles.addAll(envConfigFiles)
 
                 openShift.helmUpgrade(
                     targetProject,
@@ -155,6 +154,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
     }
 
+    // rollout returns a map like this:
+    // [
+    //    'DeploymentConfig/foo': [[podName: 'foo-a', ...], [podName: 'foo-b', ...]],
+    //    'Deployment/bar': [[podName: 'bar-a', ...]]
+    // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
         HelmStatus helmStatus

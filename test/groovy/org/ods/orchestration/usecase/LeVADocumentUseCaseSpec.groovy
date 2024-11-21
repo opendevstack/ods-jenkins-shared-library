@@ -1299,7 +1299,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             'additionalCmdLineArgs': '--additional-flag-1 --additional-flag-2',
             'configParams': '''<ul class='inner-ul'><li>registry: image-registry.openshift.svc:1000</li><li>componentId: backend-helm-monorepo</li></ul>''',
             'configFiles': '''<ul class='inner-ul'><li>values.yaml</li></ul>''',
-            'envConfigFiles': '''<ul class='inner-ul'><li>values1.env.yaml</li><li>values2.env.yaml</li></ul>''',
+            'envConfigFiles': '''<ul class='inner-ul'><li>values1.dev.yaml</li><li>values2.dev.yaml</li></ul>''',
             'deploymentStatus':  [
                 'deployStatus': 'Successfully deployed',
                 'resultMessage': 'Upgrade complete',
@@ -1330,7 +1330,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         when:
-        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments)
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
         def deploymentInfo = usecase.prepareDeploymentInfo(deployments)
 
         then:
@@ -1355,7 +1355,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         deploymentMean.helmStatus.resourcesByKind = [:]
 
         when:
-        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments)
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
 
         then:
         deploymentMeanInfo.namespace == 'None'
@@ -1400,7 +1400,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         when:
-        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments)
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
         def deploymentInfo = usecase.prepareDeploymentInfo(deployments)
 
         then:
@@ -1423,7 +1423,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         deploymentMean.tailorSelectors = []
 
         when:
-        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments)
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
 
         then:
         deploymentMeanInfo.tailorParamFile == 'None'
