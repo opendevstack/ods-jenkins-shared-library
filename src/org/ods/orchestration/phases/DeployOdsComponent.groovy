@@ -40,6 +40,9 @@ class DeployOdsComponent {
 
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
+                // FIXME This is not correct, when deploying on test and prod envs, the deployment descriptor
+                //  read from file contains deploymentMean.namespace=xxx-dev, which doesn't match the target namespace,
+                //  which should end in either -test or -prod
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
                 logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
             }
@@ -56,6 +59,7 @@ class DeployOdsComponent {
                     Map deploymentMean = deployment.deploymentMean
                     logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
                     deploymentMean['repoId'] = repo.id
+                    deploymentMean['namespace'] = project.targetProject
 
                     applyTemplates(openShiftDir, deploymentMean)
 

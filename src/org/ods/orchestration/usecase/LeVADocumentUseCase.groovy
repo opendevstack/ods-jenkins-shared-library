@@ -1099,6 +1099,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
         Map<String, Map<String, Object>> deployments = repo.data.openshift.deployments ?: [:]
+
         Map<String, Object> deploymentMean = prepareDeploymentMeanInfo(deployments, targetEnvironment)
 
         def documentData = [
@@ -1187,13 +1188,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
             filenamePattern.replace('.env.', ".${targetEnvironment}.")
         }
 
+        // Global config files are those that are not environment specific
+        def configFiles = mean.helmValuesFiles?.findAll { !envConfigFiles.contains(it) }
+
         formattedMean.namespace = mean.namespace ?: 'None'
         formattedMean.type = mean.type
         formattedMean.descriptorPath = mean.chartDir ?: '.'
         formattedMean.defaultCmdLineArgs = mean.helmDefaultFlags.join(' ') ?: 'None'
         formattedMean.additionalCmdLineArgs = mean.helmAdditionalFlags.join(' ') ?: 'None'
         formattedMean.configParams = HtmlFormatterUtil.toUl(mean.helmValues as Map, 'None')
-        formattedMean.configFiles = HtmlFormatterUtil.toUl(mean.helmValuesFiles as List, 'None')
+        formattedMean.configFiles = HtmlFormatterUtil.toUl(configFiles as List, 'None')
         formattedMean.envConfigFiles = HtmlFormatterUtil.toUl(envConfigFiles as List, 'None')
 
         Map<String, Object> formattedStatus = [:]
