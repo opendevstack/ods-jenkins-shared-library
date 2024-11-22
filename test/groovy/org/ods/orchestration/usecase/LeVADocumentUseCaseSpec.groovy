@@ -53,8 +53,6 @@ import static util.FixtureHelper.createSockShopJUnitXmlTestResults
 @Slf4j
 class LeVADocumentUseCaseSpec extends SpecHelper {
 
-    private static final String FIXTURES_PATH = "org/ods/component/LeVADocumentUseCase"
-
     @Rule
     public TemporaryFolder tempFolder
 

@@ -2319,7 +2319,6 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1.0'
         def secondVersion = '2.0'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2345,23 +2344,23 @@ class ProjectSpec extends SpecHelper {
         ts1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
         rsk1 << [requirements: [req1.key], mitigations: [mit1.key]]
         mit1 << [requirements: [req1.key], risks: [rsk1.key]]
-        req2 << [predecessors: [req1.key], tests: [tst4.key]]
-        tst3 << [predecessors: [tst1.key]]
+        req2 << [predecessors: [req1.key], tests: [tst2.key,tst3.key,tst4.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        tst3 << [predecessors: [tst1.key], requirements: [req2.key], techSpecs: [ts2.key]]
         tst4 << [requirements: [req2.key]]
-        rsk2 << [predecessors: [rsk1.key], requirements: [req1.key]]
-        mit2 << [predecessors: [mit1.key], requirements: [req1.key], risks: [rsk1.key]]
-        ts2 << [predecessors: [ts1.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req2.key], mitigations: [mit2.key]]
+        mit2 << [predecessors: [mit1.key], requirements: [req2.key], risks: [rsk2.key]]
+        ts2 << [predecessors: [ts1.key], requirements: [req2.key], tests: [tst2.key, tst3.key]]
 
-        def req2Updated = req2.clone() + [tests: [tst4.key, tst3.key, tst2.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        def req2Updated = req2.clone()
         req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
-        def tst2Updated = tst2.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
-        def tst3Updated = tst3.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        def tst2Updated = tst2.clone()
+        def tst3Updated = tst3.clone()
         tst3Updated << [expandedPredecessors: [[key: tst1.key, versions: tst1.versions]]]
-        def rsk2Updated = rsk2.clone() + [requirements: [req2.key], mitigations: [mit2.key]]
+        def rsk2Updated = rsk2.clone()
         rsk2Updated << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
-        def mit2Updated = mit2.clone() + [requirements: [req2.key], risks: [rsk2.key]]
+        def mit2Updated = mit2.clone()
         mit2Updated << [expandedPredecessors: [[key: mit1.key, versions: mit1.versions]]]
-        def ts2Updated = ts2.clone() + [requirements: [req2.key], tests: [tst3.key, tst2.key]]
+        def ts2Updated = ts2.clone()
         ts2Updated  << [expandedPredecessors: [[key: ts1.key, versions: ts1.versions]]]
 
         def storedData = [

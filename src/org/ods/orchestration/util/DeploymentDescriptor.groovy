@@ -17,19 +17,6 @@ class DeploymentDescriptor {
         this.createdByBuild = createdByBuild ?: ''
     }
 
-    /**
-     * This function takes a map of deployments and returns a stripped down version of it.
-     *
-     * deploymentMean information is moved from a key of the form '${resource-name}-deploymentMean' into the Map for
-     * key '${resource-name}' under key 'deploymentMean'.
-     *
-     * For each deployment, it processes its containers and modifies the image name based on certain conditions.
-     * If the first part of the image name is in the EXCLUDE_NAMESPACES_FROM_IMPORT list, it keeps the full image name.
-     * Otherwise, it only keeps the last part of the image name.
-     *
-     * @param deployments The original deployments map whose values are Maps themselves
-     * @return A new stripped down deployments map.
-     */
     static Map stripDeployments(Map deployments) {
         def strippedDownDeployments = [:]
         def deploymentMeanPostfix = 'deploymentMean'

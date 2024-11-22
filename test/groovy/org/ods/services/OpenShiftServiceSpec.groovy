@@ -189,10 +189,6 @@ class OpenShiftServiceSpec extends SpecHelper {
         then:
         results.size() == expected.size()
         for (int i = 0; i < results.size(); i++) {
-            // Note: podIp, podNode and podStartupTimeStamp  are no longer in type PodData.
-            // Each result is only a subset of the corresponding expected data.
-            // While it can surpise that the == assertion below would not catch this,
-            // it actually comes in handy so we can leave the original data in place.
             results[i].toMap() == expected[i]
         }
     }
