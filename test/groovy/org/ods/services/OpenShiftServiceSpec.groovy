@@ -270,6 +270,7 @@ class OpenShiftServiceSpec extends SpecHelper {
             'foo',
             'bar',
             ['values.yml', 'values-dev.yml'],
+            [:],
             [imageTag: '6f8db5fb'],
             ['--install', '--atomic'],
             ['--force'],
@@ -278,11 +279,11 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh(
-            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color --three-way-merge --normalize-manifests bar ./',
+            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set-string imageTag=6f8db5fb --no-color --three-way-merge --normalize-manifests bar ./',
             label: 'Show diff explaining what helm upgrade would change for release bar in foo'
         )
         1 * steps.sh(
-            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb bar ./',
+            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set-string imageTag=6f8db5fb bar ./',
             label: 'Upgrade Helm release bar in foo',
             returnStatus: true
         )

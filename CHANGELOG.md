@@ -14,6 +14,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Helm chart validation error if a commit hash starts with 8 or more numbers ([#1179](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1179))
 
 ## [4.6.0] - 2024-10-23
 

@@ -41,6 +41,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                     "helmEnvBasedValuesFiles": [],
                     "helmValuesFiles": ["values.yaml"],
                     "helmValues": [:],
+                    "helmStringValues": [:],
                     "helmDefaultFlags": ["--install", "--atomic"],
                     "helmAdditionalFlags": []
                 ],

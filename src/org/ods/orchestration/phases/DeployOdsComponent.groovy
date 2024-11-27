@@ -224,6 +224,7 @@ class DeployOdsComponent {
                         deploymentMean.helmReleaseName,
                         helmValuesFiles,
                         helmMergedValues,
+                        helmMergedStringValues,
                         deploymentMean.helmDefaultFlags,
                         deploymentMean.helmAdditionalFlags,
                         true)

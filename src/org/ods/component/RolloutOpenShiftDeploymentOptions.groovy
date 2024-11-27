@@ -37,10 +37,21 @@ class RolloutOpenShiftDeploymentOptions extends Options {
     String helmReleaseName
 
     /**
+     * Key/value pairs to pass as values. Only relevant if the directory
+     * referenced by `chartDir` exists.
+     *
+     * See also `helm --set`. Be aware that the resulting data type may vary depending on the input.
+     */
+    Map<String, String> helmValues
+
+    /**
      * Key/value pairs to pass as values (by default, the key `imageTag` is set
      * to the config option `imageTag`). Only relevant if the directory
-     * referenced by `chartDir` exists. */
-    Map<String, String> helmValues
+     * referenced by `chartDir` exists.
+     *
+     * See also `helm --set-string`.
+     */
+    Map<String, String> helmStringValues
 
     /**
      * List of paths to values files (empty by default). Only relevant if the

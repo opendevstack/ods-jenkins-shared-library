@@ -124,6 +124,7 @@ class OpenShiftService {
         String release,
         List<String> valuesFiles,
         Map<String, String> values,
+        Map<String, String> stringValues,
         List<String> defaultFlags,
         List<String> additionalFlags,
         boolean withDiff) {
@@ -131,6 +132,7 @@ class OpenShiftService {
         additionalFlags.collect { upgradeFlags << it }
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
+        stringValues.collect { k, v -> upgradeFlags << "--set-string ${k}=${v}".toString() }
         if (withDiff) {
             def diffFlags = upgradeFlags.findAll { it  }
             diffFlags << '--no-color'
