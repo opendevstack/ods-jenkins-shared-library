@@ -29,6 +29,13 @@ class CopyImageOptions extends Options {
      */
     Boolean verifyTLS
 
+    /**
+     * preserveDigests allows to sync the source and destination image digests
+     *
+     * The default is false, set to true to preserve digests
+     */
+    Boolean preserveDigests
+
     @SuppressWarnings('UnusedPrivateField')
     private String registry
     @SuppressWarnings('UnusedPrivateField')
