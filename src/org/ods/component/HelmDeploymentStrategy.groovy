@@ -163,8 +163,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private Map<String, List<PodData>> getRolloutData(
         HelmStatus helmStatus
     ) {
-        // TODO This is still needed for several reasons, still pending refactoring in order to
-        //  remove the need for pod data
         Map<String, List<PodData>> rolloutData = [:]
 
         Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind

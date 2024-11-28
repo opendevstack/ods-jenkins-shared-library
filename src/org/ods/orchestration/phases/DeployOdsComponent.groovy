@@ -32,7 +32,7 @@ class DeployOdsComponent {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     @SuppressWarnings(['AbcMetric'])
-    public void run(Map repo, String baseDir) {
+    void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
         steps.dir(baseDir) {
@@ -40,11 +40,10 @@ class DeployOdsComponent {
 
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
-                // FIXME This is not correct, when deploying on test and prod envs, the deployment descriptor
-                //  read from file contains deploymentMean.namespace=xxx-dev, which doesn't match the target namespace,
-                //  which should end in either -test or -prod
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
-                logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
+                if (logger.debugMode) {
+                    logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
+                }
             }
             if (!repo.data.openshift.deployments) {
                 repo.data.openshift.deployments = [:]
@@ -57,7 +56,9 @@ class DeployOdsComponent {
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     // read from deploymentdescriptor
                     Map deploymentMean = deployment.deploymentMean
-                    logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
+                    if (logger.debugMode) {
+                        logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
+                    }
                     deploymentMean['repoId'] = repo.id
                     deploymentMean['namespace'] = project.targetProject
 
@@ -83,7 +84,10 @@ class DeployOdsComponent {
                     if (!podData) {
                         throw new RuntimeException(msgPodsNotFound)
                     }
-                    logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
+
+                    if (logger.debugMode) {
+                        logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
+                    }
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -107,12 +111,16 @@ class DeployOdsComponent {
                     }
                 }
 
-                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
+                if (logger.debugMode) {
+                    logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
+                }
 
                 applyTemplates(openShiftDir, deploymentMean)
                 deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
                     Map deploymentMean4Deployment = deployment.deploymentMean
-                    logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean4Deployment}")
+                    if (logger.debugMode) {
+                        logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean4Deployment}")
+                    }
 
                     importImages(deployment, deploymentName, project.sourceProject)
 
@@ -152,7 +160,9 @@ class DeployOdsComponent {
     @TypeChecked(TypeCheckingMode.SKIP)
     private String computeStartDir() {
         List<File> files = steps.findFiles(glob: "**/${DeploymentDescriptor.FILE_NAME}")
-        logger.debug("DeploymentDescriptors: ${files}")
+        if (logger.debugMode) {
+            logger.debug("DeploymentDescriptors: ${files}")
+        }
         // If we find anything but _exactly_ one deployment descriptor, we fail.
         if (!files || files.size() != 1) {
             String resourcePath = 'org/ods/orchestration/phases/DeployOdsComponent.computeStartDir.GString.txt'
@@ -243,7 +253,9 @@ class DeployOdsComponent {
                     def helmStatus = os.helmStatus(project.targetProject, deploymentMean.helmReleaseName)
                     def helmStatusMap = helmStatus.toMap()
                     deploymentMean.helmStatus = helmStatusMap
-                    logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+                    if (logger.debugMode) {
+                        logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+                    }
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->
@@ -266,10 +278,12 @@ class DeployOdsComponent {
         )
         def imageParts = imageRaw.split('/')
         if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
-            logger.debug(
-                "Skipping import of '${imageRaw}', " +
-                "because it is defined as excluded: ${MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT}"
-            )
+            if (logger.debugMode) {
+                logger.debug(
+                    "Skipping import of '${imageRaw}', " +
+                        "because it is defined as excluded: ${MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT}"
+                )
+            }
         } else {
             def imageInfo = imageParts.last().split('@')
             def imageName = imageInfo.first()
@@ -298,7 +312,9 @@ class DeployOdsComponent {
     }
 
     private void verifyImageShas(Map deployment, Map podContainers) {
-        logger.debug("ImageVerification -deployment: ${deployment} -podContainers: ${podContainers}")
+        if (logger.debugMode) {
+            logger.debug("ImageVerification -deployment: ${deployment} -podContainers: ${podContainers}")
+        }
         deployment.containers?.each { String containerName, String imageRaw ->
             if (!os.verifyImageSha(containerName, imageRaw, podContainers[containerName].toString())) {
                 throw new RuntimeException("Error: Image verification for container '${containerName}' failed.")
