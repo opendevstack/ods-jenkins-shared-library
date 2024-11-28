@@ -2,13 +2,12 @@ package util
 
 import groovy.json.JsonSlurperClassic
 import groovy.transform.InheritConstructors
-
-import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
-import org.ods.orchestration.parser.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.parser.JUnitParser
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.util.Project
+import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
@@ -598,6 +597,1573 @@ class FixtureHelper {
                     ]
                 ]
             ]
+        ]
+    }
+
+    static Map createTIRDataHelm() {
+        [
+            'git'                    : [
+                'previousSucessfulCommit': 'b00012345bcdef',
+                'baseTag'                : '',
+                'commit'                 : 'a00012345bcdef',
+                'previousCommit'         : 'b00012345bcdef',
+                'targetTag'              : '',
+                'branch'                 : 'master',
+                'url'                    : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-backend-helm-monorepo.git',
+            ],
+            'previousSucessfulCommit': 'c00012345bcdef',
+            'documents'              : [
+            ],
+            'openshift'              : [
+                'testResults'              : 1,
+                'deployments'              : [
+                    'backend-helm-monorepo-chart-component-deploymentMean': [
+                        'chartDir'               : 'chart',
+                        'helmAdditionalFlags'    : ['--additional-flag-1', '--additional-flag-2'],
+                        'helmEnvBasedValuesFiles': ['values1.env.yaml', 'values2.env.yaml'],
+                        'helmValues'             : [
+                            'registry'   : 'image-registry.openshift.svc:1000',
+                            'componentId': 'backend-helm-monorepo',
+                        ],
+                        'helmDefaultFlags'       : ['--install', '--atomic'],
+                        'namespace'              : 'myodsproject-dev',
+                        'helmReleaseName'        : 'backend-helm-monorepo',
+                        'selector'               : 'app.kubernetes.io/instance=backend-helm-monorepo',
+                        'helmValuesFiles'        : ['values.yaml'],
+                        'type'                   : 'helm',
+                        'helmStatus'             : [
+                            'name'           : 'backend-helm-monorepo',
+                            'namespace'      : 'myodsproject-dev',
+                            'description'    : 'Upgrade complete',
+                            'resourcesByKind': [
+                                'Deployment': ['backend-helm-monorepo-chart-component-a', 'backend-helm-monorepo-chart-component-b'],
+                                'Service'   : ['backend-helm-monorepo-chart'],
+                            ],
+                            'version'        : '14',
+                            'status'         : 'deployed',
+                            'lastDeployed'   : '2024-10-31T11:10:27.478860933Z',
+                        ],
+                    ],
+                    'backend-helm-monorepo-chart-component-b'             : [
+                        'podNamespace'                : 'myodsproject-dev',
+                        'podStatus'                   : 'Running',
+                        'deploymentId'                : 'backend-helm-monorepo-chart-component-b-567ff4f8f6',
+                        'podName'                     : 'backend-helm-monorepo-chart-component-b-567ff4f8f6-kvmqm',
+                        'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                        'containers'                  : [
+                            'chart-component-b': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-b@sha256:10002345abcde',
+                        ],
+                    ],
+                    'backend-helm-monorepo-chart-component-a'             : [
+                        'podNamespace'                : 'myodsproject-dev',
+                        'podStatus'                   : 'Running',
+                        'deploymentId'                : 'backend-helm-monorepo-chart-component-a-5ffd9c7cbd',
+                        'podName'                     : 'backend-helm-monorepo-chart-component-a-5ffd9c7cbd-h4wsb',
+                        'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                        'containers'                  : [
+                            'chart-component-a': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-a@sha256:10002345abcde',
+                        ],
+                    ],
+                ],
+                'testResultsFolder'        : 'build/test-results/test',
+                'xunitTestResultsStashPath': 'test-reports-junit-xml-backend-helm-monorepo-19',
+                'SCRR'                     : 'SCRR-myodsproject-backend-helm-monorepo.docx',
+                'SCRR-MD'                  : 'SCRR-myodsproject-backend-helm-monorepo.md',
+                'builds'                   : [
+                    'backend-helm-monorepo-component-b': [
+                        'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/backend-helm-monorepo-component-b@sha256:10002345abcde',
+                        'buildId': 'backend-helm-monorepo-component-b-26',
+                    ],
+                    'backend-helm-monorepo-component-a': [
+                        'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/backend-helm-monorepo-component-a@sha256:10002345abcde',
+                        'buildId': 'backend-helm-monorepo-component-a-26',
+                    ],
+                ],
+                'CREATED_BY_BUILD'         : 'WIP/19',
+                'sonarqubeScanStashPath'   : 'scrr-report-backend-helm-monorepo-19',
+            ],
+        ]
+    }
+
+    static Map createTIRRepoHelm() {
+        [
+            'include'       : true,
+            'metadata'      : [
+                'supplier'   : 'IT INF IAS',
+                'name'       : 'PostgreSQL',
+                'description': 'A fully functional PostgreSQL Cluster with Patroni',
+                'type'       : 'ods',
+                'version'    : '4.x',
+            ],
+            'data'          : [
+                'git'                    : [
+                    'previousSucessfulCommit': 'b00012345bcdef',
+                    'baseTag'                : '',
+                    'commit'                 : 'a00012345bcdef',
+                    'previousCommit'         : 'b00012345bcdef',
+                    'targetTag'              : '',
+                    'branch'                 : 'master',
+                    'url'                    : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-backend-helm-monorepo.git',
+                ],
+                'previousSucessfulCommit': 'c00012345bcdef',
+                'documents'              : [
+                ],
+                'openshift'              : [
+                    'testResults'              : 1,
+                    'deployments'              : [
+                        'backend-helm-monorepo-chart-component-b-deploymentMean': [
+                            'chartDir'               : 'chart',
+                            'helmAdditionalFlags'    : ['--additional-flag-1', '--additional-flag-2'],
+                            'helmEnvBasedValuesFiles': ['values1.env.yaml', 'values2.env.yaml'],
+                            'helmValues'             : [
+                                'registry'   : 'image-registry.openshift.svc:1000',
+                                'componentId': 'backend-helm-monorepo',
+                            ],
+                            'helmDefaultFlags'       : ['--install', '--atomic'],
+                            'namespace'              : 'myodsproject-dev',
+                            'helmReleaseName'        : 'backend-helm-monorepo',
+                            'selector'               : 'app.kubernetes.io/instance=backend-helm-monorepo',
+                            'helmValuesFiles'        : ['values.yaml'],
+                            'type'                   : 'helm',
+                            'helmStatus'             : [
+                                'name'           : 'backend-helm-monorepo',
+                                'namespace'      : 'myodsproject-dev',
+                                'description'    : 'Upgrade complete',
+                                'resourcesByKind': [
+                                    'Deployment': ['backend-helm-monorepo-chart-component-a', 'backend-helm-monorepo-chart-component-b'],
+                                    'Service'   : ['backend-helm-monorepo-chart'],
+                                ],
+                                'version'        : '14',
+                                'status'         : 'deployed',
+                                'lastDeployed'   : '2024-10-31T11:10:27.478860933Z',
+                            ],
+                        ],
+                        'backend-helm-monorepo-chart-component-b'               : [
+                            'podNamespace'                : 'myodsproject-dev',
+                            'podStatus'                   : 'Running',
+                            'deploymentId'                : 'backend-helm-monorepo-chart-component-b-567ff4f8f6',
+                            'podName'                     : 'backend-helm-monorepo-chart-component-b-567ff4f8f6-kvmqm',
+                            'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                            'containers'                  : [
+                                'chart-component-b': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-b@sha256:10002345abcde',
+                            ],
+                        ],
+                        'backend-helm-monorepo-chart-component-a'               : [
+                            'podNamespace'                : 'myodsproject-dev',
+                            'podStatus'                   : 'Running',
+                            'deploymentId'                : 'backend-helm-monorepo-chart-component-a-5ffd9c7cbd',
+                            'podName'                     : 'backend-helm-monorepo-chart-component-a-5ffd9c7cbd-h4wsb',
+                            'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                            'containers'                  : [
+                                'chart-component-a': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-a@sha256:10002345abcde',
+                            ],
+                        ],
+                    ],
+                    'testResultsFolder'        : 'build/test-results/test',
+                    'xunitTestResultsStashPath': 'test-reports-junit-xml-backend-helm-monorepo-19',
+                    'SCRR'                     : 'SCRR-myodsproject-backend-helm-monorepo.docx',
+                    'SCRR-MD'                  : 'SCRR-myodsproject-backend-helm-monorepo.md',
+                    'builds'                   : [
+                        'backend-helm-monorepo-component-b': [
+                            'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/backend-helm-monorepo-component-b@sha256:10002345abcde',
+                            'buildId': 'backend-helm-monorepo-component-b-26',
+                        ],
+                        'backend-helm-monorepo-component-a': [
+                            'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/backend-helm-monorepo-component-a@sha256:10002345abcde',
+                            'buildId': 'backend-helm-monorepo-component-a-26',
+                        ],
+                    ],
+                    'CREATED_BY_BUILD'         : 'WIP/19',
+                    'sonarqubeScanStashPath'   : 'scrr-report-backend-helm-monorepo-19',
+                ],
+            ],
+            'doInstall'     : true,
+            'pipelineConfig': [
+                'dependencies': [],
+            ],
+            'defaultBranch' : 'master',
+            'id'            : 'backend-helm-monorepo',
+            'type'          : 'ods',
+            'url'           : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-backend-helm-monorepo.git',
+        ]
+    }
+
+    static Map createTIRDataTailor() {
+        [
+            'git'                    : [
+                'previousSucessfulCommit': null,
+                'baseTag'                : '',
+                'commit'                 : 'a00012345bcdef',
+                'previousCommit'         : null,
+                'targetTag'              : '',
+                'branch'                 : 'master',
+                'url'                    : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-flask-backend.git',
+            ],
+            'previousSucessfulCommit': 'c00012345bcdef',
+            'documents'              : [
+            ],
+            'openshift'              : [
+                'testResults'              : 1,
+                'deployments'              : [
+                    'flask-backend'               : [
+                        'podNamespace'                : 'myodsproject-dev',
+                        'podStatus'                   : 'Running',
+                        'deploymentId'                : 'flask-backend-2',
+                        'podName'                     : 'flask-backend-2-plcgr',
+                        'podMetaDataCreationTimestamp': '2024-10-31T11:09:56Z',
+                        'containers'                  : [
+                            'flask-backend': 'image-registry.openshift.svc:1000/myodsproject-dev/flask-backend@sha256:10002345abcde',
+                        ],
+                    ],
+                    'flask-backend-deploymentMean': [
+                        'tailorParamFile': '',
+                        'tailorParams'   : [],
+                        'selector'       : 'app=myodsproject-flask-backend',
+                        'type'           : 'tailor',
+                        'tailorSelectors': [
+                            'selector': 'app=myodsproject-flask-backend',
+                            'exclude' : 'bc,is',
+                        ],
+                        'tailorPreserve' : [],
+                        'tailorVerify'   : true,
+                    ],
+                ],
+                'testResultsFolder'        : 'build/test-results/test',
+                'xunitTestResultsStashPath': 'test-reports-junit-xml-flask-backend-19',
+                'SCRR'                     : 'SCRR-myodsproject-flask-backend.docx',
+                'SCRR-MD'                  : 'SCRR-myodsproject-flask-backend.md',
+                'builds'                   : [
+                    'flask-backend': [
+                        'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/flask-backend@sha256:10002345abcde',
+                        'buildId': 'flask-backend-2',
+                    ],
+                ],
+                'CREATED_BY_BUILD'         : 'WIP/19',
+                'sonarqubeScanStashPath'   : 'scrr-report-flask-backend-19',
+            ],
+        ]
+    }
+
+    static Map createTIRRepoTailor() {
+        [
+            'include'       : true,
+            'metadata'      : [
+                'supplier'   : 'https://www.palletsprojects.com/p/flask/',
+                'name'       : 'Flask',
+                'description': 'Flask is a micro web framework written in Python. Technologies: Flask 3.0.0, Python 3.11',
+                'type'       : 'ods',
+                'version'    : '4.x',
+            ],
+            'data'          : [
+                'git'                    : [
+                    'previousSucessfulCommit': null,
+                    'baseTag'                : '',
+                    'commit'                 : 'a00012345bcdef',
+                    'previousCommit'         : null,
+                    'targetTag'              : '',
+                    'branch'                 : 'master',
+                    'url'                    : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-flask-backend.git',
+                ],
+                'previousSucessfulCommit': 'c00012345bcdef',
+                'documents'              : [
+                ],
+                'openshift'              : [
+                    'testResults'              : 1,
+                    'deployments'              : [
+                        'flask-backend'               : [
+                            'podNamespace'                : 'myodsproject-dev',
+                            'podStatus'                   : 'Running',
+                            'deploymentId'                : 'flask-backend-2',
+                            'podName'                     : 'flask-backend-2-plcgr',
+                            'podMetaDataCreationTimestamp': '2024-10-31T11:09:56Z',
+                            'containers'                  : [
+                                'flask-backend': 'image-registry.openshift.svc:1000/myodsproject-dev/flask-backend@sha256:10002345abcde',
+                            ],
+                        ],
+                        'flask-backend-deploymentMean': [
+                            'tailorParamFile': 'a-param-file.yaml',
+                            'tailorParams'   : ['fake-param1', 'fake-param2'],
+                            'selector'       : 'app=myodsproject-flask-backend',
+                            'type'           : 'tailor',
+                            'tailorSelectors': [
+                                'selector': 'app=myodsproject-flask-backend',
+                                'exclude' : 'bc,is',
+                            ],
+                            'tailorPreserve' : ['fake-preserve1', 'fake-preserve2'],
+                            'tailorVerify'   : true,
+                        ],
+                    ],
+                    'testResultsFolder'        : 'build/test-results/test',
+                    'xunitTestResultsStashPath': 'test-reports-junit-xml-flask-backend-19',
+                    'SCRR'                     : 'SCRR-myodsproject-flask-backend.docx',
+                    'SCRR-MD'                  : 'SCRR-myodsproject-flask-backend.md',
+                    'builds'                   : [
+                        'flask-backend': [
+                            'image'  : 'image-registry.openshift.svc:1000/myodsproject-cd/flask-backend@sha256:10002345abcde',
+                            'buildId': 'flask-backend-2',
+                        ],
+                    ],
+                    'CREATED_BY_BUILD'         : 'WIP/19',
+                    'sonarqubeScanStashPath'   : 'scrr-report-flask-backend-19',
+                ],
+            ],
+            'doInstall'     : true,
+            'pipelineConfig': [
+                'dependencies': [],
+            ],
+            'defaultBranch' : 'master',
+            'id'            : 'flask-backend',
+            'type'          : 'ods',
+            'url'           : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-flask-backend.git',
+        ]
+    }
+
+    static Map createHelmCmdStatusMap() {
+        [
+            'info'     : [
+                'deleted'       : '',
+                'description'   : 'Upgrade complete',
+                'first_deployed': '2022-12-19T09:44:32.164490076Z',
+                'last_deployed' : '2024-03-04T15:21:09.34520527Z',
+                'resources'     : [
+                    'v1/Cluster'     : [[
+                                            'apiVersion': 'postgresql.k8s.k8db.io/v1',
+                                            'kind'      : 'Cluster',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-07-04T13:18:28Z',
+                                                'generation'       : 3,
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'some-cluster',
+                                                    'app.kubernetes.io/version'   : 'aaaabbbbcccc',
+                                                    'helm.sh/chart'               : 'some-cluster-0.1.0_aaaabbbbcccc',
+                                                ],
+                                                'name'             : 'some-cluster',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2880969905',
+                                                'uid'              : '12345678-1234-1234-1234-200000000abcde',
+                                            ],
+                                            'spec'      : [
+                                                'affinity'             : [
+                                                    'podAntiAffinityType': 'preferred',
+                                                ],
+                                                'bootstrap'            : [
+                                                    'initdb': [
+                                                        'database'     : 'app',
+                                                        'encoding'     : 'UTF8',
+                                                        'localeCType'  : 'C',
+                                                        'localeCollate': 'C',
+                                                        'owner'        : 'app',
+                                                    ],
+                                                ],
+                                                'enableSuperuserAccess': true,
+                                                'failoverDelay'        : 0,
+                                                'imageName'            : 'quay.io/k8db/postgresql:x.x',
+                                                'instances'            : 1,
+                                                'logLevel'             : 'info',
+                                                'maxSyncReplicas'      : 0,
+                                                'minSyncReplicas'      : 0,
+                                                'monitoring'           : [
+                                                    'customQueriesConfigMap': [[
+                                                                                   'key' : 'queries',
+                                                                                   'name': 'postgresql-operator-default-monitoring',
+                                                                               ]],
+                                                    'disableDefaultQueries' : false,
+                                                    'enablePodMonitor'      : false,
+                                                ],
+                                                'postgresGID'          : 26,
+                                                'postgresUID'          : 26,
+                                                'postgresql'           : [
+                                                    'parameters'                   : [
+                                                        'archive_mode'              : 'on',
+                                                        'archive_timeout'           : '5min',
+                                                        'dynamic_shared_memory_type': 'posix',
+                                                        'log_destination'           : 'csvlog',
+                                                        'log_directory'             : '/controller/log',
+                                                        'log_filename'              : 'postgres',
+                                                        'log_rotation_age'          : '0',
+                                                        'log_rotation_size'         : '0',
+                                                        'log_truncate_on_rotation'  : 'false',
+                                                        'logging_collector'         : 'on',
+                                                        'max_parallel_workers'      : '32',
+                                                        'max_replication_slots'     : '32',
+                                                        'max_worker_processes'      : '32',
+                                                        'shared_memory_type'        : 'mmap',
+                                                        'shared_preload_libraries'  : '',
+                                                        'ssl_max_protocol_version'  : 'TLSvx.x',
+                                                        'ssl_min_protocol_version'  : 'TLSvx.x',
+                                                        'wal_keep_size'             : '512MB',
+                                                        'wal_receiver_timeout'      : '5s',
+                                                        'wal_sender_timeout'        : '5s',
+                                                    ],
+                                                    'syncReplicaElectionConstraint': [
+                                                        'enabled': false,
+                                                    ],
+                                                ],
+                                                'primaryUpdateMethod'  : 'restart',
+                                                'primaryUpdateStrategy': 'unsupervised',
+                                                'replicationSlots'     : [
+                                                    'highAvailability': [
+                                                        'enabled'   : true,
+                                                        'slotPrefix': '_cnp_',
+                                                    ],
+                                                    'updateInterval'  : 30,
+                                                ],
+                                                'resources'            : [],
+                                                'smartShutdownTimeout' : 180,
+                                                'startDelay'           : 30,
+                                                'stopDelay'            : 30,
+                                                'storage'              : [
+                                                    'resizeInUseVolumes': true,
+                                                    'size'              : '20Gi',
+                                                ],
+                                                'switchoverDelay'      : 40000000,
+                                            ],
+                                            'status'    : [
+                                                'certificates'                     : [
+                                                    'clientCASecret'      : 'some-cluster-ca',
+                                                    'expirations'         : [
+                                                        'some-cluster-ca'         : '2024-08-29 14:02:22 +0000 UTC',
+                                                        'some-cluster-replication': '2024-08-29 14:02:22 +0000 UTC',
+                                                        'some-cluster-server'     : '2024-08-29 14:02:22 +0000 UTC',
+                                                    ],
+                                                    'replicationTLSSecret': 'some-cluster-replication',
+                                                    'serverAltDNSNames'   : ['some-cluster-rw', 'some-cluster-rw.myproject-test', 'some-cluster-rw.myproject-test.svc', 'some-cluster-r', 'some-cluster-r.myproject-test', 'some-cluster-r.myproject-test.svc', 'some-cluster-ro', 'some-cluster-ro.myproject-test', 'some-cluster-ro.myproject-test.svc'],
+                                                    'serverCASecret'      : 'some-cluster-ca',
+                                                    'serverTLSSecret'     : 'some-cluster-server',
+                                                ],
+                                                'cloudNativePostgresqlCommitHash'  : '900010000',
+                                                'cloudNativePostgresqlOperatorHash': '12345abcdef',
+                                                'conditions'                       : [[
+                                                                                          'lastTransitionTime': '2024-05-25T14:42:08Z',
+                                                                                          'message'           : 'Cluster is Ready',
+                                                                                          'reason'            : 'ClusterIsReady',
+                                                                                          'status'            : 'True',
+                                                                                          'type'              : 'Ready',
+                                                                                      ], [
+                                                                                          'lastTransitionTime': '2023-07-04T13:19:38Z',
+                                                                                          'message'           : 'vlr addon is disabled',
+                                                                                          'reason'            : 'Disabled',
+                                                                                          'status'            : 'False',
+                                                                                          'type'              : 'k8s.k8db.io/vlr',
+                                                                                      ], [
+                                                                                          'lastTransitionTime': '2023-07-04T13:19:38Z',
+                                                                                          'message'           : 'external-backup-adapter addon is disabled',
+                                                                                          'reason'            : 'Disabled',
+                                                                                          'status'            : 'False',
+                                                                                          'type'              : 'k8s.k8db.io/extBackpAdapt',
+                                                                                      ], [
+                                                                                          'lastTransitionTime': '2023-07-04T13:19:38Z',
+                                                                                          'message'           : 'external-backup-adapter-cluster addon is disabled',
+                                                                                          'reason'            : 'Disabled',
+                                                                                          'status'            : 'False',
+                                                                                          'type'              : 'k8s.k8db.io/extBackpAdaptCluster',
+                                                                                      ], [
+                                                                                          'lastTransitionTime': '2023-07-04T13:19:40Z',
+                                                                                          'message'           : 'kstn addon is disabled',
+                                                                                          'reason'            : 'Disabled',
+                                                                                          'status'            : 'False',
+                                                                                          'type'              : 'k8s.k8db.io/kstn',
+                                                                                      ], [
+                                                                                          'lastTransitionTime': '2023-11-30T15:26:14Z',
+                                                                                          'message'           : 'Continuous archiving is working',
+                                                                                          'reason'            : 'ContinuousArchivingSuccess',
+                                                                                          'status'            : 'True',
+                                                                                          'type'              : 'ContinuousArchiving',
+                                                                                      ]],
+                                                'configMapResourceVersion'         : [
+                                                    'metrics': [
+                                                        'postgresql-operator-default-monitoring': '2880955105',
+                                                    ],
+                                                ],
+                                                'currentPrimary'                   : 'some-cluster-1',
+                                                'currentPrimaryTimestamp'          : '2023-07-04T13:19:27.039619Z',
+                                                'healthyPVC'                       : ['some-cluster-1'],
+                                                'instanceNames'                    : ['some-cluster-1'],
+                                                'instances'                        : 1,
+                                                'instancesReportedState'           : [
+                                                    'some-cluster-1': [
+                                                        'isPrimary' : true,
+                                                        'timeLineID': 1,
+                                                    ],
+                                                ],
+                                                'instancesStatus'                  : [
+                                                    'healthy': ['some-cluster-1'],
+                                                ],
+                                                'latestGeneratedNode'              : 1,
+                                                'licenseStatus'                    : [
+                                                    'licenseExpiration': '2999-12-31T00:00:00Z',
+                                                    'licenseStatus'    : 'Valid license (My Company (my_company))',
+                                                    'repositoryAccess' : false,
+                                                    'valid'            : true,
+                                                ],
+                                                'managedRolesStatus'               : [],
+                                                'phase'                            : 'Cluster in healthy state',
+                                                'poolerIntegrations'               : [
+                                                    'pgBouncerIntegration': [],
+                                                ],
+                                                'pvcCount'                         : 1,
+                                                'readService'                      : 'some-cluster-r',
+                                                'readyInstances'                   : 1,
+                                                'secretsResourceVersion'           : [
+                                                    'applicationSecretVersion': '2880969810',
+                                                    'clientCaSecretVersion'   : '2880969811',
+                                                    'replicationSecretVersion': '2880969813',
+                                                    'serverCaSecretVersion'   : '2880969811',
+                                                    'serverSecretVersion'     : '2880969815',
+                                                    'superuserSecretVersion'  : '2880969816',
+                                                ],
+                                                'targetPrimary'                    : 'some-cluster-1',
+                                                'targetPrimaryTimestamp'           : '2023-07-04T13:18:29.516149Z',
+                                                'timelineID'                       : 1,
+                                                'topology'                         : [
+                                                    'instances'            : [
+                                                        'some-cluster-1': [],
+                                                    ],
+                                                    'nodesUsed'            : 1,
+                                                    'successfullyExtracted': true,
+                                                ],
+                                                'writeService'                     : 'some-cluster-rw',
+                                            ],
+                                        ]],
+                    'v1/ConfigMap'   : [[
+                                            'apiVersion': 'v1',
+                                            'data'      : [
+                                                'application.yaml': 'REDACTED\n',
+                                            ],
+                                            'kind'      : 'ConfigMap',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-05-16T15:41:54Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core-appconfig-configmap',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2880955101',
+                                                'uid'              : '12345678-1234-1234-1234-600000000abcde',
+                                            ],
+                                        ]],
+                    'v1/Deployment'  : [[
+                                            'apiVersion': 'apps/v1',
+                                            'kind'      : 'Deployment',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'deployment.kubernetes.io/revision': '36',
+                                                    'meta.helm.sh/release-name'        : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace'   : 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2022-12-19T09:44:33Z',
+                                                'generation'       : 42,
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2865328801',
+                                                'uid'              : '12345678-1234-1234-1234-100000000abcde',
+                                            ],
+                                            'spec'      : [
+                                                'progressDeadlineSeconds': 600,
+                                                'replicas'               : 1,
+                                                'revisionHistoryLimit'   : 10,
+                                                'selector'               : [
+                                                    'matchLabels': [
+                                                        'app.kubernetes.io/instance': 'standalone-app',
+                                                        'app.kubernetes.io/name'    : 'core',
+                                                    ],
+                                                ],
+                                                'strategy'               : [
+                                                    'type': 'Recreate',
+                                                ],
+                                                'template'               : [
+                                                    'metadata': [
+                                                        'annotations'      : [
+                                                            'checksum/appconfig-configmap'       : 'cf012345cf',
+                                                            'checksum/rsa-key-secret'            : '57a57a57a57a',
+                                                            'checksum/security-exandradev-secret': 'abcdef12345',
+                                                            'checksum/security-unify-secret'     : '1a2b3c4d',
+                                                        ],
+                                                        'creationTimestamp': null,
+                                                        'labels'           : [
+                                                            'app.kubernetes.io/instance': 'standalone-app',
+                                                            'app.kubernetes.io/name'    : 'core',
+                                                        ],
+                                                    ],
+                                                    'spec'    : [
+                                                        'containers'                   : [[
+                                                                                              'env'                     : [[
+                                                                                                                               'name'     : 'EXANDRADEV_CLIENT_ID',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'clientId',
+                                                                                                                                       'name': 'core-security-exandradev-secret',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ], [
+                                                                                                                               'name'     : 'EXANDRADEV_CLIENT_SECRET',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'clientSecret',
+                                                                                                                                       'name': 'core-security-exandradev-secret',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ], [
+                                                                                                                               'name'     : 'UNIFY_CLIENT_ID',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'clientId',
+                                                                                                                                       'name': 'core-security-unify-secret',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ], [
+                                                                                                                               'name'     : 'UNIFY_CLIENT_SECRET',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'clientSecret',
+                                                                                                                                       'name': 'core-security-unify-secret',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ], [
+                                                                                                                               'name'     : 'DB_USERNAME',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'username',
+                                                                                                                                       'name': 'some-cluster-app',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ], [
+                                                                                                                               'name'     : 'DB_PASSWORD',
+                                                                                                                               'valueFrom': [
+                                                                                                                                   'secretKeyRef': [
+                                                                                                                                       'key' : 'password',
+                                                                                                                                       'name': 'some-cluster-app',
+                                                                                                                                   ],
+                                                                                                                               ],
+                                                                                                                           ]],
+                                                                                              'image'                   : 'image-registry.openshift.svc:1000/myproject-test/core-standalone:ea01234567',
+                                                                                              'imagePullPolicy'         : 'IfNotPresent',
+                                                                                              'livenessProbe'           : [
+                                                                                                  'failureThreshold': 3,
+                                                                                                  'httpGet'         : [
+                                                                                                      'path'  : '/q/health/live',
+                                                                                                      'port'  : 'http',
+                                                                                                      'scheme': 'HTTP',
+                                                                                                  ],
+                                                                                                  'periodSeconds'   : 5,
+                                                                                                  'successThreshold': 1,
+                                                                                                  'timeoutSeconds'  : 1,
+                                                                                              ],
+                                                                                              'name'                    : 'core',
+                                                                                              'ports'                   : [[
+                                                                                                                               'containerPort': 8081,
+                                                                                                                               'name'         : 'http',
+                                                                                                                               'protocol'     : 'TCP',
+                                                                                                                           ]],
+                                                                                              'resources'               : [
+                                                                                                  'limits'  : [
+                                                                                                      'cpu'   : '1',
+                                                                                                      'memory': '512Mi',
+                                                                                                  ],
+                                                                                                  'requests': [
+                                                                                                      'cpu'   : '1',
+                                                                                                      'memory': '512Mi',
+                                                                                                  ],
+                                                                                              ],
+                                                                                              'securityContext'         : [],
+                                                                                              'startupProbe'            : [
+                                                                                                  'failureThreshold': 20,
+                                                                                                  'httpGet'         : [
+                                                                                                      'path'  : '/q/health/started',
+                                                                                                      'port'  : 'http',
+                                                                                                      'scheme': 'HTTP',
+                                                                                                  ],
+                                                                                                  'periodSeconds'   : 3,
+                                                                                                  'successThreshold': 1,
+                                                                                                  'timeoutSeconds'  : 1,
+                                                                                              ],
+                                                                                              'terminationMessagePath'  : '/dev/termination-log',
+                                                                                              'terminationMessagePolicy': 'File',
+                                                                                              'volumeMounts'            : [[
+                                                                                                                               'mountPath': '/deployments/core/rsa',
+                                                                                                                               'name'     : 'exandra-rsa-key-volume',
+                                                                                                                               'readOnly' : true,
+                                                                                                                           ], [
+                                                                                                                               'mountPath': '/deployments/config',
+                                                                                                                               'name'     : 'exandra-config-volume',
+                                                                                                                               'readOnly' : true,
+                                                                                                                           ]],
+                                                                                          ]],
+                                                        'dnsPolicy'                    : 'ClusterFirst',
+                                                        'restartPolicy'                : 'Always',
+                                                        'schedulerName'                : 'default-scheduler',
+                                                        'securityContext'              : [],
+                                                        'terminationGracePeriodSeconds': 30,
+                                                        'volumes'                      : [[
+                                                                                              'name'  : 'exandra-rsa-key-volume',
+                                                                                              'secret': [
+                                                                                                  'defaultMode': 420,
+                                                                                                  'items'      : [[
+                                                                                                                      'key' : 'rsaKey',
+                                                                                                                      'path': 'jwk.json',
+                                                                                                                  ]],
+                                                                                                  'secretName' : 'core-rsa-key-secret',
+                                                                                              ],
+                                                                                          ], [
+                                                                                              'configMap': [
+                                                                                                  'defaultMode': 420,
+                                                                                                  'name'       : 'core-appconfig-configmap',
+                                                                                              ],
+                                                                                              'name'     : 'exandra-config-volume',
+                                                                                          ]],
+                                                    ],
+                                                ],
+                                            ],
+                                            'status'    : [
+                                                'availableReplicas' : 1,
+                                                'conditions'        : [[
+                                                                           'lastTransitionTime': '2023-05-16T15:53:18Z',
+                                                                           'lastUpdateTime'    : '2024-03-04T15:21:26Z',
+                                                                           'message'           : 'ReplicaSet \"core-f7f7f7f7\" has successfully progressed.',
+                                                                           'reason'            : 'NewReplicaSetAvailable',
+                                                                           'status'            : 'True',
+                                                                           'type'              : 'Progressing',
+                                                                       ], [
+                                                                           'lastTransitionTime': '2024-05-25T13:43:04Z',
+                                                                           'lastUpdateTime'    : '2024-05-25T13:43:04Z',
+                                                                           'message'           : 'Deployment has minimum availability.',
+                                                                           'reason'            : 'MinimumReplicasAvailable',
+                                                                           'status'            : 'True',
+                                                                           'type'              : 'Available',
+                                                                       ]],
+                                                'observedGeneration': 42,
+                                                'readyReplicas'     : 1,
+                                                'replicas'          : 1,
+                                                'updatedReplicas'   : 1,
+                                            ],
+                                        ], [
+                                            'apiVersion': 'apps/v1',
+                                            'kind'      : 'Deployment',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'deployment.kubernetes.io/revision': '18',
+                                                    'meta.helm.sh/release-name'        : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace'   : 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-05-08T09:40:33Z',
+                                                'generation'       : 18,
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'standalone-gateway',
+                                                    'app.kubernetes.io/version'   : '7b5e50e13fd78502967881f4970484ae08b76dc4',
+                                                    'helm.sh/chart'               : 'standalone-gateway-0.1.0_7b5e50e13fd78502967881f4970484ae08b76d',
+                                                ],
+                                                'name'             : 'standalone-gateway',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2865332166',
+                                                'uid'              : '12345678-1234-1234-1234-220000000abcde',
+                                            ],
+                                            'spec'      : [
+                                                'progressDeadlineSeconds': 600,
+                                                'replicas'               : 1,
+                                                'revisionHistoryLimit'   : 10,
+                                                'selector'               : [
+                                                    'matchLabels': [
+                                                        'app.kubernetes.io/instance': 'standalone-app',
+                                                        'app.kubernetes.io/name'    : 'standalone-gateway',
+                                                    ],
+                                                ],
+                                                'strategy'               : [
+                                                    'type': 'Recreate',
+                                                ],
+                                                'template'               : [
+                                                    'metadata': [
+                                                        'creationTimestamp': null,
+                                                        'labels'           : [
+                                                            'app.kubernetes.io/instance': 'standalone-app',
+                                                            'app.kubernetes.io/name'    : 'standalone-gateway',
+                                                        ],
+                                                    ],
+                                                    'spec'    : [
+                                                        'containers'                   : [[
+                                                                                              'image'                   : 'image-registry.openshift.svc:1000/myproject-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4',
+                                                                                              'imagePullPolicy'         : 'IfNotPresent',
+                                                                                              'livenessProbe'           : [
+                                                                                                  'failureThreshold': 3,
+                                                                                                  'httpGet'         : [
+                                                                                                      'path'  : '/ready',
+                                                                                                      'port'  : 9901,
+                                                                                                      'scheme': 'HTTP',
+                                                                                                  ],
+                                                                                                  'periodSeconds'   : 5,
+                                                                                                  'successThreshold': 1,
+                                                                                                  'timeoutSeconds'  : 1,
+                                                                                              ],
+                                                                                              'name'                    : 'standalone-gateway',
+                                                                                              'ports'                   : [[
+                                                                                                                               'containerPort': 8000,
+                                                                                                                               'name'         : 'http',
+                                                                                                                               'protocol'     : 'TCP',
+                                                                                                                           ]],
+                                                                                              'resources'               : [
+                                                                                                  'limits'  : [
+                                                                                                      'cpu'   : '1',
+                                                                                                      'memory': '512Mi',
+                                                                                                  ],
+                                                                                                  'requests': [
+                                                                                                      'cpu'   : '100m',
+                                                                                                      'memory': '256Mi',
+                                                                                                  ],
+                                                                                              ],
+                                                                                              'securityContext'         : [],
+                                                                                              'startupProbe'            : [
+                                                                                                  'failureThreshold'   : 30,
+                                                                                                  'httpGet'            : [
+                                                                                                      'path'  : '/ready',
+                                                                                                      'port'  : 9901,
+                                                                                                      'scheme': 'HTTP',
+                                                                                                  ],
+                                                                                                  'initialDelaySeconds': 1,
+                                                                                                  'periodSeconds'      : 1,
+                                                                                                  'successThreshold'   : 1,
+                                                                                                  'timeoutSeconds'     : 1,
+                                                                                              ],
+                                                                                              'terminationMessagePath'  : '/dev/termination-log',
+                                                                                              'terminationMessagePolicy': 'File',
+                                                                                          ]],
+                                                        'dnsPolicy'                    : 'ClusterFirst',
+                                                        'restartPolicy'                : 'Always',
+                                                        'schedulerName'                : 'default-scheduler',
+                                                        'securityContext'              : [],
+                                                        'terminationGracePeriodSeconds': 30,
+                                                    ],
+                                                ],
+                                            ],
+                                            'status'    : [
+                                                'availableReplicas' : 1,
+                                                'conditions'        : [[
+                                                                           'lastTransitionTime': '2023-05-08T09:40:33Z',
+                                                                           'lastUpdateTime'    : '2023-12-20T16:48:17Z',
+                                                                           'message'           : 'ReplicaSet \"standalone-gateway-500000000c\" has successfully progressed.',
+                                                                           'reason'            : 'NewReplicaSetAvailable',
+                                                                           'status'            : 'True',
+                                                                           'type'              : 'Progressing',
+                                                                       ], [
+                                                                           'lastTransitionTime': '2024-05-25T13:43:54Z',
+                                                                           'lastUpdateTime'    : '2024-05-25T13:43:54Z',
+                                                                           'message'           : 'Deployment has minimum availability.',
+                                                                           'reason'            : 'MinimumReplicasAvailable',
+                                                                           'status'            : 'True',
+                                                                           'type'              : 'Available',
+                                                                       ]],
+                                                'observedGeneration': 18,
+                                                'readyReplicas'     : 1,
+                                                'replicas'          : 1,
+                                                'updatedReplicas'   : 1,
+                                            ],
+                                        ]],
+                    'v1/Pod(related)': [[
+                                            'apiVersion': 'v1',
+                                            'items'     : [[
+                                                               'apiVersion': 'v1',
+                                                               'kind'      : 'Pod',
+                                                               'metadata'  : [
+                                                                   'annotations'      : [
+                                                                       'checksum/appconfig-configmap'            : 'cf012345cf',
+                                                                       'checksum/rsa-key-secret'                 : '57a57a57a57a',
+                                                                       'checksum/security-exandradev-secret'     : 'abcdef12345',
+                                                                       'checksum/security-unify-secret'          : '1a2b3c4d',
+                                                                       'k8s.ovn.org/pod-networks'                : '{\"default\":{\"ip_addresses\":[\"10.200.10.50/24\"],\"mac_address\":\"0a:00:00:00:00:0a\",\"gateway_ips\":[\"10.200.10.1\"],\"routes\":[{\"dest\":\"10.200.0.0/16\",\"nextHop\":\"10.200.10.1\"},{\"dest\":\"170.30.0.0/16\",\"nextHop\":\"10.200.10.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.200.10.1\"}],\"ip_address\":\"10.200.10.50/24\",\"gateway_ip\":\"10.200.10.1\"}}',
+                                                                       'k8s.v1.cni.cncf.io/network-status'       : '[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.200.10.50\"\n    ],\n    \"mac\": \"0a:00:00:00:00:0a\",\n    \"default\": true,\n    \"dns\": {}\n}]',
+                                                                       'openshift.io/scc'                        : 'restricted-v2',
+                                                                       'seccomp.security.alpha.kubernetes.io/pod': 'runtime/default',
+                                                                   ],
+                                                                   'creationTimestamp': '2024-05-25T13:41:18Z',
+                                                                   'generateName'     : 'core-f7f7f7f7-',
+                                                                   'labels'           : [
+                                                                       'app.kubernetes.io/instance': 'standalone-app',
+                                                                       'app.kubernetes.io/name'    : 'core',
+                                                                       'pod-template-hash'         : 'f7f7f7f7',
+                                                                   ],
+                                                                   'name'             : 'core-f7f7f7f7-8abcx',
+                                                                   'namespace'        : 'myproject-test',
+                                                                   'ownerReferences'  : [[
+                                                                                             'apiVersion'        : 'apps/v1',
+                                                                                             'blockOwnerDeletion': true,
+                                                                                             'controller'        : true,
+                                                                                             'kind'              : 'ReplicaSet',
+                                                                                             'name'              : 'core-f7f7f7f7',
+                                                                                             'uid'               : '12345678-1234-1234-1234-900000000abcde',
+                                                                                         ]],
+                                                                   'resourceVersion'  : '2865328796',
+                                                                   'uid'              : '12345678-1234-1234-1234-400000000abcde',
+                                                               ],
+                                                               'spec'      : [
+                                                                   'containers'                   : [[
+                                                                                                         'env'                     : [[
+                                                                                                                                          'name'     : 'EXANDRADEV_CLIENT_ID',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'clientId',
+                                                                                                                                                  'name': 'core-security-exandradev-secret',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ], [
+                                                                                                                                          'name'     : 'EXANDRADEV_CLIENT_SECRET',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'clientSecret',
+                                                                                                                                                  'name': 'core-security-exandradev-secret',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ], [
+                                                                                                                                          'name'     : 'UNIFY_CLIENT_ID',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'clientId',
+                                                                                                                                                  'name': 'core-security-unify-secret',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ], [
+                                                                                                                                          'name'     : 'UNIFY_CLIENT_SECRET',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'clientSecret',
+                                                                                                                                                  'name': 'core-security-unify-secret',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ], [
+                                                                                                                                          'name'     : 'DB_USERNAME',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'username',
+                                                                                                                                                  'name': 'some-cluster-app',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ], [
+                                                                                                                                          'name'     : 'DB_PASSWORD',
+                                                                                                                                          'valueFrom': [
+                                                                                                                                              'secretKeyRef': [
+                                                                                                                                                  'key' : 'password',
+                                                                                                                                                  'name': 'some-cluster-app',
+                                                                                                                                              ],
+                                                                                                                                          ],
+                                                                                                                                      ]],
+                                                                                                         'image'                   : 'image-registry.openshift.svc:1000/myproject-test/core-standalone:ea01234567',
+                                                                                                         'imagePullPolicy'         : 'IfNotPresent',
+                                                                                                         'livenessProbe'           : [
+                                                                                                             'failureThreshold': 3,
+                                                                                                             'httpGet'         : [
+                                                                                                                 'path'  : '/q/health/live',
+                                                                                                                 'port'  : 'http',
+                                                                                                                 'scheme': 'HTTP',
+                                                                                                             ],
+                                                                                                             'periodSeconds'   : 5,
+                                                                                                             'successThreshold': 1,
+                                                                                                             'timeoutSeconds'  : 1,
+                                                                                                         ],
+                                                                                                         'name'                    : 'core',
+                                                                                                         'ports'                   : [[
+                                                                                                                                          'containerPort': 8081,
+                                                                                                                                          'name'         : 'http',
+                                                                                                                                          'protocol'     : 'TCP',
+                                                                                                                                      ]],
+                                                                                                         'resources'               : [
+                                                                                                             'limits'  : [
+                                                                                                                 'cpu'   : '1',
+                                                                                                                 'memory': '512Mi',
+                                                                                                             ],
+                                                                                                             'requests': [
+                                                                                                                 'cpu'   : '1',
+                                                                                                                 'memory': '512Mi',
+                                                                                                             ],
+                                                                                                         ],
+                                                                                                         'securityContext'         : [
+                                                                                                             'allowPrivilegeEscalation': false,
+                                                                                                             'capabilities'            : [
+                                                                                                                 'drop': ['ALL'],
+                                                                                                             ],
+                                                                                                             'runAsNonRoot'            : true,
+                                                                                                             'runAsUser'               : 1001270000,
+                                                                                                         ],
+                                                                                                         'startupProbe'            : [
+                                                                                                             'failureThreshold': 20,
+                                                                                                             'httpGet'         : [
+                                                                                                                 'path'  : '/q/health/started',
+                                                                                                                 'port'  : 'http',
+                                                                                                                 'scheme': 'HTTP',
+                                                                                                             ],
+                                                                                                             'periodSeconds'   : 3,
+                                                                                                             'successThreshold': 1,
+                                                                                                             'timeoutSeconds'  : 1,
+                                                                                                         ],
+                                                                                                         'terminationMessagePath'  : '/dev/termination-log',
+                                                                                                         'terminationMessagePolicy': 'File',
+                                                                                                         'volumeMounts'            : [[
+                                                                                                                                          'mountPath': '/deployments/core/rsa',
+                                                                                                                                          'name'     : 'exandra-rsa-key-volume',
+                                                                                                                                          'readOnly' : true,
+                                                                                                                                      ], [
+                                                                                                                                          'mountPath': '/deployments/config',
+                                                                                                                                          'name'     : 'exandra-config-volume',
+                                                                                                                                          'readOnly' : true,
+                                                                                                                                      ], [
+                                                                                                                                          'mountPath': '/var/run/secrets/kubernetes.io/secretaccount',
+                                                                                                                                          'name'     : 'kube-api-access-lkjhg',
+                                                                                                                                          'readOnly' : true,
+                                                                                                                                      ]],
+                                                                                                     ]],
+                                                                   'dnsPolicy'                    : 'ClusterFirst',
+                                                                   'enableServiceLinks'           : true,
+                                                                   'imagePullSecrets'             : [[
+                                                                                                         'name': 'default-dockercfg-xasdf',
+                                                                                                     ]],
+                                                                   'nodeName'                     : 'ip-10.8.30.200.ec2.internal',
+                                                                   'preemptionPolicy'             : 'PreemptLowerPriority',
+                                                                   'priority'                     : 0,
+                                                                   'restartPolicy'                : 'Always',
+                                                                   'schedulerName'                : 'default-scheduler',
+                                                                   'securityContext'              : [
+                                                                       'fsGroup'       : 1001270000,
+                                                                       'seLinuxOptions': [
+                                                                           'level': 's0:c36,c5',
+                                                                       ],
+                                                                       'seccompProfile': [
+                                                                           'type': 'RuntimeDefault',
+                                                                       ],
+                                                                   ],
+                                                                   'serviceAccount'               : 'default',
+                                                                   'serviceAccountName'           : 'default',
+                                                                   'terminationGracePeriodSeconds': 30,
+                                                                   'tolerations'                  : [[
+                                                                                                         'effect'           : 'NoExecute',
+                                                                                                         'key'              : 'node.kubernetes.io/not-ready',
+                                                                                                         'operator'         : 'Exists',
+                                                                                                         'tolerationSeconds': 300,
+                                                                                                     ], [
+                                                                                                         'effect'           : 'NoExecute',
+                                                                                                         'key'              : 'node.kubernetes.io/unreachable',
+                                                                                                         'operator'         : 'Exists',
+                                                                                                         'tolerationSeconds': 300,
+                                                                                                     ], [
+                                                                                                         'effect'  : 'NoSchedule',
+                                                                                                         'key'     : 'node.kubernetes.io/memory-pressure',
+                                                                                                         'operator': 'Exists',
+                                                                                                     ]],
+                                                                   'volumes'                      : [[
+                                                                                                         'name'  : 'exandra-rsa-key-volume',
+                                                                                                         'secret': [
+                                                                                                             'defaultMode': 420,
+                                                                                                             'items'      : [[
+                                                                                                                                 'key' : 'rsaKey',
+                                                                                                                                 'path': 'jwk.json',
+                                                                                                                             ]],
+                                                                                                             'secretName' : 'core-rsa-key-secret',
+                                                                                                         ],
+                                                                                                     ], [
+                                                                                                         'configMap': [
+                                                                                                             'defaultMode': 420,
+                                                                                                             'name'       : 'core-appconfig-configmap',
+                                                                                                         ],
+                                                                                                         'name'     : 'exandra-config-volume',
+                                                                                                     ], [
+                                                                                                         'name'     : 'kube-api-access-lkjhg',
+                                                                                                         'projected': [
+                                                                                                             'defaultMode': 420,
+                                                                                                             'sources'    : [[
+                                                                                                                                 'serviceAccountToken': [
+                                                                                                                                     'expirationSeconds': 3607,
+                                                                                                                                     'path'             : 'token',
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'configMap': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'key' : 'ca.crt',
+                                                                                                                                                   'path': 'ca.crt',
+                                                                                                                                               ]],
+                                                                                                                                     'name' : 'kube-some-ca.crt',
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'downwardAPI': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'fieldRef': [
+                                                                                                                                                       'apiVersion': 'v1',
+                                                                                                                                                       'fieldPath' : 'metadata.namespace',
+                                                                                                                                                   ],
+                                                                                                                                                   'path'    : 'namespace',
+                                                                                                                                               ]],
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'configMap': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'key' : 'service-ca.crt',
+                                                                                                                                                   'path': 'service-ca.crt',
+                                                                                                                                               ]],
+                                                                                                                                     'name' : 'openshift-some-ca.crt',
+                                                                                                                                 ],
+                                                                                                                             ]],
+                                                                                                         ],
+                                                                                                     ]],
+                                                               ],
+                                                               'status'    : [
+                                                                   'conditions'       : [[
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:41:18Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'Initialized',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:43:03Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'Ready',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:43:03Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'ContainersReady',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:41:18Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'PodScheduled',
+                                                                                         ]],
+                                                                   'containerStatuses': [[
+                                                                                             'containerID' : 'cri-o://475000574',
+                                                                                             'image'       : 'image-registry.openshift.svc:1000/myproject-test/core-standalone:ea01234567',
+                                                                                             'imageID'     : 'image-registry.openshift.svc:1000/myproject-test/core-standalone@sha256:6a000a6',
+                                                                                             'lastState'   : [],
+                                                                                             'name'        : 'core',
+                                                                                             'ready'       : true,
+                                                                                             'restartCount': 0,
+                                                                                             'started'     : true,
+                                                                                             'state'       : [
+                                                                                                 'running': [
+                                                                                                     'startedAt': '2024-05-25T13:42:52Z',
+                                                                                                 ],
+                                                                                             ],
+                                                                                         ]],
+                                                                   'hostIP'           : '10.8.30.200',
+                                                                   'phase'            : 'Running',
+                                                                   'podIP'            : '10.200.10.50',
+                                                                   'podIPs'           : [[
+                                                                                             'ip': '10.200.10.50',
+                                                                                         ]],
+                                                                   'qosClass'         : 'Guaranteed',
+                                                                   'startTime'        : '2024-05-25T13:41:18Z',
+                                                               ],
+                                                           ]],
+                                            'kind'      : 'PodList',
+                                            'metadata'  : [
+                                                'resourceVersion': '2886974735',
+                                            ],
+                                        ], [
+                                            'apiVersion': 'v1',
+                                            'items'     : [[
+                                                               'apiVersion': 'v1',
+                                                               'kind'      : 'Pod',
+                                                               'metadata'  : [
+                                                                   'annotations'      : [
+                                                                       'k8s.ovn.org/pod-networks'                : '{\"default\":{\"ip_addresses\":[\"10.251.18.51/24\"],\"mac_address\":\"0c:00:00:00:00:0c\",\"gateway_ips\":[\"10.200.10.1\"],\"routes\":[{\"dest\":\"10.200.0.0/16\",\"nextHop\":\"10.200.10.1\"},{\"dest\":\"170.30.0.0/16\",\"nextHop\":\"10.200.10.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.200.10.1\"}],\"ip_address\":\"10.251.18.51/24\",\"gateway_ip\":\"10.200.10.1\"}}',
+                                                                       'k8s.v1.cni.cncf.io/network-status'       : '[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.18.51\"\n    ],\n    \"mac\": \"0c:00:00:00:00:0c\",\n    \"default\": true,\n    \"dns\": {}\n}]',
+                                                                       'openshift.io/scc'                        : 'restricted-v2',
+                                                                       'seccomp.security.alpha.kubernetes.io/pod': 'runtime/default',
+                                                                   ],
+                                                                   'creationTimestamp': '2024-05-25T13:41:18Z',
+                                                                   'generateName'     : 'standalone-gateway-500000000c-',
+                                                                   'labels'           : [
+                                                                       'app.kubernetes.io/instance': 'standalone-app',
+                                                                       'app.kubernetes.io/name'    : 'standalone-gateway',
+                                                                       'pod-template-hash'         : '500000000c',
+                                                                   ],
+                                                                   'name'             : 'standalone-gateway-500000000c-6h0h6',
+                                                                   'namespace'        : 'myproject-test',
+                                                                   'ownerReferences'  : [[
+                                                                                             'apiVersion'        : 'apps/v1',
+                                                                                             'blockOwnerDeletion': true,
+                                                                                             'controller'        : true,
+                                                                                             'kind'              : 'ReplicaSet',
+                                                                                             'name'              : 'standalone-gateway-500000000c',
+                                                                                             'uid'               : '12345678-1234-1234-1234-700000000abcde',
+                                                                                         ]],
+                                                                   'resourceVersion'  : '2865332161',
+                                                                   'uid'              : '12345678-1234-1234-1234-110000000abcde',
+                                                               ],
+                                                               'spec'      : [
+                                                                   'containers'                   : [[
+                                                                                                         'image'                   : 'image-registry.openshift.svc:1000/myproject-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4',
+                                                                                                         'imagePullPolicy'         : 'IfNotPresent',
+                                                                                                         'livenessProbe'           : [
+                                                                                                             'failureThreshold': 3,
+                                                                                                             'httpGet'         : [
+                                                                                                                 'path'  : '/ready',
+                                                                                                                 'port'  : 9901,
+                                                                                                                 'scheme': 'HTTP',
+                                                                                                             ],
+                                                                                                             'periodSeconds'   : 5,
+                                                                                                             'successThreshold': 1,
+                                                                                                             'timeoutSeconds'  : 1,
+                                                                                                         ],
+                                                                                                         'name'                    : 'standalone-gateway',
+                                                                                                         'ports'                   : [[
+                                                                                                                                          'containerPort': 8000,
+                                                                                                                                          'name'         : 'http',
+                                                                                                                                          'protocol'     : 'TCP',
+                                                                                                                                      ]],
+                                                                                                         'resources'               : [
+                                                                                                             'limits'  : [
+                                                                                                                 'cpu'   : '1',
+                                                                                                                 'memory': '512Mi',
+                                                                                                             ],
+                                                                                                             'requests': [
+                                                                                                                 'cpu'   : '100m',
+                                                                                                                 'memory': '256Mi',
+                                                                                                             ],
+                                                                                                         ],
+                                                                                                         'securityContext'         : [
+                                                                                                             'allowPrivilegeEscalation': false,
+                                                                                                             'capabilities'            : [
+                                                                                                                 'drop': ['ALL'],
+                                                                                                             ],
+                                                                                                             'runAsNonRoot'            : true,
+                                                                                                             'runAsUser'               : 1001270000,
+                                                                                                         ],
+                                                                                                         'startupProbe'            : [
+                                                                                                             'failureThreshold'   : 30,
+                                                                                                             'httpGet'            : [
+                                                                                                                 'path'  : '/ready',
+                                                                                                                 'port'  : 9901,
+                                                                                                                 'scheme': 'HTTP',
+                                                                                                             ],
+                                                                                                             'initialDelaySeconds': 1,
+                                                                                                             'periodSeconds'      : 1,
+                                                                                                             'successThreshold'   : 1,
+                                                                                                             'timeoutSeconds'     : 1,
+                                                                                                         ],
+                                                                                                         'terminationMessagePath'  : '/dev/termination-log',
+                                                                                                         'terminationMessagePolicy': 'File',
+                                                                                                         'volumeMounts'            : [[
+                                                                                                                                          'mountPath': '/var/run/secrets/kubernetes.io/secretaccount',
+                                                                                                                                          'name'     : 'kube-api-access-zxcvb',
+                                                                                                                                          'readOnly' : true,
+                                                                                                                                      ]],
+                                                                                                     ]],
+                                                                   'dnsPolicy'                    : 'ClusterFirst',
+                                                                   'enableServiceLinks'           : true,
+                                                                   'imagePullSecrets'             : [[
+                                                                                                         'name': 'default-dockercfg-xasdf',
+                                                                                                     ]],
+                                                                   'nodeName'                     : 'ip-10.8.30.200.ec2.internal',
+                                                                   'preemptionPolicy'             : 'PreemptLowerPriority',
+                                                                   'priority'                     : 0,
+                                                                   'restartPolicy'                : 'Always',
+                                                                   'schedulerName'                : 'default-scheduler',
+                                                                   'securityContext'              : [
+                                                                       'fsGroup'       : 1001270000,
+                                                                       'seLinuxOptions': [
+                                                                           'level': 's0:c36,c5',
+                                                                       ],
+                                                                       'seccompProfile': [
+                                                                           'type': 'RuntimeDefault',
+                                                                       ],
+                                                                   ],
+                                                                   'serviceAccount'               : 'default',
+                                                                   'serviceAccountName'           : 'default',
+                                                                   'terminationGracePeriodSeconds': 30,
+                                                                   'tolerations'                  : [[
+                                                                                                         'effect'           : 'NoExecute',
+                                                                                                         'key'              : 'node.kubernetes.io/not-ready',
+                                                                                                         'operator'         : 'Exists',
+                                                                                                         'tolerationSeconds': 300,
+                                                                                                     ], [
+                                                                                                         'effect'           : 'NoExecute',
+                                                                                                         'key'              : 'node.kubernetes.io/unreachable',
+                                                                                                         'operator'         : 'Exists',
+                                                                                                         'tolerationSeconds': 300,
+                                                                                                     ], [
+                                                                                                         'effect'  : 'NoSchedule',
+                                                                                                         'key'     : 'node.kubernetes.io/memory-pressure',
+                                                                                                         'operator': 'Exists',
+                                                                                                     ]],
+                                                                   'volumes'                      : [[
+                                                                                                         'name'     : 'kube-api-access-zxcvb',
+                                                                                                         'projected': [
+                                                                                                             'defaultMode': 420,
+                                                                                                             'sources'    : [[
+                                                                                                                                 'serviceAccountToken': [
+                                                                                                                                     'expirationSeconds': 3607,
+                                                                                                                                     'path'             : 'token',
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'configMap': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'key' : 'ca.crt',
+                                                                                                                                                   'path': 'ca.crt',
+                                                                                                                                               ]],
+                                                                                                                                     'name' : 'kube-some-ca.crt',
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'downwardAPI': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'fieldRef': [
+                                                                                                                                                       'apiVersion': 'v1',
+                                                                                                                                                       'fieldPath' : 'metadata.namespace',
+                                                                                                                                                   ],
+                                                                                                                                                   'path'    : 'namespace',
+                                                                                                                                               ]],
+                                                                                                                                 ],
+                                                                                                                             ], [
+                                                                                                                                 'configMap': [
+                                                                                                                                     'items': [[
+                                                                                                                                                   'key' : 'service-ca.crt',
+                                                                                                                                                   'path': 'service-ca.crt',
+                                                                                                                                               ]],
+                                                                                                                                     'name' : 'openshift-some-ca.crt',
+                                                                                                                                 ],
+                                                                                                                             ]],
+                                                                                                         ],
+                                                                                                     ]],
+                                                               ],
+                                                               'status'    : [
+                                                                   'conditions'       : [[
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:41:18Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'Initialized',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:43:54Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'Ready',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:43:54Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'ContainersReady',
+                                                                                         ], [
+                                                                                             'lastProbeTime'     : null,
+                                                                                             'lastTransitionTime': '2024-05-25T13:41:18Z',
+                                                                                             'status'            : 'True',
+                                                                                             'type'              : 'PodScheduled',
+                                                                                         ]],
+                                                                   'containerStatuses': [[
+                                                                                             'containerID' : 'cri-o://14b000b41',
+                                                                                             'image'       : 'image-registry.openshift.svc:1000/myproject-test/standalone-gateway:7b5e50e13fd78502967881f4970484ae08b76dc4',
+                                                                                             'imageID'     : 'image-registry.openshift.svc:1000/myproject-test/standalone-gateway@sha256:c30003c',
+                                                                                             'lastState'   : [],
+                                                                                             'name'        : 'standalone-gateway',
+                                                                                             'ready'       : true,
+                                                                                             'restartCount': 0,
+                                                                                             'started'     : true,
+                                                                                             'state'       : [
+                                                                                                 'running': [
+                                                                                                     'startedAt': '2024-05-25T13:43:50Z',
+                                                                                                 ],
+                                                                                             ],
+                                                                                         ]],
+                                                                   'hostIP'           : '10.8.30.200',
+                                                                   'phase'            : 'Running',
+                                                                   'podIP'            : '10.251.18.51',
+                                                                   'podIPs'           : [[
+                                                                                             'ip': '10.251.18.51',
+                                                                                         ]],
+                                                                   'qosClass'         : 'Burstable',
+                                                                   'startTime'        : '2024-05-25T13:41:18Z',
+                                                               ],
+                                                           ]],
+                                            'kind'      : 'PodList',
+                                            'metadata'  : [
+                                                'resourceVersion': '2886974735',
+                                            ],
+                                        ]],
+                    'v1/Secret'      : [[
+                                            'apiVersion': 'v1',
+                                            'data'      : [
+                                                'rsaKey': 'REDACTED',
+                                            ],
+                                            'kind'      : 'Secret',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-08-25T08:54:46Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core-rsa-key-secret',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2880969794',
+                                                'uid'              : '12345678-1234-1234-1234-300000000abcde',
+                                            ],
+                                            'type'      : 'Opaque',
+                                        ], [
+                                            'apiVersion': 'v1',
+                                            'data'      : [
+                                                'clientId'    : 'REDACTED',
+                                                'clientSecret': 'REDACTED',
+                                            ],
+                                            'kind'      : 'Secret',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-08-25T08:54:46Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core-security-exandradev-secret',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2880969795',
+                                                'uid'              : '12345678-1234-1234-1234-500000000abcde',
+                                            ],
+                                            'type'      : 'Opaque',
+                                        ], [
+                                            'apiVersion': 'v1',
+                                            'data'      : [
+                                                'clientId'    : 'REDACTED',
+                                                'clientSecret': 'REDACTED',
+                                            ],
+                                            'kind'      : 'Secret',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-05-16T15:41:54Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core-security-unify-secret',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2880969797',
+                                                'uid'              : '536ceb38-0457-4186-bd09-efe234b5fca1',
+                                            ],
+                                            'type'      : 'Opaque',
+                                        ]],
+                    'v1/Service'     : [[
+                                            'apiVersion': 'v1',
+                                            'kind'      : 'Service',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2022-12-19T09:44:33Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'core',
+                                                    'app.kubernetes.io/version'   : 'ea01234567',
+                                                    'helm.sh/chart'               : 'core-0.1.0_ea01234567',
+                                                ],
+                                                'name'             : 'core',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2687980260',
+                                                'uid'              : '12345678-1234-1234-1234-123456789abcde',
+                                            ],
+                                            'spec'      : [
+                                                'clusterIP'            : '100.30.20.100',
+                                                'clusterIPs'           : ['100.30.20.100'],
+                                                'internalTrafficPolicy': 'Cluster',
+                                                'ipFamilies'           : ['IPv4'],
+                                                'ipFamilyPolicy'       : 'SingleStack',
+                                                'ports'                : [[
+                                                                              'name'      : 'http',
+                                                                              'port'      : 8081,
+                                                                              'protocol'  : 'TCP',
+                                                                              'targetPort': 8081,
+                                                                          ]],
+                                                'selector'             : [
+                                                    'app.kubernetes.io/instance': 'standalone-app',
+                                                    'app.kubernetes.io/name'    : 'core',
+                                                ],
+                                                'sessionAffinity'      : 'None',
+                                                'type'                 : 'ClusterIP',
+                                            ],
+                                            'status'    : [
+                                                'loadBalancer': [],
+                                            ],
+                                        ], [
+                                            'apiVersion': 'v1',
+                                            'kind'      : 'Service',
+                                            'metadata'  : [
+                                                'annotations'      : [
+                                                    'meta.helm.sh/release-name'     : 'standalone-app',
+                                                    'meta.helm.sh/release-namespace': 'myproject-test',
+                                                ],
+                                                'creationTimestamp': '2023-05-08T09:40:33Z',
+                                                'labels'           : [
+                                                    'app.kubernetes.io/instance'  : 'standalone-app',
+                                                    'app.kubernetes.io/managed-by': 'Helm',
+                                                    'app.kubernetes.io/name'      : 'standalone-gateway',
+                                                    'app.kubernetes.io/version'   : '7b5e50e13fd78502967881f4970484ae08b76dc4',
+                                                    'helm.sh/chart'               : 'standalone-gateway-0.1.0_7b5e50e13fd78502967881f4970484ae08b76d',
+                                                ],
+                                                'name'             : 'standalone-gateway',
+                                                'namespace'        : 'myproject-test',
+                                                'resourceVersion'  : '2497441712',
+                                                'uid'              : '12345678-1234-1234-1234-800000000abcde',
+                                            ],
+                                            'spec'      : [
+                                                'clusterIP'            : '100.30.100.70',
+                                                'clusterIPs'           : ['100.30.100.70'],
+                                                'internalTrafficPolicy': 'Cluster',
+                                                'ipFamilies'           : ['IPv4'],
+                                                'ipFamilyPolicy'       : 'SingleStack',
+                                                'ports'                : [[
+                                                                              'name'      : 'http',
+                                                                              'port'      : 80,
+                                                                              'protocol'  : 'TCP',
+                                                                              'targetPort': 8000,
+                                                                          ]],
+                                                'selector'             : [
+                                                    'app.kubernetes.io/instance': 'standalone-app',
+                                                    'app.kubernetes.io/name'    : 'standalone-gateway',
+                                                ],
+                                                'sessionAffinity'      : 'None',
+                                                'type'                 : 'ClusterIP',
+                                            ],
+                                            'status'    : [
+                                                'loadBalancer': [],
+                                            ],
+                                        ]],
+                ],
+                'status'        : 'deployed',
+            ],
+            'manifest' : 'REDACTED\n',
+            'name'     : 'standalone-app',
+            'namespace': 'myproject-test',
+            'version'  : 43,
         ]
     }
 

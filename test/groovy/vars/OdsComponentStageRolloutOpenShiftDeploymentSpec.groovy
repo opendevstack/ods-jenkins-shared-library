@@ -1,16 +1,20 @@
 package vars
 
+
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import org.ods.component.Context
 import org.ods.component.IContext
-import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.HelmStatus
 import org.ods.util.Logger
 import org.ods.util.PodData
+import spock.lang.Shared
+import spock.lang.Unroll
+import util.FixtureHelper
 import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
-import spock.lang.*
 
 class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestBase {
 
@@ -149,15 +153,21 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully with Helm"() {
     given:
-    def c = config + [environment: 'dev',targetProject: 'foo-dev',openshiftRolloutTimeoutRetries: 5,chartDir: 'chart']
+    def c = config + [
+        projectId: 'myproject',
+        componentId: 'core',
+        environment: 'dev',
+        targetProject: 'myproject-dev',
+        openshiftRolloutTimeoutRetries: 5,
+        chartDir: 'chart']
+
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
-    openShiftService.getRevision(*_) >> 123
-    openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
-    openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
-    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${config.componentId}-124"])]
+    openShiftService.helmStatus('myproject-dev', 'backend-helm-monorepo') >> HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
+    // todo: verify that we did not want to ensure that build images are tagged here.
+    // - the org.ods.component.Context.artifactUriStore is not initialized with c when created above!
+    // - as a consequence the build artifacts are empty so no retagging happens here.
+    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${c.componentId}-124"])]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -192,19 +202,21 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
             return metadata
         }
     }
-    def deploymentInfo = script.call(context)
+    def deploymentInfo = script.call(context, [
+        helmReleaseName: "backend-helm-monorepo",
+    ])
 
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['Deployment/bar'][0].deploymentId == "bar-124"
+    deploymentInfo['Deployment/core'][0].deploymentId == "core-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    buildArtifacts.deployments['bar-deploymentMean']['type'] == 'helm'
+    buildArtifacts.deployments['core-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade('foo-dev', 'bar', ['values.yaml'], ['registry':null, 'componentId':'bar', 'global.registry':null, 'global.componentId':'bar', 'imageNamespace':'foo-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'foo-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll

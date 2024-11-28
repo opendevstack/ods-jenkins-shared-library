@@ -5,25 +5,24 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
 class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // Constructor arguments
-    private final Script script
     private final IContext context
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
+    private final IPipelineSteps steps
 
     // assigned in constructor
-    private def steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     TailorDeploymentStrategy(
-        def script,
+        IPipelineSteps steps,
         IContext context,
         Map<String, Object> config,
         OpenShiftService openShift,
@@ -67,10 +66,9 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.containsKey('tailorParams')) {
             config.tailorParams = []
         }
-        this.script = script
         this.context = context
         this.logger = logger
-        this.steps = new PipelineSteps(script)
+        this.steps = steps
 
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift

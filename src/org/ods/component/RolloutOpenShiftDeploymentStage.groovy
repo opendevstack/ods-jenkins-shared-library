@@ -2,9 +2,10 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
+import org.ods.util.PipelineSteps
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -110,26 +111,27 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // We have to move everything here,
         // otherwise Jenkins will complain
         // about: "hudson.remoting.ProxyException: CpsCallableInvocation{methodName=fileExists, ..."
-        def isHelmDeployment = steps.fileExists(options.chartDir + '/Chart.yaml')
+        def isHelmDeployment = this.steps.fileExists(options.chartDir + '/Chart.yaml')
         logger.info("isHelmDeployment: ${isHelmDeployment}")
-        def isTailorDeployment = steps.fileExists(options.openshiftDir)
+        def isTailorDeployment = this.steps.fileExists(options.openshiftDir)
 
         if (isTailorDeployment && isHelmDeployment) {
-            steps.error("Must be either a Tailor based deployment or a Helm based deployment")
+            this.steps.error("Must be either a Tailor based deployment or a Helm based deployment")
             throw new IllegalStateException("Must be either a Tailor based deployment or a Helm based deployment")
         }
 
         // Use tailorDeployment in the following cases:
         // (1) We have an openshiftDir
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
+        def steps = new PipelineSteps(script)
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
-            deploymentStrategy = new TailorDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
             String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
-            def msg =steps.libraryResource(resourcePath)
+            def msg = this.steps.libraryResource(resourcePath)
             logger.warn(msg)
         }
         if (isHelmDeployment) {
-            deploymentStrategy = new HelmDeploymentStrategy(script, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
         }
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()

@@ -51,10 +51,7 @@ class PodData {
             podNamespace: podNamespace,
             podMetaDataCreationTimestamp: podMetaDataCreationTimestamp,
             deploymentId: deploymentId,
-            podNode: podNode,
-            podIp: podIp,
             podStatus: podStatus,
-            podStartupTimeStamp: podStartupTimeStamp,
             containers: containers,
         ]
     }
