@@ -39,6 +39,9 @@ class PipelineScript {
         body()
     }
 
+    def usernamePassword(def foo) {
+    }
+
     def sh(def foo) {
         return "test"
     }
@@ -96,8 +99,16 @@ class PipelineScript {
 
     }
 
+    def writeFile (Map args) {
+
+    }
+
     def readJSON (Map args) {
 
+    }
+
+    def dir(def foo, Closure body) {
+        body()
     }
 
     def withSonarQubeEnv(String conf, Closure closure) {
