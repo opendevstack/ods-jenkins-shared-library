@@ -1,0 +1,8 @@
+{
+  "image": "gradle:jdk11-focal",
+  "containerEnv": {
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": {"version": "1.15"}
+  }
+}

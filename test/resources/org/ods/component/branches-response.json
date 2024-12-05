@@ -1,0 +1,72 @@
+{
+    "size": 8,
+    "limit": 25,
+    "isLastPage": true,
+    "values": [
+        {
+            "id": "refs/heads/adev",
+            "displayId": "adev",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/bdev",
+            "displayId": "bdev",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/dev",
+            "displayId": "dev",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": true
+        },
+        {
+            "id": "refs/heads/dev1",
+            "displayId": "dev1",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/dev10",
+            "displayId": "dev10",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/master",
+            "displayId": "master",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/release/2.0",
+            "displayId": "release/2.0",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        },
+        {
+            "id": "refs/heads/release/3.0",
+            "displayId": "release/3.0",
+            "type": "BRANCH",
+            "latestCommit": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "latestChangeset": "ede1ea256ddd89bcdfe5fea2094c98a596d5efab",
+            "isDefault": false
+        }
+    ],
+    "start": 0
+}

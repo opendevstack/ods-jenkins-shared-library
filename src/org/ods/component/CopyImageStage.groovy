@@ -27,6 +27,10 @@ class CopyImageStage extends Stage {
             config.verifyTLS = true
         }
 
+        if (config.preserveDigests == null) {
+            config.preserveDigests = false
+        }
+
         this.options = new CopyImageOptions(config)
         this.openShift = openShift
         this.logger = logger
@@ -52,7 +56,10 @@ class CopyImageStage extends Stage {
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        int status = copyImage(sourcetoken, targetInternalRegistryToken, STR_DOCKER_PROTOCOL)
+        def copyparams = ""
+        if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
+
+        int status = copyImage(sourcetoken, targetInternalRegistryToken, STR_DOCKER_PROTOCOL, copyparams)
         if (status != 0) {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
@@ -83,11 +90,15 @@ class CopyImageStage extends Stage {
         }
     }
 
-    private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol) {
+    private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol, String copyparams) {
+        def registryPath = this.options.repo ? \
+           "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
+           "${this.options.registry}/${this.options.image}"
         int status = steps.sh(
             script: """
-                skopeo copy --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
-                ${this.options.registry}/${this.options.repo}/${this.options.image} \
+                skopeo copy ${copyparams} \
+                --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
+                ${registryPath} \
                 --dest-creds openshift:${targetInternalRegistryToken} \
                 ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
                 --dest-tls-verify=${this.options.verifyTLS}
@@ -99,9 +110,12 @@ class CopyImageStage extends Stage {
     }
 
     protected String stageLabel() {
+        def registryPath = this.options.repo ? \
+            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
+            "${this.options.registry}/${this.options.image}"
         return "${STAGE_NAME} " +
             "(${context.componentId}) " +
-            "${this.options.registry}/${this.options.repo}/${this.options.image}'"
+            "${registryPath}'"
     }
 
 }
