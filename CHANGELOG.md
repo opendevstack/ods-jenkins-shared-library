@@ -4,6 +4,7 @@
 
 ### Added
 * add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
+* Add support for git submodules in Quickstarters ([#1181](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1181))
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
