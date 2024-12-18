@@ -199,12 +199,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
                 // We need to find the pod that was created as a result of the deployment.
                 // The previous pod may still be alive when we use a rollout strategy.
-                // We can tell one from the other using their creation timestamp
+                // We can tell one from the other using their creation timestamp,
+                // being the most recent the one we are interested in.
                 def latestPods = getLatestPods(podData)
                 // While very unlikely, it may happen that there is more than one pod with the same timestamp.
                 // Note that timestamp resolution is seconds.
                 // If that happens, we are unable to know which is the correct pod.
-                // However, we it doesn't matter which pod is the right one, if they all have the same images.
+                // However, it doesn't matter which pod is the right one, if they all have the same images.
                 def sameImages = haveSameImages(latestPods)
                 if (!sameImages) {
                     throw new RuntimeException("Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for ${resourceName}")
@@ -285,6 +286,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
      */
     @NonCPS
     private static boolean areEqual(Iterable iterable, Closure equals) {
+        def equal = true
         if (iterable) {
             def first = true
             def base = null
@@ -293,10 +295,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     base = it
                     first = false
                 } else if (!equals(base, it)) {
-                    return false
+                    equal = false
                 }
             }
         }
-        return true
+        return equal
     }
 }
