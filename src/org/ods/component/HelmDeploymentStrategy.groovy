@@ -208,7 +208,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // However, it doesn't matter which pod is the right one, if they all have the same images.
                 def sameImages = haveSameImages(latestPods)
                 if (!sameImages) {
-                    throw new RuntimeException("Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for ${resourceName}")
+                    throw new RuntimeException(
+                        "Unable to determine the most recent Pod. " +
+                        "Multiple pods running with the same latest creation timestamp " +
+                        "and different images found for ${resourceName}"
+                    )
                 }
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
@@ -249,8 +253,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     /**
-     * Selects the items in the iterable which when passed as a parameter to the supplied closure return the maximum value.
-     * A null return value represents the least possible return value,
+     * Selects the items in the iterable which when passed as a parameter to the supplied closure
+     * return the maximum value. A null return value represents the least possible return value,
      * so any item for which the supplied closure returns null, won't be selected (unless all items return null).
      * The return list contains all the elements that returned the maximum value.
      *
