@@ -83,4 +83,133 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         assert expectedDeploymentMeans == actualDeploymentMeans
     }
+
+    def "rollout: check deploymentMean when multiple pods then accept only latest"() {
+        given:
+
+        def expectedDeploymentMeans = [
+            "builds": [:],
+            "deployments": [
+                "bar-deploymentMean": [
+                    "type": "helm",
+                    "selector": "app=foo-bar",
+                    "chartDir": "chart",
+                    "helmReleaseName": "bar",
+                    "helmEnvBasedValuesFiles": [],
+                    "helmValuesFiles": ["values.yaml"],
+                    "helmValues": [:],
+                    "helmDefaultFlags": ["--install", "--atomic"],
+                    "helmAdditionalFlags": []
+                ],
+                "bar":[
+                    "podName": null,
+                    "podNamespace": null,
+                    "podMetaDataCreationTimestamp": "2024-12-12T20:10:47Z",
+                    "deploymentId": "bar-124",
+                    "podNode": null,
+                    "podIp": null,
+                    "podStatus": null,
+                    "podStartupTimeStamp": null,
+                    "containers": [
+                        "containerA": "imageAnew",
+                        "containerB": "imageBnew",
+                    ],
+                ]
+            ]
+        ]
+        def config = [:]
+
+        def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
+        IContext context = new Context(null, ctxData, logger)
+        OpenShiftService openShiftService = Mock(OpenShiftService.class)
+        openShiftService.checkForPodData(*_) >> [
+            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:46Z", containers: ["containerA": "imageAold", "containerB": "imageBold"]]),
+            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAnew", "containerB": "imageBnew"]]),
+            new PodData([deploymentId: "${contextData.componentId}-123", podMetaDataCreationTimestamp: "2024-11-11T20:10:46Z"])
+        ]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        JenkinsService jenkinsService = Stub(JenkinsService.class)
+        jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+        ServiceRegistry.instance.add(JenkinsService, jenkinsService)
+
+        HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
+
+        when:
+        def deploymentResources = [Deployment: ['bar']]
+        def rolloutData = strategy.getRolloutData(deploymentResources)
+        def actualDeploymentMeans = context.getBuildArtifactURIs()
+
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+
+        assert expectedDeploymentMeans == actualDeploymentMeans
+    }
+
+    def "rollout: check deploymentMean when multiple pods with same timestamp but different image then pipeline fails"() {
+        given:
+
+        def expectedDeploymentMeans = [
+            "builds": [:],
+            "deployments": [
+                "bar-deploymentMean": [
+                    "type": "helm",
+                    "selector": "app=foo-bar",
+                    "chartDir": "chart",
+                    "helmReleaseName": "bar",
+                    "helmEnvBasedValuesFiles": [],
+                    "helmValuesFiles": ["values.yaml"],
+                    "helmValues": [:],
+                    "helmDefaultFlags": ["--install", "--atomic"],
+                    "helmAdditionalFlags": []
+                ],
+                "bar":[
+                    "podName": null,
+                    "podNamespace": null,
+                    "podMetaDataCreationTimestamp": "2024-12-12T20:10:47Z",
+                    "deploymentId": "bar-124",
+                    "podNode": null,
+                    "podIp": null,
+                    "podStatus": null,
+                    "podStartupTimeStamp": null,
+                    "containers": [
+                        "containerA": "imageAnew",
+                        "containerB": "imageBnew",
+                    ],
+                ]
+            ]
+        ]
+        def config = [:]
+
+        def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
+        IContext context = new Context(null, ctxData, logger)
+        OpenShiftService openShiftService = Mock(OpenShiftService.class)
+        openShiftService.checkForPodData(*_) >> [
+            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAnew", "containerB": "imageBnew"]]),
+            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAold", "containerB": "imageBold"]]),
+        ]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        JenkinsService jenkinsService = Stub(JenkinsService.class)
+        jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+        ServiceRegistry.instance.add(JenkinsService, jenkinsService)
+
+        HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
+
+        when:
+        def deploymentResources = [Deployment: ['bar']]
+        def rolloutData = strategy.getRolloutData(deploymentResources)
+        def actualDeploymentMeans = context.getBuildArtifactURIs()
+
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for bar"
+
+        // TODO question: is this expected that still pipeline is successful?
+        assertJobStatusSuccess()
+    }
+
 }
