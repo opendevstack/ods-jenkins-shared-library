@@ -205,11 +205,11 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
 
         then:
+        printCallStack()
         def e = thrown(RuntimeException)
-        e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for bar"
 
-        // TODO question: is this expected that still pipeline is successful?
-        assertJobStatusSuccess()
+        assert e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for bar"
+
     }
 
 }
