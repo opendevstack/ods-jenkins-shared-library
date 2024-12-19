@@ -1,7 +1,6 @@
 # Changelog
 
 ## Unreleased
-=======
 * Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
 
 ### Added
