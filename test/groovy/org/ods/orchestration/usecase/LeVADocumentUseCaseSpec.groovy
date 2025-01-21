@@ -1736,7 +1736,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             TIR: 'ConfigItem / See version created within this change',
             TIR_version: 'WIP/2',
             TIP: 'ConfigItem / See version created within this change',
-            TIP_version: 'WIP/2'
+            TIP_version: 'WIP/2',
+            TCP: 'ConfigItem / See version created within this change',
+            TCP_version: 'WIP/2'
         ]
     }
 
