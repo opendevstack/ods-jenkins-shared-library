@@ -264,21 +264,15 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
      */
     @NonCPS
     private static List maxElements(Iterable iterable, Closure getValue) {
-        List elements = null
         if (!iterable) {
-            return []
+            return [] // Return an empty list if the iterable is null or empty
         }
-        def maxValue = null;
-        iterable.each {
-            def value = getValue(it)
-            if (!elements || value > maxValue) {
-                maxValue = value
-                elements = [it]
-            } else if (value == maxValue) {
-                elements += it
-            }
-        }
-        return elements
+
+        // Find the maximum value using the closure
+        def maxValue = iterable.collect(getValue).max()
+
+        // Find all elements with the maximum value
+        return iterable.findAll { getValue(it) == maxValue }
     }
 
     /**
