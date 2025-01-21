@@ -1715,7 +1715,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def versions = useCase.getReferencedDocumentsVersion()
 
         then:
-        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
+        9 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
         versions == [
             CSD: 'ConfigItem / See version created within this change',
             CSD_version: 'WIP/3',
