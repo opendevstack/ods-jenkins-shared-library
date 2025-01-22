@@ -1783,6 +1783,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.CFTR,
             DocumentType.TIR,
             DocumentType.TIP,
+            DocumentType.TCP,
         ]
 
         referencedDcocs.collectEntries { DocumentType dt ->
