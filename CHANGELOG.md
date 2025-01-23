@@ -15,6 +15,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Image tag issues ([#1188](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1188))
 
 ## [4.6.0] - 2024-10-23
 
