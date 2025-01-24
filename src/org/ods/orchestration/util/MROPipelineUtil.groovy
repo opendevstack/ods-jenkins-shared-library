@@ -289,7 +289,12 @@ class MROPipelineUtil extends PipelineUtil {
         String gitReleaseBranch = this.project.gitReleaseBranch
         repo.defaultBranch = bbs.getDefaultBranch(repo.id)
         if ("master" == gitReleaseBranch) {
+            this.logger.info("'master' is the release branch of project, using default branch: ${repo.defaultBranch}")
             gitReleaseBranch = repo.defaultBranch
+        }
+        if(isWorkInProgress && repo.'preview-branch') {
+            this.logger.info("Since in WIP and preview-branch has been configured, using preview-branch: ${repo.'preview-branch'}")
+            gitReleaseBranch = repo.'preview-branch'
         }
 
         // check if release manager repo already has a release branch
@@ -324,9 +329,11 @@ class MROPipelineUtil extends PipelineUtil {
                 scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
                 scmResult.scmBranch = gitReleaseBranch
             } else {
-                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.defaultBranch} for repo ${repo.id}")
-                scmResult.scm = checkoutBranchInRepoDir(repo, repo.defaultBranch)
-                scmResult.scmBranch = repo.defaultBranch
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch})" +
+                    "${repo.'preview-branch' ? ' and preview-branch has been configured' : ''}, " +
+                    "checking out branch ${repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch} for repo ${repo.id}")
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch)
+                scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
             }
         }
         return scmResult
