@@ -1,15 +1,29 @@
 # Changelog
 
 ## Unreleased
+=======
+* Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
 
 ### Added
+* add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
 
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
-* Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
+* Simplify successor management since now issue links are no longer inherited ([#1116](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.7.0] - 2025-1-27
+
+### Changed
+* Deprecation of vuln-type and scanners config in Trivy ([#1150](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1150))
+* Add preserve-digests cli option to skopeo copy command in CopyImageStage ([#1166](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1166))
+* Allow registry/image:tag sources in CopyImageStage instead of directly falling back to internal registry ([#1177](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1177))
+
+### Fixed
+* Image tag issues ([#1188](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1188))
+* Update TRC reference document with SSDS and TCP ([#1189](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1189))
 
 ## [4.6.0] - 2024-10-23
 

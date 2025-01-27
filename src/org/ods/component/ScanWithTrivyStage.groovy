@@ -32,10 +32,10 @@ class ScanWithTrivyStage extends Stage {
             config.format = 'cyclonedx'
         }
         if (!config.scanners) {
-            config.scanners = 'vuln,config,secret,license'
+            config.scanners = 'vuln,misconfig,secret,license'
         }
-        if (!config.vulType) {
-            config.vulType = 'os,library'
+        if (!config.pkgType) {
+            config.pkgType = 'os,library'
         }
         if (!config.additionalFlags) {
             config.additionalFlags = []
@@ -58,7 +58,7 @@ class ScanWithTrivyStage extends Stage {
 
     protected run() {
         String errorMessages = ''
-        int returnCode = scanViaCli(options.scanners, options.vulType, options.format,
+        int returnCode = scanViaCli(options.scanners, options.pkgType, options.format,
             options.additionalFlags, options.reportFile, options.nexusDataBaseRepository,
             openShift.getApplicationDomain())
         if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
@@ -78,14 +78,14 @@ class ScanWithTrivyStage extends Stage {
     }
 
     @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners, String vulType, String format,
+    private int scanViaCli(String scanners, String pkgType, String format,
         List<String> additionalFlags, String reportFile, String nexusDataBaseRepository, String openshiftAppDomain) {
         logger.startClocked(options.resourceName)
         String flags = ""
         additionalFlags.each { flag ->
             flags += " " + flag
         }
-        int returnCode = trivy.scanViaCli(scanners, vulType, format, flags, reportFile,
+        int returnCode = trivy.scanViaCli(scanners, pkgType, format, flags, reportFile,
             nexusDataBaseRepository, openshiftAppDomain)
         switch (returnCode) {
             case TrivyService.TRIVY_SUCCESS:

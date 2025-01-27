@@ -19,7 +19,7 @@ class ScanWithTrivyOptions extends Options {
 
     /**
      * Comma-separated list of vulnerability types to scan. Defaults to `os,library`. */
-    String vulType
+    String pkgType
 
     /**
      * Name of the Nexus repository where the scan report will be stored. Defaults to `leva-documentation`. */

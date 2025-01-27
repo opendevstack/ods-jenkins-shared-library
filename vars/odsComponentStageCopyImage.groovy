@@ -17,13 +17,31 @@ def call(IContext context, Map config = [:]) {
     def sourceImageData = config.sourceImageUrlIncludingRegistry?.minus(STR_DOCKER_PROTOCOL)?.split('/')
     def sourceImageDataSplitLength = sourceImageData?.size()
 
+    def sourceDomainOrRepo = sourceImageData[0]
+
     // [REGISTRY/]REPO/IMAGE[:TAG]
     if (sourceImageDataSplitLength >= 2) {
         config.image = sourceImageData[sourceImageDataSplitLength-1]
         config.repo = sourceImageData[sourceImageDataSplitLength-2]
         // no registry info, use internal cluster registry
         if (sourceImageDataSplitLength == 2) {
-            config.registry = context.clusterRegistryAddress
+            try {
+                InetAddress.getByName(sourceDomainOrRepo?.split(':')[0])
+                isDomain = true
+            } catch (UnknownHostException e) {
+                isDomain = false
+            } catch (Exception e) {
+                isDomain = false
+            }
+
+            if (isDomain) {
+                logger.info("Source registry given, but no repo, using ${sourceDomainOrRepo}/${config.image}")
+                config.registry = sourceDomainOrRepo
+                config.repo = ''
+            } else {
+                logger.info("No valid source registry given, using default ${context.clusterRegistryAddress}")
+                config.registry = context.clusterRegistryAddress
+            }
         } else {
             config.registry = sourceImageData[0..sourceImageDataSplitLength-3].join('/')
         }
