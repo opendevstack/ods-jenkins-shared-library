@@ -780,7 +780,7 @@ class JiraService {
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}&DeployToD=${!isWorkInProgress}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}&deployToD=${!isWorkInProgress}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .routeParam('version', version)
             .basicAuth(this.username, this.password)
