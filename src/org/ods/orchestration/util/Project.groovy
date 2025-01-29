@@ -1201,7 +1201,7 @@ class Project {
     Map getComponentsFromJira() {
         if (!this.jiraUseCase) return [:]
 
-        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId)
+        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId, this.isWorkInProgress)
     }
 
     protected Map loadJiraData(String projectKey) {

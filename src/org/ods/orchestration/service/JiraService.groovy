@@ -770,7 +770,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map getComponents(String projectKey, String version) {
+    Map getComponents(String projectKey, String version, boolean isWorkInProgress) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'projectKey\' is undefined.')
@@ -780,7 +780,7 @@ class JiraService {
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}&DeployToD=${!isWorkInProgress}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .routeParam('version', version)
             .basicAuth(this.username, this.password)
