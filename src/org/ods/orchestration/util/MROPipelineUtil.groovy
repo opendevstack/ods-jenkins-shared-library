@@ -289,7 +289,7 @@ class MROPipelineUtil extends PipelineUtil {
         String gitReleaseBranch = this.project.gitReleaseBranch
         repo.defaultBranch = bbs.getDefaultBranch(repo.id)
         if ("master" == gitReleaseBranch) {
-            this.logger.info("'master' is the release branch of project, using default branch: ${repo.defaultBranch}")
+            this.logger.info("Since no release branch exists, using default branch: ${repo.defaultBranch}")
             gitReleaseBranch = repo.defaultBranch
         }
         if(isWorkInProgress && repo.'preview-branch') {
