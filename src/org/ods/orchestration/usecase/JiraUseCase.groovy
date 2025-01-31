@@ -468,12 +468,12 @@ class JiraUseCase {
         return content
     }
 
-    Map getComponents(String projectKey, String version) {
+    Map getComponents(String projectKey, String version, boolean isWorkInProgress) {
         if (!this.jira) {
             logger.warn("getComponents: Could *NOT* retrieve components because jira has invalid value.")
             return [:]
         }
-        return jira.getComponents(projectKey, version)
+        return jira.getComponents(projectKey, version, isWorkInProgress)
     }
 
     protected List loadJiraSecurityVulnerabilityIssues(String issueSummary, String fixVersion,

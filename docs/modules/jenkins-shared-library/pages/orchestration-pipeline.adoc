@@ -29,10 +29,8 @@ name: Project Phoenix
 
 repositories:
   - id: A
-    branch: master
   - id: B
     name: my-repo-B
-    branch: master
   - id: C
 ```
 
@@ -51,11 +49,9 @@ name: Project Phoenix
 
 repositories:
   - id: A
-    branch: master
     type: ods
   - id: B
     name: my-repo-B
-    branch: master
     type: ods
   - id: C
     type: ods
@@ -103,7 +99,6 @@ name: Project Phoenix
 repositories:
   - id: B
     name: my-repo-B
-    branch: master
 ```
 
 Assuming your release manager component's origin at `https://github.com/my-org/my-pipeline.git` in this example, the Git URL for repository `B` will resolve to `https://github.com/my-org/my-repo-B.git`, based on the value in `repositories[0].name`.
@@ -122,7 +117,11 @@ Assuming your release manager component's origin at `https://github.com/my-org/m
 
 === Automated Resolution of Repository Branch
 
-If no `branch` parameter is provided for a repository, `master` will be assumed.
+The default branch of the repository will be assumed.
+
+=== Use of custom branch ONLY for Developer Preview
+
+If `preview-branch` parameter is provided for a repository, then it will be assumed as the default branch.
 
 === Automated Parallelization of Repositories
 
@@ -218,8 +217,8 @@ The environment promotion feature is part of the regular orchestration pipeline.
 
 The components of your software are defined in the `repositories` section of the `metadata.yml` file in the release manager repository. In order for the orchestration pipeline to know which state of each component should be promoted, it needs to have some knowledge about how version control in your repositories is organised. Everything depends on a user-supplied build parameter named `version` to the Jenkins pipeline. Other input parameters do not have any impact on source code lookup.
 
-- When no `version` is given, the orchestration pipeline will default to `WIP` (work in progress). In this scenario, source code for each repository is taken from the configured branch in the `metadata.yml` file (defaulting to `master` if no branch is specified there).
-- When a `version` is given, source code will be taken from a branch `release/$VERSION` in each repository. When this branch does not exist yet, it will be created (based on the configured branch in `metadata.yml`) by the pipeline. Subsequent runs with the same `version` input will take the source code from the created release branch - changes to the configured branch will have no effect on this version! This is by design: it allows some developers to work on new features on the mainline branch (typically `master`) while others polish the release branch. To this end, the orchestration pipeline allows to enable separate development environments per version to isolate changes in OpenShift resources (see section "Environments" further down).
+- When no `version` is given, the orchestration pipeline will default to `WIP` (work in progress). In this scenario, source code for each repository is taken from the default branch configured in repository.
+- When a `version` is given, source code will be taken from a branch `release/$VERSION` in each repository. When this branch does not exist yet, it will be created by the pipeline. Subsequent runs with the same `version` input will take the source code from the created release branch - changes to the default branch will have no effect on this version! This is by design: it allows some developers to work on new features on the default branch (typically `master`) while others polish the release branch. To this end, the orchestration pipeline allows to enable separate development environments per version to isolate changes in OpenShift resources (see section "Environments" further down).
 - The orchestration pipeline applies the same branching rules to the release manager repository - it will create a release branch per version. There is one small caveat here: Jenkins only considers the `Jenkinsfile` from the branch which is configured for a pipeline. That means that for a pipeline setup against `master`, Jenkins will always execute the latest `Jenkinsfile` from `master`, even when you pass an  explicit `version` to the pipeline. The orchestration pipeline will read e.g. the `metadata.yml` file from the matching release branch, but the `Jenkinsfile` itself will be from `master`. Usually, this should not be an issue as you should not make changes to the `Jenkinsfile` of the release manager repository anyway.
 
 === Release bundles
