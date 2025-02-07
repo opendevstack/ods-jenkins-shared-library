@@ -50,6 +50,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('helmValues')) {
             config.helmValues = [:]
         }
+        if (!config.containsKey('helmStringValues')) {
+            config.helmStringValues = [:]
+        }
         if (!config.containsKey('helmValuesFiles')) {
             config.helmValuesFiles = [ 'values.yaml' ]
         }
