@@ -3296,7 +3296,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch with jira enabled"() {
         given:
-        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED', true) >> { return [deployableState: 'DEPLOYABLE'] }
 
         when:
         def result = project.getComponentsFromJira()
@@ -3307,7 +3307,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch fail with jira enabled"() {
         given:
-        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED', true) >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
 
         when:
         def result = project.getComponentsFromJira()

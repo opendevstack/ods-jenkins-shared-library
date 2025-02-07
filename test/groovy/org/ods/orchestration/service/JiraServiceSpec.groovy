@@ -2461,7 +2461,7 @@ class JiraServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    def "check component mismatch deployable"() {
+    def "check component mismatch deployable and work in progress"() {
         given:
         def request = getComponentsStatusRequestData()
         def response = getComponentsStatusResponseData()
@@ -2470,7 +2470,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponents('EDP','v1')
+        def result = service.getComponents('EDP','v1', true)
 
         then:
         noExceptionThrown()
@@ -2480,7 +2480,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "check component mismatch not deployable"() {
+    def "check component mismatch not deployable and work in progress"() {
         given:
         def request = getComponentsStatusRequestData()
         def response = getComponentsStatusResponseData([body: '''{
@@ -2492,7 +2492,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponents('EDP','v1')
+        def result = service.getComponents('EDP','v1', true)
 
         then:
         noExceptionThrown()
@@ -2502,7 +2502,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "check component mismatch error"() {
+    def "check component mismatch error and work in progress"() {
         given:
         def request = getComponentsStatusRequestData()
         def response = getComponentsStatusResponseData([status: 400])
@@ -2511,7 +2511,67 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getComponents('EDP','v1')
+        def result = service.getComponents('EDP','v1', true)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/projects/EDP/components?changeId=v1 Jira responded with code: '400'")
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "check component mismatch deployable and deploy to D"() {
+        given:
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponseData()
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getComponents('EDP','v1', false)
+
+        then:
+        noExceptionThrown()
+        assert result.deployableState == 'DEPLOYABLE'
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "check component mismatch not deployable and deploy to D"() {
+        given:
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponseData([body: '''{
+                "deployableState": "MISCONFIGURED",
+                "message": "no message"
+            }'''])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getComponents('EDP','v1', false)
+
+        then:
+        noExceptionThrown()
+        assert result.deployableState != 'DEPLOYABLE'
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "check component mismatch error and deploy to D"() {
+        given:
+        def request = getComponentsStatusRequestData()
+        def response = getComponentsStatusResponseData([status: 400])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getComponents('EDP','v1', false)
 
         then:
         def e = thrown(RuntimeException)
