@@ -55,6 +55,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.containsKey('helmValues')) {
             config.helmValues = [:]
         }
+        if (!config.containsKey('helmStringValues')) {
+            config.helmStringValues = [:]
+        }
         if (!config.containsKey('helmValuesFiles')) {
             config.helmValuesFiles = ['values.yaml']
         }
@@ -121,24 +124,29 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 }
 
                 // we add two things persistent - as these NEVER change (and are env independent)
-                options.helmValues['registry'] = context.clusterRegistryAddress
-                options.helmValues['componentId'] = context.componentId
+                options.helmStringValues['registry'] = context.clusterRegistryAddress
+                options.helmStringValues['componentId'] = context.componentId
 
                 // we persist the original ones set from outside - here we just add ours
                 Map mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
+                Map mergedHelmStringValues = [:]
+                mergedHelmStringValues << options.helmStringValues
 
                 // we add the global ones - this allows usage in subcharts
                 options.helmValues.each { key, value ->
                     mergedHelmValues["global.${key}"] = value
                 }
+                options.helmStringValues.each { key, value ->
+                    mergedHelmStringValues["global.${key}"] = value
+                }
 
-                mergedHelmValues['imageNamespace'] = targetProject
-                mergedHelmValues['imageTag'] = options.imageTag
+                mergedHelmStringValues['imageNamespace'] = targetProject
+                mergedHelmStringValues['imageTag'] = options.imageTag
 
                 // we also add the predefined ones as these are in use by the library
-                mergedHelmValues['global.imageNamespace'] = targetProject
-                mergedHelmValues['global.imageTag'] = options.imageTag
+                mergedHelmStringValues['global.imageNamespace'] = targetProject
+                mergedHelmStringValues['global.imageTag'] = options.imageTag
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
@@ -154,6 +162,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     options.helmReleaseName,
                     mergedHelmValuesFiles,
                     mergedHelmValues,
+                    mergedHelmStringValues,
                     options.helmDefaultFlags,
                     options.helmAdditionalFlags,
                     options.helmDiff
@@ -192,6 +201,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                         'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
                         'helmValuesFiles': options.helmValuesFiles,
                         'helmValues': options.helmValues,
+                        'helmStringValues': options.helmStringValues,
                         'helmDefaultFlags': options.helmDefaultFlags,
                         'helmAdditionalFlags': options.helmAdditionalFlags,
                     ])
