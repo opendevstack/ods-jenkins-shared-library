@@ -40,7 +40,7 @@ class CopyImageStage extends Stage {
     @SuppressWarnings(['AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
+        logger.info("Copy the image ${this.options.sourceImageUrlIncludingRegistry}!")
         final String STR_DOCKER_PROTOCOL = 'docker://'
 
         logger.info("Resolved source Image data: " +
