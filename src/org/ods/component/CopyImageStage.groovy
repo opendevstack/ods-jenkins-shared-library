@@ -51,15 +51,13 @@ class CopyImageStage extends Stage {
         // to make this work, we need a target image stream first
         openShift.findOrCreateImageStream("${context.cdProject}", "${this.options.image.split(':').first()}")
 
-        // read the target registry auth (for this project's -cd project ..)
-        def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
-
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
+        def targettoken = options.targetToken ? "--dest-registry-token ${options.targetToken}" : "--dest-creds openshift:${targetInternalRegistryToken}"
 
         def copyparams = ""
         if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
 
-        int status = copyImage(sourcetoken, targetInternalRegistryToken, STR_DOCKER_PROTOCOL, copyparams)
+        int status = copyImage(sourcetoken, targettoken, STR_DOCKER_PROTOCOL, copyparams)
         if (status != 0) {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
@@ -90,22 +88,24 @@ class CopyImageStage extends Stage {
         }
     }
 
-    private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol, String copyparams) {
+    private int copyImage(sourcetoken, targettoken, String dockerProtocol, String copyparams) {
         def registryPath = this.options.repo ? \
            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
            "${this.options.registry}/${this.options.image}"
+
         int status = steps.sh(
             script: """
                 skopeo copy ${copyparams} \
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${registryPath} \
-                --dest-creds openshift:${targetInternalRegistryToken} \
+                ${targettoken} \
                 ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
                 --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,
             label: "Copy image ${this.options.repo}/${this.options.image}"
         ) as int
+
         return status
     }
 
