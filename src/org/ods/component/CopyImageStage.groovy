@@ -37,7 +37,7 @@ class CopyImageStage extends Stage {
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
-    @SuppressWarnings(['AbcMetric, LineLength'])
+    @SuppressWarnings(['AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
         logger.info("Copy the image ${this.options.sourceImageUrlIncludingRegistry}!")
@@ -52,7 +52,11 @@ class CopyImageStage extends Stage {
         openShift.findOrCreateImageStream("${context.cdProject}", "${this.options.image.split(':').first()}")
 
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
-        def targettoken = options.targetToken ? "--dest-registry-token ${options.targetToken}" : "--dest-creds openshift:${targetInternalRegistryToken}"
+
+        def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
+        def targettoken = options.targetToken ?
+            "--dest-registry-token ${options.targetToken}" :
+            "--dest-creds openshift:${targetInternalRegistryToken}"
 
         def copyparams = ""
         if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
