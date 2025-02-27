@@ -780,9 +780,11 @@ class JiraService {
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}&previewMode=${isWorkInProgress}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}" +
+            "/components?changeId={version}&previewMode={isWorkInProgress}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .routeParam('version', version)
+            .routeParam('isWorkInProgress', isWorkInProgress)
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
             .asString()
@@ -790,6 +792,7 @@ class JiraService {
         response.ifFailure {
             def message = 'Error: unable to get component match check in url ' +
                 "${this.baseURL}/rest/platform/1.1/projects/${projectKey.toUpperCase()}/components?changeId=$version" +
+                "&previewMode=$isWorkInProgress" +
                 ' Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
