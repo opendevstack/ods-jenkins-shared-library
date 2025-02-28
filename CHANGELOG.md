@@ -2,6 +2,7 @@
 
 ## Unreleased
 =======
+* Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))
 * Add custom preview branch functionality for DevPreview ([#1191](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1191))
 * Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
 * Set java version in SonarQube Stage ([#1194](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1194))
