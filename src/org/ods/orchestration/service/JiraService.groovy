@@ -771,38 +771,34 @@ class JiraService {
 
     @NonCPS
     Map getComponents(String projectKey, String version, boolean isWorkInProgress) {
-        if (!projectKey?.trim()) {
+        if (!projectKey?.strip()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'projectKey\' is undefined.')
         }
-        if (!version?.trim()) {
+        if (!version?.strip()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}" +
-            "/components?changeId={version}&previewMode={isWorkInProgress}")
-            .routeParam('projectKey', projectKey.toUpperCase())
-            .routeParam('version', version)
-            .routeParam('isWorkInProgress', String.valueOf(isWorkInProgress))
+        def request = Unirest.get(this.baseURL.toString() + '/rest/platform/1.1/projects/{projectKey}/components')
+            .routeParam('projectKey', projectKey.toUpperCase(Locale.ENGLISH))
+            .queryString('changeId', version)
+            .queryString('previewMode', String.valueOf(isWorkInProgress))
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
-            .asString()
+        def response = request.asString()
 
         response.ifFailure {
-            def message = 'Error: unable to get component match check in url ' +
-                "${this.baseURL}/rest/platform/1.1/projects/${projectKey.toUpperCase()}/components?changeId=$version" +
-                "&previewMode=$isWorkInProgress" +
-                ' Jira responded with code: ' +
-                "'${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = "Error: unable to get component match check in url ${request.url} " +
+                "Jira responded with code: '${response.status}' and message: '${response.body}'."
 
-            if (response.getStatus() == 404) {
+            if (response.status == 404) {
                 message = "Error: unable to get component match check. Jira could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
         }
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(response.body)
     }
 
     def getIssue(String issueId, String expand = null) {
