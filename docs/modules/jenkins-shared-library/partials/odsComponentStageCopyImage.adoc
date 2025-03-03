@@ -36,7 +36,7 @@ _Boolean_
 
 | *sourceCredential* +
 _String_
-|sourceCredential is the token to use, if any, to access the source registry
+|sourceCredential is the credential to use, if any, to access the source registry
 
 
 | *sourceImageUrlIncludingRegistry* +
@@ -49,6 +49,11 @@ _String_
 | *tagIntoTargetEnv* +
 _Boolean_
 |true will tag the image from the -cd namespace into the targetEnvironment that the pipeline is running for
+
+
+| *targetToken* +
+_String_
+|targetToken is the bearer token to use, if any, to access the target registry
 
 
 | *verifyTLS* +

@@ -2515,7 +2515,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/projects/EDP/components?changeId=v1 Jira responded with code: '400'")
+        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/projects/EDP/components?changeId=v1&previewMode=true Jira responded with code: '400'")
 
         cleanup:
         stopServer(server)
@@ -2575,7 +2575,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/projects/EDP/components?changeId=v1 Jira responded with code: '400'")
+        e.message.startsWith("Error: unable to get component match check in url http://localhost:${server.port()}/rest/platform/1.1/projects/EDP/components?changeId=v1&previewMode=false Jira responded with code: '400'")
 
         cleanup:
         stopServer(server)
