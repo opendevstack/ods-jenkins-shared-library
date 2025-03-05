@@ -85,7 +85,7 @@ class Pipeline implements Serializable {
             // Execute user-defined stages.
             block(context)
 
-            new PushToRemoteStage(script, context).execute()
+            new PushToRemoteStage(script, context, config).execute()
         }
     }
 
