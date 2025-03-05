@@ -82,7 +82,7 @@ class CopyImageStage extends Stage {
             [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
         // If this option is set will additionally tag the image in the target namespace, not just the cd namespace
-        if (options.tagIntoTargetEnv) {
+        if (options.tagIntoTargetEnv && context.targetProject) {
             openShift.findOrCreateImageStream(context.targetProject, imageName)
             openShift.importImageTagFromProject(
                 context.targetProject, imageName, context.cdProject,
