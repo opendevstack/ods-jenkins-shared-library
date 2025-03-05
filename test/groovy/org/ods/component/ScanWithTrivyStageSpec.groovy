@@ -1,6 +1,5 @@
 package org.ods.component
 
-import org.ods.PipelineScript
 import org.ods.services.TrivyService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -10,14 +9,12 @@ import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 import util.PipelineSteps
 
-
 class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
 
     ScanWithTrivyStage createStage() {
-        def script = Spy(PipelineScript)
-        def steps = Spy(PipelineSteps)
-        def logger = Spy(new Logger(steps, false))
-        IContext context = new Context(steps,
+        def script = Spy(PipelineSteps)
+        def logger = Spy(new Logger(script, false))
+        IContext context = new Context(script,
             [componentId: "component1",
              projectId: "prj1",
              buildUrl: "http://buidl",
@@ -26,15 +23,15 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
              gitCommit: "12112121212121",
              cdProject: "prj1-cd",
              credentialsId: "cd-user"], logger)
-        def trivy = Spy(new TrivyService(steps, logger))
+        def trivy = Spy(new TrivyService(script, logger))
         def config = [:]
-        def bitbucket = Spy(new BitbucketService (steps,
+        def bitbucket = Spy(new BitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
-        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
-        def openShift = Spy(new OpenShiftService (steps, logger))
+        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
+        def openShift = Spy(new OpenShiftService (script, logger))
         def stage = new ScanWithTrivyStage(
             script,
             context,

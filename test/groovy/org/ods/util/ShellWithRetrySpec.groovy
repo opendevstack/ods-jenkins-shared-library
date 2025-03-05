@@ -1,6 +1,6 @@
 package org.ods.util
 
-import org.ods.PipelineScript
+import util.PipelineSteps
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -12,7 +12,7 @@ class ShellWithRetrySpec extends Specification {
         Map params = [ returnStdout: true,
                        script: "env | grep || true",
                        label: 'getting extension labels from current environment']
-        PipelineScript script = Mock()
+        PipelineSteps script = Mock()
         ILogger logger = Mock()
 
         when:
@@ -39,7 +39,7 @@ class ShellWithRetrySpec extends Specification {
         Map params = [ returnStdout: true,
                        script: "env | grep || true",
                        label: 'getting extension labels from current environment']
-        PipelineScript script = Mock()
+        PipelineSteps script = Mock()
         ILogger logger = Mock()
 
         when:

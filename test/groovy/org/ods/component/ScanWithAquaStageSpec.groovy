@@ -1,21 +1,19 @@
 package org.ods.component
 
-import org.ods.PipelineScript
+import util.PipelineSteps
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
-import util.PipelineSteps
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:],
             extraConfig = [:]) {
-        def script = Spy(PipelineScript)
-        def steps = Spy(PipelineSteps)
-        def logger = Spy(new Logger(steps, false))
+        def script = Spy(PipelineSteps)
+        def logger = Spy(new Logger(script, false))
         Map contextConfig =  [componentId: "component1",
                        projectId: "prj1",
                        buildUrl: "http://buidl",
@@ -26,16 +24,16 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                        credentialsId: "cd-user"]
         contextConfig << extraConfig
 
-        IContext context = new Context(steps, contextConfig, logger)
+        IContext context = new Context(script, contextConfig, logger)
         def config = [:]
-        def aqua = Spy(new AquaService(steps, logger))
-        def bitbucket = Spy(new BitbucketService (steps,
+        def aqua = Spy(new AquaService(script, logger))
+        def bitbucket = Spy(new BitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
-        def openShift = Spy(new OpenShiftService (steps, logger))
-        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
+        def openShift = Spy(new OpenShiftService (script, logger))
+        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
         def stage = new ScanWithAquaStage(
             script,
             context,
@@ -374,6 +372,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -451,6 +453,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -560,6 +566,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -636,6 +646,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -712,6 +726,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']

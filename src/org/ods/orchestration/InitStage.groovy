@@ -28,6 +28,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.Logger
+import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
 @SuppressWarnings('AbcMetric')
@@ -237,7 +238,7 @@ class InitStage extends Stage {
     private void addServicesToRegistry(ServiceRegistry registry, GitService git, PipelineSteps steps, Logger logger) {
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, steps)
         def util = new MROPipelineUtil(project, steps, git, logger)
         registry.add(MROPipelineUtil, util)
         registry.add(Project, project)
@@ -267,7 +268,7 @@ class InitStage extends Stage {
             project.services.bitbucket.credentials.id))
         registry.add(OpenShiftService,
             new OpenShiftService(
-                registry.get(PipelineSteps),
+                registry.get(IPipelineSteps),
                 logger
             )
         )
@@ -275,13 +276,13 @@ class InitStage extends Stage {
         registry.add(JUnitTestReportsUseCase,
             new JUnitTestReportsUseCase(
                 registry.get(Project),
-                registry.get(PipelineSteps)
+                registry.get(IPipelineSteps)
             )
         )
         registry.add(SonarQubeUseCase,
             new SonarQubeUseCase(
                 registry.get(Project),
-                registry.get(PipelineSteps),
+                registry.get(IPipelineSteps),
                 registry.get(NexusService)
             )
         )
@@ -290,7 +291,7 @@ class InitStage extends Stage {
         registry.add(LeVADocumentScheduler,
             new LeVADocumentScheduler(
                 registry.get(Project),
-                registry.get(PipelineSteps),
+                registry.get(IPipelineSteps),
                 registry.get(MROPipelineUtil),
                 registry.get(LeVADocumentUseCase),
                 logger
@@ -302,7 +303,7 @@ class InitStage extends Stage {
                                               ServiceRegistry registry,
                                               Map<String, Object> buildParams,
                                               GitService git,
-                                              PipelineSteps steps) {
+                                              IPipelineSteps steps) {
         BitbucketService bitbucket = registry.get(BitbucketService)
         Closure loadClosure = {
             logger.debug 'Validate that for Q and P we have a valid version'
@@ -355,7 +356,7 @@ class InitStage extends Stage {
         return loadClosure
     }
 
-    private void configureGit(GitService git, PipelineSteps steps, BitbucketService bitbucket) {
+    private void configureGit(GitService git, IPipelineSteps steps, BitbucketService bitbucket) {
         git.configureUser()
         steps.withCredentials(
             [steps.usernamePassword(
@@ -376,7 +377,7 @@ class InitStage extends Stage {
         registry.add(LeVADocumentUseCase,
             new LeVADocumentUseCase(
                 registry.get(Project),
-                registry.get(PipelineSteps),
+                registry.get(IPipelineSteps),
                 registry.get(MROPipelineUtil),
                 registry.get(DocGenService),
                 registry.get(JenkinsService),
@@ -393,7 +394,7 @@ class InitStage extends Stage {
         )
     }
 
-    private BitbucketService addBitBucketToRegistry(PipelineSteps steps, Logger logger, ServiceRegistry registry) {
+    private BitbucketService addBitBucketToRegistry(IPipelineSteps steps, Logger logger, ServiceRegistry registry) {
         def bitbucket = BitbucketService.newFromEnv(
             steps.unwrap(),
             steps.env,
@@ -406,17 +407,17 @@ class InitStage extends Stage {
         registry.add(BitbucketTraceabilityUseCase,
             new BitbucketTraceabilityUseCase(
                 registry.get(BitbucketService),
-                registry.get(PipelineSteps),
+                registry.get(IPipelineSteps),
                 registry.get(Project)
             )
         )
         bitbucket
     }
 
-    private void addJiraUseCaseToRegistry(ServiceRegistry registry, Logger logger, PipelineSteps steps) {
+    private void addJiraUseCaseToRegistry(ServiceRegistry registry, Logger logger, IPipelineSteps steps) {
         def jiraUseCase = new JiraUseCase(
             registry.get(Project),
-            registry.get(PipelineSteps),
+            registry.get(IPipelineSteps),
             registry.get(MROPipelineUtil),
             registry.get(JiraService),
             logger

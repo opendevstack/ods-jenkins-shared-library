@@ -159,7 +159,7 @@ class Pipeline implements Serializable {
                     // check if there is a skipped previous run - if so - delete (to save memory)
                     if (!script.env.MULTI_REPO_BUILD) {
                         jenkinsService.deleteNotBuiltBuilds(
-                            script.currentBuild.getPreviousBuild())
+                            script.currentBuild.previousBuild) //getPreviousBuild() does not work during test)
                     }
 
                     skipCi = isCiSkip()
@@ -351,7 +351,9 @@ class Pipeline implements Serializable {
         }
 
         def buildName = "${context.gitCommit.take(8)}"
-        bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
+        if (bitbucketService) {
+            bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
+        }
     }
 
     private void doNotifyNotGreen(List<String> emailextRecipients) {
