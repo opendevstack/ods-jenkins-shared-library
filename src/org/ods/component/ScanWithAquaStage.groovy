@@ -353,7 +353,6 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ReturnNullFromCatchBlock')
     private URI archiveReportInNexus(String reportFile, nexusRepository) {
-        println "Storing report in: ${reportFile}"
         try {
             URI report = nexus.storeArtifact(
                 "${nexusRepository}",
