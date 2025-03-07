@@ -153,8 +153,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         given:
         def stage = createStage()
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title: "Aqua Security (Image: 12345)",
             link: "http://nexus",
             otherLinks: [
                 [
@@ -184,8 +184,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         given:
         def stage = createStage()
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title: "Aqua Security (Image: 12345)",
             link: "http://nexus",
             otherLinks: [
                 [
@@ -331,8 +331,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
@@ -414,8 +414,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
@@ -527,8 +527,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
@@ -607,8 +607,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
@@ -687,8 +687,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
@@ -843,8 +843,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
             link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [

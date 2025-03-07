@@ -288,13 +288,13 @@ class ScanWithAquaStage extends Stage {
                                              String registry, String imageRef, int returnCode, String messages,
                                                 List actionableVulnerabilities) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
-        String title = "Aqua Security"
+        String title = "Aqua Security (Image: ${createImageRefNameForReport(imageRef)})"
         String details = "Please visit the following links to review the Aqua Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
 
         def data = [
-            key: BITBUCKET_AQUA_REPORT_KEY,
+            key: BITBUCKET_AQUA_REPORT_KEY + "_${createImageRefNameForReport(imageRef)}",
             title: title,
             link: nexusUrlReport,
             otherLinks: [
