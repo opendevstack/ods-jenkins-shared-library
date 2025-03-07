@@ -1,12 +1,14 @@
 package org.ods.component
 
-import util.PipelineSteps
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
+
+import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
+import spock.lang.Unroll
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
@@ -1067,6 +1069,23 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.bitbucket.findRepoBranches(_, _)
         0 * stage.bitbucket.getDefaultBranch(_)
         assert result == devBranch
+    }
+
+    @Unroll
+    def "verify image name sanitize for reports"() {
+        given:
+
+        when:
+            def sanitized = ScanWithAquaStage.createImageRefNameForReport(imageRef)
+        then:
+            expectedImageReportName == sanitized
+
+        where:
+        imageRef                  || expectedImageReportName
+        'someImageWithoutTag'     || 'someImageWithoutTag'
+        'someImageWithTag:10'     || 'someImageWithTag'
+        'someImageWithTag@sha:10' || 'someImageWithTag'
+
     }
 
 }

@@ -100,8 +100,7 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        // @TODO -> TEST1
-        def reportImageRefName = imageRef.split(':').first().split('@').first().split('/').last()
+        def reportImageRefName = createImageRefNameForReport(imageRef)
         String reportFile = "aqua-report-${reportImageRefName}.html"
         String jsonFile = "aqua-report-${reportImageRefName}.json"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
@@ -149,6 +148,13 @@ class ScanWithAquaStage extends Stage {
         }
 
         return
+    }
+
+    static String createImageRefNameForReport(String imageRefName) {
+        if (!imageRefName) {
+            throw new IllegalArgumentException ("imageRefName must not be null")
+        }
+        return imageRefName.split(':').first().split('@').first().split('/').last()
     }
 
     private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
