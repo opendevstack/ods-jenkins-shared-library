@@ -18,7 +18,7 @@ class ScanWithAquaStage extends Stage {
     static final String CRITICAL_AQUA_SEVERITY = 'critical'
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
-    static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
+    static final String BITBUCKET_AQUA_REPORT_KEY = "ods.sec"
     static final Integer AQUA_DEFAULT_TIMEOUT = 300
     private final AquaService aqua
     private final BitbucketService bitbucket
