@@ -100,7 +100,7 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        def reportImageRefName = imageRef.split(':').first()
+        def reportImageRefName = imageRef.split(':').first().split('@').first()
         String reportFile = "aqua-report-${reportImageRefName}.html"
         String jsonFile = "aqua-report-${reportImageRefName}.json"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
