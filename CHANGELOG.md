@@ -2,6 +2,7 @@
 
 ## Unreleased
 =======
++ odsComponentStageScanWithAqua is not safe for parallel execution ([#1204](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1204))
 + copyImage fails with error if targetEnvironment does not exist or is null ([#1201](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1201))
 * Refactor getComponents method ([#1200](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1200))
 * Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))

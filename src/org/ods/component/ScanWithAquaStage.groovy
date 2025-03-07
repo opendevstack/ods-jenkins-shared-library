@@ -100,8 +100,9 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        String reportFile = "aqua-report.html"
-        String jsonFile = "aqua-report.json"
+        def reportImageRefName = imageRef.split(':').first()
+        String reportFile = "aqua-report-${reportImageRefName}.html"
+        String jsonFile = "aqua-report-${reportImageRefName}.json"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
@@ -352,16 +353,16 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ReturnNullFromCatchBlock')
     private URI archiveReportInNexus(String reportFile, nexusRepository) {
+        println "Storing report in: ${reportFile}"
         try {
             URI report = nexus.storeArtifact(
                 "${nexusRepository}",
                 "${context.projectId}/${this.options.resourceName}/" +
                     "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
-                "report.html",
+                reportFile,
                 (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
             logger.info "Report stored in: ${report}"
-
             return report
         } catch (err) {
             logger.warn("Error archiving the Aqua reports in Nexus due to: ${err}")
