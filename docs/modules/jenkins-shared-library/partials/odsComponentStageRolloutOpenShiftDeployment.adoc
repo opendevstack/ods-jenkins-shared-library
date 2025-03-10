@@ -144,11 +144,21 @@ _String_
  referenced by `chartDir` exists.
 
 
-| *helmValues* +
+| *helmStringValues* +
 _Map<String,&nbsp;String>_
 |Key/value pairs to pass as values (by default, the key `imageTag` is set
  to the config option `imageTag`). Only relevant if the directory
  referenced by `chartDir` exists.
+
+ See also `helm --set-string`.
+
+
+| *helmValues* +
+_Map<String,&nbsp;String>_
+|Key/value pairs to pass as values. Only relevant if the directory
+ referenced by `chartDir` exists.
+
+ See also `helm --set`. Be aware that the resulting data type may vary depending on the input.
 
 
 | *helmValuesFiles* +
