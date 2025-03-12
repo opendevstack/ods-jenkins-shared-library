@@ -104,7 +104,7 @@ class CopyImageStage extends Stage {
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${registryPath} \
                 ${targettoken} \
-                ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                ${dockerProtocol}${this.options.targetRegistry ?: context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
                 --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,

@@ -28,6 +28,11 @@ class CopyImageOptions extends Options {
     String targetToken
 
     /**
+     * target registry url
+     */
+    String targetRegistry
+
+    /**
      * verifyTLS allows the stage to ignore certificate validation errors.
      *
      * The default is to verify certificate paths
