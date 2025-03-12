@@ -154,6 +154,12 @@ class Pipeline implements Serializable {
                             registry.add(NexusService, new NexusService(
                                 context.nexusUrl, steps, context.credentialsId))
                         }
+
+                        if (!registry.get(ILogger)) {
+                            logger.debug 'Registering Logger'
+                            registry.add(ILogger, logger)
+                        }
+
                     }
 
                     // check if there is a skipped previous run - if so - delete (to save memory)
