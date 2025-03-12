@@ -58,7 +58,7 @@ class CopyImageStage extends Stage {
             "--dest-registry-token ${options.targetToken}" :
             "--dest-creds openshift:${targetInternalRegistryToken}"
 
-        def copyparams = "--retry-times 20 --retry-delay 10s"
+        def copyparams = "--retry-times 20" // needs new skopeo version --retry-delay 10s"
         if (this.options.preserveDigests) { copyparams += " --all --preserve-digests" }
         if (this.options.insecurePolicy) { copyparams += " --insecure-policy" }
 
