@@ -66,14 +66,14 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
 
         where:
         registry      || repo   || imageName || imageTag || preserveDigests || expectedCopyParams          || verifyTLS || expectedVerifyTLS || tagIntoTargetEnv || targetNamespace
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || true             || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || false            || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || true             || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || false            || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || true             || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || false            || 'project-dev'
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || true             || null
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || false             || null
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--retry-times 20 --all --preserve-digests ' || true      || true              || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--retry-times 20 --all --preserve-digests ' || true      || true              || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || '--retry-times 20 '                          || null      || true              || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || '--retry-times 20 '                          || null      || true              || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || true             || null
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || false             || null
     }
 
 }
