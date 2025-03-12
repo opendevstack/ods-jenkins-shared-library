@@ -155,9 +155,9 @@ class Pipeline implements Serializable {
                                 context.nexusUrl, steps, context.credentialsId))
                         }
 
-                        if (!registry.get(ILogger)) {
+                        if (!registry.get(Logger)) {
                             logger.debug 'Registering Logger'
-                            registry.add(ILogger, logger)
+                            registry.add(Logger, logger)
                         }
 
                     }

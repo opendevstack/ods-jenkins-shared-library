@@ -297,7 +297,6 @@ class InitStage extends Stage {
                 logger
             )
         )
-        registry.add(ILogger, logger)
     }
 
     private Closure<String> buildLoadClousure(Logger logger,
