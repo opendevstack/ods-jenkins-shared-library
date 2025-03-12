@@ -98,13 +98,16 @@ class CopyImageStage extends Stage {
            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
            "${this.options.registry}/${this.options.image}"
 
+        def targetRegistryPath = "${dockerProtocol}${this.options.targetRegistry ?: context.clusterRegistryAddress}/" +
+            "${context.cdProject}/${this.options.image}"
+
         int status = steps.sh(
             script: """
                 skopeo copy ${copyparams} \
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${registryPath} \
                 ${targettoken} \
-                ${dockerProtocol}${this.options.targetRegistry ?: context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                ${targetRegistryPath} \
                 --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,
