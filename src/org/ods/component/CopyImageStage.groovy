@@ -59,8 +59,8 @@ class CopyImageStage extends Stage {
             "--dest-creds openshift:${targetInternalRegistryToken}"
 
         def copyparams = ""
-        if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
-        if (this.options.insecurePolicy) { copyparams += "--insecure-policy" }
+        if (this.options.preserveDigests) { copyparams += " --all --preserve-digests" }
+        if (this.options.insecurePolicy) { copyparams += " --insecure-policy" }
 
         int status = copyImage(sourcetoken, targettoken, STR_DOCKER_PROTOCOL, copyparams)
         if (status != 0) {
