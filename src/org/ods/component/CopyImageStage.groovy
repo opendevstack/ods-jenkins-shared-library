@@ -58,7 +58,7 @@ class CopyImageStage extends Stage {
             "--dest-registry-token ${options.targetToken}" :
             "--dest-creds openshift:${targetInternalRegistryToken}"
 
-        def copyparams = ""
+        def copyparams = "--retry-times 20 --debug"
         if (this.options.preserveDigests) { copyparams += " --all --preserve-digests" }
         if (this.options.insecurePolicy) { copyparams += " --insecure-policy" }
 

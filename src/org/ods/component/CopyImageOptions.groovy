@@ -28,7 +28,7 @@ class CopyImageOptions extends Options {
     String targetToken
 
     /**
-     * target registry url
+     * target registry url, if not set the current internal route will be used
      */
     String targetRegistry
 
@@ -46,6 +46,9 @@ class CopyImageOptions extends Options {
      */
     Boolean preserveDigests
 
+    /**
+     * insecurePolicy turn on the insecure policy with skopeo
+     */
     Boolean insecurePolicy
 
     @SuppressWarnings('UnusedPrivateField')
