@@ -41,6 +41,8 @@ class CopyImageOptions extends Options {
      */
     Boolean preserveDigests
 
+    Boolean insecurePolicy
+
     @SuppressWarnings('UnusedPrivateField')
     private String registry
     @SuppressWarnings('UnusedPrivateField')
