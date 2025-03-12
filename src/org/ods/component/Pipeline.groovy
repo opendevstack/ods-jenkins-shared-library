@@ -160,7 +160,6 @@ class Pipeline implements Serializable {
                             logger.debug 'Registering Logger'
                             registry.add(Logger, logger)
                         }
-
                     }
 
                     // check if there is a skipped previous run - if so - delete (to save memory)
