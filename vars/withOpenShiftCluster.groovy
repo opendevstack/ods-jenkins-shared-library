@@ -30,7 +30,8 @@ import org.ods.util.PipelineSteps
 //   }
 //
 def call(IContext context, Map config = [:], Closure block) {
-    if (!!env.MULTI_REPO_BUILD) {
+    // this is to explicitely allow it thru overriding in the config
+    if (context.triggeredByOrchestrationPipeline && !config.allow) {
         error('withOpenShiftCluster is not supported within an orchestration pipeline context.')
     }
 
