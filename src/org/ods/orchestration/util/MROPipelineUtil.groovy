@@ -102,9 +102,9 @@ class MROPipelineUtil extends PipelineUtil {
                 env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
             }
             env << "NOTIFY_BB_BUILD=${!this.project.isWorkInProgress}"
-            // must be downstream!
-            env << "RM_TARGET_PROJECT"="${this.project.getTargetProject()}"
-            env << "RM_CURRENT_COMMIT"="${repo.commit}"
+            // must be downstream available!
+            env << "RM_TARGET_PROJECT=${this.project.getTargetProject()}"
+            env << "RM_CURRENT_COMMIT=${repo.commit}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
             }
