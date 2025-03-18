@@ -692,9 +692,8 @@ class Project {
 
     @NonCPS
     private String extractClusterName(String targetApiUrl) {
-        // expected url "api.inh-mes-regtest.ocp.eu.boehringer.com:6443"
-        def parts = url.split("\\.")
-        return parts[1]
+        // expected targetApiUrl "api.clusterName.ocp.eu.boehringer.com:6443"
+        return targetApiUrl.split("\\.")
     }
 
     void setOpenShiftData(String sessionApiUrl) {
