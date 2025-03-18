@@ -104,6 +104,7 @@ class MROPipelineUtil extends PipelineUtil {
             env << "NOTIFY_BB_BUILD=${!this.project.isWorkInProgress}"
             // must be downstream available!
             env << "RM_TARGET_PROJECT=${this.project.getTargetProject()}"
+            env << "RM_TARGET_CUSTER_NAME=${this.project.getOpenShiftTargetClusterName()}"
             env << "RM_CURRENT_COMMIT=${repo.commit}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
