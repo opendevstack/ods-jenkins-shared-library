@@ -18,9 +18,14 @@ class CopyImageOptions extends Options {
     Boolean tagIntoTargetEnv
 
     /**
-     * sourceCredential is the token to use, if any, to access the source registry
+     * sourceCredential is the credential to use, if any, to access the source registry
      */
     String sourceCredential
+
+    /**
+     * targetToken is the bearer token to use, if any, to access the target registry
+     */
+    String targetToken
 
     /**
      * verifyTLS allows the stage to ignore certificate validation errors.

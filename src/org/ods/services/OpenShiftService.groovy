@@ -297,7 +297,7 @@ class OpenShiftService {
 
     void setImageTag(String project, String name, String sourceTag, String destinationTag) {
         steps.sh(
-            script: "oc -n ${project} tag ${name}:${sourceTag} ${name}:${destinationTag}",
+            script: "oc -n ${project} tag ${project}/${name}:${sourceTag} ${project}/${name}:${destinationTag}",
             label: "Set tag ${destinationTag} on is/${name}"
         )
     }

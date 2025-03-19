@@ -628,4 +628,33 @@ class MROPipelineUtilSpec extends SpecHelper {
         1 * gitService.checkoutNewLocalBranch("${this.project.gitReleaseBranch}")
     }
 
+    def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenPreviewBranchExistsAndWIP"() {
+        given:
+        Map repo = ['preview-branch': 'feature/one']
+        repo.id = "testrepo"
+        boolean isWorkInProgress = true
+        this.project.gitReleaseBranch = "release/1.0.0"
+        bitbucketService.getDefaultBranch("testrepo") >> "default"
+        when:
+        util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
+        then:
+        1 * gitService.remoteBranchExists(repo.'preview-branch') >> false
+        1 * gitService.checkout("*/${repo.'preview-branch'}", _, _)
+    }
+
+    def "checkOutNotReleaseManagerRepoInNotPromotionMode_whenPreviewBranchExistsAndNotWIP"() {
+        given:
+        Map repo = ['preview-branch': 'feature/one']
+        repo.id = "testrepo"
+        boolean isWorkInProgress = false
+        this.project.gitReleaseBranch = "release/1.0.0"
+        bitbucketService.getDefaultBranch("testrepo") >> "default"
+        when:
+        util.checkOutNotReleaseManagerRepoInNotPromotionMode(repo, isWorkInProgress)
+        then:
+        1 * gitService.remoteBranchExists("${this.project.gitReleaseBranch}") >> false
+        1 * gitService.checkout("*/default", _, _)
+        1 * gitService.checkoutNewLocalBranch("${this.project.gitReleaseBranch}")
+    }
+
 }

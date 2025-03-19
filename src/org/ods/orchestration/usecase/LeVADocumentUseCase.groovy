@@ -1290,7 +1290,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description : this.convertImages(r.description ?: ''),
                 techSpecs   : r.techSpecs.join(", "),
                 risks       : (r.getResolvedTechnicalSpecifications().risks + r.risks).flatten().unique().join(", "),
-                tests       : testWithoutUnit.join(", "),
+                tests       : testWithoutUnit.sort().join(", "),
                 predecessors: predecessors,
             ]
         }
@@ -1879,6 +1879,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.CFTR,
             DocumentType.TIR,
             DocumentType.TIP,
+            DocumentType.TCP,
         ]
 
         referencedDcocs.collectEntries { DocumentType dt ->
