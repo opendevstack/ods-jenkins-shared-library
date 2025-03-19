@@ -1,7 +1,6 @@
 package org.ods.component
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
@@ -18,7 +17,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
-    private IPipelineSteps steps
+    private final IPipelineSteps steps
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
 
@@ -136,7 +135,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
 
-                def  envConfigFiles = options.helmEnvBasedValuesFiles.collect {filenamePattern ->
+                def  envConfigFiles = options.helmEnvBasedValuesFiles.collect { filenamePattern ->
                     filenamePattern.replace('.env.', ".${context.environment}.")
                 }
 
@@ -308,4 +307,5 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         return equal
     }
+
 }
