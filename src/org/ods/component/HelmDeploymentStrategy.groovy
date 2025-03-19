@@ -209,21 +209,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
                 rolloutData["${kind}/${name}"] = podData
 
-                // TODO commit on master review
-                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-                    [
-                        'type': 'helm',
-                        'selector': options.selector,
-                        'chartDir': options.chartDir,
-                        'helmReleaseName': options.helmReleaseName,
-                        'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-                        'helmValuesFiles': options.helmValuesFiles,
-                        'helmValues': options.helmValues,
-                        'helmDefaultFlags': options.helmDefaultFlags,
-                        'helmAdditionalFlags': options.helmAdditionalFlags,
-                    ])
-                rolloutData["${resourceKind}/${resourceName}"] = podData
-
                 // We need to find the pod that was created as a result of the deployment.
                 // The previous pod may still be alive when we use a rollout strategy.
                 // We can tell one from the other using their creation timestamp,
@@ -238,20 +223,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     throw new RuntimeException(
                         "Unable to determine the most recent Pod. " +
                         "Multiple pods running with the same latest creation timestamp " +
-                        "and different images found for ${resourceName}"
+                        "and different images found for ${name}"
                     )
                 }
-                // TODO end commit on master review
-                // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                //  update this to store multiple pod artifacts.
-                // TODO: Potential conflict if resourceName is duplicated between
-                //  Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(name, podData[0]?.toMap())
-
-                // TODO commit on master review
                 // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(resourceName, latestPods[0]?.toMap())
-                // TODO end commit review
+                context.addDeploymentToArtifactURIs(name, latestPods[0]?.toMap())
             }
         }
         return rolloutData
