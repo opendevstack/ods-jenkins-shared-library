@@ -3,6 +3,7 @@ package org.ods.component
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
+import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -174,35 +175,85 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         given:
 
         def expectedDeploymentMeans = [
-            "builds": [:],
-            "deployments": [
-                "bar-deploymentMean": [
-                    "type": "helm",
-                    "selector": "app=foo-bar",
-                    "chartDir": "chart",
-                    "helmReleaseName": "bar",
-                    "helmEnvBasedValuesFiles": [],
-                    "helmValuesFiles": ["values.yaml"],
-                    "helmValues": [:],
-                    "helmDefaultFlags": ["--install", "--atomic"],
-                    "helmAdditionalFlags": []
+            builds: [:],
+            deployments: [
+                'core-deploymentMean': [
+                    type: 'helm',
+                    selector: 'app=myproject-core',
+                    namespace: 'foo-dev',
+                    chartDir: 'chart',
+                    helmReleaseName: 'core',
+                    helmEnvBasedValuesFiles: [],
+                    helmValuesFiles: ['values.yaml'],
+                    helmValues: [: ],
+                    helmDefaultFlags: ['--install', '--atomic'],
+                    helmAdditionalFlags: [],
+                    helmStatus: [name: 'standalone-app',
+                                 version: '43',
+                                 namespace: 'myproject-test',
+                                 status: 'deployed',
+                                 description: 'Upgrade complete',
+                                 lastDeployed: '2024-03-04T15:21:09.34520527Z',
+                                 resourcesByKind: [
+                                     Cluster: ['some-cluster'],
+                                     ConfigMap: ['core-appconfig-configmap'],
+                                     Deployment: ['core', 'standalone-gateway'],
+                                     Secret: ['core-rsa-key-secret','core-security-exandradev-secret','core-security-unify-secret'],
+                                     Service: ['core','standalone-gateway']
+                                 ]
+                    ]
                 ],
-                "bar":[
-                    "podName": null,
-                    "podNamespace": null,
-                    "podMetaDataCreationTimestamp": "2024-12-12T20:10:47Z",
-                    "deploymentId": "bar-124",
-                    "podNode": null,
-                    "podIp": null,
-                    "podStatus": null,
-                    "podStartupTimeStamp": null,
-                    "containers": [
-                        "containerA": "imageAnew",
-                        "containerB": "imageBnew",
-                    ],
+                core: [podName: null,
+                       podNamespace: null,
+                       podMetaDataCreationTimestamp: '2024-12-12T20:10:47Z',
+                       deploymentId: 'core-124',
+                       podStatus: null,
+                       containers: [
+                           containerA: 'imageAnew',
+                           containerB: 'imageBnew'
+                       ]
+                ],
+                'standalone-gateway-deploymentMean': [
+                    type: 'helm',
+                    selector: 'app=myproject-core',
+                    namespace: 'foo-dev',
+                    chartDir: 'chart',
+                    helmReleaseName: 'core',
+                    helmEnvBasedValuesFiles: [],
+                    helmValuesFiles: ['values.yaml'],
+                    helmValues: [:],
+                    helmDefaultFlags: ['--install','--atomic'],
+                    helmAdditionalFlags: [],
+                    helmStatus: [
+                        name: 'standalone-app',
+                        version: '43',
+                        namespace: 'myproject-test',
+                        status: 'deployed',
+                        description: 'Upgrade complete',
+                        lastDeployed: '2024-03-04T15:21:09.34520527Z',
+                        resourcesByKind: [
+                            Cluster: ['some-cluster'],
+                            ConfigMap: ['core-appconfig-configmap'],
+                            Deployment: ['core','standalone-gateway'],
+                            Secret: ['core-rsa-key-secret','core-security-exandradev-secret','core-security-unify-secret'],
+                            Service: ['core','standalone-gateway']
+                        ]
+                    ]
+            ],
+                'standalone-gateway': [
+                    podName: null,
+                    podNamespace: null,
+                    podMetaDataCreationTimestamp: '2024-12-12T20:10:47Z',
+                    deploymentId: 'core-124',
+                    podStatus: null,
+                    containers: [
+                        containerA: 'imageAnew',
+                        containerB: 'imageBnew'
+                    ]
                 ]
             ]
         ]
+
         def config = [:]
 
         def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
@@ -222,7 +273,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
 
         when:
-        def deploymentResources = [Deployment: ['bar']]
+        def deploymentResources = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
         def rolloutData = strategy.getRolloutData(deploymentResources)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
@@ -236,37 +287,6 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
     def "rollout: check deploymentMean when multiple pods with same timestamp but different image then pipeline fails"() {
         given:
-
-        def expectedDeploymentMeans = [
-            "builds": [:],
-            "deployments": [
-                "bar-deploymentMean": [
-                    "type": "helm",
-                    "selector": "app=foo-bar",
-                    "chartDir": "chart",
-                    "helmReleaseName": "bar",
-                    "helmEnvBasedValuesFiles": [],
-                    "helmValuesFiles": ["values.yaml"],
-                    "helmValues": [:],
-                    "helmDefaultFlags": ["--install", "--atomic"],
-                    "helmAdditionalFlags": []
-                ],
-                "bar":[
-                    "podName": null,
-                    "podNamespace": null,
-                    "podMetaDataCreationTimestamp": "2024-12-12T20:10:47Z",
-                    "deploymentId": "bar-124",
-                    "podNode": null,
-                    "podIp": null,
-                    "podStatus": null,
-                    "podStartupTimeStamp": null,
-                    "containers": [
-                        "containerA": "imageAnew",
-                        "containerB": "imageBnew",
-                    ],
-                ]
-            ]
-        ]
         def config = [:]
 
         def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
@@ -285,7 +305,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
 
         when:
-        def deploymentResources = [Deployment: ['bar']]
+        def deploymentResources = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
         def rolloutData = strategy.getRolloutData(deploymentResources)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
@@ -294,8 +314,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         printCallStack()
         def e = thrown(RuntimeException)
 
-        assert e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for bar"
-
+        assert e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for core"
     }
 
 }
