@@ -1,21 +1,21 @@
 package org.ods.component
 
-import org.ods.PipelineScript
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
-import vars.test_helper.PipelineSpockTestBase
+
 import util.PipelineSteps
+import vars.test_helper.PipelineSpockTestBase
+import spock.lang.Unroll
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:],
             extraConfig = [:]) {
-        def script = Spy(PipelineScript)
-        def steps = Spy(PipelineSteps)
-        def logger = Spy(new Logger(steps, false))
+        def script = Spy(PipelineSteps)
+        def logger = Spy(new Logger(script, false))
         Map contextConfig =  [componentId: "component1",
                        projectId: "prj1",
                        buildUrl: "http://buidl",
@@ -26,16 +26,16 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                        credentialsId: "cd-user"]
         contextConfig << extraConfig
 
-        IContext context = new Context(steps, contextConfig, logger)
+        IContext context = new Context(script, contextConfig, logger)
         def config = [:]
-        def aqua = Spy(new AquaService(steps, logger))
-        def bitbucket = Spy(new BitbucketService (steps,
+        def aqua = Spy(new AquaService(script, logger))
+        def bitbucket = Spy(new BitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
-        def openShift = Spy(new OpenShiftService (steps, logger))
-        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
+        def openShift = Spy(new OpenShiftService (script, logger))
+        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
         def stage = new ScanWithAquaStage(
             script,
             context,
@@ -144,17 +144,17 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
-        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report.html")
+        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report.html")
     }
 
     def "create Bitbucket Insight report - PASS"() {
         given:
         def stage = createStage()
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title: "Aqua Security (Image: 12345)",
             link: "http://nexus",
             otherLinks: [
                 [
@@ -184,8 +184,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         given:
         def stage = createStage()
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title: "Aqua Security (Image: 12345)",
             link: "http://nexus",
             otherLinks: [
                 [
@@ -331,9 +331,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -343,7 +343,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -362,18 +362,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -381,7 +385,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         1 * stage.script.sh(_) >> {
             assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
+            assert it.script == ['mv aqua-report-image1.html artifacts/SCSR-prj1-component1-aqua-report-image1.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
@@ -410,9 +414,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -422,7 +426,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -439,18 +443,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "prj1-cd-custom-secret", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "prj1-cd-custom-secret", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -458,7 +466,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         1 * stage.script.sh(_) >> {
             assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
+            assert it.script == ['mv aqua-report-image1.html artifacts/SCSR-prj1-component1-aqua-report-image1.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
@@ -519,9 +527,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -531,7 +539,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -548,18 +556,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_POLICIES_ERROR
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -567,7 +579,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         1 * stage.script.sh(_) >> {
             assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
+            assert it.script == ['mv aqua-report-image1.html artifacts/SCSR-prj1-component1-aqua-report-image1.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
@@ -595,9 +607,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -607,7 +619,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -624,18 +636,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 1, malware: 0]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 1, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 1, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 1, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -643,7 +659,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         1 * stage.script.sh(_) >> {
             assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
+            assert it.script == ['mv aqua-report-image1.html artifacts/SCSR-prj1-component1-aqua-report-image1.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
@@ -671,9 +687,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -683,7 +699,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -700,18 +716,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 1]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 0, malware: 1]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 1]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 1]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+        // create the report (via sh)
+        1 * stage.script.sh(_) >> {
+            assert it.label.contains('Create Bitbucket Code Insight report via API')
+        }
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -719,7 +739,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         1 * stage.script.sh(_) >> {
             assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
+            assert it.script == ['mv aqua-report-image1.html artifacts/SCSR-prj1-component1-aqua-report-image1.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
@@ -757,7 +777,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -795,7 +815,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> 127
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -823,9 +843,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
-            title: "Aqua Security",
-            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_image1",
+            title: "Aqua Security (Image: image1)",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html",
             otherLinks: [
                 [
                     title: "Report",
@@ -835,7 +855,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in Nexus",
-                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html"
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -852,16 +872,16 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_SUCCESS
         // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
+        1 * stage.script.readFile([file: "aqua-report-image1.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
-        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report-image1.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "aqua-report-image1.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/aqua-report-image1.html")
         // Error creating report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit) >> {
             throw new Exception ("Error bitbucket")
@@ -904,7 +924,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli(null, null, "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail sent
         1 * stage.script.emailext(
             [
@@ -946,7 +966,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             "continuing with default credentialsId 'cd-user'...")
         // Do the scan
         1 * stage.aqua.scanViaCli(null, null, "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
+            "cd-user", "aqua-report-image1.html", "aqua-report-image1.json", ScanWithAquaStage.AQUA_DEFAULT_TIMEOUT) >> AquaService.AQUA_OPERATIONAL_ERROR
         // Mail without to
         1 * stage.script.emailext(
             [
@@ -1049,6 +1069,23 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.bitbucket.findRepoBranches(_, _)
         0 * stage.bitbucket.getDefaultBranch(_)
         assert result == devBranch
+    }
+
+    @Unroll
+    def "verify image name sanitize for reports"() {
+        given:
+
+        when:
+            def sanitized = ScanWithAquaStage.createImageRefNameForReport(imageRef)
+        then:
+            expectedImageReportName == sanitized
+
+        where:
+        imageRef                  || expectedImageReportName
+        'someImageWithoutTag'     || 'someImageWithoutTag'
+        'someImageWithTag:10'     || 'someImageWithTag'
+        'someImageWithTag@sha:10' || 'someImageWithTag'
+
     }
 
 }

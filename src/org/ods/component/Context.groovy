@@ -171,12 +171,12 @@ class Context implements IContext {
             config.dockerDir = 'docker'
         }
 
-        logger.debug 'Setting target OCP environment ...'
+        logger.debug "Setting target OCP environment, rm context? ${config.triggeredByOrchestrationPipeline}"
         determineEnvironment()
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
-
+ 
         if (!config.containsKey('commitGitWorkingTree')) {
             config.commitGitWorkingTree = false
         }
