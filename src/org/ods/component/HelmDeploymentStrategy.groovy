@@ -1,38 +1,35 @@
 package org.ods.component
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.json.JsonOutput
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
+import org.ods.util.HelmStatus
 import org.ods.util.ILogger
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
 class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // Constructor arguments
-    private final Script script
     private final IContext context
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final ILogger logger
-
+    private final IPipelineSteps steps
     // assigned in constructor
-    private def steps
     private final RolloutOpenShiftDeploymentOptions options
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     HelmDeploymentStrategy(
-        def script,
+        IPipelineSteps steps,
         IContext context,
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
         ILogger logger
     ) {
-
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -73,10 +70,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
-        this.script = script
         this.context = context
         this.logger = logger
-        this.steps = new PipelineSteps(script)
+        this.steps = steps
 
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
@@ -93,23 +89,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // Tag images which have been built in this pipeline from cd project into target project
         retagImages(context.targetProject, getBuiltImages())
 
-        logger.info "Rolling out ${context.componentId} with HELM, selector: ${options.selector}"
+        logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)
-
-        def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, DEPLOYMENT_KINDS, options.selector
-        )
-        logger.info("${this.class.name} -- DEPLOYMENT RESOURCES")
-        logger.info(
-            JsonOutput.prettyPrint(
-                JsonOutput.toJson(deploymentResources)))
+        HelmStatus helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
+        if (logger.debugMode) {
+            def helmStatusMap = helmStatus.toMap()
+            logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+        }
 
         // // FIXME: pauseRollouts is non trivial to determine!
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(deploymentResources) ?: [:]
-        logger.info(JsonOutput.prettyPrint(JsonOutput.toJson(rolloutData)))
+        def rolloutData = getRolloutData(helmStatus)
         return rolloutData
     }
 
@@ -125,7 +117,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 options.helmValues['componentId'] = context.componentId
 
                 // we persist the original ones set from outside - here we just add ours
-                Map mergedHelmValues = [:]
+                Map<String, String> mergedHelmValues = [:]
                 mergedHelmValues << options.helmValues
 
                 // we add the global ones - this allows usage in subcharts
@@ -142,12 +134,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
                 // deal with dynamic value files - which are env dependent
                 def mergedHelmValuesFiles = []
-                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
 
-                options.helmEnvBasedValuesFiles.each { envValueFile ->
-                    mergedHelmValuesFiles << envValueFile.replace('.env',
-                        ".${context.environment}")
+                def  envConfigFiles = options.helmEnvBasedValuesFiles.collect { filenamePattern ->
+                    filenamePattern.replace('.env.', ".${context.environment}.")
                 }
+
+                mergedHelmValuesFiles.addAll(options.helmValuesFiles)
+                mergedHelmValuesFiles.addAll(envConfigFiles)
 
                 openShift.helmUpgrade(
                     targetProject,
@@ -169,33 +162,51 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
-        Map<String, List<String>> deploymentResources) {
+        HelmStatus helmStatus
+    ) {
+        Map<String, List<PodData>> rolloutData = [:]
 
-        def rolloutData = [:]
-        deploymentResources.each { resourceKind, resourceNames ->
-            resourceNames.each { resourceName ->
-                def podData = []
+        Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
+                .findAll { kind, res -> kind in DEPLOYMENT_KINDS }
+
+        deploymentKinds.each { kind, names ->
+            names.each { name ->
+                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
+                    [
+                        type: 'helm',
+                        selector: options.selector,
+                        namespace: context.targetProject,
+                        chartDir: options.chartDir,
+                        helmReleaseName: options.helmReleaseName,
+                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+                        helmValuesFiles: options.helmValuesFiles,
+                        helmValues: options.helmValues,
+                        helmDefaultFlags: options.helmDefaultFlags,
+                        helmAdditionalFlags: options.helmAdditionalFlags,
+                        helmStatus: helmStatus.toMap(),
+                    ]
+                )
+                def podDataContext = [
+                    "targetProject=${context.targetProject}",
+                    "selector=${options.selector}",
+                    "name=${name}",
+                ]
+                def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                List<PodData> podData = null
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, resourceName)
-                    if (!podData.isEmpty()) {
+                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                    if (podData) {
                         break
                     }
-                    steps.echo("Could not find 'running' pod(s) with label '${options.selector}' - waiting")
+                    steps.echo("${msgPodsNotFound} - waiting")
                     steps.sleep(12)
                 }
-                context.addDeploymentToArtifactURIs("${resourceName}-deploymentMean",
-                    [
-                        'type': 'helm',
-                        'selector': options.selector,
-                        'chartDir': options.chartDir,
-                        'helmReleaseName': options.helmReleaseName,
-                        'helmEnvBasedValuesFiles': options.helmEnvBasedValuesFiles,
-                        'helmValuesFiles': options.helmValuesFiles,
-                        'helmValues': options.helmValues,
-                        'helmDefaultFlags': options.helmDefaultFlags,
-                        'helmAdditionalFlags': options.helmAdditionalFlags,
-                    ])
-                rolloutData["${resourceKind}/${resourceName}"] = podData
+                if (!podData) {
+                    throw new RuntimeException(msgPodsNotFound)
+                }
+                logger.debug("Helm podData for ${podDataContext.join(', ')}: ${podData}")
+
+                rolloutData["${kind}/${name}"] = podData
 
                 // We need to find the pod that was created as a result of the deployment.
                 // The previous pod may still be alive when we use a rollout strategy.
@@ -211,14 +222,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     throw new RuntimeException(
                         "Unable to determine the most recent Pod. " +
                         "Multiple pods running with the same latest creation timestamp " +
-                        "and different images found for ${resourceName}"
+                        "and different images found for ${name}"
                     )
                 }
-                // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                // update this to store multiple pod artifacts.
-                // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(resourceName, latestPods[0]?.toMap())
+                context.addDeploymentToArtifactURIs(name, latestPods[0]?.toMap())
             }
         }
         return rolloutData
@@ -299,4 +307,5 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         return equal
     }
+
 }
