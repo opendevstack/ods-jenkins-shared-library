@@ -200,25 +200,17 @@ class OpenShiftServiceSpec extends SpecHelper {
         def file = new FixtureHelper().getResource("pods.json")
         List<PodData> expected = [
             [
-                podName                     : 'example-be-token-6fcb4d85d6-7jr2r',
                 podNamespace                : 'proj-dev',
                 podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
                 deploymentId                : 'example-be-token-6fcb4d85d6',
-                podNode                     : 'ip-10-32-10-30.eu-west-1.compute.internal',
-                podIp                       : '192.0.2.172',
                 podStatus                   : 'Running',
-                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
                 containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
             ],
             [
-                podName                     : 'example-be-token-6fcb4d85d6-ndp8x',
                 podNamespace                : 'proj-dev',
                 podMetaDataCreationTimestamp: '2023-07-24T11:58:29Z',
                 deploymentId                : 'example-be-token-6fcb4d85d6',
-                podNode                     : 'ip-10-32-9-69.eu-west-1.compute.internal',
-                podIp                       : '192.0.2.171',
                 podStatus                   : 'Running',
-                podStartupTimeStamp         : '2023-07-24T11:58:29Z',
                 containers                  : ['be-token': 'image-registry.openshift-image-registry.svc:5000/proj-dev/example-be-token@sha256:cc5e57f98ee789429384e8df2832a89fbf1092b724aa8f3faff2708e227cb39e']
             ]
         ]
@@ -250,14 +242,59 @@ class OpenShiftServiceSpec extends SpecHelper {
             podNamespace: 'foo-dev',
             podMetaDataCreationTimestamp: '2020-05-18T10:43:56Z',
             deploymentId: 'bar-164',
-            podNode: 'ip-172-31-61-82.eu-central-1.compute.internal',
-            podIp: '10.128.17.92',
             podStatus: 'Running',
-            podStartupTimeStamp: '2020-05-18T10:43:56Z',
             containers: [
                 bar: '172.30.21.196:5000/foo-dev/bar@sha256:07ba1778e7003335e6f6e0f809ce7025e5a8914dc5767f2faedd495918bee58a'
             ]
         ]
+    }
+
+    def "helm status data extraction"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def helmJsonText = new FixtureHelper().getResource("helmstatus.json").text
+
+        when:
+        def helmStatusData = service.helmStatus('myproject-dev', 'backend-helm-monorepo')
+
+        then:
+        1 * steps.sh(
+            script: 'helm -n myproject-dev status backend-helm-monorepo --show-resources  -o json',
+            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev',
+            returnStdout: true,
+        ) >> helmJsonText
+        helmStatusData.name == 'backend-helm-monorepo'
+        helmStatusData.namespace == 'myproject-dev'
+    }
+
+    def "helm status data extraction bad content"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def helmJsonText = """
+            {
+              "name": "backend-helm-monorepo",
+              "info": {
+                "first_deployed": "2022-12-19T09:44:32.164490076Z",
+                "last_deployed": "2024-03-04T15:21:09.34520527Z",
+                "deleted": "",
+                "description": "Upgrade complete",
+                "status": "deployed",
+                "resources" : {}
+               }
+            }
+        """
+        when:
+        service.helmStatus('myproject-dev ', 'backend-helm-monorepo')
+//            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
+        then:
+        1 * steps.sh(
+            script: 'helm -n myproject-dev  status backend-helm-monorepo --show-resources  -o json',
+            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev ',
+            returnStdout: true,
+        ) >> helmJsonText
+        thrown RuntimeException
     }
 
     def "helm upgrade"() {
@@ -752,7 +789,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         when:
         def result = service.getConsoleUrl(steps)
 
-        then: 
+        then:
         result == routeUrl
     }
 

@@ -16,6 +16,8 @@
 * Simplify successor management since now issue links are no longer inherited ([#1116](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
 * Add preserve-digests cli option to skopeo copy command in CopyImageStage ([#1166](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1166))
 * Allow registry/image:tag sources in CopyImageStage instead of directly falling back to internal registry ([#1177](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1177))
+* Sort unit test keys associated with requirements in TCR ([#1192](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
+* TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
