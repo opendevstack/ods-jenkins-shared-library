@@ -132,7 +132,7 @@ class ScanWithAquaStage extends Stage {
                 nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
                 createBitbucketCodeInsightReport(url, nexusReportLink,
                     registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
-                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
+                archiveReportInJenkins(reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
                 errorMessages += "<li>Error archiving Aqua reports</li>"
@@ -376,7 +376,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private archiveReportInJenkins(boolean archive, String reportFile) {
+    private archiveReportInJenkins(String reportFile) {
         String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
         steps.sh(
             label: 'Create artifacts dir',
@@ -386,9 +386,8 @@ class ScanWithAquaStage extends Stage {
             label: 'Rename report to SCSR',
             script: "mv ${reportFile} artifacts/${targetReport}"
         )
-        if (archive) {
-            steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
-        }
+        steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+
         String aquaScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('aquaScanStashPath', aquaScanStashPath)
 

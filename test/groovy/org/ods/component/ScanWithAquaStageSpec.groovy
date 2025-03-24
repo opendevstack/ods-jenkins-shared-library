@@ -86,7 +86,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.archiveReportInJenkins(true, "report.html")
+        stage.archiveReportInJenkins("report.html")
 
         then:
         1 * stage.script.sh(_) >> {
@@ -98,33 +98,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             assert it.script == ['mv report.html artifacts/SCSR-prj1-component1-report.html']
         }
         1 * stage.script.archiveArtifacts(_) >> {
-            assert it.artifacts == ['artifacts/SCSR*']
-        }
-        1 * stage.script.stash(_) >> {
-            assert it.name == ['scsr-report-component1-56']
-            assert it.includes == ['artifacts/SCSR*']
-            assert it.allowEmpty == [true]
-        }
-
-    }
-
-    def "archive report in Jenkins if stage launched by orchestration pipeline"() {
-        given:
-        def stage = createStage()
-
-        when:
-        stage.archiveReportInJenkins(false, "report.html")
-
-        then:
-        1 * stage.script.sh(_) >> {
-            assert it.label == ['Create artifacts dir']
-            assert it.script == ['mkdir -p artifacts']
-        }
-        1 * stage.script.sh(_) >> {
-            assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv report.html artifacts/SCSR-prj1-component1-report.html']
-        }
-        0 * stage.script.archiveArtifacts(_) >> {
             assert it.artifacts == ['artifacts/SCSR*']
         }
         1 * stage.script.stash(_) >> {
