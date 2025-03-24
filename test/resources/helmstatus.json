@@ -1,0 +1,1450 @@
+{
+    "name": "backend-helm-monorepo",
+    "info": {
+        "first_deployed": "2024-11-08T14:37:41.509186505Z",
+        "last_deployed": "2024-11-11T16:01:03.800460171Z",
+        "deleted": "",
+        "description": "Upgrade complete",
+        "status": "deployed",
+        "notes": "1. Get the application URL by running these commands:\n  export POD_NAME=$(kubectl get pods --namespace myproject-dev -l \"app.kubernetes.io/name=chart,app.kubernetes.io/instance=backend-helm-monorepo\" -o jsonpath=\"{.items[0].metadata.name}\")\n  export CONTAINER_PORT=$(kubectl get pod --namespace myproject-dev $POD_NAME -o jsonpath=\"{.spec.containers[0].ports[0].containerPort}\")\n  echo \"Visit http://127.0.0.1:8080 to use your application\"\n  kubectl --namespace myproject-dev port-forward $POD_NAME 8080:$CONTAINER_PORT\n",
+        "resources": {
+            "v1/Deployment": [
+                {
+                    "apiVersion": "apps/v1",
+                    "kind": "Deployment",
+                    "metadata": {
+                        "annotations": {
+                            "deployment.kubernetes.io/revision": "3",
+                            "meta.helm.sh/release-name": "backend-helm-monorepo",
+                            "meta.helm.sh/release-namespace": "myproject-dev"
+                        },
+                        "creationTimestamp": "2024-11-08T14:37:41Z",
+                        "generation": 3,
+                        "labels": {
+                            "app.kubernetes.io/instance": "backend-helm-monorepo",
+                            "app.kubernetes.io/managed-by": "Helm",
+                            "app.kubernetes.io/name": "chart",
+                            "app.kubernetes.io/version": "1.16.0",
+                            "example.com/component": "a",
+                            "helm.sh/chart": "chart-0.1.0"
+                        },
+                        "managedFields": [
+                            {
+                                "apiVersion": "apps/v1",
+                                "fieldsType": "FieldsV1",
+                                "fieldsV1": {
+                                    "f:metadata": {
+                                        "f:annotations": {
+                                            ".": {},
+                                            "f:meta.helm.sh/release-name": {},
+                                            "f:meta.helm.sh/release-namespace": {}
+                                        },
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app.kubernetes.io/instance": {},
+                                            "f:app.kubernetes.io/managed-by": {},
+                                            "f:app.kubernetes.io/name": {},
+                                            "f:app.kubernetes.io/version": {},
+                                            "f:example.com/component": {},
+                                            "f:helm.sh/chart": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:progressDeadlineSeconds": {},
+                                        "f:replicas": {},
+                                        "f:revisionHistoryLimit": {},
+                                        "f:selector": {},
+                                        "f:strategy": {
+                                            "f:rollingUpdate": {
+                                                ".": {},
+                                                "f:maxSurge": {},
+                                                "f:maxUnavailable": {}
+                                            },
+                                            "f:type": {}
+                                        },
+                                        "f:template": {
+                                            "f:metadata": {
+                                                "f:labels": {
+                                                    ".": {},
+                                                    "f:app.kubernetes.io/instance": {},
+                                                    "f:app.kubernetes.io/name": {},
+                                                    "f:example.com/component": {}
+                                                }
+                                            },
+                                            "f:spec": {
+                                                "f:containers": {
+                                                    "k:{\"name\":\"chart-component-a\"}": {
+                                                        ".": {},
+                                                        "f:env": {
+                                                            ".": {},
+                                                            "k:{\"name\":\"APP_LISTEN_PORT\"}": {
+                                                                ".": {},
+                                                                "f:name": {},
+                                                                "f:value": {}
+                                                            }
+                                                        },
+                                                        "f:image": {},
+                                                        "f:imagePullPolicy": {},
+                                                        "f:name": {},
+                                                        "f:ports": {
+                                                            ".": {},
+                                                            "k:{\"containerPort\":80,\"protocol\":\"TCP\"}": {
+                                                                ".": {},
+                                                                "f:containerPort": {},
+                                                                "f:name": {},
+                                                                "f:protocol": {}
+                                                            }
+                                                        },
+                                                        "f:resources": {},
+                                                        "f:securityContext": {},
+                                                        "f:terminationMessagePath": {},
+                                                        "f:terminationMessagePolicy": {}
+                                                    }
+                                                },
+                                                "f:dnsPolicy": {},
+                                                "f:restartPolicy": {},
+                                                "f:schedulerName": {},
+                                                "f:securityContext": {},
+                                                "f:serviceAccount": {},
+                                                "f:serviceAccountName": {},
+                                                "f:terminationGracePeriodSeconds": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "manager": "helm",
+                                "operation": "Update",
+                                "time": "2024-11-11T16:01:04Z"
+                            },
+                            {
+                                "apiVersion": "apps/v1",
+                                "fieldsType": "FieldsV1",
+                                "fieldsV1": {
+                                    "f:metadata": {
+                                        "f:annotations": {
+                                            "f:deployment.kubernetes.io/revision": {}
+                                        }
+                                    },
+                                    "f:status": {
+                                        "f:availableReplicas": {},
+                                        "f:conditions": {
+                                            ".": {},
+                                            "k:{\"type\":\"Available\"}": {
+                                                ".": {},
+                                                "f:lastTransitionTime": {},
+                                                "f:lastUpdateTime": {},
+                                                "f:message": {},
+                                                "f:reason": {},
+                                                "f:status": {},
+                                                "f:type": {}
+                                            },
+                                            "k:{\"type\":\"Progressing\"}": {
+                                                ".": {},
+                                                "f:lastTransitionTime": {},
+                                                "f:lastUpdateTime": {},
+                                                "f:message": {},
+                                                "f:reason": {},
+                                                "f:status": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:observedGeneration": {},
+                                        "f:readyReplicas": {},
+                                        "f:replicas": {},
+                                        "f:updatedReplicas": {}
+                                    }
+                                },
+                                "manager": "kube-controller-manager",
+                                "operation": "Update",
+                                "subresource": "status",
+                                "time": "2024-11-11T16:01:06Z"
+                            }
+                        ],
+                        "name": "backend-helm-monorepo-chart-component-a",
+                        "namespace": "myproject-dev",
+                        "resourceVersion": "4223533956",
+                        "uid": "5a3aa4dc-e990-4ef8-81f4-947262af7617"
+                    },
+                    "spec": {
+                        "progressDeadlineSeconds": 600,
+                        "replicas": 1,
+                        "revisionHistoryLimit": 10,
+                        "selector": {
+                            "matchLabels": {
+                                "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                "app.kubernetes.io/name": "chart",
+                                "example.com/component": "a"
+                            }
+                        },
+                        "strategy": {
+                            "rollingUpdate": {
+                                "maxSurge": "25%",
+                                "maxUnavailable": "25%"
+                            },
+                            "type": "RollingUpdate"
+                        },
+                        "template": {
+                            "metadata": {
+                                "creationTimestamp": null,
+                                "labels": {
+                                    "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                    "app.kubernetes.io/name": "chart",
+                                    "example.com/component": "a"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "APP_LISTEN_PORT",
+                                                "value": "8080"
+                                            }
+                                        ],
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-a:f6db0fd2",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "name": "chart-component-a",
+                                        "ports": [
+                                            {
+                                                "containerPort": 80,
+                                                "name": "http",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "resources": {},
+                                        "securityContext": {},
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File"
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {},
+                                "serviceAccount": "default",
+                                "serviceAccountName": "default",
+                                "terminationGracePeriodSeconds": 30
+                            }
+                        }
+                    },
+                    "status": {
+                        "availableReplicas": 1,
+                        "conditions": [
+                            {
+                                "lastTransitionTime": "2024-11-08T14:37:44Z",
+                                "lastUpdateTime": "2024-11-08T14:37:44Z",
+                                "message": "Deployment has minimum availability.",
+                                "reason": "MinimumReplicasAvailable",
+                                "status": "True",
+                                "type": "Available"
+                            },
+                            {
+                                "lastTransitionTime": "2024-11-08T14:37:41Z",
+                                "lastUpdateTime": "2024-11-11T16:01:06Z",
+                                "message": "ReplicaSet \"backend-helm-monorepo-chart-component-a-6467d6c55d\" has successfully progressed.",
+                                "reason": "NewReplicaSetAvailable",
+                                "status": "True",
+                                "type": "Progressing"
+                            }
+                        ],
+                        "observedGeneration": 3,
+                        "readyReplicas": 1,
+                        "replicas": 1,
+                        "updatedReplicas": 1
+                    }
+                },
+                {
+                    "apiVersion": "apps/v1",
+                    "kind": "Deployment",
+                    "metadata": {
+                        "annotations": {
+                            "deployment.kubernetes.io/revision": "3",
+                            "meta.helm.sh/release-name": "backend-helm-monorepo",
+                            "meta.helm.sh/release-namespace": "myproject-dev"
+                        },
+                        "creationTimestamp": "2024-11-08T14:37:41Z",
+                        "generation": 3,
+                        "labels": {
+                            "app.kubernetes.io/instance": "backend-helm-monorepo",
+                            "app.kubernetes.io/managed-by": "Helm",
+                            "app.kubernetes.io/name": "chart",
+                            "app.kubernetes.io/version": "1.16.0",
+                            "example.com/component": "b",
+                            "helm.sh/chart": "chart-0.1.0"
+                        },
+                        "managedFields": [
+                            {
+                                "apiVersion": "apps/v1",
+                                "fieldsType": "FieldsV1",
+                                "fieldsV1": {
+                                    "f:metadata": {
+                                        "f:annotations": {
+                                            ".": {},
+                                            "f:meta.helm.sh/release-name": {},
+                                            "f:meta.helm.sh/release-namespace": {}
+                                        },
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app.kubernetes.io/instance": {},
+                                            "f:app.kubernetes.io/managed-by": {},
+                                            "f:app.kubernetes.io/name": {},
+                                            "f:app.kubernetes.io/version": {},
+                                            "f:example.com/component": {},
+                                            "f:helm.sh/chart": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:progressDeadlineSeconds": {},
+                                        "f:replicas": {},
+                                        "f:revisionHistoryLimit": {},
+                                        "f:selector": {},
+                                        "f:strategy": {
+                                            "f:rollingUpdate": {
+                                                ".": {},
+                                                "f:maxSurge": {},
+                                                "f:maxUnavailable": {}
+                                            },
+                                            "f:type": {}
+                                        },
+                                        "f:template": {
+                                            "f:metadata": {
+                                                "f:labels": {
+                                                    ".": {},
+                                                    "f:app.kubernetes.io/instance": {},
+                                                    "f:app.kubernetes.io/name": {},
+                                                    "f:example.com/component": {}
+                                                }
+                                            },
+                                            "f:spec": {
+                                                "f:containers": {
+                                                    "k:{\"name\":\"chart-component-b\"}": {
+                                                        ".": {},
+                                                        "f:env": {
+                                                            ".": {},
+                                                            "k:{\"name\":\"APP_LISTEN_PORT\"}": {
+                                                                ".": {},
+                                                                "f:name": {},
+                                                                "f:value": {}
+                                                            }
+                                                        },
+                                                        "f:image": {},
+                                                        "f:imagePullPolicy": {},
+                                                        "f:name": {},
+                                                        "f:ports": {
+                                                            ".": {},
+                                                            "k:{\"containerPort\":80,\"protocol\":\"TCP\"}": {
+                                                                ".": {},
+                                                                "f:containerPort": {},
+                                                                "f:name": {},
+                                                                "f:protocol": {}
+                                                            }
+                                                        },
+                                                        "f:resources": {},
+                                                        "f:securityContext": {},
+                                                        "f:terminationMessagePath": {},
+                                                        "f:terminationMessagePolicy": {}
+                                                    }
+                                                },
+                                                "f:dnsPolicy": {},
+                                                "f:restartPolicy": {},
+                                                "f:schedulerName": {},
+                                                "f:securityContext": {},
+                                                "f:serviceAccount": {},
+                                                "f:serviceAccountName": {},
+                                                "f:terminationGracePeriodSeconds": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "manager": "helm",
+                                "operation": "Update",
+                                "time": "2024-11-11T16:01:04Z"
+                            },
+                            {
+                                "apiVersion": "apps/v1",
+                                "fieldsType": "FieldsV1",
+                                "fieldsV1": {
+                                    "f:metadata": {
+                                        "f:annotations": {
+                                            "f:deployment.kubernetes.io/revision": {}
+                                        }
+                                    },
+                                    "f:status": {
+                                        "f:availableReplicas": {},
+                                        "f:conditions": {
+                                            ".": {},
+                                            "k:{\"type\":\"Available\"}": {
+                                                ".": {},
+                                                "f:lastTransitionTime": {},
+                                                "f:lastUpdateTime": {},
+                                                "f:message": {},
+                                                "f:reason": {},
+                                                "f:status": {},
+                                                "f:type": {}
+                                            },
+                                            "k:{\"type\":\"Progressing\"}": {
+                                                ".": {},
+                                                "f:lastTransitionTime": {},
+                                                "f:lastUpdateTime": {},
+                                                "f:message": {},
+                                                "f:reason": {},
+                                                "f:status": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:observedGeneration": {},
+                                        "f:readyReplicas": {},
+                                        "f:replicas": {},
+                                        "f:updatedReplicas": {}
+                                    }
+                                },
+                                "manager": "kube-controller-manager",
+                                "operation": "Update",
+                                "subresource": "status",
+                                "time": "2024-11-11T16:01:05Z"
+                            }
+                        ],
+                        "name": "backend-helm-monorepo-chart-component-b",
+                        "namespace": "myproject-dev",
+                        "resourceVersion": "4223533904",
+                        "uid": "76db28c3-dbb5-4626-9e1d-30d496662220"
+                    },
+                    "spec": {
+                        "progressDeadlineSeconds": 600,
+                        "replicas": 1,
+                        "revisionHistoryLimit": 10,
+                        "selector": {
+                            "matchLabels": {
+                                "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                "app.kubernetes.io/name": "chart",
+                                "example.com/component": "b"
+                            }
+                        },
+                        "strategy": {
+                            "rollingUpdate": {
+                                "maxSurge": "25%",
+                                "maxUnavailable": "25%"
+                            },
+                            "type": "RollingUpdate"
+                        },
+                        "template": {
+                            "metadata": {
+                                "creationTimestamp": null,
+                                "labels": {
+                                    "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                    "app.kubernetes.io/name": "chart",
+                                    "example.com/component": "b"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "APP_LISTEN_PORT",
+                                                "value": "8081"
+                                            }
+                                        ],
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-b:f6db0fd2",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "name": "chart-component-b",
+                                        "ports": [
+                                            {
+                                                "containerPort": 80,
+                                                "name": "http",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "resources": {},
+                                        "securityContext": {},
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File"
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {},
+                                "serviceAccount": "default",
+                                "serviceAccountName": "default",
+                                "terminationGracePeriodSeconds": 30
+                            }
+                        }
+                    },
+                    "status": {
+                        "availableReplicas": 1,
+                        "conditions": [
+                            {
+                                "lastTransitionTime": "2024-11-08T14:37:43Z",
+                                "lastUpdateTime": "2024-11-08T14:37:43Z",
+                                "message": "Deployment has minimum availability.",
+                                "reason": "MinimumReplicasAvailable",
+                                "status": "True",
+                                "type": "Available"
+                            },
+                            {
+                                "lastTransitionTime": "2024-11-08T14:37:41Z",
+                                "lastUpdateTime": "2024-11-11T16:01:05Z",
+                                "message": "ReplicaSet \"backend-helm-monorepo-chart-component-b-7d9d7456b\" has successfully progressed.",
+                                "reason": "NewReplicaSetAvailable",
+                                "status": "True",
+                                "type": "Progressing"
+                            }
+                        ],
+                        "observedGeneration": 3,
+                        "readyReplicas": 1,
+                        "replicas": 1,
+                        "updatedReplicas": 1
+                    }
+                }
+            ],
+            "v1/Pod(related)": [
+                {
+                    "apiVersion": "v1",
+                    "items": [
+                        {
+                            "apiVersion": "v1",
+                            "kind": "Pod",
+                            "metadata": {
+                                "annotations": {
+                                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.44.130/24\"],\"mac_address\":\"0a:58:0a:fb:2c:82\",\"gateway_ips\":[\"10.251.44.1\"],\"routes\":[{\"dest\":\"10.200.0.0/16\",\"nextHop\":\"10.251.44.1\"},{\"dest\":\"170.30.0.0/16\",\"nextHop\":\"10.251.44.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.44.1\"}],\"ip_address\":\"10.251.44.130/24\",\"gateway_ip\":\"10.251.44.1\"}}",
+                                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.44.130\"\n    ],\n    \"mac\": \"0a:58:0a:fb:2c:82\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu, memory request for container chart-component-a; cpu, memory limit for container chart-component-a",
+                                    "openshift.io/scc": "restricted-v2",
+                                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                                },
+                                "creationTimestamp": "2024-11-11T16:01:04Z",
+                                "generateName": "backend-helm-monorepo-chart-component-a-6467d6c55d-",
+                                "labels": {
+                                    "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                    "app.kubernetes.io/name": "chart",
+                                    "example.com/component": "a",
+                                    "pod-template-hash": "6467d6c55d"
+                                },
+                                "managedFields": [
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:annotations": {
+                                                    "f:k8s.ovn.org/pod-networks": {}
+                                                }
+                                            }
+                                        },
+                                        "manager": "ip-10-8-32-56",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:04Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:generateName": {},
+                                                "f:labels": {
+                                                    ".": {},
+                                                    "f:app.kubernetes.io/instance": {},
+                                                    "f:app.kubernetes.io/name": {},
+                                                    "f:example.com/component": {},
+                                                    "f:pod-template-hash": {}
+                                                },
+                                                "f:ownerReferences": {
+                                                    ".": {},
+                                                    "k:{\"uid\":\"458e87be-1cd1-4522-bd68-4b92e0ff261d\"}": {}
+                                                }
+                                            },
+                                            "f:spec": {
+                                                "f:containers": {
+                                                    "k:{\"name\":\"chart-component-a\"}": {
+                                                        ".": {},
+                                                        "f:env": {
+                                                            ".": {},
+                                                            "k:{\"name\":\"APP_LISTEN_PORT\"}": {
+                                                                ".": {},
+                                                                "f:name": {},
+                                                                "f:value": {}
+                                                            }
+                                                        },
+                                                        "f:image": {},
+                                                        "f:imagePullPolicy": {},
+                                                        "f:name": {},
+                                                        "f:ports": {
+                                                            ".": {},
+                                                            "k:{\"containerPort\":80,\"protocol\":\"TCP\"}": {
+                                                                ".": {},
+                                                                "f:containerPort": {},
+                                                                "f:name": {},
+                                                                "f:protocol": {}
+                                                            }
+                                                        },
+                                                        "f:resources": {},
+                                                        "f:securityContext": {},
+                                                        "f:terminationMessagePath": {},
+                                                        "f:terminationMessagePolicy": {}
+                                                    }
+                                                },
+                                                "f:dnsPolicy": {},
+                                                "f:enableServiceLinks": {},
+                                                "f:restartPolicy": {},
+                                                "f:schedulerName": {},
+                                                "f:securityContext": {},
+                                                "f:serviceAccount": {},
+                                                "f:serviceAccountName": {},
+                                                "f:terminationGracePeriodSeconds": {}
+                                            }
+                                        },
+                                        "manager": "kube-controller-manager",
+                                        "operation": "Update",
+                                        "time": "2024-11-11T16:01:04Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:annotations": {
+                                                    "f:k8s.v1.cni.cncf.io/network-status": {}
+                                                }
+                                            }
+                                        },
+                                        "manager": "multus-daemon",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:05Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:status": {
+                                                "f:conditions": {
+                                                    "k:{\"type\":\"ContainersReady\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    },
+                                                    "k:{\"type\":\"Initialized\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    },
+                                                    "k:{\"type\":\"Ready\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    }
+                                                },
+                                                "f:containerStatuses": {},
+                                                "f:hostIP": {},
+                                                "f:phase": {},
+                                                "f:podIP": {},
+                                                "f:podIPs": {
+                                                    ".": {},
+                                                    "k:{\"ip\":\"10.251.44.130\"}": {
+                                                        ".": {},
+                                                        "f:ip": {}
+                                                    }
+                                                },
+                                                "f:startTime": {}
+                                            }
+                                        },
+                                        "manager": "kubelet",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:06Z"
+                                    }
+                                ],
+                                "name": "backend-helm-monorepo-chart-component-a-6467d6c55d-nvdmb",
+                                "namespace": "myproject-dev",
+                                "ownerReferences": [
+                                    {
+                                        "apiVersion": "apps/v1",
+                                        "blockOwnerDeletion": true,
+                                        "controller": true,
+                                        "kind": "ReplicaSet",
+                                        "name": "backend-helm-monorepo-chart-component-a-6467d6c55d",
+                                        "uid": "458e87be-1cd1-4522-bd68-4b92e0ff261d"
+                                    }
+                                ],
+                                "resourceVersion": "4223533939",
+                                "uid": "0a376dc6-6949-4bca-b568-2c0d5033c687"
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "APP_LISTEN_PORT",
+                                                "value": "8080"
+                                            }
+                                        ],
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-a:f6db0fd2",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "name": "chart-component-a",
+                                        "ports": [
+                                            {
+                                                "containerPort": 80,
+                                                "name": "http",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "resources": {
+                                            "limits": {
+                                                "cpu": "1",
+                                                "memory": "1Gi"
+                                            },
+                                            "requests": {
+                                                "cpu": "10m",
+                                                "memory": "10Mi"
+                                            }
+                                        },
+                                        "securityContext": {
+                                            "allowPrivilegeEscalation": false,
+                                            "capabilities": {
+                                                "drop": [
+                                                    "ALL"
+                                                ]
+                                            },
+                                            "runAsNonRoot": true,
+                                            "runAsUser": 1005790000
+                                        },
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File",
+                                        "volumeMounts": [
+                                            {
+                                                "mountPath": "/var/run/secrets/kubernetes.io/secretaccount",
+                                                "name": "kube-api-access-4xzkq",
+                                                "readOnly": true
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "enableServiceLinks": true,
+                                "imagePullSecrets": [
+                                    {
+                                        "name": "default-dockercfg-zxnp9"
+                                    }
+                                ],
+                                "nodeName": "ip-10-8-32-56.aws.mycompany.com",
+                                "preemptionPolicy": "PreemptLowerPriority",
+                                "priority": 0,
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {
+                                    "fsGroup": 1005790000,
+                                    "seLinuxOptions": {
+                                        "level": "s0:c76,c45"
+                                    },
+                                    "seccompProfile": {
+                                        "type": "RuntimeDefault"
+                                    }
+                                },
+                                "serviceAccount": "default",
+                                "serviceAccountName": "default",
+                                "terminationGracePeriodSeconds": 30,
+                                "tolerations": [
+                                    {
+                                        "effect": "NoExecute",
+                                        "key": "node.kubernetes.io/not-ready",
+                                        "operator": "Exists",
+                                        "tolerationSeconds": 300
+                                    },
+                                    {
+                                        "effect": "NoExecute",
+                                        "key": "node.kubernetes.io/unreachable",
+                                        "operator": "Exists",
+                                        "tolerationSeconds": 300
+                                    },
+                                    {
+                                        "effect": "NoSchedule",
+                                        "key": "node.kubernetes.io/memory-pressure",
+                                        "operator": "Exists"
+                                    }
+                                ],
+                                "volumes": [
+                                    {
+                                        "name": "kube-api-access-4xzkq",
+                                        "projected": {
+                                            "defaultMode": 420,
+                                            "sources": [
+                                                {
+                                                    "serviceAccountToken": {
+                                                        "expirationSeconds": 3607,
+                                                        "path": "token"
+                                                    }
+                                                },
+                                                {
+                                                    "configMap": {
+                                                        "items": [
+                                                            {
+                                                                "key": "ca.crt",
+                                                                "path": "ca.crt"
+                                                            }
+                                                        ],
+                                                        "name": "kube-some-ca.crt"
+                                                    }
+                                                },
+                                                {
+                                                    "downwardAPI": {
+                                                        "items": [
+                                                            {
+                                                                "fieldRef": {
+                                                                    "apiVersion": "v1",
+                                                                    "fieldPath": "metadata.namespace"
+                                                                },
+                                                                "path": "namespace"
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    "configMap": {
+                                                        "items": [
+                                                            {
+                                                                "key": "service-ca.crt",
+                                                                "path": "service-ca.crt"
+                                                            }
+                                                        ],
+                                                        "name": "openshift-some-ca.crt"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "status": {
+                                "conditions": [
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:04Z",
+                                        "status": "True",
+                                        "type": "Initialized"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:06Z",
+                                        "status": "True",
+                                        "type": "Ready"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:06Z",
+                                        "status": "True",
+                                        "type": "ContainersReady"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:04Z",
+                                        "status": "True",
+                                        "type": "PodScheduled"
+                                    }
+                                ],
+                                "containerStatuses": [
+                                    {
+                                        "containerID": "cri-o://c1aa57c3c70ecea0feb2b56aa529a89b136819cee1f9eff69feb0861af729f08",
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-a:f6db0fd2",
+                                        "imageID": "image-registry.openshift.svc:1000/myproject-dev/helm-component-a@sha256:4cb63016037873c1a7c03482512caebf6567180aaa18b92670ce527b32ac4e5b",
+                                        "lastState": {},
+                                        "name": "chart-component-a",
+                                        "ready": true,
+                                        "restartCount": 0,
+                                        "started": true,
+                                        "state": {
+                                            "running": {
+                                                "startedAt": "2024-11-11T16:01:05Z"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "hostIP": "10.8.32.56",
+                                "phase": "Running",
+                                "podIP": "10.251.44.130",
+                                "podIPs": [
+                                    {
+                                        "ip": "10.251.44.130"
+                                    }
+                                ],
+                                "qosClass": "Burstable",
+                                "startTime": "2024-11-11T16:01:04Z"
+                            }
+                        }
+                    ],
+                    "kind": "PodList",
+                    "metadata": {
+                        "resourceVersion": "4223534074"
+                    }
+                },
+                {
+                    "apiVersion": "v1",
+                    "items": [
+                        {
+                            "apiVersion": "v1",
+                            "kind": "Pod",
+                            "metadata": {
+                                "annotations": {
+                                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.46.148/24\"],\"mac_address\":\"0a:58:0a:fb:2e:94\",\"gateway_ips\":[\"10.251.46.1\"],\"routes\":[{\"dest\":\"10.200.0.0/16\",\"nextHop\":\"10.251.46.1\"},{\"dest\":\"170.30.0.0/16\",\"nextHop\":\"10.251.46.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.46.1\"}],\"ip_address\":\"10.251.46.148/24\",\"gateway_ip\":\"10.251.46.1\"}}",
+                                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.46.148\"\n    ],\n    \"mac\": \"0a:58:0a:fb:2e:94\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu, memory request for container chart-component-b; cpu, memory limit for container chart-component-b",
+                                    "openshift.io/scc": "restricted-v2",
+                                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                                },
+                                "creationTimestamp": "2024-11-11T16:01:04Z",
+                                "generateName": "backend-helm-monorepo-chart-component-b-7d9d7456b-",
+                                "labels": {
+                                    "app.kubernetes.io/instance": "backend-helm-monorepo",
+                                    "app.kubernetes.io/name": "chart",
+                                    "example.com/component": "b",
+                                    "pod-template-hash": "7d9d7456b"
+                                },
+                                "managedFields": [
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:annotations": {
+                                                    "f:k8s.ovn.org/pod-networks": {}
+                                                }
+                                            }
+                                        },
+                                        "manager": "ip-10-8-34-157",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:04Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:generateName": {},
+                                                "f:labels": {
+                                                    ".": {},
+                                                    "f:app.kubernetes.io/instance": {},
+                                                    "f:app.kubernetes.io/name": {},
+                                                    "f:example.com/component": {},
+                                                    "f:pod-template-hash": {}
+                                                },
+                                                "f:ownerReferences": {
+                                                    ".": {},
+                                                    "k:{\"uid\":\"130fca64-a8b2-4ec1-8c3f-b2e98435813d\"}": {}
+                                                }
+                                            },
+                                            "f:spec": {
+                                                "f:containers": {
+                                                    "k:{\"name\":\"chart-component-b\"}": {
+                                                        ".": {},
+                                                        "f:env": {
+                                                            ".": {},
+                                                            "k:{\"name\":\"APP_LISTEN_PORT\"}": {
+                                                                ".": {},
+                                                                "f:name": {},
+                                                                "f:value": {}
+                                                            }
+                                                        },
+                                                        "f:image": {},
+                                                        "f:imagePullPolicy": {},
+                                                        "f:name": {},
+                                                        "f:ports": {
+                                                            ".": {},
+                                                            "k:{\"containerPort\":80,\"protocol\":\"TCP\"}": {
+                                                                ".": {},
+                                                                "f:containerPort": {},
+                                                                "f:name": {},
+                                                                "f:protocol": {}
+                                                            }
+                                                        },
+                                                        "f:resources": {},
+                                                        "f:securityContext": {},
+                                                        "f:terminationMessagePath": {},
+                                                        "f:terminationMessagePolicy": {}
+                                                    }
+                                                },
+                                                "f:dnsPolicy": {},
+                                                "f:enableServiceLinks": {},
+                                                "f:restartPolicy": {},
+                                                "f:schedulerName": {},
+                                                "f:securityContext": {},
+                                                "f:serviceAccount": {},
+                                                "f:serviceAccountName": {},
+                                                "f:terminationGracePeriodSeconds": {}
+                                            }
+                                        },
+                                        "manager": "kube-controller-manager",
+                                        "operation": "Update",
+                                        "time": "2024-11-11T16:01:04Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:status": {
+                                                "f:conditions": {
+                                                    "k:{\"type\":\"ContainersReady\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    },
+                                                    "k:{\"type\":\"Initialized\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    },
+                                                    "k:{\"type\":\"Ready\"}": {
+                                                        ".": {},
+                                                        "f:lastProbeTime": {},
+                                                        "f:lastTransitionTime": {},
+                                                        "f:status": {},
+                                                        "f:type": {}
+                                                    }
+                                                },
+                                                "f:containerStatuses": {},
+                                                "f:hostIP": {},
+                                                "f:phase": {},
+                                                "f:podIP": {},
+                                                "f:podIPs": {
+                                                    ".": {},
+                                                    "k:{\"ip\":\"10.251.46.148\"}": {
+                                                        ".": {},
+                                                        "f:ip": {}
+                                                    }
+                                                },
+                                                "f:startTime": {}
+                                            }
+                                        },
+                                        "manager": "kubelet",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:05Z"
+                                    },
+                                    {
+                                        "apiVersion": "v1",
+                                        "fieldsType": "FieldsV1",
+                                        "fieldsV1": {
+                                            "f:metadata": {
+                                                "f:annotations": {
+                                                    "f:k8s.v1.cni.cncf.io/network-status": {}
+                                                }
+                                            }
+                                        },
+                                        "manager": "multus-daemon",
+                                        "operation": "Update",
+                                        "subresource": "status",
+                                        "time": "2024-11-11T16:01:05Z"
+                                    }
+                                ],
+                                "name": "backend-helm-monorepo-chart-component-b-7d9d7456b-bfqh8",
+                                "namespace": "myproject-dev",
+                                "ownerReferences": [
+                                    {
+                                        "apiVersion": "apps/v1",
+                                        "blockOwnerDeletion": true,
+                                        "controller": true,
+                                        "kind": "ReplicaSet",
+                                        "name": "backend-helm-monorepo-chart-component-b-7d9d7456b",
+                                        "uid": "130fca64-a8b2-4ec1-8c3f-b2e98435813d"
+                                    }
+                                ],
+                                "resourceVersion": "4223533889",
+                                "uid": "fe85cef7-2553-4db9-8ce8-2f36c0243e6f"
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "env": [
+                                            {
+                                                "name": "APP_LISTEN_PORT",
+                                                "value": "8081"
+                                            }
+                                        ],
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-b:f6db0fd2",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "name": "chart-component-b",
+                                        "ports": [
+                                            {
+                                                "containerPort": 80,
+                                                "name": "http",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "resources": {
+                                            "limits": {
+                                                "cpu": "1",
+                                                "memory": "1Gi"
+                                            },
+                                            "requests": {
+                                                "cpu": "10m",
+                                                "memory": "10Mi"
+                                            }
+                                        },
+                                        "securityContext": {
+                                            "allowPrivilegeEscalation": false,
+                                            "capabilities": {
+                                                "drop": [
+                                                    "ALL"
+                                                ]
+                                            },
+                                            "runAsNonRoot": true,
+                                            "runAsUser": 1005790000
+                                        },
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File",
+                                        "volumeMounts": [
+                                            {
+                                                "mountPath": "/var/run/secrets/kubernetes.io/secretaccount",
+                                                "name": "kube-api-access-2nkvg",
+                                                "readOnly": true
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "enableServiceLinks": true,
+                                "imagePullSecrets": [
+                                    {
+                                        "name": "default-dockercfg-zxnp9"
+                                    }
+                                ],
+                                "nodeName": "ip-10-8-34-157.aws.mycompany.com",
+                                "preemptionPolicy": "PreemptLowerPriority",
+                                "priority": 0,
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {
+                                    "fsGroup": 1005790000,
+                                    "seLinuxOptions": {
+                                        "level": "s0:c76,c45"
+                                    },
+                                    "seccompProfile": {
+                                        "type": "RuntimeDefault"
+                                    }
+                                },
+                                "serviceAccount": "default",
+                                "serviceAccountName": "default",
+                                "terminationGracePeriodSeconds": 30,
+                                "tolerations": [
+                                    {
+                                        "effect": "NoExecute",
+                                        "key": "node.kubernetes.io/not-ready",
+                                        "operator": "Exists",
+                                        "tolerationSeconds": 300
+                                    },
+                                    {
+                                        "effect": "NoExecute",
+                                        "key": "node.kubernetes.io/unreachable",
+                                        "operator": "Exists",
+                                        "tolerationSeconds": 300
+                                    },
+                                    {
+                                        "effect": "NoSchedule",
+                                        "key": "node.kubernetes.io/memory-pressure",
+                                        "operator": "Exists"
+                                    }
+                                ],
+                                "volumes": [
+                                    {
+                                        "name": "kube-api-access-2nkvg",
+                                        "projected": {
+                                            "defaultMode": 420,
+                                            "sources": [
+                                                {
+                                                    "serviceAccountToken": {
+                                                        "expirationSeconds": 3607,
+                                                        "path": "token"
+                                                    }
+                                                },
+                                                {
+                                                    "configMap": {
+                                                        "items": [
+                                                            {
+                                                                "key": "ca.crt",
+                                                                "path": "ca.crt"
+                                                            }
+                                                        ],
+                                                        "name": "kube-some-ca.crt"
+                                                    }
+                                                },
+                                                {
+                                                    "downwardAPI": {
+                                                        "items": [
+                                                            {
+                                                                "fieldRef": {
+                                                                    "apiVersion": "v1",
+                                                                    "fieldPath": "metadata.namespace"
+                                                                },
+                                                                "path": "namespace"
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    "configMap": {
+                                                        "items": [
+                                                            {
+                                                                "key": "service-ca.crt",
+                                                                "path": "service-ca.crt"
+                                                            }
+                                                        ],
+                                                        "name": "openshift-some-ca.crt"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "status": {
+                                "conditions": [
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:04Z",
+                                        "status": "True",
+                                        "type": "Initialized"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:05Z",
+                                        "status": "True",
+                                        "type": "Ready"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:05Z",
+                                        "status": "True",
+                                        "type": "ContainersReady"
+                                    },
+                                    {
+                                        "lastProbeTime": null,
+                                        "lastTransitionTime": "2024-11-11T16:01:04Z",
+                                        "status": "True",
+                                        "type": "PodScheduled"
+                                    }
+                                ],
+                                "containerStatuses": [
+                                    {
+                                        "containerID": "cri-o://1c4c3c777865130a3d5f6f73d9f8e09de0dcbb2d320895e7caa219cd16674895",
+                                        "image": "image-registry.openshift.svc:1000/myproject-dev/helm-component-b:f6db0fd2",
+                                        "imageID": "image-registry.openshift.svc:1000/myproject-dev/helm-component-b@sha256:90847a3958af6a7fef1763130f196418704a8e7b8ca44f83527291989111acbc",
+                                        "lastState": {},
+                                        "name": "chart-component-b",
+                                        "ready": true,
+                                        "restartCount": 0,
+                                        "started": true,
+                                        "state": {
+                                            "running": {
+                                                "startedAt": "2024-11-11T16:01:05Z"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "hostIP": "10.8.34.157",
+                                "phase": "Running",
+                                "podIP": "10.251.46.148",
+                                "podIPs": [
+                                    {
+                                        "ip": "10.251.46.148"
+                                    }
+                                ],
+                                "qosClass": "Burstable",
+                                "startTime": "2024-11-11T16:01:04Z"
+                            }
+                        }
+                    ],
+                    "kind": "PodList",
+                    "metadata": {
+                        "resourceVersion": "4223534077"
+                    }
+                }
+            ],
+            "v1/Service": [
+                {
+                    "apiVersion": "v1",
+                    "kind": "Service",
+                    "metadata": {
+                        "annotations": {
+                            "meta.helm.sh/release-name": "backend-helm-monorepo",
+                            "meta.helm.sh/release-namespace": "myproject-dev"
+                        },
+                        "creationTimestamp": "2024-11-08T14:37:41Z",
+                        "labels": {
+                            "app.kubernetes.io/instance": "backend-helm-monorepo",
+                            "app.kubernetes.io/managed-by": "Helm",
+                            "app.kubernetes.io/name": "chart",
+                            "app.kubernetes.io/version": "1.16.0",
+                            "helm.sh/chart": "chart-0.1.0"
+                        },
+                        "managedFields": [
+                            {
+                                "apiVersion": "v1",
+                                "fieldsType": "FieldsV1",
+                                "fieldsV1": {
+                                    "f:metadata": {
+                                        "f:annotations": {
+                                            ".": {},
+                                            "f:meta.helm.sh/release-name": {},
+                                            "f:meta.helm.sh/release-namespace": {}
+                                        },
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app.kubernetes.io/instance": {},
+                                            "f:app.kubernetes.io/managed-by": {},
+                                            "f:app.kubernetes.io/name": {},
+                                            "f:app.kubernetes.io/version": {},
+                                            "f:helm.sh/chart": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:internalTrafficPolicy": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:port": {},
+                                                "f:protocol": {},
+                                                "f:targetPort": {}
+                                            }
+                                        },
+                                        "f:selector": {},
+                                        "f:sessionAffinity": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "manager": "helm",
+                                "operation": "Update",
+                                "time": "2024-11-08T14:37:41Z"
+                            }
+                        ],
+                        "name": "backend-helm-monorepo-chart",
+                        "namespace": "myproject-dev",
+                        "resourceVersion": "4213346120",
+                        "uid": "db6377ce-870f-44c4-a96d-93a608e3e4c4"
+                    },
+                    "spec": {
+                        "clusterIP": "172.30.109.108",
+                        "clusterIPs": [
+                            "172.30.109.108"
+                        ],
+                        "internalTrafficPolicy": "Cluster",
+                        "ipFamilies": [
+                            "IPv4"
+                        ],
+                        "ipFamilyPolicy": "SingleStack",
+                        "ports": [
+                            {
+                                "name": "http",
+                                "port": 80,
+                                "protocol": "TCP",
+                                "targetPort": "http"
+                            }
+                        ],
+                        "selector": {
+                            "app.kubernetes.io/instance": "backend-helm-monorepo",
+                            "app.kubernetes.io/name": "chart"
+                        },
+                        "sessionAffinity": "None",
+                        "type": "ClusterIP"
+                    },
+                    "status": {
+                        "loadBalancer": {}
+                    }
+                }
+            ]
+        }
+    },
+    "config": {
+        "affinity": {},
+        "autoscaling": {
+            "enabled": false,
+            "maxReplicas": 100,
+            "minReplicas": 1,
+            "targetCPUUtilizationPercentage": 80
+        },
+        "componentId": "backend-helm-monorepo",
+        "fullnameOverride": "",
+        "global": {
+            "componentId": "backend-helm-monorepo",
+            "imageNamespace": "myproject-dev",
+            "imageTag": "f6db0fd2",
+            "registry": "image-registry.openshift.svc:1000"
+        },
+        "imageNamespace": "myproject-dev",
+        "imagePullPolicy": "IfNotPresent",
+        "imagePullSecrets": [],
+        "imageTag": "f6db0fd2",
+        "ingress": {
+            "annotations": {},
+            "className": "",
+            "enabled": false,
+            "hosts": [
+                {
+                    "host": "chart-example.local",
+                    "paths": [
+                        {
+                            "path": "/",
+                            "pathType": "ImplementationSpecific"
+                        }
+                    ]
+                }
+            ],
+            "tls": []
+        },
+        "livenessProbe": {
+            "enabled": false
+        },
+        "nameOverride": "",
+        "nodeSelector": {},
+        "podAnnotations": {},
+        "podSecurityContext": {},
+        "readinessProbe": {
+            "enabled": false
+        },
+        "registry": "image-registry.openshift.svc:1000",
+        "replicaCount": 1,
+        "resources": {},
+        "securityContext": {},
+        "service": {
+            "port": 80,
+            "type": "ClusterIP"
+        },
+        "serviceAccount": {
+            "annotations": {},
+            "create": false,
+            "name": ""
+        },
+        "tolerations": []
+    },
+    "manifest": "---\n# Source: chart/templates/service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: backend-helm-monorepo-chart\n  labels:\n    helm.sh/chart: chart-0.1.0\n    app.kubernetes.io/name: chart\n    app.kubernetes.io/instance: backend-helm-monorepo\n    app.kubernetes.io/version: \"1.16.0\"\n    app.kubernetes.io/managed-by: Helm\nspec:\n  type: ClusterIP\n  ports:\n    - port: 80\n      targetPort: http\n      protocol: TCP\n      name: http\n  selector:\n    app.kubernetes.io/name: chart\n    app.kubernetes.io/instance: backend-helm-monorepo\n---\n# Source: chart/templates/deployment_component-a.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: \"backend-helm-monorepo-chart-component-a\"\n  labels:\n    helm.sh/chart: chart-0.1.0\n    app.kubernetes.io/name: chart\n    app.kubernetes.io/instance: backend-helm-monorepo\n    app.kubernetes.io/version: \"1.16.0\"\n    app.kubernetes.io/managed-by: Helm\n    example.com/component: a\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: chart\n      app.kubernetes.io/instance: backend-helm-monorepo\n      example.com/component: a\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: chart\n        app.kubernetes.io/instance: backend-helm-monorepo\n        example.com/component: a\n    spec:\n      serviceAccountName: default\n      securityContext:\n        {}\n      containers:\n        - name: \"chart-component-a\"\n          securityContext:\n            {}\n          image: \"image-registry.openshift.svc:1000/myproject-dev/helm-component-a:f6db0fd2\"\n          imagePullPolicy: IfNotPresent\n          env:\n          - name: APP_LISTEN_PORT\n            value: \"8080\"\n          ports:\n            - name: http\n              containerPort: 80\n              protocol: TCP\n          resources:\n            {}\n---\n# Source: chart/templates/deployment_component-b.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: \"backend-helm-monorepo-chart-component-b\"\n  labels:\n    helm.sh/chart: chart-0.1.0\n    app.kubernetes.io/name: chart\n    app.kubernetes.io/instance: backend-helm-monorepo\n    app.kubernetes.io/version: \"1.16.0\"\n    app.kubernetes.io/managed-by: Helm\n    example.com/component: b\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: chart\n      app.kubernetes.io/instance: backend-helm-monorepo\n      example.com/component: b\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: chart\n        app.kubernetes.io/instance: backend-helm-monorepo\n        example.com/component: b\n    spec:\n      serviceAccountName: default\n      securityContext:\n        {}\n      containers:\n        - name: \"chart-component-b\"\n          securityContext:\n            {}\n          image: \"image-registry.openshift.svc:1000/myproject-dev/helm-component-b:f6db0fd2\"\n          imagePullPolicy: IfNotPresent\n          env:\n          - name: APP_LISTEN_PORT\n            value: \"8081\"\n          ports:\n            - name: http\n              containerPort: 80\n              protocol: TCP\n          resources:\n            {}\n",
+    "hooks": [
+        {
+            "name": "backend-helm-monorepo-chart-test-connection",
+            "kind": "Pod",
+            "path": "chart/templates/tests/test-connection.yaml",
+            "manifest": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: \"backend-helm-monorepo-chart-test-connection\"\n  labels:\n    helm.sh/chart: chart-0.1.0\n    app.kubernetes.io/name: chart\n    app.kubernetes.io/instance: backend-helm-monorepo\n    app.kubernetes.io/version: \"1.16.0\"\n    app.kubernetes.io/managed-by: Helm\n  annotations:\n    \"helm.sh/hook\": test\nspec:\n  containers:\n    - name: wget\n      image: busybox\n      command: ['wget']\n      args: ['backend-helm-monorepo-chart:80']\n  restartPolicy: Never",
+            "events": [
+                "test"
+            ],
+            "last_run": {
+                "started_at": "",
+                "completed_at": "",
+                "phase": ""
+            }
+        }
+    ],
+    "version": 4,
+    "namespace": "myproject-dev"
+}

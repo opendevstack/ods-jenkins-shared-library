@@ -5,6 +5,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.util.HelmStatus
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
@@ -152,6 +153,24 @@ class OpenShiftService {
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
             )
+        }
+    }
+
+    HelmStatus helmStatus(
+        String project,
+        String release
+    ) {
+        try {
+            def helmStdout = steps.sh(
+                script: "helm -n ${project} status ${release} --show-resources  -o json",
+                label: "Gather Helm status for release ${release} in ${project}",
+                returnStdout: true
+            ).toString().trim()
+            def helmStatusMap = new JsonSlurperClassic().parseText(helmStdout)
+            return HelmStatus.fromJsonObject(helmStatusMap)
+        } catch (ex) {
+            throw new RuntimeException("Helm status Failed (${ex.message})!" +
+                "Helm could not gather status of ${release} in ${project}")
         }
     }
 

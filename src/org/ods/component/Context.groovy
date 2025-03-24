@@ -1,17 +1,18 @@
 package org.ods.component
 
-import org.ods.util.ShellWithRetry
-import org.ods.util.Logger
+import com.cloudbees.groovy.cps.NonCPS
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurperClassic
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import com.cloudbees.groovy.cps.NonCPS
-import groovy.json.JsonSlurperClassic
-import groovy.json.JsonOutput
-import java.util.concurrent.ExecutionException
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
+import org.ods.util.ShellWithRetry
+
+import java.util.concurrent.ExecutionException
 
 @SuppressWarnings(['MethodCount', 'UnnecessaryObjectReferences'])
 class Context implements IContext {
@@ -25,7 +26,7 @@ class Context implements IContext {
     // config is a map of config properties to customise the behaviour.
     private final Map config
     private final IPipelineSteps steps
-    private final Logger logger
+    private final ILogger logger
     // artifact store, the interface to MRP
     private final def artifactUriStore = [builds: [:], deployments: [:]]
 
@@ -34,7 +35,7 @@ class Context implements IContext {
 
     private String appDomain
 
-    Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
+    Context(def script, Map config, ILogger logger, boolean localCheckoutEnabled = true) {
         this.script = script
         this.config = config
         this.logger = logger

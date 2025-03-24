@@ -22,6 +22,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import spock.lang.Unroll
 import util.FixtureHelper
+import util.OpenShiftHelper
 import util.SpecHelper
 
 import java.nio.file.Files
@@ -109,7 +110,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
-        steps.getEnv() >> ['RELEASE_PARAM_VERSION': 'WIP']
+        steps.getEnv() >> ['RELEASE_PARAM_VERSION': 'WIP', 'BUILD_NUMBER': '10', 'BUILD_URL': 'http://jenkins-project-cd/job/10', 'JOB_NAME': 'project-cd/project-cd-releasemanager-master']
         stepsNoWip.getEnv() >> ['RELEASE_PARAM_VERSION': 'CHG00001']
     }
 
@@ -1218,22 +1219,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TIR"() {
         given:
-        // Test Parameters
-        def repo = project.repositories.first()
-        def data = [
-            openshift: [
-                pod: [
-                    podName: 'N/A',
-                    podNamespace: 'N/A',
-                    podCreationTimestamp: 'N/A',
-                    podEnvironment: 'N/A',
-                    podNode: 'N/A',
-                    podIp: 'N/A',
-                    podStatus: 'N/A'
-                ]
-            ]
-        ]
-
         // Argument Constraints
         def documentType = TIR as String
 
@@ -1246,36 +1231,27 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createTIR(repo, data)
 
         then:
+        // Jira enabled
+        2 * jiraUseCase.jira >> Mock(JiraService)
         1 * usecase.getDocumentSectionsFileOptional(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
-
-        then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
-        1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
+        0 * usecase.obtainCodeReviewReport(_) >> []
+        1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText) >> {
+            assert it[2]."deploymentMean"
+            assert it[2]."legacy" == legacy
+        }
+
+        where:
+        legacy  | data                                  | repo
+        false   | FixtureHelper.createTIRDataHelm()     | FixtureHelper.createTIRRepoHelm()
+        true    | FixtureHelper.createTIRDataTailor()   | FixtureHelper.createTIRRepoTailor()
     }
 
     def "create TIR without Jira"() {
         given:
-        project.services.jira = null
-        def data = [
-            openshift: [
-                pod: [
-                    podName: 'N/A',
-                    podNamespace: 'N/A',
-                    podCreationTimestamp: 'N/A',
-                    podEnvironment: 'N/A',
-                    podNode: 'N/A',
-                    podIp: 'N/A',
-                    podStatus: 'N/A'
-                ]
-            ]
-        ]
-
-        // Test Parameters
-        def repo = project.repositories.first()
-
         // Argument Constraints
         def documentType = TIR as String
 
@@ -1288,15 +1264,170 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createTIR(repo, data)
 
         then:
+        // No Jira enabled
+        2 * jiraUseCase.jira >> null
         1 * project.getDocumentChaptersForDocument(documentType) >> []
         1 * usecase.getDocumentSectionsFileOptional(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
-
-        then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
-        1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText)
+        1 * usecase.obtainCodeReviewReport(_) >> []
+        1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText) >> {
+            assert it[2]."deploymentMean"
+            assert it[2]."legacy" == legacy
+        }
+
+        where:
+        legacy  | data                                  | repo
+        false   | FixtureHelper.createTIRDataHelm()     | FixtureHelper.createTIRRepoHelm()
+        true    | FixtureHelper.createTIRDataTailor()   | FixtureHelper.createTIRRepoTailor()
+    }
+
+    def "assemble deploymentMean and deploymentInfo for TIR with helm"() {
+        given:
+        def deployments = FixtureHelper.createTIRRepoHelm().data.openshift.deployments
+        OpenShiftHelper.isDeploymentKind(*_) >> true
+
+        def expectedMeanInfo = [
+            'namespace': 'myodsproject-dev',
+            'type': 'helm',
+            'descriptorPath': 'chart',
+            'defaultCmdLineArgs': '--install --atomic',
+            'additionalCmdLineArgs': '--additional-flag-1 --additional-flag-2',
+            'configParams': '''<ul class='inner-ul'><li>registry: image-registry.openshift.svc:1000</li><li>componentId: backend-helm-monorepo</li></ul>''',
+            'configFiles': '''<ul class='inner-ul'><li>values.yaml</li></ul>''',
+            'envConfigFiles': '''<ul class='inner-ul'><li>values1.dev.yaml</li><li>values2.dev.yaml</li></ul>''',
+            'deploymentStatus':  [
+                'deployStatus': 'Successfully deployed',
+                'resultMessage': 'Upgrade complete',
+                'lastDeployed': '2024-10-31T11:10:27.478860933Z',
+                'resources': '''<ul class='inner-ul'><li>Deployment: <ul class='inner-ul'><li>backend-helm-monorepo-chart-component-a</li><li>backend-helm-monorepo-chart-component-b</li></ul></li><li>Service: <ul class='inner-ul'><li>backend-helm-monorepo-chart</li></ul></li></ul>''',
+            ] ,
+        ]
+
+        def expectedDeploymentInfo = [
+            'backend-helm-monorepo-chart-component-b':  [
+                'podNamespace': 'myodsproject-dev',
+                'podStatus': 'Running',
+                'deploymentId': 'backend-helm-monorepo-chart-component-b-567ff4f8f6',
+                'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                'containers':   [
+                    'chart-component-b': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-b@sha256:10002345abcde',
+                ] ,
+            ] ,
+            'backend-helm-monorepo-chart-component-a':  [
+                'podNamespace': 'myodsproject-dev',
+                'podStatus': 'Running',
+                'deploymentId': 'backend-helm-monorepo-chart-component-a-5ffd9c7cbd',
+                'podMetaDataCreationTimestamp': '2024-10-31T11:10:28Z',
+                'containers':   [
+                    'chart-component-a': 'image-registry.openshift.svc:1000/myodsproject-dev/backend-helm-monorepo-component-a@sha256:10002345abcde',
+                ] ,
+            ] ,
+        ]
+
+        when:
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
+        def deploymentInfo = usecase.prepareDeploymentInfo(deployments)
+
+        then:
+        deploymentMeanInfo == expectedMeanInfo
+        deploymentInfo == expectedDeploymentInfo
+    }
+
+    def "assemble deploymentMean for TIR with helm and default values"() {
+        given:
+        def deployments = FixtureHelper.createTIRRepoHelm().data.openshift.deployments
+        def deploymentMean = deployments.'backend-helm-monorepo-chart-component-b-deploymentMean'
+        OpenShiftHelper.isDeploymentKind(*_) >> true
+
+        deploymentMean.namespace = ''
+        deploymentMean.chartDir = ''
+        deploymentMean.helmDefaultFlags = []
+        deploymentMean.helmAdditionalFlags = []
+        deploymentMean.helmValues = [:]
+        deploymentMean.helmValuesFiles = []
+        deploymentMean.helmEnvBasedValuesFiles = []
+        deploymentMean.helmStatus.status = 'SOME OTHER STATUS'
+        deploymentMean.helmStatus.resourcesByKind = [:]
+
+        when:
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
+
+        then:
+        deploymentMeanInfo.namespace == 'None'
+        deploymentMeanInfo.descriptorPath == '.'
+        deploymentMeanInfo.defaultCmdLineArgs == 'None'
+        deploymentMeanInfo.additionalCmdLineArgs == 'None'
+        deploymentMeanInfo.configParams =='None'
+        deploymentMeanInfo.configFiles =='None'
+        deploymentMeanInfo.envConfigFiles == 'None'
+        deploymentMeanInfo.deploymentStatus.deployStatus == 'SOME OTHER STATUS'
+        deploymentMeanInfo.deploymentStatus.resources == 'None'
+    }
+
+    def "assemble deploymentMean and deploymentInfo for TIR with tailor"() {
+        given:
+        def deployments = FixtureHelper.createTIRRepoTailor().data.openshift.deployments
+        OpenShiftHelper.isDeploymentKind(*_) >> true
+
+        def expectedMeanInfo = [
+            'tailorParamFile': 'a-param-file.yaml',
+            'tailorParams': [ 'fake-param1', 'fake-param2' ] ,
+            'selector': 'app=myodsproject-flask-backend',
+            'type': 'tailor',
+            'tailorSelectors':  [
+                'selector': 'app=myodsproject-flask-backend',
+                'exclude': 'bc,is',
+            ] ,
+            'tailorPreserve': [ 'fake-preserve1', 'fake-preserve2' ] ,
+            'tailorVerify': true,
+        ]
+
+        def expectedDeploymentInfo = [
+            'flask-backend':  [
+                'podNamespace': 'myodsproject-dev',
+                'podStatus': 'Running',
+                'deploymentId': 'flask-backend-2',
+                'podMetaDataCreationTimestamp': '2024-10-31T11:09:56Z',
+                'containers':   [
+                    'flask-backend': 'image-registry.openshift.svc:1000/myodsproject-dev/flask-backend@sha256:10002345abcde',
+                ] ,
+            ] ,
+        ]
+
+        when:
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
+        def deploymentInfo = usecase.prepareDeploymentInfo(deployments)
+
+        then:
+        deploymentMeanInfo == expectedMeanInfo
+        deploymentInfo == expectedDeploymentInfo
+    }
+
+    def "assemble deploymentMean for TIR with tailor and default values"() {
+        given:
+        def deployments = FixtureHelper.createTIRRepoTailor().data.openshift.deployments
+        def deploymentMean = deployments.'flask-backend-deploymentMean'
+        OpenShiftHelper.isDeploymentKind(*_) >> true
+
+        // These are special cases to be replaced with a custom value when a falsy value is present
+        deploymentMean.tailorParamFile = ''
+        deploymentMean.tailorParams = []
+        deploymentMean.tailorPreserve = []
+
+        // This one is the general case
+        deploymentMean.tailorSelectors = []
+
+        when:
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(deployments, 'dev')
+
+        then:
+        deploymentMeanInfo.tailorParamFile == 'None'
+        deploymentMeanInfo.tailorParams == 'None'
+        deploymentMeanInfo.tailorPreserve == 'No extra resources specified to be preserved'
+        deploymentMeanInfo.tailorSelectors == 'N/A'
     }
 
     def "create overall DTR"() {
@@ -1678,16 +1809,16 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "order steps"() {
         given:
         def  testIssue = [ key: "JIRA-1" ,
-              steps: [
-                [
-                    orderId: 2,
-                    data: "N/A"
-                ],
-                [
-                    orderId: 1,
-                    data: "N/A"
-                ]
-            ]]
+                           steps: [
+                               [
+                                   orderId: 2,
+                                   data: "N/A"
+                               ],
+                               [
+                                   orderId: 1,
+                                   data: "N/A"
+                               ]
+                           ]]
 
             when:
             LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
