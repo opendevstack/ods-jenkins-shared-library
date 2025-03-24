@@ -177,7 +177,7 @@ class Context implements IContext {
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
- 
+
         if (!config.containsKey('commitGitWorkingTree')) {
             config.commitGitWorkingTree = false
         }
