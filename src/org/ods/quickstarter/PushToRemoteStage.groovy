@@ -48,10 +48,24 @@ class PushToRemoteStage extends Stage {
                     rm -rf \$clonedGitFolderName
                     git config user.email "undefined"
                     git config user.name "ODS System User"
+                    """,
+                    label: 'Copy quickstarter files'
+                )
+                config?.gitSubModules?.each { submodule ->
+                    script.sh(
+                        script: """
+                        echo "Adding ${submodule.name} git submodule"
+                        git submodule add -b ${submodule.branch} ${submodule.url} ${submodule.folder}
+                        """,
+                        label: 'Add submodule to quickstarter files'
+                    )
+                }
+                script.sh(
+                    script: """
                     git add --all .
                     git commit -m "Initial OpenDevStack commit"
                     """,
-                    label: 'Copy and commit quickstarter files'
+                    label: 'Commit quickstarter files'
                 )
             }
             script.echo("Pushing quickstarter git repo to ${context.gitUrlHttp}")
