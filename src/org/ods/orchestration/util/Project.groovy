@@ -1120,7 +1120,7 @@ class Project {
 
     static Map loadBuildParams(IPipelineSteps steps) {
         def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
-        if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
+        if (this.jiraUseCase && this.jiraUseCase.jira && isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
             throw new IllegalArgumentException(
                     "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
         }
