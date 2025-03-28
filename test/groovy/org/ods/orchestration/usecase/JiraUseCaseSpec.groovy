@@ -121,6 +121,7 @@ class JiraUseCaseSpec extends SpecHelper {
         given:
         // Test Parameters
         project.buildParams.changeId = 'someChangeId'
+        project.getJiraProjectKey() >> 'someKey'
         def testIssues = createSockShopJiraTestIssues()
         def failures = createSockShopTestResultFailures()
         def comment = "myComment"
@@ -851,6 +852,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status result without error"() {
         given:
+        project.getJiraProjectKey() >> 'someKey'
         project.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
