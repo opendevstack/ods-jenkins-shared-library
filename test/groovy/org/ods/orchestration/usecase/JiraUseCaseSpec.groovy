@@ -120,8 +120,7 @@ class JiraUseCaseSpec extends SpecHelper {
     def "create bugs and block impacted test cases"() {
         given:
         // Test Parameters
-        project.buildParams.changeId = 'someChangeId'
-        project.getJiraProjectKey() >> 'someKey'
+        project.data.buildParams.changeId = 'someChangeId'
         def testIssues = createSockShopJiraTestIssues()
         def failures = createSockShopTestResultFailures()
         def comment = "myComment"
@@ -852,8 +851,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status result without error"() {
         given:
-        project.getJiraProjectKey() >> 'someKey'
-        project.buildParams.changeId = "someChangeId"
+        project.data.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
