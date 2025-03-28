@@ -120,6 +120,7 @@ class JiraUseCaseSpec extends SpecHelper {
     def "create bugs and block impacted test cases"() {
         given:
         // Test Parameters
+        project.buildParams.changeId = 'someChangeId'
         def testIssues = createSockShopJiraTestIssues()
         def failures = createSockShopTestResultFailures()
         def comment = "myComment"
@@ -134,9 +135,6 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
-
-        then:
-        1 * project.getVersionFromReleaseStatusIssue() >> "1.0"
 
         then:
         1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text, "1.0") >> bug
