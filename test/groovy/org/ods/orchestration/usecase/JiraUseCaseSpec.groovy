@@ -120,7 +120,7 @@ class JiraUseCaseSpec extends SpecHelper {
     def "create bugs and block impacted test cases"() {
         given:
         // Test Parameters
-        project.data.buildParams.changeId = 'someChangeId'
+        project.data.buildParams.changeId = '1.0'
         def testIssues = createSockShopJiraTestIssues()
         def failures = createSockShopTestResultFailures()
         def comment = "myComment"

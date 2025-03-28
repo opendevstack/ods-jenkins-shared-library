@@ -395,9 +395,9 @@ class JiraUseCase {
     }
 
     void addCommentInReleaseStatus(String message) {
+        def changeId = this.project.buildParams.changeId
         if (message) {
             def projectKey = this.project.jiraProjectKey
-            def changeId = this.project.buildParams.changeId
             String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
             logger.debug("Adding comment to the Release Status issue for version ${changeId}: ${commentToAdd}")
             this.jira.appendCommentToReleaseStatusIssue(projectKey, changeId, commentToAdd)
