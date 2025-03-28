@@ -764,7 +764,6 @@ class Project {
             "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
             "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
             "RELEASE_PARAM_VERSION=${params.version}",
-            "RELEASE_STATUS_JIRA_ISSUE_KEY=${params.releaseStatusJiraIssueKey}",
         ]
     }
 
@@ -1119,12 +1118,6 @@ class Project {
     }
 
     static Map loadBuildParams(IPipelineSteps steps) {
-        def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
-        if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
-            throw new IllegalArgumentException(
-                    "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
-        }
-
         def version = steps.env.version?.trim() ?: BUILD_PARAM_VERSION_DEFAULT
         def targetEnvironment = (steps.env.environment?.trim() ?: 'dev').toLowerCase()
         if (!['dev', 'qa', 'prod'].contains(targetEnvironment)) {
@@ -1145,7 +1138,6 @@ class Project {
             changeDescription: changeDescription,
             changeId: changeId,
             configItem: configItem,
-            releaseStatusJiraIssueKey: releaseStatusJiraIssueKey,
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
@@ -1217,9 +1209,7 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            // FIXME: getVersionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
-            // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
-            def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
+            def currentVersion = this.buildParams.changeId
 
             this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
             if (this.isVersioningEnabled) {
@@ -1244,11 +1234,6 @@ class Project {
         }
 
         return result
-    }
-
-    protected String getVersionFromReleaseStatusIssue() {
-        // TODO review if it's possible to use Project.getVersionName()?
-        return this.jiraUseCase.getVersionFromReleaseStatusIssue()
     }
 
     protected Map loadFullJiraData(String projectKey) {

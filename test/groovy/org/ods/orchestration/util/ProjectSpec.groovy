@@ -1378,41 +1378,6 @@ class ProjectSpec extends SpecHelper {
         result.configItem == "myItem"
     }
 
-    def "load build param releaseStatusJiraIssueKey"() {
-        when:
-        steps.env.releaseStatusJiraIssueKey = "JIRA-1"
-        def result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.releaseStatusJiraIssueKey = " JIRA-1 "
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.changeId = "1"
-        steps.env.configItem = "my-config-item"
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined"
-
-        when:
-        steps.env.changeId = null
-        steps.env.configItem = null
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == null
-    }
-
     def "load build param targetEnvironment"() {
         when:
         steps.env.environment = null

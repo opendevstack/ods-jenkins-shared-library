@@ -124,6 +124,39 @@ class JiraService {
     }
 
     @NonCPS
+    void appendCommentToReleaseStatusIssue(String projectKey, String version, String comment) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to the release status issue: \'projectKey\' is undefined')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'version\' is undefined')
+        }
+        if(!comment?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'comment\' is undefined')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status/comment")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('Content-Type', 'application/json')
+            .body(JsonOutput.toJson([content: comment])).asEmpty()
+
+        response.ifFailure {
+            def message = 'Error: unable to append comment to the release status issue. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getStatusText()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to append comment to tne release status issue. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
     void appendCommentToIssue(String issueIdOrKey, String comment) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to append comment to Jira issue. \'issueIdOrKey\' is undefined.')
@@ -645,6 +678,39 @@ class JiraService {
 
             if (response.getStatus() == 404) {
                 message = "Error: unable to update select list fields on Jira issue ${issueIdOrKey}. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
+    void updateReleaseStatusIssue(String projectKey, String version, Map fields) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: \'projectKey\' is undefined')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: \'version\' is undefined')
+        }
+        if(!fields) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: no data given for updating')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('Content-Type', 'application/json')
+            .body(JsonOutput.toJson(fields)).asEmpty()
+
+        response.ifFailure {
+            def message = 'Error: unable to update release status issue. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getStatusText()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to update release status issue. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
