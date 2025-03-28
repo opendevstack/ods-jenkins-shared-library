@@ -78,7 +78,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
             title: "Title",
             link: "http://link-nexus",
             otherLinks: [
@@ -118,7 +118,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
                 '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"},' +
                 '{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_12345')
         }
     }
 
@@ -133,7 +133,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
             title: "Title",
             link: "http://link-nexus",
             otherLinks: [
@@ -166,7 +166,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('"details":"Details","result":"PASS","link":"http://link-nexus","data": ' +
                 '[{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_12345')
         }
     }
 
@@ -181,7 +181,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
             title: "Title",
             otherLinks: [
                 [
@@ -213,7 +213,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
                 '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_123456')
         }
     }
 
@@ -228,7 +228,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
             title: "Title",
             details: "Details",
             result: "PASS"
@@ -252,7 +252,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             // Avoid timestamp of creation
             assert it.script.toString().contains('"details":"Details","result":"PASS","data": []}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_123456')
         }
     }
 
@@ -267,7 +267,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
             title: "Title",
             link: "http://link-nexus",
             otherLinks: [
@@ -313,7 +313,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
                 '{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"},' +
                 '{"title":"Messages","value":"Messages","type":"TEXT"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_12345')
         }
     }
 
@@ -328,7 +328,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
             title: "Title",
             messages: [
                 [
@@ -359,7 +359,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
                 '[{"title":"Messages","value":"Messages","type":"TEXT"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+                'projects/FOO/repos/repo-name/commits/123456/reports/ods.sec_12345')
         }
     }
 
@@ -375,7 +375,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             logger
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
             title: "Title",
             link: "http://link-nexus",
             otherLinks: [

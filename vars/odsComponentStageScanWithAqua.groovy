@@ -111,8 +111,9 @@ def call(IContext context, Map config = [:]) {
     } catch (AquaRemoteCriticalVulnerabilityWithSolutionException e) {
         throw e
     } catch (err) {
-        logger.warn("Error with Aqua due to: ${err}")
-        errorMessages += "<li>Error with Aqua</li>"
+        def consoleUrl = OpenShiftService.getConsoleUrl(steps)
+        logger.warn("Error with Aqua due to: ${err}, \n on cluster ${consoleUrl}")
+        errorMessages += "<li>Error with Aqua, configured correctly in cluster? \nUrl: ${consoleUrl}</li>"
     }
     notifyAqua(steps, context, alertEmails, errorMessages)
 }

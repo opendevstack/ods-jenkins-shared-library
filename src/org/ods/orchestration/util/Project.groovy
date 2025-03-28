@@ -690,14 +690,25 @@ class Project {
         envParams
     }
 
+    @NonCPS
+    private String extractClusterName(String targetApiUrl) {
+        // expected targetApiUrl "api.clusterName.ocp.eu.boehringer.com:6443"
+        return targetApiUrl.split("\\.")
+    }
+
     void setOpenShiftData(String sessionApiUrl) {
         def envConfig = getEnvironmentConfig()
         def targetApiUrl = envConfig?.apiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
         }
+        def targetClusterName = envConfig?.clusterName
+        if (!targetClusterName) {
+            targetClusterName = extractClusterName(targetApiUrl)
+        }
         this.data.openshift['sessionApiUrl'] = sessionApiUrl
         this.data.openshift['targetApiUrl'] = targetApiUrl
+        this.data.openshift['targetClusterName'] = targetClusterName
     }
 
     @NonCPS
@@ -1045,6 +1056,10 @@ class Project {
 
     String getOpenShiftTargetApiUrl() {
         this.data.openshift.targetApiUrl
+    }
+
+    String getOpenShiftTargetClusterName() {
+        this.data.openshift.targetClusterName
     }
 
     @NonCPS
