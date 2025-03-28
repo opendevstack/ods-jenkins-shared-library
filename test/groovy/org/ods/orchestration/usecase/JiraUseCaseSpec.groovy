@@ -120,6 +120,7 @@ class JiraUseCaseSpec extends SpecHelper {
     def "create bugs and block impacted test cases"() {
         given:
         // Test Parameters
+        project.data.buildParams.changeId = '1.0'
         def testIssues = createSockShopJiraTestIssues()
         def failures = createSockShopTestResultFailures()
         def comment = "myComment"
@@ -134,9 +135,6 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
-
-        then:
-        1 * project.getVersionFromReleaseStatusIssue() >> "1.0"
 
         then:
         1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text, "1.0") >> bug
@@ -816,7 +814,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status build number"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
@@ -824,21 +822,14 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusBuildNumber()
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
-            "Release Build": [
-                id: "customfield_2"
-            ]
-        ]
-
-        then:
-        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
-            "customfield_2": "1.0-0815"
+        1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
+            buildNumber: "1.0-0815"
         ])
     }
 
     def "update Jira release status result"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
         steps.env.RUN_DISPLAY_URL = "http://jenkins"
@@ -849,25 +840,18 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusResult(error.message, true)
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
-            "Release Manager Status": [
-                id: "customfield_1"
-            ]
-        ]
-
-        then:
-        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
-            "customfield_1": "Failed"
+        1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
+            status: "Failed"
         ])
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-4711",
+        1 * jira.appendCommentToReleaseStatusIssue(_, 'someChangeId',
             "${error.message}\n\nSee: ${steps.env.RUN_DISPLAY_URL}" )
     }
 
     def "update Jira release status result without error"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.data.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
@@ -875,17 +859,8 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusResult("", false)
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {
-            return [
-                "Release Manager Status": [
-                    id: "customfield_1"
-                ]
-            ]
-        }
-
-        then:
-        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
-            "customfield_1": "Successful"
+        1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
+            status: "Successful"
         ])
     }
 
@@ -911,47 +886,6 @@ class JiraUseCaseSpec extends SpecHelper {
         ]
 
         result == expected
-    }
-
-    def "get version from Jira"() {
-        given:
-        def textFieldsOfIssue
-        def jira = Mock(JiraService) {
-            getTextFieldsOfIssue(*_) >> { issueIdOrKey, List <String> fields ->
-                fields.collectEntries { [(it): textFieldsOfIssue] }
-            }
-        }
-        def usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
-        def result
-
-        when:
-        textFieldsOfIssue = null
-        usecase.getVersionFromReleaseStatusIssue()
-
-        then:
-        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
-        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
-        def e = thrown(IllegalArgumentException)
-        e.message.contains('Unable to obtain version name from release status issue')
-
-        when:
-        textFieldsOfIssue = [somethingElse: "something else"]
-        usecase.getVersionFromReleaseStatusIssue()
-
-        then:
-        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
-        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
-        e = thrown(IllegalArgumentException)
-        e.message.contains('Unable to obtain version name from release status issue')
-
-        when:
-        textFieldsOfIssue = [name: "versionX"]
-        result = usecase.getVersionFromReleaseStatusIssue()
-
-        then:
-        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
-        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
-        result == "versionX"
     }
 
     def "get HTML Image As Base64"() {

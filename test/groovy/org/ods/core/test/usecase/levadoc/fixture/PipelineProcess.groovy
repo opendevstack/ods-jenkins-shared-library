@@ -39,7 +39,6 @@ class PipelineProcess {
         buildParams.targetEnvironmentToken = "D"
         buildParams.version = "${projectFixture.version}"
         buildParams.configItem = "BI-IT-DEVSTACK"
-        buildParams.releaseStatusJiraIssueKey = projectFixture.releaseKey
         return buildParams
     }
 
