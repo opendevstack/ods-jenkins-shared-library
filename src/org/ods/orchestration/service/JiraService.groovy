@@ -131,7 +131,7 @@ class JiraService {
         if (!version?.trim()) {
             throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'version\' is undefined')
         }
-        if(!comment?.trim()) {
+        if (!comment?.trim()) {
             throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'comment\' is undefined')
         }
 
@@ -393,7 +393,7 @@ class JiraService {
 
         return [
             contentType: response.getHeaders()["Content-Type"][0],
-            data: response.getBody()
+            data: response.getBody(),
         ]
     }
 
@@ -692,7 +692,7 @@ class JiraService {
         if (!version?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the release status issue: \'version\' is undefined')
         }
-        if(!fields) {
+        if (!fields) {
             throw new IllegalArgumentException('Error: Unable to update the release status issue: no data given for updating')
         }
 
@@ -923,4 +923,5 @@ class JiraService {
         }
         return true
     }
+
 }
