@@ -2,7 +2,15 @@ package util
 
 import groovy.json.JsonSlurper
 
+import static org.ods.services.OpenShiftService.DEPLOYMENTCONFIG_KIND
+import static org.ods.services.OpenShiftService.DEPLOYMENT_KIND
+
 class OpenShiftHelper {
+
+    static isDeploymentKind(String kind) {
+        return kind in [DEPLOYMENTCONFIG_KIND, DEPLOYMENT_KIND]
+    }
+
     static def validateResourceParams(script, project, resources) {
         if (project) {
             assert script =~ /\s-n\s+\Q${project}\E(?:\s|$)/

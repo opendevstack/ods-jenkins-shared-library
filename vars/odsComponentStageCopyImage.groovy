@@ -47,7 +47,7 @@ def call(IContext context, Map config = [:]) {
         }
         config.registry = STR_DOCKER_PROTOCOL + config.registry
     } else {
-        error ("Incoming ${sourceImageUrlIncludingRegistry} is wrong. " +
+        error ("Incoming ${config.sourceImageUrlIncludingRegistry} is wrong. " +
             "It must contain AT minimum the repo and image.\n" +
             'Desired format: [REGISTRY/]REPO/IMAGE[:TAG]')
     }

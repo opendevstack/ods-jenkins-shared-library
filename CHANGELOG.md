@@ -2,7 +2,11 @@
 
 ## Unreleased
 =======
+* Refactor getComponents method ([#1200](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1200))
+* Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))
+* Add custom preview branch functionality for DevPreview ([#1191](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1191))
 * Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
+* Set java version in SonarQube Stage ([#1194](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1194))
 
 ### Added
 * add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
@@ -10,6 +14,8 @@
 ### Changed
 * Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
 * Simplify successor management since now issue links are no longer inherited ([#1116](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
+* Sort unit test keys associated with requirements in TCR ([#1192](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
+* TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))

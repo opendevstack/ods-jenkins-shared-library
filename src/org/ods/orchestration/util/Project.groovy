@@ -1201,7 +1201,7 @@ class Project {
     Map getComponentsFromJira() {
         if (!this.jiraUseCase) return [:]
 
-        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId)
+        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId, this.isWorkInProgress)
     }
 
     protected Map loadJiraData(String projectKey) {
@@ -2143,7 +2143,8 @@ class Project {
                 "the 'branch' parameter with various repositories. This parameter has " +
                 "been removed and replaced with Bitbucket's 'default branch' setting. " +
                 "Please remove all 'branch' parameters from metadata.yml and set up your " +
-                "Bitbucket repositories' default branches as needed."))
+                "Bitbucket repositories' default branches as needed." +
+                "The alternative, to be used ONLY in Dev Previews, is to change the 'branch' parameter to 'preview-branch'"))
         }
     }
 
