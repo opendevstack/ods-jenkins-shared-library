@@ -154,9 +154,7 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
-            // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
-            String version = this.project.versionFromReleaseStatusIssue
+            String version = this.project.buildParams.changeId
             def bug = this.jira.createIssueTypeBug(
                 this.project.jiraProjectKey, failure.type, failure.text, version)
 
@@ -275,27 +273,6 @@ class JiraUseCase {
         }
     }
 
-    String getVersionFromReleaseStatusIssue() {
-        if (!this.jira) {
-            logger.warn("WARNING: this.jira has an invalid value.")
-            return ""
-        }
-
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
-        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
-
-        def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
-        def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
-        if (!versionField || !versionField[productReleaseVersionField.id]?.name) {
-            throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
-                " ${releaseStatusIssueKey}. Please check that field with name" +
-                " '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}' " +
-                'has a correct version value.')
-        }
-
-        return versionField[productReleaseVersionField.id].name
-    }
-
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
                                            Closure matchedHandler, Closure unmatchedHandler = null,
                                            boolean checkDuplicateTestResults = true) {
@@ -391,11 +368,10 @@ class JiraUseCase {
     void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
 
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
-        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
-
-        def releaseStatusIssueBuildNumberField = releaseStatusIssueFields['Release Build']
-        this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
+        def projectKey = this.project.key
+        def changeId = this.project.buildParams.changeId
+        def fields = [buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"]
+        this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
@@ -408,26 +384,26 @@ class JiraUseCase {
 
         logger.debug("Updating Jira release status with result ${status} and comment ${message}")
 
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
-        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+        def projectKey = this.project.jiraProjectKey
+        def changeId = this.project.buildParams.changeId
+        def fields = [status: status]
+        this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
-        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields['Release Manager Status']
-        this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
-
-        logger.startClocked("jira-update-release-${releaseStatusIssueKey}")
+        logger.startClocked("jira-update-release-${changeId}")
         addCommentInReleaseStatus(message)
-        logger.debugClocked("jira-update-release-${releaseStatusIssueKey}")
+        logger.debugClocked("jira-update-release-${changeId}")
     }
 
     void addCommentInReleaseStatus(String message) {
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
+        def changeId = this.project.buildParams.changeId
         if (message) {
+            def projectKey = this.project.jiraProjectKey
             String commentToAdd = "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}"
-            logger.debug("Adding comment to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
-            this.jira.appendCommentToIssue(releaseStatusIssueKey, commentToAdd)
-            logger.debug("Comment was added to Jira issue with key ${releaseStatusIssueKey}: ${commentToAdd}")
+            logger.debug("Adding comment to the Release Status issue for version ${changeId}: ${commentToAdd}")
+            this.jira.appendCommentToReleaseStatusIssue(projectKey, changeId, commentToAdd)
+            logger.debug("Comment was added to the Release Status issue for version ${changeId}: ${commentToAdd}")
         } else {
-            logger.warn("*NO* Comment was added to Jira issue with key ${releaseStatusIssueKey}")
+            logger.warn("*NO* Comment was added to the Release Status issue for version ${changeId}")
         }
     }
 
