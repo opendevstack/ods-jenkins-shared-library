@@ -639,12 +639,11 @@ class Project {
     }
 
     boolean isDeveloperPreviewMode() {
-        return BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(this.data.buildParams.version) &&
-                this.data.buildParams.targetEnvironmentToken == "D"
+        return getIsWorkInProgress() && this.data.buildParams.targetEnvironmentToken == "D"
     }
 
     static boolean isWorkInProgress(String version) {
-        version == BUILD_PARAM_VERSION_DEFAULT
+        BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(version)
     }
 
     static String envStateFileName(String targetEnvironment) {

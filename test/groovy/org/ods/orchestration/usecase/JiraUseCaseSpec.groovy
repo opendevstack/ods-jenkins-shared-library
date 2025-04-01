@@ -841,7 +841,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
-            status: "Failed"
+            status: "Failed",
+            env: 'D',
         ])
 
         then:
@@ -860,7 +861,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
-            status: "Successful"
+            status: "Successful",
+            env: 'D',
         ])
     }
 

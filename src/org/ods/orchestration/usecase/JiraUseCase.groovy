@@ -386,7 +386,11 @@ class JiraUseCase {
 
         def projectKey = this.project.jiraProjectKey
         def changeId = this.project.buildParams.changeId
-        def fields = [status: status]
+        def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
+        def fields = [
+            status: status,
+            env: env,
+        ]
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
         logger.startClocked("jira-update-release-${changeId}")
