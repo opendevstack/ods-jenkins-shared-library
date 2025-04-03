@@ -664,7 +664,7 @@ class JiraService {
             }
 
             if (response.getStatus() == 503) {
-                message = response.body as String
+                message = response.getBody() as String
             }
 
             throw new RuntimeException(message)
