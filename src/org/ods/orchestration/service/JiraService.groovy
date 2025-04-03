@@ -663,6 +663,10 @@ class JiraService {
                     "Jira could not be found at: '${this.baseURL}'."
             }
 
+            if (response.getStatus() == 503) {
+                message = response.body as String
+            }
+
             throw new RuntimeException(message)
         }
     }
