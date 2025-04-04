@@ -25,7 +25,7 @@
                                 "targetEnvironmentToken": "D",
                                 "version": "WIP",
                                 "configItem": "BI-IT-DEVSTACK",
-                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                                "changeId": "someChangeId"
                             },
                             "git": {
                                 "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",

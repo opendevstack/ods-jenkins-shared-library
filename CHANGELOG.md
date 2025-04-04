@@ -2,6 +2,7 @@
 
 ## Unreleased
 =======
+* Remove release manager pipeline param releaseStatusJiraIssueKey ([#1207](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1207))
 * Refactor getComponents method ([#1200](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1200))
 * Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))
 * Add custom preview branch functionality for DevPreview ([#1191](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1191))
