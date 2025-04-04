@@ -141,11 +141,11 @@ class JiraService {
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header('Content-Type', 'application/json')
-            .body(JsonOutput.toJson([content: comment])).asEmpty()
+            .body(JsonOutput.toJson([content: comment])).asString()
 
         response.ifFailure {
             def message = 'Error: unable to append comment to the release status issue. Jira responded with code: ' +
-                "'${response.getStatus()}' and message: '${response.getStatusText()}'."
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
                 message = 'Error: unable to append comment to tne release status issue. ' +
@@ -652,19 +652,15 @@ class JiraService {
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header('Content-Type', 'application/json')
-            .body(JsonOutput.toJson(fields)).asEmpty()
+            .body(JsonOutput.toJson(fields)).asString()
 
         response.ifFailure {
             def message = 'Error: unable to update release status issue. Jira responded with code: ' +
-                "'${response.getStatus()}' and message: '${response.getStatusText()}'."
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
                 message = 'Error: unable to update release status issue. ' +
                     "Jira could not be found at: '${this.baseURL}'."
-            }
-
-            if (response.getStatus() == 503) {
-                message = response as String
             }
 
             throw new RuntimeException(message)
