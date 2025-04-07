@@ -1378,41 +1378,6 @@ class ProjectSpec extends SpecHelper {
         result.configItem == "myItem"
     }
 
-    def "load build param releaseStatusJiraIssueKey"() {
-        when:
-        steps.env.releaseStatusJiraIssueKey = "JIRA-1"
-        def result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.releaseStatusJiraIssueKey = " JIRA-1 "
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.changeId = "1"
-        steps.env.configItem = "my-config-item"
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined"
-
-        when:
-        steps.env.changeId = null
-        steps.env.configItem = null
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == null
-    }
-
     def "load build param targetEnvironment"() {
         when:
         steps.env.environment = null
@@ -1886,16 +1851,12 @@ class ProjectSpec extends SpecHelper {
 
         then:
         1 * project.getDocumentChapterData(_) >> [:]
-        1 * project.getVersionFromReleaseStatusIssue()
         0 * project.loadJiraDataForCurrentVersion(*_)
         1 * project.loadFullJiraData(_)
 
         when:
         versionEnabled = true
         project.loadJiraData("DEMO")
-
-        then:
-        1 * project.getVersionFromReleaseStatusIssue() >> '1'
 
         then:
         1 * project.loadJiraDataForCurrentVersion(*_)
@@ -2621,7 +2582,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -2689,7 +2649,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
@@ -2752,7 +2711,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2824,7 +2782,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2886,7 +2843,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
