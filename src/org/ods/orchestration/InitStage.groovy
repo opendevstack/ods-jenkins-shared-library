@@ -235,7 +235,7 @@ class InitStage extends Stage {
         }
     }
 
-    private void addServicesToRegistry(ServiceRegistry registry, GitService git, PipelineSteps steps, Logger logger) {
+    private void addServicesToRegistry(ServiceRegistry registry, GitService git, IPipelineSteps steps, Logger logger) {
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
         registry.add(IPipelineSteps, steps)

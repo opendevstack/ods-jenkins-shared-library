@@ -689,24 +689,15 @@ class Project {
         envParams
     }
 
-    @NonCPS
-    private String extractClusterName(String targetApiUrl) {
-        return targetApiUrl.split("\\.")
-    }
-
     void setOpenShiftData(String sessionApiUrl) {
         def envConfig = getEnvironmentConfig()
         def targetApiUrl = envConfig?.apiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
-        }
-        def targetClusterName = envConfig?.clusterName
-        if (!targetClusterName) {
-            targetClusterName = extractClusterName(targetApiUrl)
-        }
+        }        
         this.data.openshift['sessionApiUrl'] = sessionApiUrl
         this.data.openshift['targetApiUrl'] = targetApiUrl
-        this.data.openshift['targetClusterName'] = targetClusterName
+        this.data.openshift['targetClusterName'] = envConfig?.clusterName    
     }
 
     @NonCPS
@@ -1055,6 +1046,7 @@ class Project {
         this.data.openshift.targetApiUrl
     }
 
+    @NonCPS
     String getOpenShiftTargetClusterName() {
         this.data.openshift.targetClusterName
     }
