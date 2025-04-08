@@ -692,7 +692,6 @@ class Project {
 
     @NonCPS
     private String extractClusterName(String targetApiUrl) {
-        // expected targetApiUrl "api.clusterName.ocp.eu.boehringer.com:6443"
         return targetApiUrl.split("\\.")
     }
 

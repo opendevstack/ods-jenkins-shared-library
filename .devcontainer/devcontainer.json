@@ -1,5 +1,8 @@
 {
   "image": "mcr.microsoft.com/devcontainers/java:11",
   "containerEnv": {
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": {}
   }
 }
