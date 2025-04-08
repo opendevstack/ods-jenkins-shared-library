@@ -1,9 +1,7 @@
 package org.ods.component
 
 import util.PipelineSteps
-import org.ods.util.ILogger
 import org.ods.util.Logger
-import org.ods.util.ShellWithRetry
 import org.ods.util.IPipelineSteps
 import spock.lang.*
 import org.ods.services.OpenShiftService
