@@ -694,10 +694,10 @@ class Project {
         def targetApiUrl = envConfig?.apiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
-        }        
+        }
         this.data.openshift['sessionApiUrl'] = sessionApiUrl
         this.data.openshift['targetApiUrl'] = targetApiUrl
-        this.data.openshift['targetClusterName'] = envConfig?.clusterName    
+        this.data.openshift['targetClusterName'] = envConfig?.clusterName
     }
 
     @NonCPS
