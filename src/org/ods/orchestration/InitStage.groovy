@@ -26,10 +26,10 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.GitCredentialStore
-import org.ods.util.ILogger
 import org.ods.util.Logger
-import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
@@ -43,7 +43,7 @@ class InitStage extends Stage {
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength', 'Indentation'])
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
-        def steps = new PipelineSteps(script)
+        IPipelineSteps steps = new PipelineSteps(script)
         def git = new GitService(steps, logger)
 
         // load build params

@@ -6,7 +6,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.Project
 import org.ods.services.ServiceRegistry
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 
@@ -24,7 +24,7 @@ class BuildStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)

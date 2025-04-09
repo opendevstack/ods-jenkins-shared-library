@@ -7,6 +7,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 def call(IContext context, Map config = [:]) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
@@ -34,7 +35,7 @@ def call(IContext context, Map config = [:]) {
     }
     def nexusService = ServiceRegistry.instance.get(NexusService)
     if (!nexusService) {
-        steps = new PipelineSteps(this)
+        IPipelineSteps steps = new PipelineSteps(this)
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
     }
     def stage = new ScanWithSonarStage(

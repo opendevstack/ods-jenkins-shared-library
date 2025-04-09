@@ -1,6 +1,7 @@
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 // You may use withOpenShiftCluster to execute code against another OpenShift cluster.
 // It is required to pass the API url (can be retrieved via "oc whoami --show-server")
@@ -41,7 +42,7 @@ def call(IContext context, Map config = [:], Closure block) {
     if (!config.credentialsId) {
         error('''Param 'credentialsId' is required''')
     }
-    def steps = new PipelineSteps(this)
+    IPipelineSteps steps = new PipelineSteps(this)
     def jenkinsClusterApiUrl = OpenShiftService.getApiUrl(steps)
     withCredentials([
         usernamePassword(
