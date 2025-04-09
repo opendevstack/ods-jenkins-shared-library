@@ -52,12 +52,11 @@ def call(IContext context, Map config = [:]) {
         registry.add(NexusService, nexusService)
     }
 
-    Map configurationAquaCluster = [:]
     Map configurationAquaProject = [:]
     String errorMessages = ''
     String alertEmails = ''
     try {
-        configurationAquaCluster = openShiftService.getConfigMapData(
+        Map configurationAquaCluster = openShiftService.getConfigMapData(
             config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE,
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         // Addresses form Aqua advises mails.
@@ -119,7 +118,7 @@ def call(IContext context, Map config = [:]) {
     notifyAqua(steps, context, alertEmails, errorMessages)
 }
 
-private void notifyAqua(PipelineSteps steps, IContext context, String recipients = '', String message = '') {
+private void notifyAqua(IPipelineSteps steps, IContext context, String recipients = '', String message = '') {
     String subject = "Build $context.componentId on project $context.projectId had not executed Aqua!"
     String body = "<p>$subject</p> " +
         "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
