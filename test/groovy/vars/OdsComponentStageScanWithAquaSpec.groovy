@@ -11,6 +11,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 import spock.lang.Shared
 import vars.test_helper.PipelineSpockTestBase
@@ -68,9 +69,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
-        PipelineSteps steps = Mock(PipelineSteps.class)
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
         steps.sh(*_) >> "something"
-        ServiceRegistry.instance.add(PipelineSteps, steps)
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
@@ -211,9 +212,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
-        PipelineSteps steps = Mock(PipelineSteps.class)
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
         steps.sh(*_) >> "something"
-        ServiceRegistry.instance.add(PipelineSteps, steps)
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
@@ -263,9 +264,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
-        PipelineSteps steps = Mock(PipelineSteps.class)
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
         steps.sh(*_) >> "something"
-        ServiceRegistry.instance.add(PipelineSteps, steps)
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
