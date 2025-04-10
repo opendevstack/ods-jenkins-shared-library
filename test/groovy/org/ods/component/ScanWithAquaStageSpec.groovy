@@ -1058,6 +1058,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         'someImageWithoutTag'     || 'someImageWithoutTag'
         'someImageWithTag:10'     || 'someImageWithTag'
         'someImageWithTag@sha:10' || 'someImageWithTag'
+        'reg:5/name/image:tag'    || 'reg'
 
     }
 
