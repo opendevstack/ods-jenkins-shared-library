@@ -154,7 +154,12 @@ class ScanWithAquaStage extends Stage {
         if (!imageRefName) {
             throw new IllegalArgumentException ("imageRefName must not be null")
         }
-        return imageRefName.split('/').first().split(':').first().split('@').first().split('/').last()
+
+        // Sample image refs:
+        // registryHostName:port/namespace/imageName:tag -> imageName:tag -> imageName
+        // registryHostName:port/namespace/imageName@sha256:hexDigest ->
+        //     -> imageName@sha256:hexDigest -> imageName@sha256 -> imageName
+        return imageRefName.split('/').last().split(':').first().split('@').first()
     }
 
     private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
