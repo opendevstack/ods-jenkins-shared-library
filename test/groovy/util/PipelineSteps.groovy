@@ -249,6 +249,7 @@ class PipelineSteps implements IPipelineSteps {
 
     def parallel (Map executors) {
         if (executors) {
+            // To assure what it's exceuted in parallel
             executors.remove ('failFast')
             executors.each { key, block ->
                 println key
