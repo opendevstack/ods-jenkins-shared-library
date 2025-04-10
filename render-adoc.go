@@ -45,7 +45,7 @@ func main() {
 	templateFiles, err := filepath.Glob(fmt.Sprintf(filepath.FromSlash("%s/*%s"), antoraPartialsPath, adocTemplateSuffix))
 	check(err)
 	for _, templateFile := range templateFiles {
-		stageName := strings.TrimPrefix(templateFile, strings.ReplaceAll(adocTemplatePrefix, "/", string(os.PathSeparator)))
+		stageName := strings.TrimPrefix(templateFile, filepath.FromSlash(adocTemplatePrefix))
 		stageName = strings.TrimSuffix(stageName, adocTemplateSuffix)
 		renderDocs(stageName)
 	}
