@@ -13,7 +13,7 @@ import org.ods.util.ILogger
 class ScanWithSonarStage extends Stage {
 
     static final String STAGE_NAME = 'SonarQube Analysis'
-    static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.ods.sonarqube"
+    static final String BITBUCKET_SONARQUBE_REPORT_KEY = "ods.sonarqube"
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
