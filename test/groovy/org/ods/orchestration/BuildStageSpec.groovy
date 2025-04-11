@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.PipelineScript
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
@@ -10,7 +9,8 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-import org.ods.util.PipelineSteps
+
+import util.PipelineSteps
 import util.SpecHelper
 
 import static util.FixtureHelper.createProject
@@ -18,8 +18,7 @@ import static util.FixtureHelper.createProject
 class BuildStageSpec extends SpecHelper {
     Project project
     BuildStage buildStage
-    IPipelineSteps steps
-    PipelineScript script
+    IPipelineSteps script
     MROPipelineUtil util
     JiraUseCase jira
     LeVADocumentScheduler levaDocScheduler
@@ -28,8 +27,7 @@ class BuildStageSpec extends SpecHelper {
     def phase = MROPipelineUtil.PipelinePhases.BUILD
 
     def setup() {
-        script = new PipelineScript()
-        steps = Mock(PipelineSteps)
+        script = new PipelineSteps()
         levaDocScheduler = Mock(LeVADocumentScheduler)
         project = Spy(createProject())
         util = Mock(MROPipelineUtil)
@@ -42,7 +40,7 @@ class BuildStageSpec extends SpecHelper {
     ServiceRegistry createService() {
         def registry = ServiceRegistry.instance
 
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, script)
         registry.add(LeVADocumentScheduler, levaDocScheduler)
         registry.add(MROPipelineUtil, util)
         registry.add(JiraUseCase, jira)

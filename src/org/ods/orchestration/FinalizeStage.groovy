@@ -10,7 +10,6 @@ import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
-import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -28,7 +27,7 @@ class FinalizeStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)

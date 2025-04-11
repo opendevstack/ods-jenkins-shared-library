@@ -101,7 +101,9 @@ class MROPipelineUtil extends PipelineUtil {
             this.project.buildParams.each { key, value ->
                 env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
             }
-            env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+            env << "NOTIFY_BB_BUILD=${!this.project.isWorkInProgress}"
+            // must be downstream available!
+            env << "RM_TARGET_CLUSTER_NAME=${this.project.getOpenShiftTargetClusterName()}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
             }

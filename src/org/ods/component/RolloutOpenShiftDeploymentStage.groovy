@@ -6,6 +6,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -123,7 +124,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         // Use tailorDeployment in the following cases:
         // (1) We have an openshiftDir
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
-        def steps = new PipelineSteps(script)
+        IPipelineSteps steps = new PipelineSteps(script)
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
             deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
             String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
