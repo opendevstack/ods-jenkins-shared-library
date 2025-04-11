@@ -17,6 +17,8 @@ class PodData {
 
     // podMetaDataCreationTimestamp equals .metadata.creationTimestamp.
     // Example: 2020-11-02T10:57:35Z
+    // We can use String to compare timestamps in this case,
+    // because ISO 8601 timestamps are designed to be sortable as strings.
     String podMetaDataCreationTimestamp
 
     // deploymentId is the name of the pod manager, such as the ReplicaSet or
@@ -51,10 +53,7 @@ class PodData {
             podNamespace: podNamespace,
             podMetaDataCreationTimestamp: podMetaDataCreationTimestamp,
             deploymentId: deploymentId,
-            podNode: podNode,
-            podIp: podIp,
             podStatus: podStatus,
-            podStartupTimeStamp: podStartupTimeStamp,
             containers: containers,
         ]
     }

@@ -124,6 +124,39 @@ class JiraService {
     }
 
     @NonCPS
+    void appendCommentToReleaseStatusIssue(String projectKey, String version, String comment) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to the release status issue: \'projectKey\' is undefined')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'version\' is undefined')
+        }
+        if (!comment?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to append comment to  the release status issue: \'comment\' is undefined')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status/comment")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('Content-Type', 'application/json')
+            .body(JsonOutput.toJson([content: comment])).asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to append comment to the release status issue. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to append comment to tne release status issue. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
     void appendCommentToIssue(String issueIdOrKey, String comment) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to append comment to Jira issue. \'issueIdOrKey\' is undefined.')
@@ -360,7 +393,7 @@ class JiraService {
 
         return [
             contentType: response.getHeaders()["Content-Type"][0],
-            data: response.getBody()
+            data: response.getBody(),
         ]
     }
 
@@ -602,6 +635,39 @@ class JiraService {
     }
 
     @NonCPS
+    void updateReleaseStatusIssue(String projectKey, String version, Map fields) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: \'projectKey\' is undefined')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: \'version\' is undefined')
+        }
+        if (!fields) {
+            throw new IllegalArgumentException('Error: Unable to update the release status issue: no data given for updating')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('Content-Type', 'application/json')
+            .body(JsonOutput.toJson(fields)).asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to update release status issue. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to update release status issue. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
     void updateSelectListFieldsOnIssue(String issueIdOrKey, Map fields) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to update select list fields on Jira issue. \'issueIdOrKey\' is undefined.')
@@ -770,36 +836,35 @@ class JiraService {
     }
 
     @NonCPS
-    Map getComponents(String projectKey, String version) {
-        if (!projectKey?.trim()) {
+    Map getComponents(String projectKey, String version, boolean isWorkInProgress) {
+        if (!projectKey?.strip()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'projectKey\' is undefined.')
         }
-        if (!version?.trim()) {
+        if (!version?.strip()) {
             throw new IllegalArgumentException('Error: unable to check component mismatch from Jira. ' +
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/projects/{projectKey}/components?changeId={version}")
-            .routeParam('projectKey', projectKey.toUpperCase())
-            .routeParam('version', version)
+        def request = Unirest.get(this.baseURL.toString() + '/rest/platform/1.1/projects/{projectKey}/components')
+            .routeParam('projectKey', projectKey.toUpperCase(Locale.ENGLISH))
+            .queryString('changeId', version)
+            .queryString('previewMode', String.valueOf(isWorkInProgress))
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
-            .asString()
+        def response = request.asString()
 
         response.ifFailure {
-            def message = 'Error: unable to get component match check in url ' +
-                "${this.baseURL}/rest/platform/1.1/projects/${projectKey.toUpperCase()}/components?changeId=$version" +
-                ' Jira responded with code: ' +
-                "'${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = "Error: unable to get component match check in url ${request.url} " +
+                "Jira responded with code: '${response.status}' and message: '${response.body}'."
 
-            if (response.getStatus() == 404) {
+            if (response.status == 404) {
                 message = "Error: unable to get component match check. Jira could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
         }
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(response.body)
     }
 
     def getIssue(String issueId, String expand = null) {
@@ -858,4 +923,5 @@ class JiraService {
         }
         return true
     }
+
 }

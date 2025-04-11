@@ -9,6 +9,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings('AbcMetric')
 def call(IContext context, Map config = [:]) {
@@ -19,10 +20,10 @@ def call(IContext context, Map config = [:]) {
     }
 
     ServiceRegistry registry = ServiceRegistry.instance
-    PipelineSteps steps = registry.get(PipelineSteps)
+    IPipelineSteps steps = registry.get(IPipelineSteps)
     if (!steps) {
         steps = new PipelineSteps(this)
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, steps)
     }
     TrivyService trivyService = registry.get(TrivyService)
     if (!trivyService) {

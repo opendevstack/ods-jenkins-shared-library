@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.PipelineScript
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
@@ -10,7 +9,8 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-import org.ods.util.PipelineSteps
+
+import util.PipelineSteps
 import util.SpecHelper
 
 import static util.FixtureHelper.createProject
@@ -18,8 +18,7 @@ import static util.FixtureHelper.createProject
 class FinalizeStageSpec extends SpecHelper {
     Project project
     FinalizeStage finalStage
-    IPipelineSteps steps
-    PipelineScript script
+    IPipelineSteps script
     MROPipelineUtil util
     JiraUseCase jira
     GitService gitService
@@ -27,8 +26,7 @@ class FinalizeStageSpec extends SpecHelper {
     ILogger logger
 
     def setup() {
-        script = new PipelineScript()
-        steps = Mock(PipelineSteps)
+        script = new PipelineSteps()
         levaDocScheduler = Mock(LeVADocumentScheduler)
         project = Spy(createProject())
         util = Mock(MROPipelineUtil)
@@ -48,7 +46,7 @@ class FinalizeStageSpec extends SpecHelper {
     ServiceRegistry createService() {
         def registry = ServiceRegistry.instance
 
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, script)
         registry.add(MROPipelineUtil, util)
         registry.add(JiraUseCase, jira)
         registry.add(Logger, logger)
@@ -66,7 +64,7 @@ class FinalizeStageSpec extends SpecHelper {
         project.setGitReleaseBranch('master')
 
         when:
-        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
 
         then:
         1 * gitService.pushRef('master')
@@ -82,7 +80,7 @@ class FinalizeStageSpec extends SpecHelper {
         project.setGitReleaseBranch('release/1.0.0')
 
         when:
-        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
 
         then:
         1 * gitService.pushRef('master')
@@ -100,7 +98,7 @@ class FinalizeStageSpec extends SpecHelper {
         gitService.remoteTagExists(project.targetTag) >> false
 
         when:
-        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
 
         then:
         1 * gitService.pushRef('master')
@@ -118,7 +116,7 @@ class FinalizeStageSpec extends SpecHelper {
         gitService.remoteTagExists(project.targetTag) >> true
 
         when:
-        finalStage.recordAndPushEnvStateForReleaseManager(steps, logger, gitService)
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
 
         then:
         1 * gitService.pushRef('master')
@@ -136,7 +134,7 @@ class FinalizeStageSpec extends SpecHelper {
         def finalStageNotInstallable = Spy(new FinalizeStage(script, project, repos))
 
         when:
-        finalStageNotInstallable.integrateIntoMainBranchRepos(steps, gitService)
+        finalStageNotInstallable.integrateIntoMainBranchRepos(script, gitService)
 
         then:
         0 * finalStageNotInstallable.doIntegrateIntoMainBranches(_)

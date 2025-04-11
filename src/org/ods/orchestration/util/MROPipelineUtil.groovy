@@ -101,7 +101,9 @@ class MROPipelineUtil extends PipelineUtil {
             this.project.buildParams.each { key, value ->
                 env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
             }
-            env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+            env << "NOTIFY_BB_BUILD=${!this.project.isWorkInProgress}"
+            // must be downstream available!
+            env << "RM_TARGET_CLUSTER_NAME=${this.project.getOpenShiftTargetClusterName()}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
             }
@@ -291,6 +293,10 @@ class MROPipelineUtil extends PipelineUtil {
         if ("master" == gitReleaseBranch) {
             gitReleaseBranch = repo.defaultBranch
         }
+        if(isWorkInProgress && repo.'preview-branch') {
+            this.logger.info("Since in WIP and preview-branch has been configured, using preview-branch: ${repo.'preview-branch'}")
+            gitReleaseBranch = repo.'preview-branch'
+        }
 
         // check if release manager repo already has a release branch
         if (git.remoteBranchExists(gitReleaseBranch)) {
@@ -324,9 +330,11 @@ class MROPipelineUtil extends PipelineUtil {
                 scmResult.scm = createBranchFromDefaultBranch(repo, gitReleaseBranch)
                 scmResult.scmBranch = gitReleaseBranch
             } else {
-                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch}), checking out branch ${repo.defaultBranch} for repo ${repo.id}")
-                scmResult.scm = checkoutBranchInRepoDir(repo, repo.defaultBranch)
-                scmResult.scmBranch = repo.defaultBranch
+                this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch})" +
+                    "${repo.'preview-branch' ? ' and preview-branch has been configured' : ''}, " +
+                    "checking out branch ${repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch} for repo ${repo.id}")
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch)
+                scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
             }
         }
         return scmResult

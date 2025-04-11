@@ -11,6 +11,7 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -31,7 +32,7 @@ class DeployOdsComponent {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     @SuppressWarnings(['AbcMetric'])
-    public void run(Map repo, String baseDir) {
+    void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
         steps.dir(baseDir) {
@@ -40,6 +41,7 @@ class DeployOdsComponent {
             DeploymentDescriptor deploymentDescriptor
             steps.dir(openShiftDir) {
                 deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
+                logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
             }
             if (!repo.data.openshift.deployments) {
                 repo.data.openshift.deployments = [:]
@@ -54,24 +56,31 @@ class DeployOdsComponent {
                     Map deploymentMean = deployment.deploymentMean
                     logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
                     deploymentMean['repoId'] = repo.id
+                    deploymentMean['namespace'] = project.targetProject
 
                     applyTemplates(openShiftDir, deploymentMean)
 
                     def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    def podData = null
+                    def podDataContext = [
+                        "targetProject=${project.targetProject}",
+                        "selector=${deploymentMean.selector}",
+                        "name=${deploymentName}",
+                    ]
+                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                    List<PodData> podData = null
                     for (def i = 0; i < retries; i++) {
                         podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
                         if (podData) {
                             break
                         }
-                        steps.echo("Could not find 'running' pod(s) with label '${deploymentMean.selector}' - waiting")
+                        steps.echo("${msgPodsNotFound} - waiting")
                         steps.sleep(12)
                     }
 
                     if (!podData) {
-                        throw new RuntimeException("Could not find 'running' pod(s) with label " +
-                            "'${deploymentMean.selector}'")
+                        throw new RuntimeException(msgPodsNotFound)
                     }
+                    logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
 
                     // TODO: Once the orchestration pipeline can deal with multiple replicas,
                     // update this to deal with multiple pods.
@@ -227,6 +236,11 @@ class DeployOdsComponent {
                         deploymentMean.helmDefaultFlags,
                         deploymentMean.helmAdditionalFlags,
                         true)
+
+                    def helmStatus = os.helmStatus(project.targetProject, deploymentMean.helmReleaseName)
+                    def helmStatusMap = helmStatus.toMap()
+                    deploymentMean.helmStatus = helmStatusMap
+                    logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
                 }
             }
             jenkins.maybeWithPrivateKeyCredentials(secretName) { String pkeyFile ->

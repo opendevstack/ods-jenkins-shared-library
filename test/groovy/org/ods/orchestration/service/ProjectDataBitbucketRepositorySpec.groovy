@@ -3,11 +3,10 @@ package org.ods.orchestration.service
 import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.util.Project
-import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
-
 import java.nio.file.Paths
+import org.ods.util.Logger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import util.SpecHelper
 
 import static util.FixtureHelper.createProject

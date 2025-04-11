@@ -9,6 +9,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
+import org.ods.util.Logger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
@@ -153,12 +154,17 @@ class Pipeline implements Serializable {
                             registry.add(NexusService, new NexusService(
                                 context.nexusUrl, steps, context.credentialsId))
                         }
+
+                        if (!registry.get(Logger)) {
+                            logger.debug 'Registering Logger'
+                            registry.add(Logger, logger)
+                        }
                     }
 
                     // check if there is a skipped previous run - if so - delete (to save memory)
                     if (!script.env.MULTI_REPO_BUILD) {
                         jenkinsService.deleteNotBuiltBuilds(
-                            script.currentBuild.getPreviousBuild())
+                            script.currentBuild.previousBuild) //getPreviousBuild() does not work during test)
                     }
 
                     skipCi = isCiSkip()
@@ -347,7 +353,9 @@ class Pipeline implements Serializable {
         }
 
         def buildName = "${context.gitCommit.take(8)}"
-        bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
+        if (bitbucketService) {
+            bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
+        }
     }
 
     private void doNotifyNotGreen(List<String> emailextRecipients) {

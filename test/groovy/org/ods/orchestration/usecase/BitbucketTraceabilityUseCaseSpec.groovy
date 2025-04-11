@@ -69,7 +69,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         project.data.buildParams.targetEnvironment = "dev"
         project.data.buildParams.targetEnvironmentToken = "D"
         project.data.buildParams.version = "WIP"
-        project.data.buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-123"
+        project.data.buildParams.changeId = "someChangeId"
         project.repositories.forEach { repo -> repo.defaultBranch = "master"}
         return project
     }

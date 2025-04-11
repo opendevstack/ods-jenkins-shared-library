@@ -133,8 +133,8 @@ class JenkinsService {
         }
         // we need to do this super early - similar to the id, because once deleted - no access
         // option2 -reset the result to SUCCESS
-        def previousMinusOneBuild = previousBuild.getPreviousBuild()
-        if (previousBuild?.getResult()?.toString() == 'NOT_BUILT') {
+        def previousMinusOneBuild = previousBuild.previousBuild
+        if (previousBuild?.result?.toString() == 'NOT_BUILT') {
             def buildId = "${previousBuild.getId()}"
             logger.debug("Found CI SKIP run: ${buildId}, ${previousBuild.getDescription()}")
             // get the change set(s) and look for the first (== last commit and its message)

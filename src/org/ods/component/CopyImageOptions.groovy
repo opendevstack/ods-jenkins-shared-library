@@ -18,9 +18,19 @@ class CopyImageOptions extends Options {
     Boolean tagIntoTargetEnv
 
     /**
-     * sourceCredential is the token to use, if any, to access the source registry
+     * sourceCredential is the credential to use, if any, to access the source registry
      */
     String sourceCredential
+
+    /**
+     * targetToken is the bearer token to use, if any, to access the target registry
+     */
+    String targetToken
+
+    /**
+     * target registry url, if not set the current internal route will be used
+     */
+    String targetRegistry
 
     /**
      * verifyTLS allows the stage to ignore certificate validation errors.
@@ -35,6 +45,11 @@ class CopyImageOptions extends Options {
      * The default is false, set to true to preserve digests
      */
     Boolean preserveDigests
+
+    /**
+     * insecurePolicy turn on the insecure policy with skopeo
+     */
+    Boolean insecurePolicy
 
     @SuppressWarnings('UnusedPrivateField')
     private String registry

@@ -1378,41 +1378,6 @@ class ProjectSpec extends SpecHelper {
         result.configItem == "myItem"
     }
 
-    def "load build param releaseStatusJiraIssueKey"() {
-        when:
-        steps.env.releaseStatusJiraIssueKey = "JIRA-1"
-        def result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.releaseStatusJiraIssueKey = " JIRA-1 "
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == "JIRA-1"
-
-        when:
-        steps.env.changeId = "1"
-        steps.env.configItem = "my-config-item"
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined"
-
-        when:
-        steps.env.changeId = null
-        steps.env.configItem = null
-        steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.releaseStatusJiraIssueKey == null
-    }
-
     def "load build param targetEnvironment"() {
         when:
         steps.env.environment = null
@@ -1886,16 +1851,12 @@ class ProjectSpec extends SpecHelper {
 
         then:
         1 * project.getDocumentChapterData(_) >> [:]
-        1 * project.getVersionFromReleaseStatusIssue()
         0 * project.loadJiraDataForCurrentVersion(*_)
         1 * project.loadFullJiraData(_)
 
         when:
         versionEnabled = true
         project.loadJiraData("DEMO")
-
-        then:
-        1 * project.getVersionFromReleaseStatusIssue() >> '1'
 
         then:
         1 * project.loadJiraDataForCurrentVersion(*_)
@@ -2319,7 +2280,6 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1.0'
         def secondVersion = '2.0'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2345,23 +2305,23 @@ class ProjectSpec extends SpecHelper {
         ts1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
         rsk1 << [requirements: [req1.key], mitigations: [mit1.key]]
         mit1 << [requirements: [req1.key], risks: [rsk1.key]]
-        req2 << [predecessors: [req1.key], tests: [tst4.key]]
-        tst3 << [predecessors: [tst1.key]]
+        req2 << [predecessors: [req1.key], tests: [tst2.key,tst3.key,tst4.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        tst3 << [predecessors: [tst1.key], requirements: [req2.key], techSpecs: [ts2.key]]
         tst4 << [requirements: [req2.key]]
-        rsk2 << [predecessors: [rsk1.key], requirements: [req1.key]]
-        mit2 << [predecessors: [mit1.key], requirements: [req1.key], risks: [rsk1.key]]
-        ts2 << [predecessors: [ts1.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req2.key], mitigations: [mit2.key]]
+        mit2 << [predecessors: [mit1.key], requirements: [req2.key], risks: [rsk2.key]]
+        ts2 << [predecessors: [ts1.key], requirements: [req2.key], tests: [tst2.key, tst3.key]]
 
-        def req2Updated = req2.clone() + [tests: [tst4.key, tst3.key, tst2.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        def req2Updated = req2.clone()
         req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
-        def tst2Updated = tst2.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
-        def tst3Updated = tst3.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        def tst2Updated = tst2.clone()
+        def tst3Updated = tst3.clone()
         tst3Updated << [expandedPredecessors: [[key: tst1.key, versions: tst1.versions]]]
-        def rsk2Updated = rsk2.clone() + [requirements: [req2.key], mitigations: [mit2.key]]
+        def rsk2Updated = rsk2.clone()
         rsk2Updated << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
-        def mit2Updated = mit2.clone() + [requirements: [req2.key], risks: [rsk2.key]]
+        def mit2Updated = mit2.clone()
         mit2Updated << [expandedPredecessors: [[key: mit1.key, versions: mit1.versions]]]
-        def ts2Updated = ts2.clone() + [requirements: [req2.key], tests: [tst3.key, tst2.key]]
+        def ts2Updated = ts2.clone()
         ts2Updated  << [expandedPredecessors: [[key: ts1.key, versions: ts1.versions]]]
 
         def storedData = [
@@ -2622,7 +2582,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -2690,7 +2649,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
@@ -2753,7 +2711,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2825,7 +2782,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2887,7 +2843,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -3297,7 +3252,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch with jira enabled"() {
         given:
-        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'DEPLOYABLE'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED', true) >> { return [deployableState: 'DEPLOYABLE'] }
 
         when:
         def result = project.getComponentsFromJira()
@@ -3308,7 +3263,7 @@ class ProjectSpec extends SpecHelper {
 
     def "check component mismatch fail with jira enabled"() {
         given:
-        jiraUseCase.getComponents('net', 'UNDEFINED') >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
+        jiraUseCase.getComponents('net', 'UNDEFINED', true) >> { return [deployableState: 'MISCONFIGURED', message: 'Error'] }
 
         when:
         def result = project.getComponentsFromJira()

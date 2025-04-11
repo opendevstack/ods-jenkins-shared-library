@@ -40,7 +40,7 @@ class CopyImageStage extends Stage {
     @SuppressWarnings(['AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        logger.info("Copy the image ${options.sourceImageUrlIncludingRegistry}!")
+        logger.info("Copy the image ${this.options.sourceImageUrlIncludingRegistry}!")
         final String STR_DOCKER_PROTOCOL = 'docker://'
 
         logger.info("Resolved source Image data: " +
@@ -51,15 +51,18 @@ class CopyImageStage extends Stage {
         // to make this work, we need a target image stream first
         openShift.findOrCreateImageStream("${context.cdProject}", "${this.options.image.split(':').first()}")
 
-        // read the target registry auth (for this project's -cd project ..)
-        def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
-
         def sourcetoken = options.sourceCredential ? "--src-creds ${options.sourceCredential}" : ''
 
-        def copyparams = ""
-        if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
+        def targetInternalRegistryToken = steps.readFile '/run/secrets/kubernetes.io/serviceaccount/token'
+        def targettoken = options.targetToken ?
+            "--dest-registry-token ${options.targetToken}" :
+            "--dest-creds openshift:${targetInternalRegistryToken}"
 
-        int status = copyImage(sourcetoken, targetInternalRegistryToken, STR_DOCKER_PROTOCOL, copyparams)
+        def copyparams = "--retry-times 20" // needs new skopeo version --retry-delay 10s"
+        if (this.options.preserveDigests) { copyparams += " --all --preserve-digests" }
+        if (this.options.insecurePolicy) { copyparams += " --insecure-policy" }
+
+        int status = copyImage(sourcetoken, targettoken, STR_DOCKER_PROTOCOL, copyparams)
         if (status != 0) {
             script.error("Could not copy `${this.options.sourceImageUrlIncludingRegistry}', status ${status}")
         }
@@ -80,7 +83,7 @@ class CopyImageStage extends Stage {
             [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
         // If this option is set will additionally tag the image in the target namespace, not just the cd namespace
-        if (options.tagIntoTargetEnv) {
+        if (options.tagIntoTargetEnv && context.targetProject) {
             openShift.findOrCreateImageStream(context.targetProject, imageName)
             openShift.importImageTagFromProject(
                 context.targetProject, imageName, context.cdProject,
@@ -90,22 +93,27 @@ class CopyImageStage extends Stage {
         }
     }
 
-    private int copyImage(sourcetoken, targetInternalRegistryToken, String dockerProtocol, String copyparams) {
+    private int copyImage(sourcetoken, targettoken, String dockerProtocol, String copyparams) {
         def registryPath = this.options.repo ? \
            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
            "${this.options.registry}/${this.options.image}"
+
+        def targetRegistryPath = "${dockerProtocol}${this.options.targetRegistry ?: context.clusterRegistryAddress}/" +
+            "${context.cdProject}/${this.options.image}"
+
         int status = steps.sh(
             script: """
                 skopeo copy ${copyparams} \
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${registryPath} \
-                --dest-creds openshift:${targetInternalRegistryToken} \
-                ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                ${targettoken} \
+                ${targetRegistryPath} \
                 --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,
             label: "Copy image ${this.options.repo}/${this.options.image}"
         ) as int
+
         return status
     }
 
