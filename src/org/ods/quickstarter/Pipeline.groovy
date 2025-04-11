@@ -3,8 +3,8 @@ package org.ods.quickstarter
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 class Pipeline implements Serializable {
 

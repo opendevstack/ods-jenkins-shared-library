@@ -9,6 +9,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings('AbcMetric')
 def call(IContext context, Map config = [:]) {
@@ -19,10 +20,10 @@ def call(IContext context, Map config = [:]) {
     }
 
     ServiceRegistry registry = ServiceRegistry.instance
-    PipelineSteps steps = registry.get(PipelineSteps)
+    IPipelineSteps steps = registry.get(IPipelineSteps)
     if (!steps) {
         steps = new PipelineSteps(this)
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, steps)
     }
     AquaService aquaService = registry.get(AquaService)
     if (!aquaService) {
@@ -51,12 +52,11 @@ def call(IContext context, Map config = [:]) {
         registry.add(NexusService, nexusService)
     }
 
-    Map configurationAquaCluster = [:]
     Map configurationAquaProject = [:]
     String errorMessages = ''
     String alertEmails = ''
     try {
-        configurationAquaCluster = openShiftService.getConfigMapData(
+        Map configurationAquaCluster = openShiftService.getConfigMapData(
             config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE,
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         // Addresses form Aqua advises mails.
@@ -111,13 +111,14 @@ def call(IContext context, Map config = [:]) {
     } catch (AquaRemoteCriticalVulnerabilityWithSolutionException e) {
         throw e
     } catch (err) {
-        logger.warn("Error with Aqua due to: ${err}")
-        errorMessages += "<li>Error with Aqua</li>"
+        def consoleUrl = OpenShiftService.getConsoleUrl(steps)
+        logger.warn("Error with Aqua due to: ${err}, \n on cluster ${consoleUrl}")
+        errorMessages += "<li>Error with Aqua, configured correctly in cluster? \nUrl: ${consoleUrl}</li>"
     }
     notifyAqua(steps, context, alertEmails, errorMessages)
 }
 
-private void notifyAqua(PipelineSteps steps, IContext context, String recipients = '', String message = '') {
+private void notifyAqua(IPipelineSteps steps, IContext context, String recipients = '', String message = '') {
     String subject = "Build $context.componentId on project $context.projectId had not executed Aqua!"
     String body = "<p>$subject</p> " +
         "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"

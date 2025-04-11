@@ -10,6 +10,9 @@ import org.ods.services.NexusServiceSpec
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
+import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
+
 import spock.lang.Shared
 import vars.test_helper.PipelineSpockTestBase
 
@@ -66,13 +69,17 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
+        steps.sh(*_) >> "something"
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readJSON', [ Map ]) { [
             vulnerability_summary: [critical: 0, malware: 0]
         ] }
-        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> return "xx"}
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
@@ -205,6 +212,10 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
+        steps.sh(*_) >> "something"
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
@@ -252,6 +263,10 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         NexusService nexusService = Stub(NexusService.class)
         nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
+
+        IPipelineSteps steps = Mock(IPipelineSteps.class)
+        steps.sh(*_) >> "something"
+        ServiceRegistry.instance.add(IPipelineSteps, steps)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')

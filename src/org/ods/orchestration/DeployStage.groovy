@@ -7,7 +7,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import groovy.json.JsonOutput
@@ -22,7 +22,7 @@ class DeployStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize', 'LineLength'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -147,7 +147,7 @@ class DeployStage extends Stage {
             if (repo.data == null) {
                 repo.data = [:]
             }
-            def steps = ServiceRegistry.instance.get(PipelineSteps)
+            def steps = ServiceRegistry.instance.get(IPipelineSteps)
 
             // collect test results
             if (repo.data.tests == null) {

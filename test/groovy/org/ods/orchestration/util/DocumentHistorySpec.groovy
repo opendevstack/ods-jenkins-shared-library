@@ -2,9 +2,9 @@ package org.ods.orchestration.util
 
 import groovy.json.JsonOutput
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
-import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import spock.lang.Unroll
 import util.SpecHelper
 

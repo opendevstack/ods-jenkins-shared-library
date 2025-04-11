@@ -12,10 +12,10 @@ import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
-import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
@@ -25,7 +25,7 @@ import java.nio.file.Paths
 def call(Map config) {
     String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
     UnirestConfig.init()
-    def steps = new PipelineSteps(this)
+    IPipelineSteps steps = new PipelineSteps(this)
 
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))

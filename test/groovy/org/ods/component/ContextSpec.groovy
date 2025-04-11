@@ -1,6 +1,6 @@
 package org.ods.component
 
-import org.ods.PipelineScript
+import util.PipelineSteps
 import org.ods.util.Logger
 import org.ods.util.IPipelineSteps
 import spock.lang.*
@@ -8,7 +8,7 @@ import org.ods.services.OpenShiftService
 
 class ContextSpec extends Specification {
 
-    private PipelineScript script = new PipelineScript()
+    private PipelineSteps script = new PipelineSteps()
     private Logger logger = Mock(Logger)
 
     @Shared

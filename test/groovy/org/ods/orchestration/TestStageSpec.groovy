@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.PipelineScript
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.services.JenkinsService
@@ -10,19 +9,19 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
-import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
-import util.SpecHelper
 import org.ods.util.Logger
 import org.ods.util.ILogger
+
+import util.PipelineSteps
+import util.SpecHelper
 
 import static util.FixtureHelper.createProject
 
 class TestStageSpec extends SpecHelper {
     Project project
     TestStage testStage
-    IPipelineSteps steps
-    PipelineScript script
+    IPipelineSteps script
     MROPipelineUtil util
     JiraUseCase jira
     JUnitTestReportsUseCase junit
@@ -33,8 +32,7 @@ class TestStageSpec extends SpecHelper {
     def phase = MROPipelineUtil.PipelinePhases.TEST
 
     def setup() {
-        script = new PipelineScript()
-        steps = Mock(PipelineSteps)
+        script = new PipelineSteps()
         levaDocScheduler = Mock(LeVADocumentScheduler)
         project = Spy(createProject())
         util = Mock(MROPipelineUtil)
@@ -49,7 +47,7 @@ class TestStageSpec extends SpecHelper {
     ServiceRegistry createService() {
         def registry = ServiceRegistry.instance
 
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, script)
         registry.add(LeVADocumentScheduler, levaDocScheduler)
         registry.add(MROPipelineUtil, util)
         registry.add(JiraUseCase, jira)
@@ -75,7 +73,7 @@ class TestStageSpec extends SpecHelper {
 
     def "in TEST repo only one call per test types to report test results in Jira"() {
         given:
-        steps.env >> [WORKSPACE: "", BUILD_ID: 1]
+        script.env >> [WORKSPACE: "", BUILD_ID: 1]
         jenkins.unstashFilesIntoPath(_, _, "JUnit XML Report") >> true
         junit.loadTestReportsFromPath(_) >> []
         junit.parseTestReportFiles(_) >> [ testsuites: [] ]
@@ -84,11 +82,11 @@ class TestStageSpec extends SpecHelper {
         testStage.run()
 
         then:
-        1 * testStage.getTestResults(steps, _, Project.TestType.INSTALLATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
-        1 * testStage.getTestResults(steps, _, Project.TestType.INTEGRATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
-        1 * testStage.getTestResults(steps, _, Project.TestType.ACCEPTANCE) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(script, _, Project.TestType.INSTALLATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(script, _, Project.TestType.INTEGRATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(script, _, Project.TestType.ACCEPTANCE) >> [testReportFiles: [], testResults: [testsuites:[]]]
         1 * util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, project.repositories, _, _) >> { phase_, repos_, preExecuteRepo_, postExecuteRepo_ ->
-            postExecuteRepo_.call(steps, [type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST] as Map)
+            postExecuteRepo_.call(script, [type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST] as Map)
             return []
         }
         1 * jira.reportTestResultsForProject([Project.TestType.INSTALLATION], _)
@@ -98,13 +96,13 @@ class TestStageSpec extends SpecHelper {
 
     def "get test results from file"() {
         given:
-        steps.env >> [WORKSPACE : "", BUILD_ID : 1]
+        script.env >> [WORKSPACE : "", BUILD_ID : 1]
         jenkins.unstashFilesIntoPath(_, _, "JUnit XML Report") >> true
         junit.loadTestReportsFromPath(_) >> []
         junit.parseTestReportFiles(_) >> [:]
 
         when:
-        testStage.getTestResults(steps, project.repositories.first(), "acceptance")
+        testStage.getTestResults(script, project.repositories.first(), "acceptance")
 
         then:
         1 * junit.loadTestReportsFromPath(_)

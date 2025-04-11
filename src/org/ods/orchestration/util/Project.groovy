@@ -697,6 +697,7 @@ class Project {
         }
         this.data.openshift['sessionApiUrl'] = sessionApiUrl
         this.data.openshift['targetApiUrl'] = targetApiUrl
+        this.data.openshift['targetClusterName'] = envConfig?.clusterName
     }
 
     @NonCPS
@@ -1043,6 +1044,11 @@ class Project {
 
     String getOpenShiftTargetApiUrl() {
         this.data.openshift.targetApiUrl
+    }
+
+    @NonCPS
+    String getOpenShiftTargetClusterName() {
+        this.data.openshift.targetClusterName
     }
 
     @NonCPS
