@@ -1,29 +1,36 @@
 # Changelog
 
 ## Unreleased
-=======
-+ odsComponentStageScanWithAqua is not safe for parallel execution ([#1204](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1204))
-+ copyImage fails with error if targetEnvironment does not exist or is null ([#1201](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1201))
-* Remove release manager pipeline param releaseStatusJiraIssueKey ([#1207](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1207))
-* Refactor getComponents method ([#1200](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1200))
-* Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))
-* Add custom preview branch functionality for DevPreview ([#1191](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1191))
-* Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
-* Set java version in SonarQube Stage ([#1194](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1194))
 
 ### Added
-* add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
+
 
 ### Changed
-* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
-* Simplify successor management since now issue links are no longer inherited ([#1116](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
-* Add preserve-digests cli option to skopeo copy command in CopyImageStage ([#1166](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1166))
-* Allow registry/image:tag sources in CopyImageStage instead of directly falling back to internal registry ([#1177](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1177))
-* Sort unit test keys associated with requirements in TCR ([#1192](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
-* TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+
+## [4.8.0] - 2025-4-11
+
+### Added
+* Add custom preview branch functionality for DevPreview ([#1191](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1191))
+* add devcontainer setup ([#1172](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1172))
+
+### Changed
+* Remove release manager pipeline param releaseStatusJiraIssueKey ([#1207](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1207))
+* Enhance SSDS Document Generation Performance using New Atlassian APIs ([#1084](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1084))
+* TIR - remove dynamic pod data, surface helm status and helm report tables reformatting ([#1143](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1143)) & ([#1206](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1206))
+* Simplify successor management since now issue links are no longer inherited ([#1116](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
+* Set java version in SonarQube Stage ([#1194](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1194))
+* Sort unit test keys associated with requirements in TCR ([#1192](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1116))
+* Support target registry token injection via CopyImageStage options ([#1199](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1199))
+
+### Fixed
++ copyImage fails with error if targetEnvironment does not exist or is null ([#1201](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1201))
++ odsComponentStageScanWithAqua is not safe for parallel execution ([#1204](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1204))
+* Helm Deployment Strategy handle race condition when rollout strategy promoting previous version image ([#1182](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1182))
+* Refactor getComponents method ([#1200](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1200))
 
 ## [4.7.0] - 2025-1-27
 
