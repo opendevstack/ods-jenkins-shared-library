@@ -402,7 +402,7 @@ class JiraUseCase {
             env: env,
         ]
 
-        logger.info("My Fields: " + fields)
+        logger.info("My Fields, email: ${fields.userEmail}, status: ${fields.status}")
 
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
