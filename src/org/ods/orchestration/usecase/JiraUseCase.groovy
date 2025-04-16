@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import hudson.model.Cause
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
@@ -389,7 +390,8 @@ class JiraUseCase {
         def changeId = this.project.buildParams.changeId
         def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
 
-        def userEmail = currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
+
+        def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
         def testResults = new TestResults()
 
