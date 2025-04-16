@@ -5,6 +5,7 @@ import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
 import org.ods.orchestration.util.GitUtil
+import org.ods.orchestration.util.TestResults
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -387,10 +388,20 @@ class JiraUseCase {
         def projectKey = this.project.jiraProjectKey
         def changeId = this.project.buildParams.changeId
         def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
+
+        def userEmail = currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
+
+        def testResults = new TestResults()
+
         def fields = [
+            userEmail: userEmail,
+            testResults: testResults,
             status: status,
             env: env,
         ]
+
+        logger.info("My Fields: " + fields)
+
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
         logger.startClocked("jira-update-release-${changeId}")
