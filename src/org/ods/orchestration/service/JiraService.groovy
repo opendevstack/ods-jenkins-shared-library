@@ -668,6 +668,39 @@ class JiraService {
     }
 
     @NonCPS
+    void updateBuildNumber(String projectKey, String version, Map fields) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the build number: \'projectKey\' is undefined')
+        }
+        if (!version?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the build number: \'version\' is undefined')
+        }
+        if (!fields) {
+            throw new IllegalArgumentException('Error: Unable to update the build number: no data given for updating')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/buildnumber")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('Content-Type', 'application/json')
+            .body(JsonOutput.toJson(fields)).asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to update the build number. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to update the build number. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
     void updateSelectListFieldsOnIssue(String issueIdOrKey, Map fields) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to update select list fields on Jira issue. \'issueIdOrKey\' is undefined.')

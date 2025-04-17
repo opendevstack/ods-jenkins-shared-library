@@ -377,7 +377,7 @@ class JiraUseCase {
             buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}",
             env: env,
         ]
-        this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
+        this.jira.updateBuildNumber(projectKey, changeId, fields)
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
