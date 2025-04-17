@@ -372,7 +372,11 @@ class JiraUseCase {
 
         def projectKey = this.project.key
         def changeId = this.project.buildParams.changeId
-        def fields = [buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"]
+        def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
+        def fields = [
+            buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}",
+            env: env,
+        ]
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
     }
 
