@@ -2,11 +2,11 @@ package org.ods.orchestration.util
 
 class TestResults {
 
-    private int skipped;
+    private Integer skipped;
 
-    private int succeeded;
+    private Integer succeeded;
 
-    private int failed;
+    private Integer failed;
 
     @Override
     public String toString() {
