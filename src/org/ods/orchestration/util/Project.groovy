@@ -1615,12 +1615,13 @@ class Project {
         return result
     }
 
-    void reportPipelineStatus(String message = '', boolean isError = false) {
+    void reportPipelineStatus(Map testData, String message = '', boolean isError = false) {
         if (!this.jiraUseCase) {
             logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
             return
         }
-        this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
+        logger.info("===testData: ${testData}")
+        this.jiraUseCase.updateJiraReleaseStatusResult(message, isError, testData)
     }
 
     void addCommentInReleaseStatus(String message) {
