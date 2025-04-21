@@ -73,7 +73,8 @@ class Stage {
         Map data = [:]
         data.tests = [:]
         TYPES.each { type ->
-            repos.each { repo ->
+            // TODO check this
+            (repos.flatten() as Set<Map>).each { repo ->
                 data.tests << [(type.toLowerCase()): getTestResults(steps, repo, type.toLowerCase())]
             }
         }
