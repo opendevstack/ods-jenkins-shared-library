@@ -380,7 +380,7 @@ class JiraUseCase {
         this.jira.updateBuildNumber(projectKey, changeId, fields)
     }
 
-    void updateJiraReleaseStatusResult(String message, boolean isError) {
+    void updateJiraReleaseStatusResult(Map testData, String message, boolean isError) {
         if (!this.jira) {
             logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
             return
@@ -397,7 +397,8 @@ class JiraUseCase {
 
         def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
-        def testResults = new TestResults()
+        //TODO fix this
+        def testResults = new TestResults(1, 1, 1, 1)
 
         def fields = [
             userEmail: userEmail,

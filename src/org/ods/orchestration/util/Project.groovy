@@ -1621,7 +1621,7 @@ class Project {
             return
         }
         logger.info("===testData: ${testData}")
-        this.jiraUseCase.updateJiraReleaseStatusResult(message, isError, testData)
+        this.jiraUseCase.updateJiraReleaseStatusResult(testData, message, isError)
     }
 
     void addCommentInReleaseStatus(String message) {
