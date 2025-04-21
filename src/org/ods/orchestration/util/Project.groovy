@@ -1620,7 +1620,8 @@ class Project {
             logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
             return
         }
-        logger.info("===testData: ${testData}")
+        logger.debug("Test data: ==${JsonOutput.prettyPrint(JsonOutput.toJson(testData))}==")
+
         this.jiraUseCase.updateJiraReleaseStatusResult(testData, message, isError)
     }
 
