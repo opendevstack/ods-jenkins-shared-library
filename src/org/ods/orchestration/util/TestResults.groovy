@@ -2,19 +2,31 @@ package org.ods.orchestration.util
 
 class TestResults {
 
-    private Integer skipped;
+    int skipped;
 
-    private Integer succeeded;
+    int succeeded;
 
-    private Integer failed;
+    int failed;
 
-    private Integer error;
+    int error;
 
-    TestResults(Integer skipped, Integer succeeded, Integer failed, Integer error) {
-        this.skipped = skipped
-        this.succeeded = succeeded
-        this.failed = failed
-        this.error = error
+    TestResults() {
+    }
+
+    void addSkipped(int skipped) {
+        this.skipped += skipped
+    }
+
+    void addSucceeded(int succeeded) {
+        this.succeeded += succeeded
+    }
+
+    void addFailed(int failed) {
+        this.failed += failed
+    }
+
+    void addError(int error) {
+        this.error += error
     }
 
     @Override
@@ -23,6 +35,7 @@ class TestResults {
             "skipped=" + skipped +
             ", succeeded=" + succeeded +
             ", failed=" + failed +
+            ", error=" + error +
             '}';
     }
 }

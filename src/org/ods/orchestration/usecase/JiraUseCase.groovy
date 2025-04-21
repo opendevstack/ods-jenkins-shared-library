@@ -397,8 +397,7 @@ class JiraUseCase {
 
         def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
-        //TODO fix this
-        def testResults = new TestResults(1, 1, 1, 1)
+        def testResults = aggregateTestResultsFromTestData(testData)
 
         def fields = [
             userEmail: userEmail,
@@ -414,6 +413,27 @@ class JiraUseCase {
         logger.startClocked("jira-update-release-${changeId}")
         addCommentInReleaseStatus(message)
         logger.debugClocked("jira-update-release-${changeId}")
+    }
+
+    TestResults aggregateTestResultsFromTestData(Map testData) {
+        TestResults testResults = new TestResults();
+        testData.tests.each { testType ->
+            testType.value.testResults.testsuites.each { testSuite ->
+                if (testSuite.errors) {
+                    testResults.addError(Integer.parseInt(testSuite.errors))
+                }
+                if (testSuite.skipped) {
+                    testResults.addSkipped(Integer.parseInt(testSuite.skipped))
+                }
+                if (testSuite.failures) {
+                    testResults.addFailed(Integer.parseInt(testSuite.failures))
+                }
+                if (testSuite.tests) {
+                    testResults.addSucceeded(Integer.parseInt(testSuite.tests)-(testResults.error + testResults.skipped + testResults.failed))
+                }
+            }
+        }
+        return testResults
     }
 
     void addCommentInReleaseStatus(String message) {
