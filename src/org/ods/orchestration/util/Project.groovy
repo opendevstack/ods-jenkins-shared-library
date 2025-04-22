@@ -299,6 +299,9 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
+
+    private TestResults aggregatedTestResults;
+
     protected Map data = [:]
 
     Project(IPipelineSteps steps, ILogger logger, Map config = [:]) {
@@ -608,6 +611,14 @@ class Project {
     @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeUnit(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.UNIT])
+    }
+
+    TestResults getAggregatedTestResults() {
+        return aggregatedTestResults
+    }
+
+    void setAggregatedTestResults(TestResults aggregatedTestResults) {
+        this.aggregatedTestResults = aggregatedTestResults
     }
 
     boolean getIsPromotionMode() {

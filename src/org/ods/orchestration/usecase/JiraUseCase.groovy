@@ -276,7 +276,7 @@ class JiraUseCase {
         }
     }
 
-    void matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
+    Map matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
                                            Closure matchedHandler, Closure unmatchedHandler = null,
                                            boolean checkDuplicateTestResults = true) {
         def duplicateKeysErrorMessage = "Error: the following test cases are implemented multiple times each: "
@@ -316,6 +316,7 @@ class JiraUseCase {
         if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
+        return result
     }
 
     private boolean mustRun(testIssue) {
@@ -341,7 +342,7 @@ class JiraUseCase {
                 "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
-        this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
+        def matchingResult = this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
             if (!unexecutedJiraTests.isEmpty()) {
                 this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
             }
@@ -352,6 +353,8 @@ class JiraUseCase {
 
         logger.debug("Test issues for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
         logger.debug("Test results for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testResults))}")
+
+        aggregateTestResultsInProject(testResults, matchingResult)
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
@@ -403,7 +406,7 @@ class JiraUseCase {
 
         def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
-        def testResults = aggregateTestResultsFromTestData(testData)
+        def testResults = this.project.getAggregatedTestResults()
 
         def fields = [
             userEmail: userEmail,
@@ -421,24 +424,27 @@ class JiraUseCase {
         logger.debugClocked("jira-update-release-${changeId}")
     }
 
-    TestResults aggregateTestResultsFromTestData(Map testData) {
-        TestResults testResults = new TestResults();
-        testData.tests.each { testType ->
-            testType.value.testResults.testsuites.each { testSuite ->
-                if (testSuite.errors) {
-                    testResults.addError(Integer.parseInt(testSuite.errors))
-                }
-                if (testSuite.skipped) {
-                    testResults.addSkipped(Integer.parseInt(testSuite.skipped))
-                }
-                if (testSuite.failures) {
-                    testResults.addFailed(Integer.parseInt(testSuite.failures))
-                }
-                if (testSuite.tests) {
-                    testResults.addSucceeded(Integer.parseInt(testSuite.tests)-(testResults.error + testResults.skipped + testResults.failed))
-                }
+    TestResults aggregateTestResultsInProject(Map testData, Map matchingResult) {
+        TestResults testResults = project.getAggregatedTestResults();
+        if (testResults == null) {
+            testResults = new TestResults();
+            project.setAggregatedTestResults(testResults)
+        }
+        testData.testsuites.each { testSuite ->
+            if (testSuite.errors) {
+                testResults.addError(Integer.parseInt(testSuite.errors))
+            }
+            if (testSuite.skipped) {
+                testResults.addSkipped(Integer.parseInt(testSuite.skipped))
+            }
+            if (testSuite.failures) {
+                testResults.addFailed(Integer.parseInt(testSuite.failures))
+            }
+            if (testSuite.tests) {
+                testResults.addSucceeded(Integer.parseInt(testSuite.tests)-(testResults.error + testResults.skipped + testResults.failed))
             }
         }
+        testResults.setMissing(matchingResult.unmatched.size())
         return testResults
     }
 
