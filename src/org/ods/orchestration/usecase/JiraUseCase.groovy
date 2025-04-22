@@ -335,6 +335,11 @@ class JiraUseCase {
 
         logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+
+
+        logger.debug("Test issues for comp after get: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
+        logger.debug("Test results for comp  after get: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
+
         logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
             "Found automated tests$testMessage. Test type: ${testTypes}: " +
                 "${testIssues?.size()}")
