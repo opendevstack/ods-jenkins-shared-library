@@ -403,7 +403,6 @@ class JiraUseCase {
         def changeId = this.project.buildParams.changeId
         def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
 
-
         def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
         def testResults = this.project.getAggregatedTestResults()
@@ -417,7 +416,8 @@ class JiraUseCase {
             env: env,
         ]
 
-        logger.info("My Fields, email: ${fields.userEmail}, status: ${fields.status}")
+        logger.debug("Update release status fields: " +
+            "email: ${fields.userEmail}, status: ${fields.status}, env: ${fields.env}")
 
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
