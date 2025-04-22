@@ -336,10 +336,6 @@ class JiraUseCase {
         logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
 
-
-        logger.debug("Test issues for comp after get: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
-        logger.debug("Test results for comp  after get: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
-
         logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
             "Found automated tests$testMessage. Test type: ${testTypes}: " +
                 "${testIssues?.size()}")
@@ -355,7 +351,7 @@ class JiraUseCase {
         this.support.applyXunitTestResults(testIssues, testResults)
 
         logger.debug("Test issues for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
-        logger.debug("Test results for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
+        logger.debug("Test results for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testResults))}")
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
