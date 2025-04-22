@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.json.JsonOutput
 import hudson.model.Cause
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
@@ -347,6 +348,10 @@ class JiraUseCase {
 
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
+
+        logger.debug("Test issues for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
+        logger.debug("Test results for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
+
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
             logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")

@@ -10,7 +10,46 @@ class TestResults {
 
     int error;
 
-    TestResults() {
+    int missing;
+
+    int getSkipped() {
+        return skipped
+    }
+
+    void setSkipped(int skipped) {
+        this.skipped = skipped
+    }
+
+    int getSucceeded() {
+        return succeeded
+    }
+
+    void setSucceeded(int succeeded) {
+        this.succeeded = succeeded
+    }
+
+    int getFailed() {
+        return failed
+    }
+
+    void setFailed(int failed) {
+        this.failed = failed
+    }
+
+    int getError() {
+        return error
+    }
+
+    void setError(int error) {
+        this.error = error
+    }
+
+    int getMissing() {
+        return missing
+    }
+
+    void setMissing(int missing) {
+        this.missing = missing
     }
 
     void addSkipped(int skipped) {
@@ -29,6 +68,10 @@ class TestResults {
         this.error += error
     }
 
+    void addMissing(int missing) {
+        this.missing += missing
+    }
+
     @Override
     public String toString() {
         return "TestResults{" +
@@ -36,6 +79,7 @@ class TestResults {
             ", succeeded=" + succeeded +
             ", failed=" + failed +
             ", error=" + error +
+            ", missing=" + missing +
             '}';
     }
 }
