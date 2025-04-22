@@ -408,6 +408,8 @@ class JiraUseCase {
 
         def testResults = this.project.getAggregatedTestResults()
 
+        logger.debug("Aggregated test results: ${testResults}")
+
         def fields = [
             userEmail: userEmail,
             testResults: testResults,
