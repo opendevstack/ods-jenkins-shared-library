@@ -405,7 +405,7 @@ class JiraUseCase {
 
         def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
 
-        def testResults = this.project.getAggregatedTestResults()
+        TestResults testResults = this.project.getAggregatedTestResults()
 
         logger.debug("Aggregated test results: ${testResults.toString()}")
 
