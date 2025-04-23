@@ -411,7 +411,7 @@ class JiraUseCase {
 
         def fields = [
             userEmail: userEmail,
-            testResults: testResults,
+            testResults: testResults as Map,
             status: status,
             env: env,
         ]
