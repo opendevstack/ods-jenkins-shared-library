@@ -1,7 +1,6 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.json.JsonOutput
 import hudson.model.Cause
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
