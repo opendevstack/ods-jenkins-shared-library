@@ -96,7 +96,7 @@ class Stage {
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
-        type = testType.toLowerCase()
+        def type = testType.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
