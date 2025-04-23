@@ -357,9 +357,6 @@ class JiraUseCase {
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
 
-        logger.debug("Test issues for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testIssues))}")
-        logger.debug("Test results for comp: ${JsonOutput.prettyPrint(JsonOutput.toJson(testResults))}")
-
         aggregateTestResultsInProject(testResults, matchingResult)
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
