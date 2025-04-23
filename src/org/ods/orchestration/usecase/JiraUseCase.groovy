@@ -422,8 +422,6 @@ class JiraUseCase {
             env: env,
         ]
 
-        logger.debug("Update release status fields: ${JsonOutput.prettyPrint(JsonOutput.toJson(fields))}")
-
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
         logger.startClocked("jira-update-release-${changeId}")
