@@ -446,7 +446,7 @@ class JiraUseCase {
                 testResults.addSucceeded(Integer.parseInt(testSuite.tests)-(testResults.error + testResults.skipped + testResults.failed))
             }
         }
-        testResults.setMissing(matchingResult.unmatched.size())
+        testResults.addMissing(matchingResult.unmatched.size())
         return testResults
     }
 
