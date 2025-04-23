@@ -411,7 +411,13 @@ class JiraUseCase {
 
         def fields = [
             userEmail: userEmail,
-            testResults: testResults,
+            testResults: [
+                skipped: testResults.skipped,
+                succeeded: testResults.succeeded,
+                failed: testResults.failed,
+                error: testResults.error,
+                missing: testResults.missing,
+            ],
             status: status,
             env: env,
         ]
