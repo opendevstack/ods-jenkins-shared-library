@@ -29,20 +29,26 @@ class JiraUseCase {
     private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
 
     class IssueTypes {
+
         static final String DOCUMENTATION_TRACKING = 'Documentation'
         static final String DOCUMENTATION_CHAPTER = 'Documentation Chapter'
         static final String RELEASE_STATUS = 'Release Status'
+
     }
 
     class CustomIssueFields {
+
         static final String CONTENT = 'EDP Content'
         static final String HEADING_NUMBER = 'EDP Heading Number'
         static final String DOCUMENT_VERSION = 'Document Version'
         static final String RELEASE_VERSION = 'ProductRelease Version'
+
     }
 
     class LabelPrefix {
+
         static final String DOCUMENT = 'Doc:'
+
     }
 
     private Project project
@@ -389,7 +395,7 @@ class JiraUseCase {
         this.jira.updateBuildNumber(projectKey, changeId, fields)
     }
 
-    void updateJiraReleaseStatusResult(Map testData, String message, boolean isError) {
+    void updateJiraReleaseStatusResult(String message, boolean isError) {
         if (!this.jira) {
             logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
             return
@@ -403,7 +409,7 @@ class JiraUseCase {
         def changeId = this.project.buildParams.changeId
         def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
 
-        def userEmail = this.steps.currentBuild.rawBuild.getCause(Cause.UserIdCause)?.getUserName()
+        def userEmail = this.steps.currentBuild?.rawBuild?.getCause(Cause.UserIdCause)?.getUserName()
 
         TestResults testResults = this.project.getAggregatedTestResults()
 
@@ -430,9 +436,9 @@ class JiraUseCase {
     }
 
     TestResults aggregateTestResultsInProject(Map testData, Map matchingResult) {
-        TestResults testResults = project.getAggregatedTestResults();
+        TestResults testResults = project.getAggregatedTestResults()
         if (testResults == null) {
-            testResults = new TestResults();
+            testResults = new TestResults()
             project.setAggregatedTestResults(testResults)
         }
         testData.testsuites.each { testSuite ->
@@ -446,7 +452,8 @@ class JiraUseCase {
                 testResults.addFailed(Integer.parseInt(testSuite.failures))
             }
             if (testSuite.tests) {
-                testResults.addSucceeded(Integer.parseInt(testSuite.tests)-(testResults.error + testResults.skipped + testResults.failed))
+                testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
+                    (testResults.error + testResults.skipped + testResults.failed))
             }
         }
         testResults.addMissing(matchingResult.unmatched.size())

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+* Add aggregated test report data for fully automated change management ([#1210](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1210))
 
 
 ### Changed

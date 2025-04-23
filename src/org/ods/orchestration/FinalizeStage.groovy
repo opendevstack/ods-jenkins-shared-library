@@ -127,7 +127,7 @@ class FinalizeStage extends Stage {
             throw new IllegalStateException(message)
         } else {
             logger.debug("Reporting pipeline status to Jira...")
-            project.reportPipelineStatus(getTestResultsForAllRepos(steps))
+            project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")

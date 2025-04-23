@@ -34,7 +34,6 @@ class Stage {
 
     def execute() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
-        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         script.stage(STAGE_NAME) {
             logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
@@ -53,7 +52,7 @@ class Stage {
                 logger.warn("Error occured within the orchestration pipeline (${this.class.name}): ${e.message}")
 
                 try {
-                    project.reportPipelineStatus(getTestResultsForAllRepos(steps), eThrow.message, true)
+                    project.reportPipelineStatus(eThrow.message, true)
                 } catch (reportError) {
                     logger.warn("Error: unable to report pipeline status because of: ${reportError.message}.")
                     reportError.initCause(e)
@@ -66,19 +65,6 @@ class Stage {
                 logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
         }
-    }
-
-    def getTestResultsForAllRepos(steps) {
-        List TYPES = [Project.TestType.INSTALLATION, Project.TestType.INTEGRATION, Project.TestType.ACCEPTANCE, Project.TestType.UNIT]
-        Map data = [:]
-        data.tests = [:]
-        TYPES.each { type ->
-            // TODO check this
-            (repos.flatten() as Set<Map>).each { repo ->
-                data.tests << [(type.toLowerCase()): getTestResults(steps, repo, type.toLowerCase())]
-            }
-        }
-        return data
     }
 
     @SuppressWarnings('GStringAsMapKey')
@@ -105,12 +91,12 @@ class Stage {
         script.parallel (executors)
     }
 
-    Map getTestResults(def steps, Map repo, String type = 'unit') {
+    Map getTestResults(def steps, Map repo, String testType = 'unit') {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
-        type = type.toLowerCase()
+        type = testType.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
