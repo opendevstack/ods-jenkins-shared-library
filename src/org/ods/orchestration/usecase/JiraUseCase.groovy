@@ -368,7 +368,7 @@ class JiraUseCase {
     void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
 
-        def projectKey = this.project.key
+        def projectKey = this.project.jiraProjectKey
         def changeId = this.project.buildParams.changeId
         def fields = [buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"]
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
