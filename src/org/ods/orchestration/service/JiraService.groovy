@@ -675,8 +675,8 @@ class JiraService {
         if (!version?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the build number: \'version\' is undefined')
         }
-        if (!fields) {
-            throw new IllegalArgumentException('Error: Unable to update the build number: no data given for updating')
+        if (!buildNumber?.trim()) {
+            throw new IllegalArgumentException('Error: Unable to update the build number: \'buildNumber\' is undefined')
         }
 
         def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/buildnumber")
