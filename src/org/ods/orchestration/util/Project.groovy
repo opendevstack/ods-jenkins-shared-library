@@ -461,9 +461,11 @@ class Project {
                 result[type] = data[type].findAll { k, v -> isIssueWIP(v) }.keySet() as List<String>
             }
         }
-        def docs = computeWIPDocChapters(data)
-        if (docs != null) {
-            result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+        if (this.hasCapability('LeVADocs')) {
+            def docs = computeWIPDocChapters(data)
+            if (docs != null) {
+                result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+            }
         }
 
         return result
@@ -1191,14 +1193,15 @@ class Project {
          ]
      }
      * If jira or JiraUsecase is not enabled -> Empty map
+     * If jiraProjectKey differs from project key and LeVADocs capability is disabled -> Empty map
      * Otherwise, check from Jira
      * @result The call results, and empty if not enabled
      * @throw ComponentMismatchException if there is a component mismatch
      */
     Map getComponentsFromJira() {
-        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase || (this.key != this.jiraProjectKey && !this.hasCapability('LeVADocs'))) return [:]
 
-        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId, this.isWorkInProgress)
+        return jiraUseCase.getComponents(this.jiraProjectKey, this.data.buildParams.changeId, this.isWorkInProgress)
     }
 
     protected Map loadJiraData(String projectKey) {
