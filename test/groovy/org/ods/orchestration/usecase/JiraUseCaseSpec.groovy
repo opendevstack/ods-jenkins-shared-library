@@ -823,10 +823,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusBuildNumber()
 
         then:
-        1 * jira.updateBuildNumber(_, 'someChangeId', [
-            buildNumber: "1.0-0815",
-            env: "D",
-        ])
+        1 * jira.updateBuildNumber(_, 'someChangeId', "1.0-0815")
     }
 
     def "update Jira release status result"() {
@@ -835,10 +832,9 @@ class JiraUseCaseSpec extends SpecHelper {
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
         steps.env.RUN_DISPLAY_URL = "http://jenkins"
-        def TestResults testResults = new TestResults();
-        testResults.setSucceeded(1)
+        def testResults = new TestResults();
         testResults.setFailed(1)
-        project.setAggregatedTestResults(testResults)
+        project.getAggregatedTestResults() >> testResults
 
         def error = new RuntimeException("Oh no!")
 
@@ -869,9 +865,9 @@ class JiraUseCaseSpec extends SpecHelper {
         project.data.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
-        def TestResults testResults = new TestResults();
+        def testResults = new TestResults();
         testResults.setSucceeded(1)
-        project.setAggregatedTestResults(testResults)
+        project.getAggregatedTestResults() >> testResults
 
         when:
         usecase.updateJiraReleaseStatusResult("", false)

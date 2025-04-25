@@ -24,6 +24,17 @@ class TestResults {
         return succeeded
     }
 
+    TestResults() {
+    }
+
+    TestResults(int skipped, int succeeded, int failed, int error, int missing) {
+        this.skipped = skipped
+        this.succeeded = succeeded
+        this.failed = failed
+        this.error = error
+        this.missing = missing
+    }
+
     TestResults deepCopy() {
         return new TestResults(skipped, succeeded, failed, error, missing);
     }
