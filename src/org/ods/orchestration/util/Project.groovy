@@ -614,7 +614,7 @@ class Project {
     }
 
     TestResults getAggregatedTestResults() {
-        return aggregatedTestResults.deepCopy();
+        return aggregatedTestResults == null ? new TestResults() : aggregatedTestResults.deepCopy();
     }
 
     void storeAggregatedTestResults(Map testData, Map matchingResult) {
