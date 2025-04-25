@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Do not retrieve components from Jira when using an alternate Jira project and not generating documentation ([#1211](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1211))
 
 ### Added
 
