@@ -461,9 +461,11 @@ class Project {
                 result[type] = data[type].findAll { k, v -> isIssueWIP(v) }.keySet() as List<String>
             }
         }
-        def docs = computeWIPDocChapters(data)
-        if (docs != null) {
-            result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+        if (this.hasCapability('LeVADocs')) {
+            def docs = computeWIPDocChapters(data)
+            if (docs != null) {
+                result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+            }
         }
 
         return result
