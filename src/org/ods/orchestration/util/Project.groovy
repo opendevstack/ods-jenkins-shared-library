@@ -621,22 +621,23 @@ class Project {
         if (aggregatedTestResults == null) {
             aggregatedTestResults = new TestResults()
         }
+        def testResults = aggregatedTestResults
         testData.testsuites.each { testSuite ->
             if (testSuite.errors) {
-                aggregatedTestResults.addError(Integer.parseInt(testSuite.errors))
+                testResults.addError(Integer.parseInt(testSuite.errors))
             }
             if (testSuite.skipped) {
-                aggregatedTestResults.addSkipped(Integer.parseInt(testSuite.skipped))
+                testResults.addSkipped(Integer.parseInt(testSuite.skipped))
             }
             if (testSuite.failures) {
-                aggregatedTestResults.addFailed(Integer.parseInt(testSuite.failures))
+                testResults.addFailed(Integer.parseInt(testSuite.failures))
             }
             if (testSuite.tests) {
-                aggregatedTestResults.addSucceeded(Integer.parseInt(testSuite.tests) -
-                    (aggregatedTestResults.error + aggregatedTestResults.skipped + aggregatedTestResults.failed))
+                testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
+                    (testResults.error + testResults.skipped + testResults.failed))
             }
         }
-        aggregatedTestResults.addMissing(matchingResult.unmatched.size())
+        testResults.addMissing(matchingResult.unmatched.size())
     }
 
     boolean getIsPromotionMode() {
