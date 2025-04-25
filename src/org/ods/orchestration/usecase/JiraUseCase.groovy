@@ -356,7 +356,7 @@ class JiraUseCase {
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
 
-        aggregateTestResultsInProject(testResults, matchingResult)
+        project.storeAggregatedTestResults(testResults, matchingResult)
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
@@ -383,12 +383,8 @@ class JiraUseCase {
 
         def projectKey = this.project.key
         def changeId = this.project.buildParams.changeId
-        def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
-        def fields = [
-            buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}",
-            env: env,
-        ]
-        this.jira.updateBuildNumber(projectKey, changeId, fields)
+        def buildNumber = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
+        this.jira.updateBuildNumber(projectKey, changeId, buildNumber)
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
@@ -429,31 +425,6 @@ class JiraUseCase {
         logger.startClocked("jira-update-release-${changeId}")
         addCommentInReleaseStatus(message)
         logger.debugClocked("jira-update-release-${changeId}")
-    }
-
-    TestResults aggregateTestResultsInProject(Map testData, Map matchingResult) {
-        TestResults testResults = project.getAggregatedTestResults()
-        if (testResults == null) {
-            testResults = new TestResults()
-            project.setAggregatedTestResults(testResults)
-        }
-        testData.testsuites.each { testSuite ->
-            if (testSuite.errors) {
-                testResults.addError(Integer.parseInt(testSuite.errors))
-            }
-            if (testSuite.skipped) {
-                testResults.addSkipped(Integer.parseInt(testSuite.skipped))
-            }
-            if (testSuite.failures) {
-                testResults.addFailed(Integer.parseInt(testSuite.failures))
-            }
-            if (testSuite.tests) {
-                testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
-                    (testResults.error + testResults.skipped + testResults.failed))
-            }
-        }
-        testResults.addMissing(matchingResult.unmatched.size())
-        return testResults
     }
 
     void addCommentInReleaseStatus(String message) {

@@ -24,6 +24,11 @@ class TestResults {
         return succeeded
     }
 
+    TestResults deepCopy() {
+        return new TestResults(skipped, succeeded, failed, error, missing);
+    }
+
+
     void setSucceeded(int succeeded) {
         this.succeeded = succeeded
     }

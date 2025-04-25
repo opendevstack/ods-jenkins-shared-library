@@ -614,11 +614,29 @@ class Project {
     }
 
     TestResults getAggregatedTestResults() {
-        return aggregatedTestResults
+        return aggregatedTestResults.deepCopy();
     }
 
-    void setAggregatedTestResults(TestResults aggregatedTestResults) {
-        this.aggregatedTestResults = aggregatedTestResults
+    void storeAggregatedTestResults(Map testData, Map matchingResult) {
+        if (aggregatedTestResults == null) {
+            aggregatedTestResults = new TestResults()
+        }
+        testData.testsuites.each { testSuite ->
+            if (testSuite.errors) {
+                aggregatedTestResults.addError(Integer.parseInt(testSuite.errors))
+            }
+            if (testSuite.skipped) {
+                aggregatedTestResults.addSkipped(Integer.parseInt(testSuite.skipped))
+            }
+            if (testSuite.failures) {
+                aggregatedTestResults.addFailed(Integer.parseInt(testSuite.failures))
+            }
+            if (testSuite.tests) {
+                aggregatedTestResults.addSucceeded(Integer.parseInt(testSuite.tests) -
+                    (aggregatedTestResults.error + aggregatedTestResults.skipped + aggregatedTestResults.failed))
+            }
+        }
+        aggregatedTestResults.addMissing(matchingResult.unmatched.size())
     }
 
     boolean getIsPromotionMode() {

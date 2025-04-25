@@ -668,7 +668,7 @@ class JiraService {
     }
 
     @NonCPS
-    void updateBuildNumber(String projectKey, String version, Map fields) {
+    void updateBuildNumber(String projectKey, String version, String buildNumber) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the build number: \'projectKey\' is undefined')
         }
@@ -685,7 +685,7 @@ class JiraService {
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header('Content-Type', 'application/json')
-            .body(JsonOutput.toJson(fields)).asString()
+            .body(JsonOutput.toJson( [buildNumber: buildNumber] )).asString()
 
         response.ifFailure {
             def message = 'Error: unable to update the build number. Jira responded with code: ' +
