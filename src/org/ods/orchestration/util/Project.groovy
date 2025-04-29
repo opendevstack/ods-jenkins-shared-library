@@ -623,18 +623,16 @@ class Project {
         }
         def testResults = aggregatedTestResults
         testData.testsuites.each { testSuite ->
-            if (testSuite.errors) {
-                testResults.addError(Integer.parseInt(testSuite.errors))
-            }
-            if (testSuite.skipped) {
-                testResults.addSkipped(Integer.parseInt(testSuite.skipped))
-            }
-            if (testSuite.failures) {
-                testResults.addFailed(Integer.parseInt(testSuite.failures))
-            }
+            int errors = testSuite.errors ? Integer.parseInt(testSuite.errors) : 0
+            int skipped = testSuite.skipped ? Integer.parseInt(testSuite.skipped) : 0
+            int failures = testSuite.failures ? Integer.parseInt(testSuite.failures) : 0
+
+            testResults.addError(errors)
+            testResults.addSkipped(skipped)
+            testResults.addFailed(failures)
             if (testSuite.tests) {
                 testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
-                    (testResults.error + testResults.skipped + testResults.failed))
+                    (errors + skipped + failures))
             }
         }
         testResults.addMissing(matchingResult.unmatched.size())

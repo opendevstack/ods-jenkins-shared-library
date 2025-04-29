@@ -98,4 +98,29 @@ class TestResults {
             ", missing=" + missing +
             '}';
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (o == null || getClass() != o.class) return false
+
+        TestResults that = (TestResults) o
+
+        if (error != that.error) return false
+        if (failed != that.failed) return false
+        if (missing != that.missing) return false
+        if (skipped != that.skipped) return false
+        if (succeeded != that.succeeded) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = skipped
+        result = 31 * result + succeeded
+        result = 31 * result + failed
+        result = 31 * result + error
+        result = 31 * result + missing
+        return result
+    }
 }
