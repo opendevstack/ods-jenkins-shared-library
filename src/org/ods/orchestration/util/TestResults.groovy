@@ -100,18 +100,29 @@ class TestResults {
     }
 
     boolean equals(o) {
-        if (this.is(o)) return true
-        if (o == null || getClass() != o.class) return false
+        if (this.is(o)) {
+            return true
+        }
+        if (o == null || getClass() != o.class) {
+            return false
+        }
 
         TestResults that = (TestResults) o
 
-        if (error != that.error) return false
-        if (failed != that.failed) return false
-        if (missing != that.missing) return false
-        if (skipped != that.skipped) return false
-        if (succeeded != that.succeeded) return false
+        if (error != that.error) {
+            return false
+        }
+        if (failed != that.failed) {
+            return false
+        }
+        if (missing != that.missing) {
+            return false
+        }
+        if (skipped != that.skipped) {
+            return false
+        }
 
-        return true
+        return (succeeded != that.succeeded) ? false : true
     }
 
     int hashCode() {
