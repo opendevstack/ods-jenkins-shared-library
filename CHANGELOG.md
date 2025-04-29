@@ -4,6 +4,7 @@
 * Do not retrieve components from Jira when using an alternate Jira project and not generating documentation ([#1211](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1211))
 
 ### Added
+* Add aggregated test report data for fully automated change management ([#1210](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1210))
 
 
 ### Changed

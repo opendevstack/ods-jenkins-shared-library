@@ -1,10 +1,12 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import hudson.model.Cause
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
 import org.ods.orchestration.util.GitUtil
+import org.ods.orchestration.util.TestResults
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
@@ -26,20 +28,26 @@ class JiraUseCase {
     private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
 
     class IssueTypes {
+
         static final String DOCUMENTATION_TRACKING = 'Documentation'
         static final String DOCUMENTATION_CHAPTER = 'Documentation Chapter'
         static final String RELEASE_STATUS = 'Release Status'
+
     }
 
     class CustomIssueFields {
+
         static final String CONTENT = 'EDP Content'
         static final String HEADING_NUMBER = 'EDP Heading Number'
         static final String DOCUMENT_VERSION = 'Document Version'
         static final String RELEASE_VERSION = 'ProductRelease Version'
+
     }
 
     class LabelPrefix {
+
         static final String DOCUMENT = 'Doc:'
+
     }
 
     private Project project
@@ -273,7 +281,7 @@ class JiraUseCase {
         }
     }
 
-    void matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
+    Map matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
                                            Closure matchedHandler, Closure unmatchedHandler = null,
                                            boolean checkDuplicateTestResults = true) {
         def duplicateKeysErrorMessage = "Error: the following test cases are implemented multiple times each: "
@@ -313,6 +321,7 @@ class JiraUseCase {
         if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
+        return result
     }
 
     private boolean mustRun(testIssue) {
@@ -332,12 +341,13 @@ class JiraUseCase {
 
         logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+
         logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
             "Found automated tests$testMessage. Test type: ${testTypes}: " +
                 "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
-        this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
+        def matchingResult = this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
             if (!unexecutedJiraTests.isEmpty()) {
                 this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
             }
@@ -345,6 +355,9 @@ class JiraUseCase {
 
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
+
+        project.storeAggregatedTestResults(testResults, matchingResult)
+
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
             logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")
@@ -370,8 +383,8 @@ class JiraUseCase {
 
         def projectKey = this.project.jiraProjectKey
         def changeId = this.project.buildParams.changeId
-        def fields = [buildNumber: "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"]
-        this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
+        def buildNumber = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
+        this.jira.updateBuildNumber(projectKey, changeId, buildNumber)
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
@@ -387,10 +400,26 @@ class JiraUseCase {
         def projectKey = this.project.jiraProjectKey
         def changeId = this.project.buildParams.changeId
         def env = this.project.getIsWorkInProgress() ? 'WIP' : this.project.targetEnvironmentToken
+
+        def userEmail = this.steps.currentBuild?.rawBuild?.getCause(Cause.UserIdCause)?.getUserName()
+
+        TestResults testResults = this.project.getAggregatedTestResults()
+
+        logger.debug("Aggregated test results: ${testResults.toString()}")
+
         def fields = [
+            userEmail: userEmail,
+            testResults: [
+                skipped: testResults.skipped,
+                succeeded: testResults.succeeded,
+                failed: testResults.failed,
+                error: testResults.error,
+                missing: testResults.missing,
+            ],
             status: status,
             env: env,
         ]
+
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
 
         logger.startClocked("jira-update-release-${changeId}")

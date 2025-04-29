@@ -299,6 +299,9 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
+
+    private TestResults aggregatedTestResults;
+
     protected Map data = [:]
 
     Project(IPipelineSteps steps, ILogger logger, Map config = [:]) {
@@ -610,6 +613,31 @@ class Project {
     @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeUnit(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.UNIT])
+    }
+
+    TestResults getAggregatedTestResults() {
+        return aggregatedTestResults == null ? new TestResults() : aggregatedTestResults.deepCopy();
+    }
+
+    void storeAggregatedTestResults(Map testData, Map matchingResult) {
+        if (aggregatedTestResults == null) {
+            aggregatedTestResults = new TestResults()
+        }
+        def testResults = aggregatedTestResults
+        testData.testsuites.each { testSuite ->
+            int errors = testSuite.errors ? Integer.parseInt(testSuite.errors) : 0
+            int skipped = testSuite.skipped ? Integer.parseInt(testSuite.skipped) : 0
+            int failures = testSuite.failures ? Integer.parseInt(testSuite.failures) : 0
+
+            testResults.addError(errors)
+            testResults.addSkipped(skipped)
+            testResults.addFailed(failures)
+            if (testSuite.tests) {
+                testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
+                    (errors + skipped + failures))
+            }
+        }
+        testResults.addMissing(matchingResult.unmatched.size())
     }
 
     boolean getIsPromotionMode() {
@@ -1623,6 +1651,7 @@ class Project {
             logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
             return
         }
+
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
