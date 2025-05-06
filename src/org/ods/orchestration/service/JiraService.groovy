@@ -11,6 +11,7 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.util.ILogger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -24,7 +25,11 @@ class JiraService {
     String username
     String password
 
-    JiraService(String baseURL, String username, String password) {
+    private final ILogger logger
+
+    JiraService(String baseURL, String username, String password, ILogger logger) {
+        this.logger = logger
+
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
         }
@@ -636,6 +641,8 @@ class JiraService {
 
     @NonCPS
     void updateReleaseStatusIssue(String projectKey, String version, Map fields) {
+        logger.debug "-> Updating release status issue for  project ${projectKey}, version ${version} with fields ${fields}"
+
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the release status issue: \'projectKey\' is undefined')
         }
@@ -669,6 +676,8 @@ class JiraService {
 
     @NonCPS
     void updateBuildNumber(String projectKey, String version, String buildNumber) {
+        logger.debug "-> Updating build number for project ${projectKey}, version ${version} and buildNumber ${buildNumber}"
+
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the build number: \'projectKey\' is undefined')
         }
