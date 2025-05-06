@@ -9,33 +9,33 @@ import util.*
 class JiraServiceSpec extends SpecHelper {
 
     JiraService createService(int port, String username, String password) {
-        return new JiraService("http://localhost:${port}", username, password)
+        return new JiraService("http://localhost:${port}", username, password, null)
     }
 
     def "create with invalid baseURL"() {
         when:
-        new JiraService(null, "username", "password")
+        new JiraService(null, "username", "password", null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'baseURL' is undefined."
 
         when:
-        new JiraService(" ", "username", "password")
+        new JiraService(" ", "username", "password", null)
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'baseURL' is undefined."
 
         when:
-        new JiraService("invalid URL", "username", "password")
+        new JiraService("invalid URL", "username", "password", null)
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'invalid URL' is not a valid URI."
 
         when:
-        def jira = new JiraService("http://localhostwithtrailing/", "user", "password")
+        def jira = new JiraService("http://localhostwithtrailing/", "user", "password", null)
 
         then:
         jira.baseURL.toString() == "http://localhostwithtrailing"
@@ -43,14 +43,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create with invalid username"() {
         when:
-        new JiraService("http://localhost", null, "password")
+        new JiraService("http://localhost", null, "password", null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'username' is undefined."
 
         when:
-        new JiraService("http://localhost", " ", "password")
+        new JiraService("http://localhost", " ", "password", null)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -59,14 +59,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "create with invalid password"() {
         when:
-        new JiraService("http://localhost", "username", null)
+        new JiraService("http://localhost", "username", null, null)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'password' is undefined."
 
         when:
-        new JiraService("http://localhost", "username", " ")
+        new JiraService("http://localhost", "username", " ", null)
 
         then:
         e = thrown(IllegalArgumentException)
