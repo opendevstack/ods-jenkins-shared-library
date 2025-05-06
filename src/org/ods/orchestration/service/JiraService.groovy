@@ -3,17 +3,12 @@ package org.ods.orchestration.service
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-import org.ods.orchestration.util.StringCleanup
-
 import kong.unirest.Unirest
-
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.util.StringCleanup
 import org.ods.util.ILogger
-import org.ods.util.Logger
-import org.ods.services.ServiceRegistry
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -29,8 +24,8 @@ class JiraService {
 
     private final ILogger logger
 
-    JiraService(String baseURL, String username, String password) {
-        logger = ServiceRegistry.instance.get(Logger)
+    JiraService(String baseURL, String username, String password, ILogger logger) {
+        this.logger = logger
 
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
