@@ -261,7 +261,7 @@ class InitStage extends Stage {
         )
 
         if (project.services?.jira) {
-            addJiraToRegistry(registry)
+            addJiraToRegistry(registry, logger)
         }
 
         registry.add(NexusService, NexusService.newFromEnv(script.env, steps,
@@ -442,7 +442,7 @@ class InitStage extends Stage {
         registry.add(JiraUseCase, jiraUseCase)
     }
 
-    private void addJiraToRegistry(registry) {
+    private void addJiraToRegistry(registry, Logger logger) {
         script.withCredentials(
             [script.usernamePassword(
                 credentialsId: project.services.jira.credentials.id,
@@ -454,7 +454,8 @@ class InitStage extends Stage {
                 new JiraService(
                     script.env.JIRA_URL,
                     script.env.JIRA_USERNAME,
-                    script.env.JIRA_PASSWORD
+                    script.env.JIRA_PASSWORD,
+                    logger
                 )
             )
 
