@@ -8,6 +8,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 
 import kong.unirest.Unirest
+import org.ods.util.ILogger
 
 @SuppressWarnings('LineLength')
 class JiraZephyrService extends JiraService {
@@ -19,8 +20,8 @@ class JiraZephyrService extends JiraService {
         static final String BLOCKED = "4"
     }
 
-    JiraZephyrService(String baseURL, String username, String password) {
-        super(baseURL, username, password)
+    JiraZephyrService(String baseURL, String username, String password, ILogger logger) {
+        super(baseURL, username, password, logger)
     }
 
     @NonCPS
