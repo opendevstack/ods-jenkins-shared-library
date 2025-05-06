@@ -13,6 +13,7 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.ILogger
 import org.ods.util.Logger
+import org.ods.services.ServiceRegistry
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -29,7 +30,7 @@ class JiraService {
     private final ILogger logger
 
     JiraService(String baseURL, String username, String password) {
-        logger = new Logger (this, true)
+        logger = ServiceRegistry.instance.get(Logger)
 
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
