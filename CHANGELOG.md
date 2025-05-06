@@ -12,6 +12,7 @@
 
 ### Fixed
 * Add some logs for the updateStatusIssue call to jira plugin ([#1212](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1212))
+* Remove missing tests count ([#1213](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1213))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 

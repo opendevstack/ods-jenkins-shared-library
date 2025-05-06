@@ -281,7 +281,7 @@ class JiraUseCase {
         }
     }
 
-    Map matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
+    def matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
                                            Closure matchedHandler, Closure unmatchedHandler = null,
                                            boolean checkDuplicateTestResults = true) {
         def duplicateKeysErrorMessage = "Error: the following test cases are implemented multiple times each: "
@@ -321,7 +321,6 @@ class JiraUseCase {
         if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
-        return result
     }
 
     private boolean mustRun(testIssue) {
@@ -347,7 +346,7 @@ class JiraUseCase {
                 "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
-        def matchingResult = this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
+        this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
             if (!unexecutedJiraTests.isEmpty()) {
                 this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
             }
@@ -356,7 +355,7 @@ class JiraUseCase {
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
 
-        project.storeAggregatedTestResults(testResults, matchingResult)
+        project.storeAggregatedTestResults(testResults)
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
