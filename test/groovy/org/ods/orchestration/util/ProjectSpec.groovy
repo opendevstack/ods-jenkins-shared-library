@@ -3301,7 +3301,7 @@ class ProjectSpec extends SpecHelper {
         ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [:]                         |   false
     }
 
-    def "Store aggregated test results with failured ans skipped"() {
+    def "Store aggregated test results with failures and skipped"() {
         given:
         def projectObj = new Project(steps, logger)
         def testData = [ testsuites: [
