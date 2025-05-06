@@ -2,11 +2,12 @@ package org.ods.core.test.jira
 
 import groovy.util.logging.Slf4j
 import org.ods.orchestration.service.JiraService
+import org.ods.util.ILogger
 
 @Slf4j
 class JiraServiceForWireMock extends JiraService {
-    JiraServiceForWireMock(String baseURL, String username, String password) {
-        super(baseURL, username, password)
+    JiraServiceForWireMock(String baseURL, String username, String password, ILogger logger) {
+        super(baseURL, username, password, logger)
     }
 
     @Override
