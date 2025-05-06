@@ -15,7 +15,7 @@ import util.*
 class JiraZephyrServiceSpec extends SpecHelper {
 
     JiraZephyrService createService(int port, String username, String password) {
-        return new JiraZephyrService("http://localhost:${port}", username, password)
+        return new JiraZephyrService("http://localhost:${port}", username, password, null)
     }
 
     Map createTestExecutionForIssueRequestData(Map mixins = [:]) {
@@ -650,15 +650,15 @@ class JiraZephyrServiceSpec extends SpecHelper {
            body: JsonOutput.toJson([
                 recordsCount: "2",
                 "-1": [
-                        versionName: "0.1", 
-                        projectKey: "DEMO", 
-                        versionId:"456", 
+                        versionName: "0.1",
+                        projectKey: "DEMO",
+                        versionId:"456",
                         name: "Ad hoc"
-                    ], 
+                    ],
                 "7": [
-                        versionName: "0.1", 
-                        projectKey: "DEMO", 
-                        versionId: "456", 
+                        versionName: "0.1",
+                        projectKey: "DEMO",
+                        versionId: "456",
                         name: "Cycle name"
                     ]
             ])
