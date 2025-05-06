@@ -636,9 +636,14 @@ class JiraService {
         return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
+
     @NonCPS
     void updateReleaseStatusIssue(String projectKey, String version, Map fields) {
-        logger.debug "-> Updating release status issue for  project ${projectKey}, version ${version} with fields ${fields}"
+        try {
+            logger.debug "-> Updating release status issue for  project ${projectKey}, version ${version} with fields ${fields}"
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e)
+        }
 
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: Unable to update the release status issue: \'projectKey\' is undefined')
@@ -650,17 +655,26 @@ class JiraService {
             throw new IllegalArgumentException('Error: Unable to update the release status issue: no data given for updating')
         }
 
-        def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status")
-            .routeParam("projectKey", projectKey.toUpperCase())
-            .routeParam("version", version)
-            .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header('Content-Type', 'application/json')
-            .body(JsonOutput.toJson(fields)).asString()
+        def response = null
+        try {
+            response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status")
+                .routeParam("projectKey", projectKey.toUpperCase())
+                .routeParam("version", version)
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .header('Content-Type', 'application/json')
+                .body(JsonOutput.toJson(fields)).asString()
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e)
+        }
 
-        logger.debug "-> Update release status issue response for project ${projectKey}, response ${response}"
+        try {
+            logger.debug "-> Update release status issue response for project ${projectKey}, response ${response}"
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e)
+        }
 
-        response.ifFailure {
+        response?.ifFailure {
             def message = 'Error: unable to update release status issue. Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
