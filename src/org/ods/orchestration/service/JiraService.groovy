@@ -29,7 +29,7 @@ class JiraService {
     private final ILogger logger
 
     JiraService(String baseURL, String username, String password) {
-        this.logger = new Logger (this, true)
+        logger = new Logger (this, true)
 
         if (!baseURL?.trim()) {
             throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
