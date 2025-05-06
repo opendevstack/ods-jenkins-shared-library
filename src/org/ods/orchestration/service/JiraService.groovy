@@ -658,6 +658,8 @@ class JiraService {
             .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(fields)).asString()
 
+        logger.debug "-> Update release status issue response for project ${projectKey}, response ${response}"
+
         response.ifFailure {
             def message = 'Error: unable to update release status issue. Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
