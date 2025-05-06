@@ -3301,45 +3301,66 @@ class ProjectSpec extends SpecHelper {
         ['Unit', 'Integration', 'Installation', 'Acceptance']   |   [:]                         |   false
     }
 
-    def "Store aggregated test results"() {
+    def "Store aggregated test results with failured ans skipped"() {
         given:
         def projectObj = new Project(steps, logger)
         def testData = [ testsuites: [
-            [
-                failures: '1',
-                tests: '1',
-                errors: '0',
-                skipped: '0',
-            ],
-            [
-                failures: '1',
-                tests: '3',
-                errors: '1',
-                skipped: '1',
-            ],
-            [
-                failures: '0',
-                tests: '5',
-                errors: '0',
-                skipped: '0',
-            ],
-            [
-                failures: '2',
-                tests: '4',
-                errors: '1',
-                skipped: '0',
+                [
+                    failures: '1',
+                    tests: '1',
+                    errors: '0',
+                    skipped: '0',
+                ],
+                [
+                    failures: '1',
+                    tests: '3',
+                    errors: '1',
+                    skipped: '1',
+                ],
+                [
+                    failures: '0',
+                    tests: '5',
+                    errors: '0',
+                    skipped: '0',
+                ],
+                [
+                    failures: '2',
+                    tests: '4',
+                    errors: '1',
+                    skipped: '0',
+                ]
             ]
         ]
-        ]
-        def matchingResult = [
-            matched: [:],
-            unmatched: ["bla"]
-        ]
-        def expected = new TestResults(1, 6, 4, 2, 1)
+        def expected = new TestResults(1, 6, 4, 2, 0)
 
 
         when:
-        projectObj.storeAggregatedTestResults(testData, matchingResult)
+        projectObj.storeAggregatedTestResults(testData)
+
+        then:
+        projectObj.getAggregatedTestResults() == expected
+    }
+
+
+    def "Store aggregated test results only succeded"() {
+        given:
+        def projectObj = new Project(steps, logger)
+        def testData = [ testsuites: [
+                [
+                    failures: '0',
+                    tests: '1',
+                    errors: '0',
+                    skipped: '0',
+                ]
+            ]
+        ]
+        def expected = new TestResults(0, 4, 0, 0, 0)
+
+
+        when:
+        for (def i : 1..4) {
+            projectObj.storeAggregatedTestResults(testData)
+        }
 
         then:
         projectObj.getAggregatedTestResults() == expected
