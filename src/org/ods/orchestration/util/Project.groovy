@@ -619,7 +619,7 @@ class Project {
         return aggregatedTestResults == null ? new TestResults() : aggregatedTestResults.deepCopy();
     }
 
-    void storeAggregatedTestResults(Map testData, Map matchingResult) {
+    void storeAggregatedTestResults(Map testData) {
         if (aggregatedTestResults == null) {
             aggregatedTestResults = new TestResults()
         }
@@ -637,7 +637,6 @@ class Project {
                     (errors + skipped + failures))
             }
         }
-        testResults.addMissing(matchingResult.unmatched.size())
     }
 
     boolean getIsPromotionMode() {
