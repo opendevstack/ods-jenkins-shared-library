@@ -299,7 +299,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 key               : testIssue.key,
                 description       : this.convertImages(description ?: 'N/A'),
-                systemRequirement : testIssue.requirements.join(", "),
+                systemRequirement : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 success           : testIssue.isSuccess ? "Y" : "N",
                 remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
