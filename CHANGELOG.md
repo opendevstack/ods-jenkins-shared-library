@@ -10,6 +10,18 @@
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
+## [4.8.1] - 2025-5-13
+
+### Added
+* Add aggregated test report data for fully automated change management ([#1210](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1210))
+
+### Changed
+* Do not retrieve components from Jira when using an alternate Jira project and not generating documentation ([#1211](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1211))
+
+### Fixed
+* Use N/A if there isn't system requirements in DTR ([#1214](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1214))
+* Remove missing tests count ([#1213](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1213))
+
 
 ## [4.8.0] - 2025-4-11
 

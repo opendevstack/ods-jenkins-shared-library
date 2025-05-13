@@ -129,11 +129,11 @@ class BuildStage extends Stage {
             return "\n\nA remotely exploitable critical vulnerability was detected and documented in " +
                 "the following Jira issue: ${securityVulnerabilityIssueKeys[0]}. Due to their high " +
                 "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
-        } else {
-            return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
-                "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
-                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         }
+
+        return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
+            "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
+            "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
     }
 
     String sanitizeFailedRepos(def failedRepos) {
