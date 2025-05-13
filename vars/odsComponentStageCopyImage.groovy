@@ -21,8 +21,8 @@ def call(IContext context, Map config = [:]) {
 
     // [REGISTRY/]REPO/IMAGE[:TAG]
     if (sourceImageDataSplitLength >= 2) {
-        config.image = sourceImageData[sourceImageDataSplitLength-1]
-        config.repo = sourceImageData[sourceImageDataSplitLength-2]
+        config.image = sourceImageData[sourceImageDataSplitLength - 1]
+        config.repo = sourceImageData[sourceImageDataSplitLength - 2]
         // no registry info, use internal cluster registry
         if (sourceImageDataSplitLength == 2) {
             try {
@@ -43,7 +43,7 @@ def call(IContext context, Map config = [:]) {
                 config.registry = context.clusterRegistryAddress
             }
         } else {
-            config.registry = sourceImageData[0..sourceImageDataSplitLength-3].join('/')
+            config.registry = sourceImageData[0..sourceImageDataSplitLength - 3].join('/')
         }
         config.registry = STR_DOCKER_PROTOCOL + config.registry
     } else {
