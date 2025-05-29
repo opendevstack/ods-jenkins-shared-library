@@ -128,8 +128,14 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.critical ?: 0,
                                   vulnerabilities.malware ?: 0]
 
-                URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
+                URI reportUriNexus = nexus.archiveReportInNexus(reportFile, nexusRepository, 'aqua', context)
+                if (!reportUriNexus) {
+                    logger.warn("Could not archive the Aqua report in Nexus, skipping Bitbucket Code Insight report.")
+                    errorMessages += "<li>Could not archive the Aqua report in Nexus</li>"
+                } else {
+                    logger.info "Report stored in: ${reportUriNexus}"
+                }
+                nexusReportLink = nexusRepository && reportUriNexus ? reportUriNexus.toString() : null
                 createBitbucketCodeInsightReport(url, nexusReportLink,
                     registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
                 archiveReportInJenkins(reportFile)
@@ -361,24 +367,6 @@ class ScanWithAquaStage extends Stage {
 
     private String prepareMessageToBitbucket(String message = "") {
         return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
-    }
-
-    @SuppressWarnings('ReturnNullFromCatchBlock')
-    private URI archiveReportInNexus(String reportFile, nexusRepository) {
-        try {
-            URI report = nexus.storeArtifact(
-                "${nexusRepository}",
-                "${context.projectId}/${this.options.resourceName}/" +
-                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
-                reportFile,
-                (steps.readFile(file: reportFile) as String).bytes, "text/html")
-
-            logger.info "Report stored in: ${report}"
-            return report
-        } catch (err) {
-            logger.warn("Error archiving the Aqua reports in Nexus due to: ${err}")
-            return null
-        }
     }
 
     private archiveReportInJenkins(String reportFile) {

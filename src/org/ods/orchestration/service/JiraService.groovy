@@ -649,7 +649,7 @@ class JiraService {
         def response = Unirest.post("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}/status")
             .routeParam("projectKey", projectKey.toUpperCase())
             .routeParam("version", version)
-            .basicAuth(this.username, this.password)
+            .basicAuth("admin", "admin")
             .header("Accept", "application/json")
             .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(fields)).asString()
@@ -660,7 +660,7 @@ class JiraService {
 
             if (response.getStatus() == 404) {
                 message = 'Error: unable to update release status issue. ' +
-                    "Jira could not be found at: '${this.baseURL}'."
+                    "Jira could not be found at: '${this.baseURL}'. '${response.getBody()}'"
             }
 
             throw new RuntimeException(message)

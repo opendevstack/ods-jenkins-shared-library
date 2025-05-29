@@ -9,6 +9,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
+import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
@@ -91,6 +92,12 @@ def call(Map config) {
             }
         }
     } finally {
+        logger.debug("AMP Orchestration")
+        NexusService nexus = ServiceRegistry.instance.get(NexusService)
+        nexus.archiveReportInNexus(logger.logFile, 'leva-documentation', 'log', context)
+        nexus = null
+        logger.debug("AMP Orchestration")
+
         logger.resetStopwatch()
         project.clear()
         ServiceRegistry.removeInstance()
@@ -127,7 +134,7 @@ private Object cleanWorkspace(logger) {
         PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
         MROPipelineUtil.REPOS_BASE_DIR,
     ].each { name ->
-        logger.debug("Cleaning workspace directory '${name}' from previous runs")
+        logger.debug("Cleaning workspace directory '${env.WORKSPACE}/${name}' from previous runs")
         Paths.get(env.WORKSPACE, name).toFile().deleteDir()
     }
 }

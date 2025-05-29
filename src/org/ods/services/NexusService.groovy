@@ -6,6 +6,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 import kong.unirest.ContentType
 import org.apache.http.client.utils.URIBuilder
+import org.ods.component.IContext
 import org.ods.util.IPipelineSteps
 
 class NexusService {
@@ -218,5 +219,20 @@ class NexusService {
         }
         return !response.getBody().contains('\"items\" : [ ]')
 
+    }
+
+    @SuppressWarnings('ReturnNullFromCatchBlock')
+    URI archiveReportInNexus(String reportFile, nexusRepository, String reportType, IContext context) {
+        try {
+            URI report = storeArtifact(
+                "${nexusRepository}",
+                "${context.projectId}/${this.options.resourceName}/" +
+                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/${reportType}",
+                reportFile,
+                (steps.readFile(file: reportFile) as String).bytes, "text/html")
+            return report
+        } catch (err) {
+            throw new RuntimeException("error archiving report in Nexus: ${err.message}").initCause(err)
+        }
     }
 }

@@ -1,4 +1,5 @@
 import org.ods.component.Pipeline
+import org.ods.services.NexusService
 import org.ods.util.Logger
 
 import org.ods.services.ServiceRegistry
@@ -20,6 +21,15 @@ def call(Map config, Closure body) {
     try {
         pipeline.execute(config, body)
     } finally {
+        logger.warn("AMP Component")
+        logger.warn("env: ${env.inspect()}")
+        StringWriter writer = new StringWriter()
+        this.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
+        def logFile = writer.getBuffer().toString()
+        NexusService nexus = ServiceRegistry.instance.get(NexusService)
+        logger.warn("AMP: logFile: ${logFile}")
+        nexus.archiveReportInNexus(logFile, 'leva-documentation', 'log', context)
+        logger.warn("AMP Component")
         if (env.MULTI_REPO_BUILD) {
             logger.debug('-- in RM mode, shutdown skipped --')
         }
@@ -40,6 +50,7 @@ def call(Map config, Closure body) {
             }
             logger = null
         }
+        nexus = null
     }
 }
 
