@@ -1143,10 +1143,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
      */
     protected static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments, String targetEnvironment) {
         Map<String, Object> deploymentMean =
-            deployments.find { it.key.endsWith('-deploymentMean') }?.value
+            deployments?.find { it.key.endsWith('-deploymentMean') }?.value
 
         if (!deploymentMean) {
-            return null
+            return [:]
         }
 
         if (deploymentMean.type == 'tailor') {
