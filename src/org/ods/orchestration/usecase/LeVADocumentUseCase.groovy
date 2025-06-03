@@ -1143,7 +1143,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
      */
     protected static Map<String, Object> prepareDeploymentMeanInfo(Map<String, Map<String, Object>> deployments, String targetEnvironment) {
         Map<String, Object> deploymentMean =
-            deployments.find { it.key.endsWith('-deploymentMean') }.value
+            deployments.find { it.key.endsWith('-deploymentMean') }?.value
+
+        if (!deploymentMean) {
+            return null
+        }
 
         if (deploymentMean.type == 'tailor') {
             return formatTIRTailorDeploymentMean(deploymentMean)
@@ -1162,8 +1166,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
      */
     protected static Map<String, Map<String, Object>> prepareDeploymentInfo(Map<String, Map<String, Object>> deployments) {
         return deployments
-            .findAll { ! it.key.endsWith('-deploymentMean') }
-            .collectEntries { String deploymentName, Map<String, Object> deployment ->
+            ?.findAll { ! it.key.endsWith('-deploymentMean') }
+            ?.collectEntries { String deploymentName, Map<String, Object> deployment ->
                 def filteredFields = deployment.findAll { k, v -> k != 'podName' }
                 return [(deploymentName): filteredFields]
             } as Map<String, Map<String, Object>>
