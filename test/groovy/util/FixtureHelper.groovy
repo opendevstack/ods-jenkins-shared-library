@@ -918,6 +918,41 @@ class FixtureHelper {
         ]
     }
 
+    static Map createTIRRepoInfra() {
+        [
+            'include'       : true,
+            'metadata'      : [
+                'supplier'   : 'IT INF IAS',
+                'name'       : 'MyLambda',
+                'description': 'A lambda intended to run in AWS',
+                'type'       : 'ods-infra',
+                'version'    : '4.x',
+            ],
+            'data'          : [
+                'git'                    : [
+                    'previousSucessfulCommit': 'b00012345bcdef',
+                    'baseTag'                : '',
+                    'commit'                 : 'a00012345bcdef',
+                    'previousCommit'         : 'b00012345bcdef',
+                    'targetTag'              : '',
+                    'branch'                 : 'master',
+                    'url'                    : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-mylambda.git',
+                ],
+                'previousSucessfulCommit': 'c00012345bcdef',
+                'documents'              : [
+                ],
+            ],
+            'doInstall'     : true,
+            'pipelineConfig': [
+                'dependencies': [],
+            ],
+            'defaultBranch' : 'master',
+            'id'            : 'mylambda-infra',
+            'type'          : 'ods-infra',
+            'url'           : 'https://bitbucket-myodsproject-cd.ocp.mycompany.com/scm/myodsproject/myodsproject-mylambda.git',
+        ]
+    }
+
     static Map createHelmCmdStatusMap() {
         [
             'info'     : [
