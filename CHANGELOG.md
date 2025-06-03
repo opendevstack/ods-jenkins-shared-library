@@ -19,6 +19,7 @@
 * Do not retrieve components from Jira when using an alternate Jira project and not generating documentation ([#1211](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1211))
 
 ### Fixed
+* Error generating TIR for infra components ([#1216](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1216))
 * Use N/A if there isn't system requirements in DTR ([#1214](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1214))
 * Remove missing tests count ([#1213](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1213))
 
