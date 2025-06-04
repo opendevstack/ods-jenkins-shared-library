@@ -1284,6 +1284,22 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         true    | FixtureHelper.createTIRDataTailor()   | FixtureHelper.createTIRRepoTailor()
     }
 
+    def "createTIR for infra component"() {
+        when: 'Preparing deploymentMean info for infra component'
+        def deploymentMeanInfo = usecase.prepareDeploymentMeanInfo(null, 'dev')
+
+        then: 'The obtained info is null or empty, but no exception is thrown'
+        noExceptionThrown()
+        !deploymentMeanInfo
+
+        when: 'Preparing deployment info for infra component'
+        def deploymentInfo = usecase.prepareDeploymentInfo(null)
+
+        then: 'The obtained info is null or empty, but no exception is thrown'
+        noExceptionThrown()
+        !deploymentInfo
+    }
+
     def "assemble deploymentMean and deploymentInfo for TIR with helm"() {
         given:
         def deployments = FixtureHelper.createTIRRepoHelm().data.openshift.deployments
