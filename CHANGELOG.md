@@ -9,9 +9,11 @@
 
 
 ### Fixed
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.8.2] - 2025-6-04
 * Avoid check PROD environment if repos are not included in release ([#1217](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1217))
 * Error generating TIR for infra components ([#1216](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1216))
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.8.1] - 2025-5-13
 
