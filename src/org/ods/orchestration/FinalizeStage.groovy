@@ -6,6 +6,7 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
+import org.ods.services.NexusService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
@@ -20,6 +21,14 @@ class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
     private final String MASTER_BRANCH = "master"
+    private final NexusService nexus
+    private final ILogger logger
+
+    FinalizeStage(def script, Project project, List<Set<Map>> repos, NexusService nexus, ILogger logger) {
+        super(script, project, repos)
+        this.nexus = nexus
+        this.logger = logger
+    }
 
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
@@ -289,4 +298,36 @@ class FinalizeStage extends Stage {
         }
     }
 
+    def uploadTestReportToNexus() {
+        logger.debug "Finalize: upload tests to nexus"
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        def zipFile = "${xunitDir}.zip"
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+
+        steps.sh "cd ${xunitDir} && zip -r ${zipFile} ."
+
+        def artifact = util.createZipArtifact(
+            "${xunitDir}.zip",
+            zipFile,
+            true
+        )
+
+        if (project.isPullRequest) {
+            logger.info("Pull Request detected, preparing to upload xUnit results to Nexus.")
+            try {
+                this.nexus.storeArtifact(
+                    project.services.nexus.repository.name,
+                    "${project.key.toLowerCase()}-${project.buildParams.version}/xunit",
+                    "${xunitDir}.zip",
+                    artifact,
+                    "application/zip"
+                )
+                logger.info("Successfully uploaded xUnit results to Nexus.")
+            } catch (Exception e) {
+                logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
+                throw e
+            }
+        }
+    }
 }

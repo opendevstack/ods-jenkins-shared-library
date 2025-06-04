@@ -1,6 +1,7 @@
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.services.NexusService
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.TestStage
@@ -14,6 +15,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
 import org.ods.util.Logger
 import org.ods.util.ILogger
+import org.ods.component.Context
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
@@ -47,6 +49,15 @@ def call(Map config) {
     logger.debug("Start agent stage: ${startAgentStage}")
     Project project = new Project(steps, logger)
     def repos = []
+
+    def registry = ServiceRegistry.instance
+    NexusService nexusService = registry.get(NexusService)
+    def context = new Context(null, config, logger)
+
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
+    }
 
     logger.startClocked('orchestration-master-node')
     try {
@@ -86,7 +97,7 @@ def call(Map config) {
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
                     new ReleaseStage(this, project, repos).execute()
-                    new FinalizeStage(this, project, repos).execute()
+                    new FinalizeStage(this, project, repos, nexusService, logger).execute()
                 }
             }
         }
@@ -149,7 +160,7 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 
 @SuppressWarnings('GStringExpressionWithinString')
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
-    String mroAgentLimit, Closure block) {
+                        String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
