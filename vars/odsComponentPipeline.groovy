@@ -1,12 +1,29 @@
+import org.ods.component.Context
 import org.ods.component.Pipeline
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
 import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
+import org.ods.util.PipelineSteps
 import org.ods.util.UnirestConfig
 import java.lang.reflect.Method
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 def call(Map config, Closure body) {
+
+    String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
+
+    ServiceRegistry registry = ServiceRegistry.instance
+    IPipelineSteps steps = registry.get(IPipelineSteps)
+    if (!steps) {
+        steps = new PipelineSteps(this)
+        registry.add(IPipelineSteps, steps)
+    }
     def debug = env.DEBUG
     if (debug != null) {
         config.debug = debug
@@ -14,9 +31,12 @@ def call(Map config, Closure body) {
 
     config.debug = !!config.debug
 
-    def logger = new Logger(this, config.debug)
+    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+
     def pipeline = new Pipeline(this, logger)
     String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
+
     try {
         pipeline.execute(config, body)
     } finally {
@@ -26,9 +46,27 @@ def call(Map config, Closure body) {
         if (!env.MULTI_REPO_BUILD) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             logger.resetStopwatch()
-            ServiceRegistry.removeInstance()
-            UnirestConfig.shutdown()
             try {
+                NexusService nexusService = registry.get(NexusService)
+                def context = new Context(null, config, logger)
+
+                String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
+
+                def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+                if (!nexusService) {
+                    nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+                    registry.add(NexusService, nexusService)
+                }
+                JenkinsService jenkinsService = registry.get(JenkinsService)
+                String text = jenkinsService.currentBuildLogAsText()
+                nexusService.storeArtifact(
+                    DEFAULT_NEXUS_REPOSITORY,
+                    "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs",
+                    "jenkins_logs",
+                    text.bytes,
+                    "application/text"
+                )
                 new ClassLoaderCleaner().clean(logger, processId)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
@@ -39,6 +77,8 @@ def call(Map config, Closure body) {
                 logger.debug("cleanupHeap err: ${e}")
             }
             logger = null
+            ServiceRegistry.removeInstance()
+            UnirestConfig.shutdown()
         }
     }
 }

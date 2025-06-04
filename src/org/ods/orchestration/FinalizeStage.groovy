@@ -7,6 +7,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.services.NexusService
+import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
@@ -142,6 +143,7 @@ class FinalizeStage extends Stage {
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
             }
         }
+        uploadTestReportToNexus()
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
@@ -298,36 +300,30 @@ class FinalizeStage extends Stage {
         }
     }
 
-    def uploadTestReportToNexus() {
+    private void uploadTestReportToNexus() {
+
         logger.debug "Finalize: upload tests to nexus"
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        def zipFile = "${xunitDir}.zip"
+        def zipFile = "xunit.zip"
         def steps = ServiceRegistry.instance.get(IPipelineSteps)
-        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
 
-        steps.sh "cd ${xunitDir} && zip -r ${zipFile} ."
+        steps.sh "cd ${testDir} && zip -r ${zipFile} ."
 
-        def artifact = util.createZipArtifact(
-            "${xunitDir}.zip",
-            zipFile,
-            true
-        )
+        def file = new File(testDir + "/" + zipFile)
 
-        if (project.isPullRequest) {
-            logger.info("Pull Request detected, preparing to upload xUnit results to Nexus.")
-            try {
-                this.nexus.storeArtifact(
-                    project.services.nexus.repository.name,
-                    "${project.key.toLowerCase()}-${project.buildParams.version}/xunit",
-                    "${xunitDir}.zip",
-                    artifact,
-                    "application/zip"
-                )
-                logger.info("Successfully uploaded xUnit results to Nexus.")
-            } catch (Exception e) {
-                logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
-                throw e
-            }
+        try {
+            this.nexus.storeArtifact(
+                project.services.nexus.repository.name,
+                "${project.key.toLowerCase()}-${project.buildParams.version}/xunit",
+                "${xunitDir}.zip",
+                file.bytes,
+                "application/zip"
+            )
+            logger.info("Successfully uploaded xUnit results to Nexus.")
+        } catch (Exception e) {
+            logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
+            throw e
         }
     }
 }

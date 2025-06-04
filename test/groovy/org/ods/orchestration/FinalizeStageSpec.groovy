@@ -5,6 +5,7 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
+import org.ods.services.NexusService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -33,6 +34,7 @@ class FinalizeStageSpec extends SpecHelper {
         gitService = Mock(GitService)
         jira = Mock(JiraUseCase)
         logger = new Logger(script, true)
+
         createService()
         for (repo in project.data.metadata.repositories) {
             repo.data.git = [:]
@@ -146,4 +148,21 @@ class FinalizeStageSpec extends SpecHelper {
         'ods-infra'         | _
         'ods-saas-service'  | _
     }
+
+//    def "pushTestDocumentationToNexus"() {
+//
+//        given:
+//        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
+//        def finalStageNexus = Spy(new FinalizeStage(script, project, project.data.metadata.repositories, nexus, logger))
+//        def steps2 = ServiceRegistry.instance.get(IPipelineSteps)
+//
+//        steps2.sh "mkdir -p /tmp/xunit && cd /tmp/xunit && echo '1' >> file.txt"
+//        when:
+//        finalStageNexus.uploadTestReportToNexus()
+//
+//        then:
+//        1 * finalStageNexus.nexus.storeArtifact("leva-documentation", "net-0.1/xunit", "xunit.zip", _, "application/zip") >>
+//            new URI("http://nexus/repository/leva-documentation/net/12345-56/trivy/trivy-sbom.json")
+//        1 * finalStageNexus.logger.info("Successfully uploaded xUnit results to Nexus.")
+//    }
 }

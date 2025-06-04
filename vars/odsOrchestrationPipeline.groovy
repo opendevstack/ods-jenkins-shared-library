@@ -1,6 +1,7 @@
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.ReleaseStage
@@ -50,16 +51,8 @@ def call(Map config) {
     Project project = new Project(steps, logger)
     def repos = []
 
-    def registry = ServiceRegistry.instance
-    NexusService nexusService = registry.get(NexusService)
-    def context = new Context(null, config, logger)
-
-    if (!nexusService) {
-        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-        registry.add(NexusService, nexusService)
-    }
-
     logger.startClocked('orchestration-master-node')
+
     try {
         node('master') {
             logger.debugClocked('orchestration-master-node')
@@ -93,6 +86,15 @@ def call(Map config) {
                         return
                     }
 
+                    def registry = ServiceRegistry.instance
+                    NexusService nexusService = registry.get(NexusService)
+                    def context = new Context(null, config, logger)
+
+                    if (!nexusService) {
+                        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+                        registry.add(NexusService, nexusService)
+                    }
+
                     new BuildStage(this, project, repos, startAgentStage).execute()
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
@@ -102,15 +104,27 @@ def call(Map config) {
             }
         }
     } finally {
-        logger.resetStopwatch()
-        project.clear()
-        ServiceRegistry.removeInstance()
-        UnirestConfig.shutdown()
-        project = null
-        git = null
-        repos = null
-        steps = null
         try {
+            def registry = ServiceRegistry.instance
+
+            NexusService nexusService = registry.get(NexusService)
+            def context = new Context(null, config, logger)
+
+            if (!nexusService) {
+                nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+                registry.add(NexusService, nexusService)
+            }
+
+            JenkinsService jenkinsService = registry.get(JenkinsService)
+            String text = jenkinsService.currentBuildLogAsText()
+
+            nexusService.storeArtifact(
+                project.services.nexus.repository.name,
+                "${project.key.toLowerCase()}-${project.buildParams.version}/logs",
+                "jenkins_logs",
+                text.bytes,
+                "application/text"
+            )
             new ClassLoaderCleaner().clean(logger, processId)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
@@ -120,6 +134,14 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
+        logger.resetStopwatch()
+        project.clear()
+        ServiceRegistry.removeInstance()
+        UnirestConfig.shutdown()
+        git = null
+        repos = null
+        steps = null
+        project = null
     }
 }
 
