@@ -1469,8 +1469,12 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    def boolean checkProductionConfiguredProperly() {
-        def script = "curl -Is ${getApiUrl()} | head -1"
+    def boolean checkProductionConfiguredProperly(Map envs) {
+        String prodApiUrl = envs?.prod?.apiUrl;
+        if (!prodApiUrl) { //TODO what do we check in this case?
+            return true;
+        }
+        def script = "curl -Is ${prodApiUrl} | head -1"
         logger.debug("Check PROD cluster is reachable: " + script)
         def scriptLabel = "Check PROD cluster is reachable"
         def response = steps.sh(

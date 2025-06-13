@@ -172,7 +172,7 @@ class InitStage extends Stage {
         logger.debug("project.getSourceEnv(): " + project.getSourceEnv())
         logger.debug("project.toString(): " + project.toString())
 
-        boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly()
+        boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly(project.getEnvironments())
 
         if (isConfigForProductionMissing) {
             String message = "The Release Manager configuration misses the location of " +
