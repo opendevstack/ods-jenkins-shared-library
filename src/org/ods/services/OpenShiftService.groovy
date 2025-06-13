@@ -1468,4 +1468,16 @@ class OpenShiftService {
             returnStdout: true
         ).toString().trim()
     }
+
+    def boolean checkProductionConfiguredProperly() {
+        def script = "curl " + getApiUrl()
+        logger.debug("Check PROD cluster is reachable: " + script)
+        def scriptLabel = "Check PROD cluster is reachable"
+        def response = steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+        logger.debug("Response: " + response)
+    }
 }

@@ -92,6 +92,8 @@ class InitStage extends Stage {
 
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
+        validateProdConfig(logger, registry, util)
+
         def check = project.getComponentsFromJira()
         if (check) {
             logger.info("Comparing Jira components against metadata.yml repositories")
@@ -155,6 +157,22 @@ class InitStage extends Stage {
         registry.get(LeVADocumentScheduler).run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
+    }
+
+    private void validateProdConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+        def os = registry.get(OpenShiftService)
+        boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly()
+
+        if (isConfigForProductionMissing) {
+            String message = "The Release Manager configuration misses the location of " +
+                "an OpenShift production cluster."
+            if (project.isWorkInProgress) { // Warn build pipeline in this case
+                util.warnBuild(message)
+            } else {                        // Error
+                util.failBuild(message)
+            }
+            project.addCommentInReleaseStatus(message)
+        }
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
