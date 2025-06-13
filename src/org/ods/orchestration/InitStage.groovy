@@ -167,9 +167,7 @@ class InitStage extends Stage {
     private void validateProdConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
         def os = registry.get(OpenShiftService)
 
-        boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly(project.getEnvironments())
-
-        if (isConfigForProductionMissing) {
+        if (os.isProductionClusterConfigMissing(project.getEnvironments())) {
             String message = "The Release Manager configuration misses the location of " +
                 "an OpenShift production cluster."
             if (project.isWorkInProgress) { // Warn build pipeline in this case

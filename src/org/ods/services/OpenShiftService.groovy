@@ -1469,10 +1469,10 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    def boolean checkProductionConfiguredProperly(Map envs) {
+    def boolean isProductionClusterConfigMissing(Map envs) {
         String prodApiUrl = envs?.prod?.apiUrl;
         if (!prodApiUrl) { //TODO what do we check in this case?
-            return true;
+            return false;
         }
         def script = "curl -Is ${prodApiUrl} | head -1"
         logger.debug("Check PROD cluster is reachable: " + script)
@@ -1483,6 +1483,6 @@ class OpenShiftService {
             returnStdout: true
         ).toString().trim()
         logger.debug("Check PROD cluster is reachable response: " + response)
-        return response.contains("200")
+        return !response.contains("200")
     }
 }
