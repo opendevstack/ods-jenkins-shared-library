@@ -93,8 +93,8 @@ class InitStage extends Stage {
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
         if (project.repositories.any {
-                it -> it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
-                    || it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+                it -> (it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+                    || it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)
         }) { // TODO agree we need this check
             validateProdConfig(logger, registry, util)
         }
