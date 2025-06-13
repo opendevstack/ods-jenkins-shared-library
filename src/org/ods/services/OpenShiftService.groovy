@@ -1470,7 +1470,7 @@ class OpenShiftService {
     }
 
     def boolean checkProductionConfiguredProperly() {
-        def script = "curl " + getApiUrl()
+        def script = "curl -Is ${getApiUrl()} | head -1"
         logger.debug("Check PROD cluster is reachable: " + script)
         def scriptLabel = "Check PROD cluster is reachable"
         def response = steps.sh(
