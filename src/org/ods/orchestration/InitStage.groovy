@@ -92,7 +92,12 @@ class InitStage extends Stage {
 
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        validateProdConfig(logger, registry, util)
+        if (project.repositories.any {
+                it -> it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+                    || it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        }) { // TODO agree we need this check
+            validateProdConfig(logger, registry, util)
+        }
 
         def check = project.getComponentsFromJira()
         if (check) {
@@ -173,6 +178,11 @@ class InitStage extends Stage {
             }
             project.addCommentInReleaseStatus(message)
         }
+    }
+
+    private boolean checkDeploymentContainsOdsAndOdsServiceRepos(Map repos) {
+        return
+
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
