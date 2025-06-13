@@ -167,11 +167,6 @@ class InitStage extends Stage {
     private void validateProdConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
         def os = registry.get(OpenShiftService)
 
-        logger.debug("project.getEnvironments(): " + project.getEnvironments())
-        logger.debug("project.getEnvironmentConfig(): " + project.getEnvironmentConfig())
-        logger.debug("project.getSourceEnv(): " + project.getSourceEnv())
-        logger.debug("project.toString(): " + project.toString())
-
         boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly(project.getEnvironments())
 
         if (isConfigForProductionMissing) {
@@ -184,11 +179,6 @@ class InitStage extends Stage {
             }
             project.addCommentInReleaseStatus(message)
         }
-    }
-
-    private boolean checkDeploymentContainsOdsAndOdsServiceRepos(Map repos) {
-        return
-
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
