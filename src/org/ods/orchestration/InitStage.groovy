@@ -166,6 +166,11 @@ class InitStage extends Stage {
 
     private void validateProdConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
         def os = registry.get(OpenShiftService)
+
+        def envParamsFile = project.environmentParamsFile
+        def envParams = project.getEnvironmentParams(envParamsFile)
+        logger.debug("envParams: " + envParams)
+
         boolean isConfigForProductionMissing = os.checkProductionConfiguredProperly()
 
         if (isConfigForProductionMissing) {
