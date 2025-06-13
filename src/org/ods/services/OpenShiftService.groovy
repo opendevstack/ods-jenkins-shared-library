@@ -1482,6 +1482,7 @@ class OpenShiftService {
             label: scriptLabel,
             returnStdout: true
         ).toString().trim()
-        logger.debug("Response: " + response)
+        logger.debug("Check PROD cluster is reachable response: " + response)
+        return response.contains("200")
     }
 }
