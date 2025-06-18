@@ -5,6 +5,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.orchestration.util.Project
 import org.ods.util.HelmStatus
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -1469,20 +1470,33 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    def boolean isProductionClusterConfigMissing(Map envs) {
+    def boolean isProductionClusterConfigMissing(def script, Project project) {
+        Map envs  = project.getEnvironments()
         String prodApiUrl = envs?.prod?.apiUrl;
-        if (!prodApiUrl) { //TODO what do we check in this case?
-            return false;
+        if (!prodApiUrl) {
+            //We agreed to enforce production cluster config in any case
+            return true;
         }
-        def script = "curl -Is ${prodApiUrl} | head -1"
-        logger.debug("Check PROD cluster is reachable: " + script)
-        def scriptLabel = "Check PROD cluster is reachable"
-        def response = steps.sh(
-            script: script,
-            label: scriptLabel,
-            returnStdout: true
-        ).toString().trim()
-        logger.debug("Check PROD cluster is reachable response: " + response)
-        return !response.contains("200")
+        logger.debug("Trying to login to PROD cluster ${prodApiUrl}")
+        try {
+            script.withCredentials([
+                script.usernamePassword(
+                    credentialsId: project.environmentConfig.credentialsId,
+                    usernameVariable: 'EXTERNAL_OCP_API_SA',
+                    passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
+                )
+            ]) {
+                OpenShiftService.loginToExternalCluster(
+                    steps,
+                    prodApiUrl,
+                    script.EXTERNAL_OCP_API_TOKEN
+                )
+            }
+        } catch (ex) {
+            logger.error("Exception trying to login to PROD cluster ${prodApiUrl}: " + ex.getMessage())
+            return false
+        }
+        logger.debug("Success loggin in to PROD cluster ${prodApiUrl}")
+        return true
     }
 }
