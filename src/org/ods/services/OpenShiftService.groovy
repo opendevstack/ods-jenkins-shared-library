@@ -131,6 +131,7 @@ class OpenShiftService {
         def upgradeFlags = defaultFlags.collect { it }
         additionalFlags.collect { upgradeFlags << it }
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
+        values.put('ODS_OPENSHIFT_APP_DOMAIN', getApplicationDomain())
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
         if (withDiff) {
             def diffFlags = upgradeFlags.findAll { it  }
