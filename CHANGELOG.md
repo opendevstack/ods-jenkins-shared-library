@@ -6,6 +6,7 @@
 
 
 ### Changed
+* Helm parity with Tailor ([#1219](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1219))
 
 
 ### Fixed
