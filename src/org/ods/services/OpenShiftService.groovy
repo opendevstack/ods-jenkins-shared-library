@@ -1489,19 +1489,19 @@ class OpenShiftService {
                     passwordVariable: 'EXTERNAL_OPENSHIFT_API_TOKEN'
                 )
             ]) {
-                logger.error("Login to external cluster ${apiUrl} " +
-                    "with token ${(String) script.EXTERNAL_OPENSHIFT_API_TOKEN}")
+                logger.error("Login to external cluster ${openshiftClusterApiUrl} " +
+                    "with token ${script.EXTERNAL_OPENSHIFT_API_TOKEN}")
                 OpenShiftService.loginToExternalCluster(
                     steps,
-                    apiUrl,
-                    (String) script.EXTERNAL_OPENSHIFT_API_TOKEN
+                    openshiftClusterApiUrl,
+                    script.EXTERNAL_OPENSHIFT_API_TOKEN
                 )
             }
         } catch (ex) {
-            logger.error("Exception trying to login to ${env} cluster ${apiUrl}: " + ex.getMessage())
+            logger.error("Exception trying to login to ${env} cluster ${openshiftClusterApiUrl}: " + ex.getMessage())
             return false
         }
-        logger.debug("Success loggin in to ${env} cluster ${apiUrl}")
+        logger.debug("Success loggin in to ${env} cluster ${openshiftClusterApiUrl}")
         return true
     }
 }
