@@ -1228,7 +1228,7 @@ class OpenShiftService {
         )
     }
 
-    private void reloginToCurrentClusterIfNeeded() {
+    public void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
         def success = steps.sh(
             script: """

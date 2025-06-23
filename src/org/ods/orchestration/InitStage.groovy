@@ -199,8 +199,13 @@ class InitStage extends Stage {
             project.addCommentInReleaseStatus(message)
             return
         }
-
-        //TODO relogin to dev cluster (os.reloginToCurrentClusterIfNeeded ?)
+        logger.debug("Try to relogin to current cluster")
+        try {
+            os.reloginToCurrentClusterIfNeeded()
+        } catch (ex) {
+            logger.error("Error logging back to current cluster ${ex.getMessage()}")
+        }
+        logger.debug("Success relogging in to current cluster.")
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
