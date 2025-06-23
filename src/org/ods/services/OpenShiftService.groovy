@@ -1470,33 +1470,38 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    def boolean isProductionClusterConfigMissing(def script, Project project) {
-        Map envs  = project.getEnvironments()
-        String prodApiUrl = envs?.prod?.apiUrl;
-        if (!prodApiUrl) {
-            //We agreed to enforce production cluster config in any case
-            return true;
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    def boolean isValidClusterConfigForEnv(def script, Project project, String env) {
+        Map envs = project.getEnvironments()
+        String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
+        String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
+        if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
+            return false
         }
-        logger.debug("Trying to login to PROD cluster ${prodApiUrl}")
+        logger.debug("Trying to login to ${env} cluster ${openshiftClusterApiUrl} " +
+            "with credentialsId ${openshiftClusterCredentialsId}")
         try {
             script.withCredentials([
                 script.usernamePassword(
-                    credentialsId: project.environmentConfig.credentialsId,
-                    usernameVariable: 'EXTERNAL_OCP_API_SA',
-                    passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
+                    credentialsId: openshiftClusterCredentialsId,
+                    usernameVariable: 'EXTERNAL_OPENSHIFT_API_USER',
+                    passwordVariable: 'EXTERNAL_OPENSHIFT_API_TOKEN'
                 )
             ]) {
+                logger.error("Login to external cluster ${apiUrl} " +
+                    "with token ${(String) script.EXTERNAL_OPENSHIFT_API_TOKEN}")
                 OpenShiftService.loginToExternalCluster(
                     steps,
-                    prodApiUrl,
-                    script.EXTERNAL_OCP_API_TOKEN
+                    apiUrl,
+                    (String) script.EXTERNAL_OPENSHIFT_API_TOKEN
                 )
             }
         } catch (ex) {
-            logger.error("Exception trying to login to PROD cluster ${prodApiUrl}: " + ex.getMessage())
+            logger.error("Exception trying to login to ${env} cluster ${apiUrl}: " + ex.getMessage())
             return false
         }
-        logger.debug("Success loggin in to PROD cluster ${prodApiUrl}")
+        logger.debug("Success loggin in to ${env} cluster ${apiUrl}")
         return true
     }
 }

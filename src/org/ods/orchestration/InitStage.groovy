@@ -96,7 +96,8 @@ class InitStage extends Stage {
                 it -> (it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
                     || it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)
         }) {
-            validateProdConfig(logger, registry, util)
+            logger.info("Validate environment metadata.yml config started")
+            validateEnvConfig(logger, registry, util)
         }
 
         def check = project.getComponentsFromJira()
@@ -164,10 +165,12 @@ class InitStage extends Stage {
         return [project: project, repos: repos, startAgent: stageToStartAgent]
     }
 
-    private void validateProdConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+    private void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
         def os = registry.get(OpenShiftService)
 
-        if (os.isProductionClusterConfigMissing(script, project)) {
+        Map envs = project.getEnvironments()
+        if (!envs.keySet().contains("prod")) {
+            // We need to always have production config
             String message = "The Release Manager configuration misses the location of " +
                 "an OpenShift production cluster."
             if (project.isWorkInProgress) { // Warn build pipeline in this case
@@ -176,7 +179,28 @@ class InitStage extends Stage {
                 util.failBuild(message)
             }
             project.addCommentInReleaseStatus(message)
+            return
         }
+        def wrongConfigsEnvKeys = [];
+        for (String envKey : envs.keySet()) {
+            logger.debug("Check cluster config for env ${envKey}")
+            if (!os.isValidClusterConfigForEnv(script, project, envKey)) {
+                wrongConfigsEnvKeys.add(envKey)
+            }
+        }
+        if (wrongConfigsEnvKeys.size() > 0) {
+            String message = "The Release Manager configuration for environments ${wrongConfigsEnvKeys.join(', ')} " +
+                "is incorrect. Please verify the openshift cluster api url and credentials for each environment mentioned."
+            if (project.isWorkInProgress) { // Warn build pipeline in this case
+                util.warnBuild(message)
+            } else {                        // Error
+                util.failBuild(message)
+            }
+            project.addCommentInReleaseStatus(message)
+            return
+        }
+
+        //TODO relogin to dev cluster (os.reloginToCurrentClusterIfNeeded ?)
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
