@@ -26,10 +26,25 @@ class PipelineSpockTestBase extends Specification {
         // in every script executed by the Jenkins Pipeline Unit testing framework
         helper.registerAllowedMethod("withStage", [String, Object, ILogger, Closure], { String stageLabel, Object context, ILogger logger, Closure closure ->
           return loadScript('vars/withStage.groovy').call(stageLabel, context, logger, closure)
-        })
+        })    
         helper.registerAllowedMethod("ansiColor", [String, Closure], { String color, Closure block -> 
           block ()
         })
+        helper.registerAllowedMethod("containerTemplate", [ Map ], { Map template -> 
+          return template
+        })
+        helper.registerAllowedMethod("findFiles", [ Map ], { Map files -> 
+          return files
+        })
+        helper.registerAllowedMethod("podTemplate", [ Map, Closure ], { Map template, Closure block -> 
+          block ()
+        })
+        helper.registerAllowedMethod('podAnnotation', [ Map ]) {}
+        helper.registerAllowedMethod('emailext', [ Map ]) {}
+        helper.registerAllowedMethod('wrap', [ Map, Closure ], { Map attributes, Closure block -> 
+          block ()
+        }) 
+        helper.registerAllowedMethod('junit', [ Map ]) {}
       }
     }
     basePipelineTest.setUp()

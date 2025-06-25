@@ -2,14 +2,13 @@ package org.ods.component
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ods.PipelineScript
+import util.PipelineSteps
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
-import util.PipelineSteps
 import java.nio.file.Paths
 
 class ScanWithSonarStageSpec extends PipelineSpockTestBase {
@@ -23,11 +22,10 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
     }
 
     ScanWithSonarStage createStage(tempFolderPath) {
-        def script = Spy(PipelineScript)
-        def steps = Spy(PipelineSteps)
-        steps.env.WORKSPACE = tempFolderPath
-        def logger = Spy(new Logger(steps, false))
-        IContext context = new Context(steps,
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
+        IContext context = new Context(script,
             [componentId: "component1",
              projectId: "prj1",
              buildUrl: "http://build",
@@ -41,13 +39,13 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 ]
              ], logger)
         def config = [:]
-        def bitbucket = Spy(new BitbucketService (steps,
+        def bitbucket = Spy(new BitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
         def sonarQube = Spy(new SonarQubeService(script, logger, "SonarServerConfig"))
-        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
+        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
         def stage = new ScanWithSonarStage (
             script,
             context,
@@ -58,7 +56,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             logger
         )
         // To use test steps class
-        stage.metaClass.steps = steps
+        stage.metaClass.script = script
 
         return stage
     }

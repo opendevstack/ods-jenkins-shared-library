@@ -1,4 +1,5 @@
 plugins {
+    id 'java-library'
     id 'jacoco'
     id 'groovy'
     id 'codenarc'
@@ -7,11 +8,17 @@ plugins {
 group "org.ods"
 version = '0.0.1-SNAPSHOT'
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 ext {
     nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')
     nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
     nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
-    no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
+    no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: true).toBoolean()
 }
 
 repositories {

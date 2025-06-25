@@ -7,7 +7,7 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['AbcMetric'])
 class TestStage extends Stage {
@@ -20,7 +20,7 @@ class TestStage extends Stage {
 
     @SuppressWarnings(['AbcMetric', 'ParameterName'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)

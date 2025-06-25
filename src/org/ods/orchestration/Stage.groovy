@@ -11,7 +11,7 @@ import org.ods.services.GitService
 import org.ods.services.JenkinsService
 
 import org.ods.util.GitCredentialStore
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -42,7 +42,7 @@ class Stage {
             } catch (e) {
                 def eThrow = e
                 // Check for random null references which occur after a Jenkins restart
-                if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
+                if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(IPipelineSteps) == null) {
                     eThrow = new IllegalStateException(
                         'Error: invalid references have been detected for critical pipeline services. ' +
                         'Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!'
@@ -91,12 +91,12 @@ class Stage {
         script.parallel (executors)
     }
 
-    Map getTestResults(def steps, Map repo, String type = 'unit') {
+    Map getTestResults(def steps, Map repo, String testType = 'unit') {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
-        type = type.toLowerCase()
+        def type = testType.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")

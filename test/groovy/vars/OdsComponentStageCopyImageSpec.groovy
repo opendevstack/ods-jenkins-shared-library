@@ -28,8 +28,8 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
             componentId   : 'example-component',
             dockerRegistry: 'internal-registry',
             branch        : 'master',
-
         ]
+
         IContext context = new Context(null, ctxCfg, logger)
         OpenShiftService openShiftService = Mock(OpenShiftService.class)
         openShiftService.findOrCreateImageStream('project-cd', sourceImageUrlIncludingRegistry)
@@ -45,7 +45,6 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('readFile', [ Map ]) { "secret-token" }
         script.call(context, cfg)
 
-
         then:
         printCallStack()
         assertCallStackContains("!!! Image successfully imported into internal-registry/project-cd/${imageName}:${imageTag}")
@@ -54,21 +53,27 @@ class OdsComponentStageCopyImageSpec extends PipelineSpockTestBase {
         // FIXME: this should probably verify that the steps.sh is called with the correct string rather than checking the full callstack
         assertCallStackContains("skopeo copy ${expectedCopyParams}")
         assertCallStackContains("--src-tls-verify=${expectedVerifyTLS}                  docker://${sourceImageUrlIncludingRegistry}                 --dest-creds openshift:secret-token                 docker://internal-registry/project-cd/image:1f3d1                 --dest-tls-verify=${expectedVerifyTLS}")
-        if (tagIntoTargetEnv) {
-            1 * openShiftService.importImageTagFromProject('project-dev', imageName, 'project-cd', imageTag, imageTag)
-            1 * openShiftService.findOrCreateImageStream('project-dev', imageName)
+        if (tagIntoTargetEnv && targetNamespace) {
+            1 * openShiftService.importImageTagFromProject(targetNamespace, imageName, 'project-cd', imageTag, imageTag)
+            1 * openShiftService.findOrCreateImageStream(targetNamespace, imageName)
+        } 
+        if (!targetNamespace) {
+            0 * openShiftService.importImageTagFromProject(targetNamespace, imageName, 'project-cd', imageTag, imageTag)
+            0 * openShiftService.findOrCreateImageStream(targetNamespace, imageName)
         }
 
         assertJobStatusSuccess()
 
         where:
-        registry      || repo   || imageName || imageTag || preserveDigests || expectedCopyParams          || verifyTLS || expectedVerifyTLS || tagIntoTargetEnv
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--all --preserve-digests ' || true      || true              || false
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || ''                          || false     || false             || false
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || true
-        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || ''                          || null      || true              || false
-
+        registry      || repo   || imageName || imageTag || preserveDigests || expectedCopyParams          || verifyTLS || expectedVerifyTLS || tagIntoTargetEnv || targetNamespace
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--retry-times 20 --all --preserve-digests ' || true      || true              || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || true            || '--retry-times 20 --all --preserve-digests ' || true      || true              || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || '--retry-times 20 '                          || null      || true              || true             || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || null            || '--retry-times 20 '                          || null      || true              || false            || 'project-dev'
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || true             || null
+        'example.com' || 'repo' || 'image'   || '1f3d1'  || false           || '--retry-times 20 '                          || false     || false             || false             || null
     }
+
 }

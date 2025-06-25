@@ -299,6 +299,9 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
+
+    private TestResults aggregatedTestResults;
+
     protected Map data = [:]
 
     Project(IPipelineSteps steps, ILogger logger, Map config = [:]) {
@@ -461,9 +464,11 @@ class Project {
                 result[type] = data[type].findAll { k, v -> isIssueWIP(v) }.keySet() as List<String>
             }
         }
-        def docs = computeWIPDocChapters(data)
-        if (docs != null) {
-            result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+        if (this.hasCapability('LeVADocs')) {
+            def docs = computeWIPDocChapters(data)
+            if (docs != null) {
+                result[JiraDataItem.TYPE_DOCS] = docs.keySet() as List<String>
+            }
         }
 
         return result
@@ -610,6 +615,30 @@ class Project {
         return this.getAutomatedTests(componentName, [TestType.UNIT])
     }
 
+    TestResults getAggregatedTestResults() {
+        return aggregatedTestResults == null ? new TestResults() : aggregatedTestResults.deepCopy();
+    }
+
+    void storeAggregatedTestResults(Map testData) {
+        if (aggregatedTestResults == null) {
+            aggregatedTestResults = new TestResults()
+        }
+        def testResults = aggregatedTestResults
+        testData.testsuites.each { testSuite ->
+            int errors = testSuite.errors ? Integer.parseInt(testSuite.errors) : 0
+            int skipped = testSuite.skipped ? Integer.parseInt(testSuite.skipped) : 0
+            int failures = testSuite.failures ? Integer.parseInt(testSuite.failures) : 0
+
+            testResults.addError(errors)
+            testResults.addSkipped(skipped)
+            testResults.addFailed(failures)
+            if (testSuite.tests) {
+                testResults.addSucceeded(Integer.parseInt(testSuite.tests) -
+                    (errors + skipped + failures))
+            }
+        }
+    }
+
     boolean getIsPromotionMode() {
         isPromotionMode(buildParams.targetEnvironmentToken)
     }
@@ -639,12 +668,11 @@ class Project {
     }
 
     boolean isDeveloperPreviewMode() {
-        return BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(this.data.buildParams.version) &&
-                this.data.buildParams.targetEnvironmentToken == "D"
+        return getIsWorkInProgress() && this.data.buildParams.targetEnvironmentToken == "D"
     }
 
     static boolean isWorkInProgress(String version) {
-        version == BUILD_PARAM_VERSION_DEFAULT
+        BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(version)
     }
 
     static String envStateFileName(String targetEnvironment) {
@@ -698,6 +726,7 @@ class Project {
         }
         this.data.openshift['sessionApiUrl'] = sessionApiUrl
         this.data.openshift['targetApiUrl'] = targetApiUrl
+        this.data.openshift['targetClusterName'] = envConfig?.clusterName
     }
 
     @NonCPS
@@ -1047,6 +1076,11 @@ class Project {
     }
 
     @NonCPS
+    String getOpenShiftTargetClusterName() {
+        this.data.openshift.targetClusterName
+    }
+
+    @NonCPS
     boolean hasCapability(String name) {
         def collector = {
             return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
@@ -1186,14 +1220,15 @@ class Project {
          ]
      }
      * If jira or JiraUsecase is not enabled -> Empty map
+     * If jiraProjectKey differs from project key and LeVADocs capability is disabled -> Empty map
      * Otherwise, check from Jira
      * @result The call results, and empty if not enabled
      * @throw ComponentMismatchException if there is a component mismatch
      */
     Map getComponentsFromJira() {
-        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase || (this.key != this.jiraProjectKey && !this.hasCapability('LeVADocs'))) return [:]
 
-        return jiraUseCase.getComponents(this.key, this.data.buildParams.changeId, this.isWorkInProgress)
+        return jiraUseCase.getComponents(this.jiraProjectKey, this.data.buildParams.changeId, this.isWorkInProgress)
     }
 
     protected Map loadJiraData(String projectKey) {
@@ -1615,6 +1650,7 @@ class Project {
             logger.warn("reportPipelineStatus: Could *NOT* update release status because jiraUseCase has invalid value.")
             return
         }
+
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 

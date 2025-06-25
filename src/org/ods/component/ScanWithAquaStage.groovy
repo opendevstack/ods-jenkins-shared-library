@@ -18,7 +18,7 @@ class ScanWithAquaStage extends Stage {
     static final String CRITICAL_AQUA_SEVERITY = 'critical'
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
-    static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
+    static final String BITBUCKET_AQUA_REPORT_KEY = "ods.sec"
     static final Integer AQUA_DEFAULT_TIMEOUT = 300
     private final AquaService aqua
     private final BitbucketService bitbucket
@@ -100,8 +100,9 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        String reportFile = "aqua-report.html"
-        String jsonFile = "aqua-report.json"
+        def reportImageRefName = createImageRefNameForReport(imageRef)
+        String reportFile = "aqua-report-${reportImageRefName}.html"
+        String jsonFile = "aqua-report-${reportImageRefName}.json"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
         if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
@@ -131,7 +132,7 @@ class ScanWithAquaStage extends Stage {
                 nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
                 createBitbucketCodeInsightReport(url, nexusReportLink,
                     registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
-                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
+                archiveReportInJenkins(reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
                 errorMessages += "<li>Error archiving Aqua reports</li>"
@@ -147,6 +148,18 @@ class ScanWithAquaStage extends Stage {
         }
 
         return
+    }
+
+    static String createImageRefNameForReport(String imageRefName) {
+        if (!imageRefName) {
+            throw new IllegalArgumentException ("imageRefName must not be null")
+        }
+
+        // Sample image refs:
+        // registryHostName:port/namespace/imageName:tag -> imageName:tag -> imageName
+        // registryHostName:port/namespace/imageName@sha256:hexDigest ->
+        //     -> imageName@sha256:hexDigest -> imageName@sha256 -> imageName
+        return imageRefName.split('/').last().split(':').first().split('@').first()
     }
 
     private void performActionsForRECVs(List actionableVulnerabilities, String nexusReportLink) {
@@ -280,13 +293,13 @@ class ScanWithAquaStage extends Stage {
                                              String registry, String imageRef, int returnCode, String messages,
                                                 List actionableVulnerabilities) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
-        String title = "Aqua Security"
+        String title = "Aqua Security (Image: ${createImageRefNameForReport(imageRef)})"
         String details = "Please visit the following links to review the Aqua Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
 
         def data = [
-            key: BITBUCKET_AQUA_REPORT_KEY,
+            key: BITBUCKET_AQUA_REPORT_KEY + "_${createImageRefNameForReport(imageRef)}",
             title: title,
             link: nexusUrlReport,
             otherLinks: [
@@ -357,11 +370,10 @@ class ScanWithAquaStage extends Stage {
                 "${nexusRepository}",
                 "${context.projectId}/${this.options.resourceName}/" +
                     "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
-                "report.html",
+                reportFile,
                 (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
             logger.info "Report stored in: ${report}"
-
             return report
         } catch (err) {
             logger.warn("Error archiving the Aqua reports in Nexus due to: ${err}")
@@ -369,7 +381,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private archiveReportInJenkins(boolean archive, String reportFile) {
+    private archiveReportInJenkins(String reportFile) {
         String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
         steps.sh(
             label: 'Create artifacts dir',
@@ -379,9 +391,8 @@ class ScanWithAquaStage extends Stage {
             label: 'Rename report to SCSR',
             script: "mv ${reportFile} artifacts/${targetReport}"
         )
-        if (archive) {
-            steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
-        }
+        steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+
         String aquaScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('aquaScanStashPath', aquaScanStashPath)
 

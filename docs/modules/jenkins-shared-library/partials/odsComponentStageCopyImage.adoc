@@ -27,6 +27,11 @@ _List<String>_
  Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`).
 
 
+| *insecurePolicy* +
+_Boolean_
+|insecurePolicy turn on the insecure policy with skopeo
+
+
 | *preserveDigests* +
 _Boolean_
 |preserveDigests allows to sync the source and destination image digests
@@ -49,6 +54,11 @@ _String_
 | *tagIntoTargetEnv* +
 _Boolean_
 |true will tag the image from the -cd namespace into the targetEnvironment that the pipeline is running for
+
+
+| *targetRegistry* +
+_String_
+|target registry url, if not set the current internal route will be used
 
 
 | *targetToken* +

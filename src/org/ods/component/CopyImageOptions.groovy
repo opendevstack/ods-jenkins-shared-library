@@ -28,6 +28,11 @@ class CopyImageOptions extends Options {
     String targetToken
 
     /**
+     * target registry url, if not set the current internal route will be used
+     */
+    String targetRegistry
+
+    /**
      * verifyTLS allows the stage to ignore certificate validation errors.
      *
      * The default is to verify certificate paths
@@ -40,6 +45,11 @@ class CopyImageOptions extends Options {
      * The default is false, set to true to preserve digests
      */
     Boolean preserveDigests
+
+    /**
+     * insecurePolicy turn on the insecure policy with skopeo
+     */
+    Boolean insecurePolicy
 
     @SuppressWarnings('UnusedPrivateField')
     private String registry

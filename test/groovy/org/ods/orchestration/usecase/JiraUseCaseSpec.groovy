@@ -2,6 +2,7 @@ package org.ods.orchestration.usecase
 
 
 import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.util.TestResults
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.util.Logger
@@ -822,9 +823,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusBuildNumber()
 
         then:
-        1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
-            buildNumber: "1.0-0815"
-        ])
+        1 * jira.updateBuildNumber(_, 'someChangeId', "1.0-0815")
     }
 
     def "update Jira release status result"() {
@@ -833,6 +832,9 @@ class JiraUseCaseSpec extends SpecHelper {
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
         steps.env.RUN_DISPLAY_URL = "http://jenkins"
+        def testResults = new TestResults();
+        testResults.setFailed(1)
+        project.getAggregatedTestResults() >> testResults
 
         def error = new RuntimeException("Oh no!")
 
@@ -841,7 +843,16 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
-            status: "Failed"
+            userEmail: null,
+            testResults: [
+                skipped: testResults.skipped,
+                succeeded: testResults.succeeded,
+                failed: testResults.failed,
+                error: testResults.error,
+                missing: testResults.missing,
+            ],
+            status: "Failed",
+            env: 'D',
         ])
 
         then:
@@ -854,13 +865,25 @@ class JiraUseCaseSpec extends SpecHelper {
         project.data.buildParams.changeId = "someChangeId"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
+        def testResults = new TestResults();
+        testResults.setSucceeded(1)
+        project.getAggregatedTestResults() >> testResults
 
         when:
         usecase.updateJiraReleaseStatusResult("", false)
 
         then:
         1 * jira.updateReleaseStatusIssue(_, 'someChangeId', [
-            status: "Successful"
+            userEmail: null,
+            testResults: [
+                skipped: testResults.skipped,
+                succeeded: testResults.succeeded,
+                failed: testResults.failed,
+                error: testResults.error,
+                missing: testResults.missing,
+            ],
+            status: "Successful",
+            env: 'D',
         ])
     }
 
