@@ -7,7 +7,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import groovy.json.JsonOutput
@@ -22,7 +22,7 @@ class DeployStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize', 'LineLength'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -88,7 +88,9 @@ class DeployStage extends Stage {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
                 def installableRepos = this.project.repositories.findAll { repo ->
-                    if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                    // We only manage the installable repositories in OpenShift if they are included in the release
+                    if (repo.include
+                        && repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
                         MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     }
                 }
@@ -147,7 +149,7 @@ class DeployStage extends Stage {
             if (repo.data == null) {
                 repo.data = [:]
             }
-            def steps = ServiceRegistry.instance.get(PipelineSteps)
+            def steps = ServiceRegistry.instance.get(IPipelineSteps)
 
             // collect test results
             if (repo.data.tests == null) {

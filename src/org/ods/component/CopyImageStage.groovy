@@ -58,8 +58,9 @@ class CopyImageStage extends Stage {
             "--dest-registry-token ${options.targetToken}" :
             "--dest-creds openshift:${targetInternalRegistryToken}"
 
-        def copyparams = ""
-        if (this.options.preserveDigests) { copyparams += "--all --preserve-digests" }
+        def copyparams = "--retry-times 20" // needs new skopeo version --retry-delay 10s"
+        if (this.options.preserveDigests) { copyparams += " --all --preserve-digests" }
+        if (this.options.insecurePolicy) { copyparams += " --insecure-policy" }
 
         int status = copyImage(sourcetoken, targettoken, STR_DOCKER_PROTOCOL, copyparams)
         if (status != 0) {
@@ -82,7 +83,7 @@ class CopyImageStage extends Stage {
             [image: internalImageRef, source: options.sourceImageUrlIncludingRegistry])
 
         // If this option is set will additionally tag the image in the target namespace, not just the cd namespace
-        if (options.tagIntoTargetEnv) {
+        if (options.tagIntoTargetEnv && context.targetProject) {
             openShift.findOrCreateImageStream(context.targetProject, imageName)
             openShift.importImageTagFromProject(
                 context.targetProject, imageName, context.cdProject,
@@ -97,13 +98,16 @@ class CopyImageStage extends Stage {
            "${this.options.registry}/${this.options.repo}/${this.options.image}" : \
            "${this.options.registry}/${this.options.image}"
 
+        def targetRegistryPath = "${dockerProtocol}${this.options.targetRegistry ?: context.clusterRegistryAddress}/" +
+            "${context.cdProject}/${this.options.image}"
+
         int status = steps.sh(
             script: """
                 skopeo copy ${copyparams} \
                 --src-tls-verify=${this.options.verifyTLS} ${sourcetoken} \
                 ${registryPath} \
                 ${targettoken} \
-                ${dockerProtocol}${context.clusterRegistryAddress}/${context.cdProject}/${this.options.image} \
+                ${targetRegistryPath} \
                 --dest-tls-verify=${this.options.verifyTLS}
             """,
             returnStatus: true,

@@ -6,7 +6,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.Project
 import org.ods.services.ServiceRegistry
-import org.ods.util.PipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 
@@ -24,7 +24,7 @@ class BuildStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -133,11 +133,11 @@ class BuildStage extends Stage {
             return "\n\nA remotely exploitable critical vulnerability was detected and documented in " +
                 "the following Jira issue: ${securityVulnerabilityIssueKeys[0]}. Due to their high " +
                 "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
-        } else {
-            return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
-                "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
-                "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
         }
+
+        return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
+            "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
+            "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
     }
 
     String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {

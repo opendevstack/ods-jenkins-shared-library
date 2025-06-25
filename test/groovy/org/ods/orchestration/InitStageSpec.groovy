@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.PipelineScript
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -12,7 +11,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-import org.ods.util.PipelineSteps
+import util.PipelineSteps
 import util.SpecHelper
 
 import static util.FixtureHelper.createProject
@@ -22,17 +21,15 @@ class InitStageSpec extends SpecHelper {
     BitbucketService bitbucketService
     OpenShiftService openShiftService
     NexusService nexusService
-    IPipelineSteps steps
+    IPipelineSteps script
     Project project
     InitStage initStage
-    PipelineScript script
     MROPipelineUtil util
     JiraUseCase jira
     ILogger logger
 
     def setup() {
-        script = new PipelineScript()
-        steps = Mock(PipelineSteps)
+        script = new PipelineSteps()
         gitService = Mock(GitService)
         bitbucketService = Mock(BitbucketService)
         openShiftService = Mock(OpenShiftService)
@@ -48,7 +45,7 @@ class InitStageSpec extends SpecHelper {
     ServiceRegistry createService() {
         def registry = ServiceRegistry.instance
 
-        registry.add(PipelineSteps, steps)
+        registry.add(IPipelineSteps, script)
         registry.add(MROPipelineUtil, util)
         registry.add(JiraUseCase, jira)
         registry.add(Logger, logger)
@@ -82,7 +79,7 @@ class InitStageSpec extends SpecHelper {
         project = createProject(buildParams)
         createService(project.git)
         initStage = new InitStage(script, project, project.repositories, null)
-        steps.env >> [BUILD_URL: 'http://dummy', BUILD_NUMBER: '01']
+        script.env >> [BUILD_URL: 'http://dummy', BUILD_NUMBER: '01']
         openShiftService.apiUrl >> ''
         buildParams
     }
@@ -136,7 +133,7 @@ class InitStageSpec extends SpecHelper {
         Map buildParams = buildLoadClousure(true, targetEnvironmentToken)
 
         when:
-        initStage.buildLoadClousure(logger, ServiceRegistry.instance, buildParams, project.git, steps).run()
+        initStage.buildLoadClousure(logger, ServiceRegistry.instance, buildParams, project.git, script).run()
 
         then:
         noExceptionThrown()
@@ -150,7 +147,7 @@ class InitStageSpec extends SpecHelper {
         Map buildParams = buildLoadClousure(false, targetEnvironmentToken)
 
         when:
-        initStage.buildLoadClousure(logger, ServiceRegistry.instance, buildParams, project.git, steps).run()
+        initStage.buildLoadClousure(logger, ServiceRegistry.instance, buildParams, project.git, script).run()
 
         then:
         thrown(RuntimeException)
