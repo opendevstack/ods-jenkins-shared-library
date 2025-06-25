@@ -165,7 +165,7 @@ class InitStage extends Stage {
         return [project: project, repos: repos, startAgent: stageToStartAgent]
     }
 
-    private void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+    protected void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
         def os = registry.get(OpenShiftService)
 
         Map envs = project.getEnvironments()

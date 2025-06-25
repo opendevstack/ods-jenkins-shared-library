@@ -156,4 +156,48 @@ class InitStageSpec extends SpecHelper {
         targetEnvironmentToken << ["P", "Q"]
       }
 
+    def "validateEnvConfig for missing prod config" () {
+        given:
+        project.data.metadata.environments = [:]
+        def message = "The Release Manager configuration misses the location of an OpenShift production cluster."
+
+        when:
+        initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
+
+        then:
+        1 * project.addCommentInReleaseStatus(message)
+        1 * util.failBuild(message)
+    }
+
+    def "validateEnvConfig for invalid prod config" () {
+        given:
+        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
+        def message = "The Release Manager configuration for environment(s) prod is incorrect. Please " +
+            "verify the openshift cluster api url and credentials for each environment mentioned."
+
+        when:
+        initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
+
+        then:
+        1 * project.addCommentInReleaseStatus(message)
+        1 * util.failBuild(message)
+    }
+
+    def "validateEnvConfig for valid prod config" () {
+        given:
+        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': 'www.example.com',
+                                                       'openshiftClusterCredentialsId': 'testCredentials']
+                                            ]
+        openShiftService.isValidClusterConfigForEnv(*_) >> true
+
+        when:
+        initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
+
+        then:
+        0 * project.addCommentInReleaseStatus(_)
+        0 * util.failBuild(_)
+        0 * util.warnBuild(_)
+
+    }
+
 }
