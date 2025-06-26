@@ -6,6 +6,7 @@
 
 
 ### Changed
+* Enforce prod config in metadata.yml ([#1222](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1222))
 
 
 ### Fixed
