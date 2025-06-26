@@ -200,7 +200,6 @@ class InitStage extends Stage {
             return
         }
         logger.debug("Try to relogin to current cluster")
-        //TODO double check this with Brais
         try {
             os.reloginToCurrentClusterIfNeeded()
         } catch (ex) {
