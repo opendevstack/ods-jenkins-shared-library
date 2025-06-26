@@ -181,7 +181,7 @@ class InitStage extends Stage {
             project.addCommentInReleaseStatus(message)
             return
         }
-        def wrongConfigsEnvKeys = [];
+        def wrongConfigsEnvKeys = []
         for (String envKey : envs.keySet()) {
             logger.debug("Check cluster config for env ${envKey}")
             if (!os.isValidClusterConfigForEnv(script, project, envKey)) {
