@@ -172,7 +172,7 @@ class InitStage extends Stage {
         if (!envs.keySet().contains("prod")) {
             // We need to always have production config
             String message = "The Release Manager configuration misses the location of " +
-                "an OpenShift production cluster."
+                "an OpenShift production cluster in the metadata.yml."
             if (project.isWorkInProgress) { // Warn build pipeline in this case
                 util.warnBuild(message)
             } else {                        // Error
@@ -190,7 +190,8 @@ class InitStage extends Stage {
         }
         if (wrongConfigsEnvKeys.size() > 0) {
             String message = "The Release Manager configuration for environment(s) ${wrongConfigsEnvKeys.join(', ')} " +
-                "is incorrect. Please verify the openshift cluster api url and credentials for each environment mentioned."
+                "is incorrect in the metadata.yml. Please verify the openshift cluster api url and credentials for " +
+                "each environment mentioned."
             if (project.isWorkInProgress) { // Warn build pipeline in this case
                 util.warnBuild(message)
             } else {                        // Error
