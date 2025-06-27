@@ -165,47 +165,50 @@ class InitStage extends Stage {
         Map envs = project.getEnvironments()
         def wronglyConfiguredEnvKeys = []
         boolean reloginRequired = false
-        for (String env : envs.keySet()) {
-            logger.debug("Check cluster config for env ${env}")
-            try {
-                String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
-                String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
-                if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
+        try {
+            for (String env : envs.keySet()) {
+                logger.debug("Check cluster config for env ${env}")
+                try {
+                    String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
+                    String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
+                    if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
+                        wronglyConfiguredEnvKeys.add(env)
+                    } else {
+                        reloginRequired = true
+                        util.verifyEnvExists(script,
+                            os,
+                            project.targetProject,
+                            env,
+                            project.data.openshift.sessionApiUrl,
+                            openshiftClusterApiUrl,
+                            openshiftClusterCredentialsId
+                        )
+                    }
+                } catch (Exception e) {
                     wronglyConfiguredEnvKeys.add(env)
-                } else {
-                    reloginRequired = true
-                    util.verifyEnvExists(script,
-                        os,
-                        project.targetProject,
-                        env,
-                        project.data.openshift.sessionApiUrl,
-                        openshiftClusterApiUrl,
-                        openshiftClusterCredentialsId
-                    )
                 }
-            } catch (Exception e) {
-                wronglyConfiguredEnvKeys.add(env)
             }
-        }
-        if (wronglyConfiguredEnvKeys.size() > 0) {
-            String message = "The Release Manager configuration for environment(s) ${wronglyConfiguredEnvKeys.join(', ')} " +
-                "is incorrect in the metadata.yml. Please verify the openshift cluster api url and credentials for " +
-                "each environment mentioned."
-            if (project.isWorkInProgress) { // Warn build pipeline in this case
-                util.warnBuild(message)
-            } else {                        // Error
-                util.failBuild(message)
+            if (wronglyConfiguredEnvKeys.size() > 0) {
+                String message = "The Release Manager configuration for environment(s) ${wronglyConfiguredEnvKeys.join(', ')} " +
+                    "is incorrect in the metadata.yml. Please verify the openshift cluster api url and credentials for " +
+                    "each environment mentioned."
+                if (project.isWorkInProgress) { // Warn build pipeline in this case
+                    util.warnBuild(message)
+                } else {                        // Error
+                    util.failBuild(message)
+                }
+                project.addCommentInReleaseStatus(message)
             }
-            project.addCommentInReleaseStatus(message)
-        }
-        if (reloginRequired) {
-            logger.debug("Try to relogin to current cluster")
-            try {
-                os.reloginToCurrentClusterIfNeeded()
-            } catch (ex) {
-                logger.error("Error logging back to current cluster ${ex.getMessage()}")
+        } finally {
+            if (reloginRequired) {
+                logger.debug("Try to relogin to current cluster")
+                try {
+                    os.reloginToCurrentClusterIfNeeded()
+                } catch (ex) {
+                    logger.error("Error logging back to current cluster ${ex.getMessage()}")
+                }
+                logger.debug("Success relogging in to current cluster.")
             }
-            logger.debug("Success relogging in to current cluster.")
         }
     }
 
