@@ -156,7 +156,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 
     //TODO remove this
-    def os = ServiceRegistry.instance.get(OpenShiftService)
+    def os = new OpenShiftService(steps, logger)
     os.reloginToCurrentClusterIfNeeded()
 
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
