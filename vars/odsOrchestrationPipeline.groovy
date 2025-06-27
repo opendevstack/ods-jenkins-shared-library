@@ -154,6 +154,11 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+
+    //TODO remove this
+    def os = ServiceRegistry.instance.get(OpenShiftService)
+    os.reloginToCurrentClusterIfNeeded()
+
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
         logger.warn("Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
             "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace")
