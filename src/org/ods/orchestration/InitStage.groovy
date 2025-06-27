@@ -197,7 +197,6 @@ class InitStage extends Stage {
                 util.failBuild(message)
             }
             project.addCommentInReleaseStatus(message)
-            return
         }
         if (reloginRequired) {
             logger.debug("Try to relogin to current cluster")
