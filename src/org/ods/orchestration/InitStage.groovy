@@ -169,8 +169,10 @@ class InitStage extends Stage {
             for (String env : envs.keySet()) {
                 logger.debug("Check cluster config for env ${env}")
                 try {
-                    String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
-                    String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
+                    String openshiftClusterApiUrl = envs."$env"?.apiUrl
+                        ?: envs."$env"?.openshiftClusterApiUrl
+                    String openshiftClusterCredentialsId = envs."$env"?.credentialsId
+                        ?: envs."$env"?.openshiftClusterCredentialsId
                     if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
                         wronglyConfiguredEnvKeys.add(env)
                     } else {
@@ -189,8 +191,9 @@ class InitStage extends Stage {
                 }
             }
             if (wronglyConfiguredEnvKeys.size() > 0) {
-                String message = "The Release Manager configuration for environment(s) ${wronglyConfiguredEnvKeys.join(', ')} " +
-                    "is incorrect in the metadata.yml. Please verify the openshift cluster api url and credentials for " +
+                String message = "The Release Manager configuration for environment(s) " +
+                    "${wronglyConfiguredEnvKeys.join(', ')} is incorrect in the metadata.yml. " +
+                    "Please verify the openshift cluster api url and credentials for " +
                     "each environment mentioned."
                 if (project.isWorkInProgress) { // Warn build pipeline in this case
                     util.warnBuild(message)

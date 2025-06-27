@@ -22,7 +22,6 @@ class DeployStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize', 'LineLength'])
     def run() {
-        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)

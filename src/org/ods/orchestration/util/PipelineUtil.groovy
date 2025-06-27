@@ -184,6 +184,7 @@ class PipelineUtil {
         return this.steps.load(path)
     }
 
+    @SuppressWarnings('ParameterCount')
     def verifyEnvExists(def script, OpenShiftService os, def targetProject, def targetEnvironment,
                         def sessionApiUrl, def targetApiUrl, def credentialsId) {
         def installableRepos = this.project.repositories.findAll { repo ->
@@ -223,4 +224,5 @@ class PipelineUtil {
             }
         }
     }
+
 }
