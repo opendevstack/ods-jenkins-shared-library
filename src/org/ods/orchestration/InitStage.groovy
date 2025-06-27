@@ -92,8 +92,6 @@ class InitStage extends Stage {
 
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        validateEnvConfig(logger, registry, util)
-
         def check = project.getComponentsFromJira()
         if (check) {
             logger.info("Comparing Jira components against metadata.yml repositories")
@@ -151,6 +149,8 @@ class InitStage extends Stage {
             )
         }
         project.setTargetProject(targetProject)
+
+        validateEnvConfig(logger, registry, util)
 
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
