@@ -1470,38 +1470,4 @@ class OpenShiftService {
             )
         }
     }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
-    def boolean isValidClusterConfigForEnv(def script, Project project, String env) {
-        Map envs = project.getEnvironments()
-        String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
-        String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
-        if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
-            return false
-        }
-        logger.debug("Trying to login to ${env} cluster ${openshiftClusterApiUrl} " +
-            "with credentialsId ${openshiftClusterCredentialsId}")
-        try {
-            script.withCredentials([
-                script.usernamePassword(
-                    credentialsId: openshiftClusterCredentialsId,
-                    usernameVariable: 'EXTERNAL_OPENSHIFT_API_USER',
-                    passwordVariable: 'EXTERNAL_OPENSHIFT_API_TOKEN'
-                )
-            ]) {
-                logger.error("Login to external cluster ${openshiftClusterApiUrl} " +
-                    "with token ${script.EXTERNAL_OPENSHIFT_API_TOKEN}")
-                OpenShiftService.loginToExternalCluster(
-                    steps,
-                    openshiftClusterApiUrl,
-                    script.EXTERNAL_OPENSHIFT_API_TOKEN
-                )
-            }
-        } catch (ex) {
-            logger.error("Exception trying to login to ${env} cluster ${openshiftClusterApiUrl}: " + ex.getMessage())
-            return false
-        }
-        logger.debug("Success loggin in to ${env} cluster ${openshiftClusterApiUrl}")
-        return true
-    }
 }

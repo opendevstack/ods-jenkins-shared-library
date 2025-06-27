@@ -66,8 +66,7 @@ class DeployStageSpec extends SpecHelper {
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        1 * project.targetClusterIsExternal >> false
-        1 * openshiftService.envExists(project.targetProject) >> true
+        1 * util.verifyEnvExists(*_) >> false
     }
 
     def "deploy in Q with 3 installable repos (none included)"() {
@@ -84,7 +83,7 @@ class DeployStageSpec extends SpecHelper {
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        0 * project.targetClusterIsExternal >> false
+        0 * project.targetClusterExternal >> false
         0 * openshiftService.envExists(project.targetProject) >> true
     }
 
@@ -106,7 +105,7 @@ class DeployStageSpec extends SpecHelper {
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        0 * project.targetClusterIsExternal >> false
+        0 * project.targetClusterExternal >> false
         0 * openshiftService.envExists(project.targetProject) >> true
     }
 }

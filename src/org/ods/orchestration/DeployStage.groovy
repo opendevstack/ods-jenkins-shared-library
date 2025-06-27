@@ -85,44 +85,13 @@ class DeployStage extends Stage {
 
         runOnAgentPod(agentPodCondition) {
             if (project.isPromotionMode) {
-                def targetEnvironment = project.buildParams.targetEnvironment
-                def targetProject = project.targetProject
-                def installableRepos = this.project.repositories.findAll { repo ->
-                    // We only manage the installable repositories in OpenShift if they are included in the release
-                    if (repo.include
-                        && repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                        MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
-                    }
-                }
-                logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'" +
-                    " installable repos? ${installableRepos.size()}")
-
-                if (installableRepos?.size() > 0) {
-                    if (project.targetClusterIsExternal) {
-                        logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
-                        script.withCredentials([
-                            script.usernamePassword(
-                                credentialsId: project.environmentConfig.credentialsId,
-                                usernameVariable: 'EXTERNAL_OCP_API_SA',
-                                passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
-                            )
-                        ]) {
-                            OpenShiftService.loginToExternalCluster(
-                                steps,
-                                project.openShiftTargetApiUrl,
-                                script.EXTERNAL_OCP_API_TOKEN
-                            )
-                        }
-                    }
-
-                    // Check if the target environment exists in OpenShift
-                    if (!os.envExists(targetProject)) {
-                        throw new RuntimeException(
-                            "Error: target environment '${targetProject}' does not exist " +
-                            "in ${project.openShiftTargetApiUrl}."
-                        )
-                    }
-                }
+                util.verifyEnvExists(script,
+                    os,
+                    project.targetProject,
+                    project.buildParams.targetEnvironment,
+                    project.data.openshift?.sessionApiUrl,
+                    project.data.openshift?.targetApiUrl,
+                    project.environmentConfig?.credentialsId)
             }
 
             Closure generateDocuments = {

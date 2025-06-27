@@ -1,12 +1,6 @@
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
-import groovy.util.logging.Slf4j
-import org.apache.commons.io.FileUtils
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import org.ods.core.test.LoggerStub
-import org.ods.orchestration.util.Project
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
@@ -14,29 +8,9 @@ import org.ods.util.PodData
 import spock.lang.Unroll
 import util.FixtureHelper
 import util.OpenShiftHelper
-import util.PipelineSteps
 import util.SpecHelper
 
-@Slf4j
 class OpenShiftServiceSpec extends SpecHelper {
-
-    private static final String PROJECT_KEY = "OS_SPEC_PRJ"
-
-    @Rule
-    public TemporaryFolder tempFolder
-
-    IPipelineSteps steps
-    Project project
-    ILogger logger
-
-    def setup() {
-        log.info "Using temporal folder:${tempFolder.getRoot()}"
-
-        steps = new PipelineSteps()
-        steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
-        logger = new LoggerStub(log)
-        project = buildProject(logger)
-    }
 
     def "image info for image URL"() {
         given:
@@ -863,69 +837,5 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         thrown(RuntimeException)
-    }
-
-    def "isValidClusterConfigForEnv for missing credentials"() {
-        given:
-        def service = new OpenShiftService(steps, logger)
-        def script = Mock(IPipelineSteps)
-        def env = "prod"
-        project.data.metadata.environments = [:]
-
-        when:
-        boolean result = service.isValidClusterConfigForEnv(script, project, env)
-
-        then:
-        result == false
-    }
-
-    def "isValidClusterConfigForEnv for wrong prod config"() {
-        given:
-        def service = new OpenShiftService(steps, logger)
-        def script = Mock(IPipelineSteps)
-        def env = "prod"
-        project.data.metadata.environments = ['prod': ['apiUrl': 'www.example.com', 'credentialsId': 'testCredentials']]
-        script.usernamePassword(*_) >> [:]
-        script.withCredentials(*_)  >> { throw new Exception("Could not log in") }
-
-        when:
-        boolean result = service.isValidClusterConfigForEnv(script, project, env)
-
-        then:
-        result == false
-    }
-
-    def "isValidClusterConfigForEnv for valid prod config"() {
-        given:
-        def service = new OpenShiftService(steps, logger)
-        def script = Mock(IPipelineSteps)
-        def env = "prod"
-        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': 'www.example.com', 'openshiftClusterCredentialsId': 'testCredentials']]
-        script.usernamePassword(*_) >> [:]
-        script.withCredentials(*_) >> true
-
-        when:
-        boolean result = service.isValidClusterConfigForEnv(script, project, env)
-
-        then:
-        result == true
-    }
-
-    def buildProject(logger) {
-        FileUtils.copyDirectory(new FixtureHelper().getResource("workspace/metadata.yml").parentFile, tempFolder.getRoot())
-
-        steps.env.BUILD_ID = "1"
-        steps.env.WORKSPACE = "${tempFolder.getRoot().absolutePath}"
-
-        def project = new Project(steps, logger, [:])
-        project.data.metadata = project.loadMetadata("metadata.yml")
-        project.data.metadata.id = PROJECT_KEY
-        project.data.buildParams = [:]
-        project.data.buildParams.targetEnvironment = "dev"
-        project.data.buildParams.targetEnvironmentToken = "D"
-        project.data.buildParams.version = "WIP"
-        project.data.buildParams.changeId = "someChangeId"
-        project.repositories.forEach { repo -> repo.defaultBranch = "master"}
-        return project
     }
 }

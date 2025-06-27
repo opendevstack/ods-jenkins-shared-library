@@ -720,7 +720,7 @@ class Project {
 
     void setOpenShiftData(String sessionApiUrl) {
         def envConfig = getEnvironmentConfig()
-        def targetApiUrl = envConfig?.apiUrl
+        def targetApiUrl = envConfig?.apiUrl ?: envConfig?.openshiftClusterApiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
         }
@@ -730,10 +730,13 @@ class Project {
     }
 
     @NonCPS
-    boolean getTargetClusterIsExternal() {
+    boolean isTargetClusterExternal() {
+        return isTargetClusterExternal(this.data.openshift.sessionApiUrl, this.data.openshift.targetApiUrl)
+    }
+
+    @NonCPS
+    static boolean isTargetClusterExternal(def sessionApiUrl, def targetApiUrl) {
         def isExternal = false
-        def sessionApiUrl = this.data.openshift.sessionApiUrl
-        def targetApiUrl = this.data.openshift.targetApiUrl
         def targetApiUrlMatcher = targetApiUrl =~ /:[0-9]+$/
         if (targetApiUrlMatcher.find()) {
             isExternal = sessionApiUrl != targetApiUrl

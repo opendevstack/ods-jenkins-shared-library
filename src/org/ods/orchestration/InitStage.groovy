@@ -92,13 +92,7 @@ class InitStage extends Stage {
 
         MROPipelineUtil util = registry.get(MROPipelineUtil)
 
-        if (project.repositories.any {
-                it -> (it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
-                    || it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)
-        }) {
-            logger.info("Validate environment metadata.yml config started")
-            validateEnvConfig(logger, registry, util)
-        }
+        validateEnvConfig(logger, registry, util)
 
         def check = project.getComponentsFromJira()
         if (check) {
@@ -166,30 +160,35 @@ class InitStage extends Stage {
     }
 
     protected void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+        logger.debug("Validate environment metadata.yml config started")
         def os = registry.get(OpenShiftService)
-
         Map envs = project.getEnvironments()
-        if (!envs.keySet().contains("prod")) {
-            // We need to always have production config
-            String message = "The Release Manager configuration misses the location of " +
-                "an OpenShift production cluster in the metadata.yml."
-            if (project.isWorkInProgress) { // Warn build pipeline in this case
-                util.warnBuild(message)
-            } else {                        // Error
-                util.failBuild(message)
+        def wronglyConfiguredEnvKeys = []
+        boolean reloginRequired = false
+        for (String env : envs.keySet()) {
+            logger.debug("Check cluster config for env ${env}")
+            try {
+                String openshiftClusterApiUrl = envs."$env"?.apiUrl ?: envs."$env"?.openshiftClusterApiUrl
+                String openshiftClusterCredentialsId = envs."$env"?.credentialsId ?: envs."$env"?.openshiftClusterCredentialsId
+                if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
+                    wronglyConfiguredEnvKeys.add(env)
+                } else {
+                    reloginRequired = true
+                    util.verifyEnvExists(script,
+                        os,
+                        project.targetProject,
+                        env,
+                        project.data.openshift.sessionApiUrl,
+                        openshiftClusterApiUrl,
+                        openshiftClusterCredentialsId
+                    )
+                }
+            } catch (Exception e) {
+                wronglyConfiguredEnvKeys.add(env)
             }
-            project.addCommentInReleaseStatus(message)
-            return
         }
-        def wrongConfigsEnvKeys = []
-        for (String envKey : envs.keySet()) {
-            logger.debug("Check cluster config for env ${envKey}")
-            if (!os.isValidClusterConfigForEnv(script, project, envKey)) {
-                wrongConfigsEnvKeys.add(envKey)
-            }
-        }
-        if (wrongConfigsEnvKeys.size() > 0) {
-            String message = "The Release Manager configuration for environment(s) ${wrongConfigsEnvKeys.join(', ')} " +
+        if (wronglyConfiguredEnvKeys.size() > 0) {
+            String message = "The Release Manager configuration for environment(s) ${wronglyConfiguredEnvKeys.join(', ')} " +
                 "is incorrect in the metadata.yml. Please verify the openshift cluster api url and credentials for " +
                 "each environment mentioned."
             if (project.isWorkInProgress) { // Warn build pipeline in this case
@@ -200,13 +199,15 @@ class InitStage extends Stage {
             project.addCommentInReleaseStatus(message)
             return
         }
-        logger.debug("Try to relogin to current cluster")
-        try {
-            os.reloginToCurrentClusterIfNeeded()
-        } catch (ex) {
-            logger.error("Error logging back to current cluster ${ex.getMessage()}")
+        if (reloginRequired) {
+            logger.debug("Try to relogin to current cluster")
+            try {
+                os.reloginToCurrentClusterIfNeeded()
+            } catch (ex) {
+                logger.error("Error logging back to current cluster ${ex.getMessage()}")
+            }
+            logger.debug("Success relogging in to current cluster.")
         }
-        logger.debug("Success relogging in to current cluster.")
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {

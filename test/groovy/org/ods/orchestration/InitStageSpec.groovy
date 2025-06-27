@@ -156,20 +156,6 @@ class InitStageSpec extends SpecHelper {
         targetEnvironmentToken << ["P", "Q"]
       }
 
-    def "validateEnvConfig for missing prod config" () {
-        given:
-        project.data.metadata.environments = [:]
-        def message = "The Release Manager configuration misses the location of an OpenShift production " +
-            "cluster in the metadata.yml."
-
-        when:
-        initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
-
-        then:
-        1 * project.addCommentInReleaseStatus(message)
-        1 * util.failBuild(message)
-    }
-
     def "validateEnvConfig for invalid prod config" () {
         given:
         project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
