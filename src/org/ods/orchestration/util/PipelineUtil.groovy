@@ -193,7 +193,7 @@ class PipelineUtil {
                 MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
             }
         }
-        logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'" +
+        logger.info("Verify project deployment '${project.key}' into environment '${targetEnvironment}'" +
             " installable repos? ${installableRepos.size()}")
 
         if (installableRepos?.size() > 0) {
