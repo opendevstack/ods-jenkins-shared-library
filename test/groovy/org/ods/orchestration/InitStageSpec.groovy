@@ -156,9 +156,10 @@ class InitStageSpec extends SpecHelper {
         targetEnvironmentToken << ["P", "Q"]
       }
 
-    def "validateEnvConfig for invalid prod config" () {
+    def "validateEnvConfig for invalid prod config and deploy to D" () {
         given:
         project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
+        project.data.buildParams.version = "1.0"
         def message = "The Release Manager configuration for environment(s) prod is incorrect in the metadata.yml. " +
             "Please verify the openshift cluster api url and credentials for each environment mentioned."
 
@@ -168,6 +169,23 @@ class InitStageSpec extends SpecHelper {
         then:
         1 * project.addCommentInReleaseStatus(message)
         1 * util.failBuild(message)
+        0 * openShiftService.reloginToCurrentClusterIfNeeded()
+    }
+
+    def "validateEnvConfig for invalid prod config and dev preview" () {
+        given:
+        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
+        project.data.buildParams.version = "WIP"
+        def message = "The Release Manager configuration for environment(s) prod is incorrect in the metadata.yml. " +
+            "Please verify the openshift cluster api url and credentials for each environment mentioned."
+
+        when:
+        initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
+
+        then:
+        1 * project.addCommentInReleaseStatus(message)
+        1 * util.warnBuild(message)
+        0 * openShiftService.reloginToCurrentClusterIfNeeded()
     }
 
     def "validateEnvConfig for valid prod config" () {
@@ -175,7 +193,7 @@ class InitStageSpec extends SpecHelper {
         project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': 'www.example.com',
                                                        'openshiftClusterCredentialsId': 'testCredentials']
                                             ]
-        openShiftService.isValidClusterConfigForEnv(*_) >> true
+
 
         when:
         initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
@@ -184,6 +202,7 @@ class InitStageSpec extends SpecHelper {
         0 * project.addCommentInReleaseStatus(_)
         0 * util.failBuild(_)
         0 * util.warnBuild(_)
+        1 * openShiftService.reloginToCurrentClusterIfNeeded()
 
     }
 
