@@ -150,7 +150,7 @@ class InitStage extends Stage {
         }
         project.setTargetProject(targetProject)
 
-//        validateEnvConfig(logger, registry, util)
+        validateEnvConfig(logger, registry, util)
 
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
