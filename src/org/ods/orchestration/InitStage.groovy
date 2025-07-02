@@ -203,7 +203,7 @@ class InitStage extends Stage {
         }
     }
 
-    private processWrongEnvConfig(String env, MROPipelineUtil util, String errorMessage) {
+    private processWrongEnvConfig(String env, MROPipelineUtil util, String errorMessage = null) {
         String message = "The Release Manager configuration for environment " +
             "${env} is incorrect in the metadata.yml. " +
             "Please verify the openshift cluster api url and credentials."
