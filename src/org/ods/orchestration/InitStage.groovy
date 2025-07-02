@@ -164,7 +164,7 @@ class InitStage extends Stage {
         def os = registry.get(OpenShiftService)
         Map envs = project.getEnvironments()
         boolean reloginRequired = false
-        def prodEnv = MROPipelineUtil.PipelineEnvs.PROD;
+        def prodEnv = MROPipelineUtil.PipelineEnvs.PROD
         try {
             if (envs.containsKey(prodEnv)) {
                 logger.debug("Check cluster config for env ${prodEnv}")
