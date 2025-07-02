@@ -163,44 +163,31 @@ class InitStage extends Stage {
         logger.debug("Validate environment metadata.yml config started")
         def os = registry.get(OpenShiftService)
         Map envs = project.getEnvironments()
-        def wronglyConfiguredEnvKeys = []
         boolean reloginRequired = false
+        def prodEnv = MROPipelineUtil.PipelineEnvs.PROD;
         try {
-            for (String env : envs.keySet()) {
-                logger.debug("Check cluster config for env ${env}")
+            if (envs.containsKey(prodEnv)) {
+                logger.debug("Check cluster config for env ${prodEnv}")
                 try {
-                    String openshiftClusterApiUrl = envs."$env"?.apiUrl
-                        ?: envs."$env"?.openshiftClusterApiUrl
-                    String openshiftClusterCredentialsId = envs."$env"?.credentialsId
-                        ?: envs."$env"?.openshiftClusterCredentialsId
+                    String openshiftClusterApiUrl = envs."$prodEnv"?.apiUrl
+                        ?: envs."$prodEnv"?.openshiftClusterApiUrl
+                    String openshiftClusterCredentialsId = envs."$prodEnv"?.credentialsId
+                        ?: envs."$prodEnv"?.openshiftClusterCredentialsId
                     if (!openshiftClusterApiUrl || !openshiftClusterCredentialsId) {
-                        wronglyConfiguredEnvKeys.add(env)
+                        processWrongEnvConfig(prodEnv, util)
                     } else {
                         reloginRequired = true
                         util.verifyEnvExists(script,
                             os,
                             project.targetProject,
-                            env,
+                            prodEnv,
                             project.data.openshift.sessionApiUrl,
                             openshiftClusterApiUrl,
                             openshiftClusterCredentialsId
                         )
                     }
                 } catch (Exception e) {
-                    wronglyConfiguredEnvKeys.add(env)
-                }
-            }
-            if (wronglyConfiguredEnvKeys.size() > 0) {
-                String message = "The Release Manager configuration for environment(s) " +
-                    "${wronglyConfiguredEnvKeys.join(', ')} is incorrect in the metadata.yml. " +
-                    "Please verify the openshift cluster api url and credentials for " +
-                    "each environment mentioned."
-                project.addCommentInReleaseStatus(message)
-                if (project.isWorkInProgress) { // Warn build pipeline in this case
-                    util.warnBuild(message)
-                } else {                        // Error
-                    util.failBuild(message)
-                    throw new RuntimeException(message)
+                    processWrongEnvConfig(prodEnv, util, e.getMessage())
                 }
             }
         } finally {
@@ -213,6 +200,19 @@ class InitStage extends Stage {
                 }
                 logger.debug("Success relogging in to current cluster.")
             }
+        }
+    }
+
+    private processWrongEnvConfig(String env, MROPipelineUtil util, String errorMessage) {
+        String message = "The Release Manager configuration for environment " +
+            "${env} is incorrect in the metadata.yml. " +
+            "Please verify the openshift cluster api url and credentials."
+        project.addCommentInReleaseStatus(message)
+        if (project.isWorkInProgress) { // Warn build pipeline in this case
+            util.warnBuild(message)
+        } else {                        // Error
+            util.failBuild(message)
+            throw new RuntimeException(errorMessage ?: message)
         }
     }
 
