@@ -167,17 +167,15 @@ class InitStageSpec extends SpecHelper {
         initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
 
         then:
-        1 * project.addCommentInReleaseStatus(message)
-        1 * util.failBuild(message)
-        0 * openShiftService.reloginToCurrentClusterIfNeeded()
+        thrown(RuntimeException)
     }
 
     def "validateEnvConfig for invalid prod config and dev preview" () {
         given:
         project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
         project.data.buildParams.version = "WIP"
-        def message = "The Release Manager configuration for environment(s) prod is incorrect in the metadata.yml. " +
-            "Please verify the openshift cluster api url and credentials for each environment mentioned."
+        def message = "The Release Manager configuration for environment prod is incorrect in the metadata.yml. " +
+            "Please verify the openshift cluster api url and credentials."
 
         when:
         initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
