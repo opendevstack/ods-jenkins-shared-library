@@ -187,7 +187,8 @@ class InitStage extends Stage {
                         )
                     }
                 } catch (Exception e) {
-                    processWrongEnvConfig(prodEnv, util, e.getMessage())
+                    processWrongEnvConfig(prodEnv, util,
+                        "Error trying to verify the env ${prodEnv} exists: " + e.getMessage())
                 }
             }
         } finally {
