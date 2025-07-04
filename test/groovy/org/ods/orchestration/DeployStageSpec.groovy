@@ -66,7 +66,8 @@ class DeployStageSpec extends SpecHelper {
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        1 * util.verifyEnvExists(*_) >> false
+        1 * util.getInstallableRepos()
+        0 * util.verifyEnvLoginAndExistence(*_)
     }
 
     def "deploy in Q with 3 installable repos (none included)"() {

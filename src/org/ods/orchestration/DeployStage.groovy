@@ -84,13 +84,19 @@ class DeployStage extends Stage {
 
         runOnAgentPod(agentPodCondition) {
             if (project.isPromotionMode) {
-                util.verifyEnvExists(script,
-                    os,
-                    project.targetProject,
-                    project.buildParams.targetEnvironment,
-                    project.data.openshift?.sessionApiUrl,
-                    project.data.openshift?.targetApiUrl,
-                    project.environmentConfig?.credentialsId)
+                def installableRepos = util.getInstallableRepos()
+
+                logger.info("Verify project deployment '${project.key}' into environment " +
+                    "'${project.buildParams.targetEnvironment}' installable repos? ${installableRepos?.size()}")
+
+                if (installableRepos?.size() > 0) {
+                    util.verifyEnvLoginAndExistence(script,
+                        os,
+                        project.targetProject,
+                        project.data.openshift?.sessionApiUrl,
+                        project.data.openshift?.targetApiUrl,
+                        project.environmentConfig?.credentialsId)
+                }
             }
 
             Closure generateDocuments = {

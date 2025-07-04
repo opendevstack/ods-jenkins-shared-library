@@ -184,44 +184,43 @@ class PipelineUtil {
         return this.steps.load(path)
     }
 
-    @SuppressWarnings('ParameterCount')
-    def verifyEnvExists(def script, OpenShiftService os, def targetProject, def targetEnvironment,
-                        def sessionApiUrl, def targetApiUrl, def credentialsId) {
-        def installableRepos = this.project.repositories.findAll { repo ->
+    List getInstallableRepos() {
+        return this.project.repositories.findAll { repo ->
             // We only manage the installable repositories in OpenShift if they are included in the release
             if (repo.include
                 && repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
                 MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
             }
         }
-        logger.info("Verify project deployment '${project.key}' into environment '${targetEnvironment}'" +
-            " installable repos? ${installableRepos.size()}")
+    }
 
-        if (installableRepos?.size() > 0) {
-            if (Project.isTargetClusterExternal(sessionApiUrl, targetApiUrl)) {
-                logger.info("Target cluster is external, logging into ${targetApiUrl}")
-                script.withCredentials([
-                    script.usernamePassword(
-                        credentialsId: credentialsId,
-                        usernameVariable: 'EXTERNAL_OCP_API_SA',
-                        passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
-                    )
-                ]) {
-                    OpenShiftService.loginToExternalCluster(
-                        steps,
-                        targetApiUrl,
-                        script.EXTERNAL_OCP_API_TOKEN
-                    )
-                }
-            }
+    @SuppressWarnings('ParameterCount')
+    def verifyEnvLoginAndExistence(def script, OpenShiftService os, def targetProject, def sessionApiUrl,
+                                   def targetApiUrl, def credentialsId) {
 
-            // Check if the target environment exists in OpenShift
-            if (!os.envExists(targetProject)) {
-                throw new RuntimeException(
-                    "Error: target environment '${targetProject}' does not exist " +
-                        "in ${targetApiUrl}."
+        if (Project.isTargetClusterExternal(sessionApiUrl, targetApiUrl)) {
+            logger.info("Target cluster is external, logging into ${targetApiUrl}")
+            script.withCredentials([
+                script.usernamePassword(
+                    credentialsId: credentialsId,
+                    usernameVariable: 'EXTERNAL_OCP_API_SA',
+                    passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
+                )
+            ]) {
+                OpenShiftService.loginToExternalCluster(
+                    steps,
+                    targetApiUrl,
+                    script.EXTERNAL_OCP_API_TOKEN
                 )
             }
+        }
+
+        // Check if the target environment exists in OpenShift
+        if (!os.envExists(targetProject)) {
+            throw new RuntimeException(
+                "Error: target environment '${targetProject}' does not exist " +
+                    "in ${targetApiUrl}."
+            )
         }
     }
 
