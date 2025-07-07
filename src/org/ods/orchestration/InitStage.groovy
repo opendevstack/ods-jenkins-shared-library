@@ -200,12 +200,12 @@ class InitStage extends Stage {
                     "${wronglyConfiguredEnvs.join(', ')} is incorrect in the metadata.yml. " +
                     "Please verify the openshift cluster api url and credentials for " +
                     "each environment mentioned."
-                project.addCommentInReleaseStatus(message)
                 if (project.isWorkInProgress) { // Warn build pipeline in this case
+                    project.addCommentInReleaseStatus(message)
                     util.warnBuild(message)
                 } else {                        // Error
                     util.failBuild(message)
-                    throw new RuntimeException(message)
+                    throw new RuntimeException(message) // This also add a comment in the release status issue
                 }
             }
         } finally {
