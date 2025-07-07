@@ -158,8 +158,10 @@ class InitStageSpec extends SpecHelper {
 
     def "validateEnvConfig for invalid prod config and deploy to D" () {
         given:
-        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '', 'openshiftClusterCredentialsId': '']]
+        project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': 'bla', 'openshiftClusterCredentialsId': 'bla']]
         project.data.buildParams.version = "1.0"
+        openShiftService.envExists(_) >> true
+        util.verifyEnvLoginAndExistence(_, _, _, _, _, _) >> { throw new RuntimeException("test exception")}
 
         when:
         initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
@@ -168,22 +170,22 @@ class InitStageSpec extends SpecHelper {
         thrown(RuntimeException)
     }
 
-    def "validateEnvConfig for invalid prod config and dev preview" () {
+    def "validateEnvConfig for no prod config and dev preview" () {
         given:
         project.data.metadata.environments = ['prod': ['openshiftClusterApiUrl': '',
                                                        'openshiftClusterCredentialsId': '']
                                             ]
         project.data.buildParams.version = "WIP"
-        def message = "The Release Manager configuration for environment(s) prod is incorrect in the metadata.yml. " +
-            "Please verify the openshift cluster api url and credentials for each environment mentioned."
         openShiftService.envExists(_) >> true
+        util.verifyEnvLoginAndExistence(_, _, _, _, _, _) >> { throw new RuntimeException("test exception")}
 
         when:
         initStage.validateEnvConfig(logger, ServiceRegistry.instance, util)
 
         then:
-        1 * project.addCommentInReleaseStatus(message)
-        1 * util.warnBuild(message)
+        0 * project.addCommentInReleaseStatus(_)
+        0 * util.failBuild(_)
+        0 * util.warnBuild(_)
         0 * openShiftService.reloginToCurrentClusterIfNeeded()
     }
 

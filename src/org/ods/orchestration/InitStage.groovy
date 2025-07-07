@@ -178,9 +178,7 @@ class InitStage extends Stage {
                     String openshiftClusterCredentialsId = envs."$env.value"?.credentialsId
                         ?: envs."$env.value"?.openshiftClusterCredentialsId
                     if (!openshiftClusterApiUrl && !openshiftClusterCredentialsId) {
-                        if (env == MROPipelineUtil.PipelineEnv.PROD) { // prod should always have url and credentials
-                            wronglyConfiguredEnvs.add(env.value)
-                        } else if (!os.envExists(project.targetProject)) {
+                        if (!os.envExists(project.targetProject)) {
                             wronglyConfiguredEnvs.add(env.value)
                         }
                     } else {
