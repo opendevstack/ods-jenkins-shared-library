@@ -5,6 +5,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
+import org.ods.services.SonarQubeService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.TailorDeploymentException
@@ -20,6 +21,7 @@ class Pipeline implements Serializable {
     private OpenShiftService openShiftService
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
+    private SonarQubeService sonarQubeService
 
     private ILogger logger
     private def script
@@ -257,6 +259,22 @@ class Pipeline implements Serializable {
                                         script.env.BITBUCKET_PW as String)
                                 }
                                 gitService.switchToRemoteBranch(context.gitBranch)
+                            }
+                            context.sonarExecuted = false
+                            logger.info("sonarExecuted: ${context.sonarExecuted}")
+                            if(!context.sonarExecuted) {
+								logger.info("SonarQube not configured, using default conf")
+                              	
+                              	def registry = ServiceRegistry.instance
+                              	if (!registry.get(SonarQubeService)) {
+                                  logger.info 'Registering SonarQubeService'
+                                  this.sonarQubeService = new SonarQubeService(
+                                      script, logger, 'SonarServerConfig')
+                                  registry.add(SonarQubeService, this.sonarQubeService)
+                              }
+                              
+                              	Stage sonarStage = new ScanWithSonarStage(script, context, [:], this.bitbucketService, this.sonarQubeService, registry.get(NexusService), logger)
+                              	sonarStage.execute() 
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {

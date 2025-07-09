@@ -395,6 +395,15 @@ class Context implements IContext {
     void setSonarQubeBranch(String sonarQubeBranch) {
         config.sonarQubeBranch = sonarQubeBranch
     }
+  
+  	@NonCPS
+    boolean getSonarExecuted() {
+        config.sonarExecuted
+    }
+  
+  	void setSonarExecuted(boolean executed) {
+        config.sonarExecuted = executed
+    }
 
     @NonCPS
     boolean getFailOnSnykScanVulnerabilities() {
