@@ -103,6 +103,7 @@ class ScanWithSonarStage extends Stage {
             pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null
         )
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
+        logger.info "SonarQube options.requireQualityGatePass: ${options.requireQualityGatePass}"
         if (options.requireQualityGatePass) {
             if (qualityGateResult == 'ERROR') {
                 steps.error 'Quality gate failed!'
