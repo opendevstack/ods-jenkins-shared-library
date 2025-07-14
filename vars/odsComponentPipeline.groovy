@@ -67,6 +67,8 @@ def call(Map config, Closure body) {
                     text.bytes,
                     "application/text"
                 )
+                logger.debug("Successfully uploaded Jenkins logs to Nexus: ${DEFAULT_NEXUS_REPOSITORY}/${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs")
+
                 new ClassLoaderCleaner().clean(logger, processId)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")

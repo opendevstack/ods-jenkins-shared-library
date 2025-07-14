@@ -320,7 +320,7 @@ class FinalizeStage extends Stage {
                 file.bytes,
                 "application/zip"
             )
-            logger.info("Successfully uploaded xUnit results to Nexus.")
+            logger.info("Successfully uploaded xUnit results to Nexus: ${project.services.nexus.repository.name}:${project.key.toLowerCase()}-${project.buildParams.version}/xunit")
         } catch (Exception e) {
             logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
             throw e
