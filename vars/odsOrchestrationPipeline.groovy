@@ -116,7 +116,7 @@ def call(Map config) {
             }
 
             JenkinsService jenkinsService = registry.get(JenkinsService)
-            String text = jenkinsService.currentBuildLogAsText()
+            String text = jenkinsService.currentBuildLogAsText
 
             nexusService.storeArtifact(
                 project.services.nexus.repository.name,
