@@ -1576,7 +1576,6 @@ class Project {
             throw new IllegalArgumentException("Error: unable to parse project meta data. 'filename' is undefined.")
         }
 
-        logger.warn("HEREEE444 " + this.steps.env.WORKSPACE)
         def file = Paths.get(this.steps.env.WORKSPACE, filename).toFile()
         if (!file.exists()) {
             throw new RuntimeException("Error: unable to load project meta data. File '${this.steps.env.WORKSPACE}/${filename}' does not exist.")

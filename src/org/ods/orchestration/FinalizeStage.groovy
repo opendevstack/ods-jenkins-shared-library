@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import com.google.common.base.Strings
 import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
@@ -143,7 +144,11 @@ class FinalizeStage extends Stage {
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
             }
         }
-        uploadTestReportToNexus()
+
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+        def zipFile = buildXunitZipFile(steps, testDir, "xunit.zip")
+        uploadTestReportToNexus(xunitDir, zipFile)
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
@@ -300,23 +305,20 @@ class FinalizeStage extends Stage {
         }
     }
 
-    private void uploadTestReportToNexus() {
+    private void uploadTestReportToNexus(def name, def file) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
+        }
 
-        logger.debug "Finalize: upload tests to nexus"
-        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        def zipFile = "xunit.zip"
-        def steps = ServiceRegistry.instance.get(IPipelineSteps)
-        def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-
-        steps.sh "cd ${testDir} && zip -r ${zipFile} ."
-
-        def file = new File(testDir + "/" + zipFile)
+        if (file == null || file.exists() == false) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
+        }
 
         try {
             this.nexus.storeArtifact(
                 project.services.nexus.repository.name,
                 "${project.key.toLowerCase()}-${project.buildParams.version}/xunit",
-                "${xunitDir}.zip",
+                name,
                 file.bytes,
                 "application/zip"
             )
@@ -325,5 +327,10 @@ class FinalizeStage extends Stage {
             logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
             throw e
         }
+    }
+
+    private File buildXunitZipFile(def steps, def testDir, def zipFileName) {
+        steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+        return new File(testDir + "/" + zipFileName)
     }
 }
