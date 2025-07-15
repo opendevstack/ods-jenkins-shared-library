@@ -171,7 +171,7 @@ class InitStage extends Stage {
         boolean reloginRequired = false
         try {
             for (MROPipelineUtil.PipelineEnv env : MROPipelineUtil.PipelineEnv.values()) {
-                def targetProjectForEnv = "${project.key}-${env}"
+                def targetProjectForEnv = "${project.key}-${env.value}"
                 logger.debug("Check cluster config for env ${env.value} and project ${targetProjectForEnv}")
                 try {
                     String openshiftClusterApiUrl = envs."$env.value"?.apiUrl
