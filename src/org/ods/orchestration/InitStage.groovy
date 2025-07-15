@@ -135,12 +135,8 @@ class InitStage extends Stage {
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 
         // Compute target project. For now, the existance of DEV on the same cluster is verified.
-        def concreteEnv = Project.getConcreteEnvironment(
-            project.buildParams.targetEnvironment,
-            project.buildParams.version.toString(),
-            project.versionedDevEnvsEnabled
-        )
-        def targetProject = "${project.key}-${concreteEnv}"
+        def targetProject = Project.getTargetProjectForEnv(project, project.buildParams.targetEnvironment)
+
         def os = registry.get(OpenShiftService)
         if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
             throw new RuntimeException(
@@ -171,7 +167,7 @@ class InitStage extends Stage {
         boolean reloginRequired = false
         try {
             for (MROPipelineUtil.PipelineEnv env : MROPipelineUtil.PipelineEnv.values()) {
-                def targetProjectForEnv = "${project.key}-${env.value}"
+                def targetProjectForEnv = Project.getTargetProjectForEnv(project, env.value)
                 logger.debug("Check cluster config for env ${env.value} and project ${targetProjectForEnv}")
                 try {
                     String openshiftClusterApiUrl = envs."$env.value"?.apiUrl

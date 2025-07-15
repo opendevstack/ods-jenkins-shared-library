@@ -782,6 +782,15 @@ class Project {
         environment
     }
 
+    static String getTargetProjectForEnv(Project project, String env) {
+        def concreteEnv = Project.getConcreteEnvironment(
+            env,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+        return "${project.key}-${concreteEnv}"
+    }
+
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false, boolean versionedDevEnvsEnabled = false) {
         def params = loadBuildParams(steps)
 
