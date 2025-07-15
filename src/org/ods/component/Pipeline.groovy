@@ -7,6 +7,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.TailorDeploymentException
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.Logger
@@ -276,6 +277,9 @@ class Pipeline implements Serializable {
                             logger.error "${err}"
                             updateBuildStatus('FAILURE')
                             setBitbucketBuildStatus('FAILED')
+                            if (err instanceof TailorDeploymentException) {
+                                context.addArtifactURI('tailorFailure', 'true')
+                            }
                             if (notifyNotGreen) {
                                 doNotifyNotGreen(context.emailextRecipients)
                             }

@@ -6,6 +6,8 @@
 
 
 ### Changed
+* Helm parity with Tailor ([#1219](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1219))
+
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))

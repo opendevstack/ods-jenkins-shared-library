@@ -52,7 +52,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
             config.tailorSelector = config.selector
         }
         if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = false
+            config.tailorVerify = true
         }
         if (!config.containsKey('tailorExclude')) {
             config.tailorExclude = 'bc,is'

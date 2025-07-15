@@ -12,6 +12,10 @@ import org.ods.util.ILogger
 
 class BuildStage extends Stage {
 
+    public static final String LOG_CUSTOM_PART = 'See the logs above'
+
+    public static final String JIRA_CUSTOM_PART = 'Follow the link below'
+
     public final String STAGE_NAME = 'Build'
 
     BuildStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
@@ -134,6 +138,25 @@ class BuildStage extends Stage {
         return "\n\nRemotely exploitable critical vulnerabilities were detected and documented in " +
             "the following Jira issues: ${securityVulnerabilityIssueKeys.join(", ")}. Due to their high " +
             "severity, we must stop the delivery process until all vulnerabilities have been addressed.\n"
+    }
+
+    String buildTailorMessage(String failedRepoNamesCommaSeparated, String customPart) {
+        return "\n\nERROR: We detected an undesired configuration drift. " +
+            "A drift occurs when " +
+            "changes in a target environment are not covered by configuration files in Git " +
+            "(regarded as the source of truth). Resulting differences may be due to manual " +
+            "changes in the configuration of the target environment or automatic changes " +
+            "performed by OpenShift/Kubernetes.\n" +
+            "\n" +
+            "We found drifts for the following components: " +
+            "${failedRepoNamesCommaSeparated}.\n" +
+            "\n" +
+            "Please follow these steps to resolve and restart your deployment:\n" +
+            "\n" +
+            "\t1. " + customPart +
+            " to review the differences we found.\n" +
+            "\t2. Please update your configuration stored in Bitbucket or the configuration " +
+            "in the target environment as needed so that they match."
     }
 
     String sanitizeFailedRepos(def failedRepos) {

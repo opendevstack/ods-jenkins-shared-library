@@ -7,7 +7,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v4.1.6
+              uses: actions/checkout@v4.2.2
 
             - name: check the value of github.workspace and runner.temp
               run: |
@@ -15,14 +15,14 @@ jobs:
                 echo "runner.temp = ${{ runner.temp }}"
 
             - name: Set up OpenJDK 11
-              uses: actions/setup-java@v3
+              uses: actions/setup-java@v4
               with:
                 distribution: 'temurin'
                 java-version: '11'
                 check-latest: true
 
             - name: Cache
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               with:
                   path: ~/.gradle/caches
                   key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
