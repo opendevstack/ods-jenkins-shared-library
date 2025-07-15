@@ -10,7 +10,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-
 import util.PipelineSteps
 import util.SpecHelper
 
@@ -25,15 +24,17 @@ class FinalizeStageSpec extends SpecHelper {
     GitService gitService
     LeVADocumentScheduler levaDocScheduler
     ILogger logger
+    NexusService nexusService
 
     def setup() {
         script = new PipelineSteps()
         levaDocScheduler = Mock(LeVADocumentScheduler)
-        project = Spy(createProject())
+        project = Spy(createProject(["version":"1.0"]))
         util = Mock(MROPipelineUtil)
         gitService = Mock(GitService)
         jira = Mock(JiraUseCase)
         logger = new Logger(script, true)
+        nexusService = Mock(NexusService)
 
         createService()
         for (repo in project.data.metadata.repositories) {
@@ -42,7 +43,7 @@ class FinalizeStageSpec extends SpecHelper {
 
         }
         project.gitData.createdExecutionCommit = 'd240853866f20fc3e536cb3bca86c86c54b723ce'
-        finalStage = Spy(new FinalizeStage(script, project, project.data.metadata.repositories))
+        finalStage = Spy(new FinalizeStage(script, project, project.data.metadata.repositories, nexusService, logger))
     }
 
     ServiceRegistry createService() {
@@ -56,9 +57,9 @@ class FinalizeStageSpec extends SpecHelper {
         return registry
     }
 
-    def "pushToMasterWhenWIPandNoReleaseBranch"(){
+    def "pushToMasterWhenWIPandNoReleaseBranch"() {
         given:
-        Map buildParams = [ : ]
+        Map buildParams = [:]
         buildParams.version = "WIP"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -72,9 +73,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushRef('master')
     }
 
-    def "pushToReleaseAndMasterWhenWipAndReleaseBranch"(){
+    def "pushToReleaseAndMasterWhenWipAndReleaseBranch"() {
         given:
-        Map buildParams = [ : ]
+        Map buildParams = [:]
         buildParams.version = "WIP"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -90,9 +91,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
-    def "pushToReleaseAndTag"(){
+    def "pushToReleaseAndTag"() {
         given:
-        Map buildParams = [ : ]
+        Map buildParams = [:]
         buildParams.version = "1.0.0"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -108,9 +109,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
-    def "pushToReleaseWithExistingTag"(){
+    def "pushToReleaseWithExistingTag"() {
         given:
-        Map buildParams = [ : ]
+        Map buildParams = [:]
         buildParams.version = "1.0.0"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -142,27 +143,89 @@ class FinalizeStageSpec extends SpecHelper {
         0 * finalStageNotInstallable.doIntegrateIntoMainBranches(_)
 
         where:
-        type                | _
-        'ods-test'          | _
-        'ods-library'       | _
-        'ods-infra'         | _
-        'ods-saas-service'  | _
+        type               | _
+        'ods-test'         | _
+        'ods-library'      | _
+        'ods-infra'        | _
+        'ods-saas-service' | _
     }
 
-//    def "pushTestDocumentationToNexus"() {
-//
-//        given:
-//        def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
-//        def finalStageNexus = Spy(new FinalizeStage(script, project, project.data.metadata.repositories, nexus, logger))
-//        def steps2 = ServiceRegistry.instance.get(IPipelineSteps)
-//
-//        steps2.sh "mkdir -p /tmp/xunit && cd /tmp/xunit && echo '1' >> file.txt"
-//        when:
-//        finalStageNexus.uploadTestReportToNexus()
-//
-//        then:
-//        1 * finalStageNexus.nexus.storeArtifact("leva-documentation", "net-0.1/xunit", "xunit.zip", _, "application/zip") >>
-//            new URI("http://nexus/repository/leva-documentation/net/12345-56/trivy/trivy-sbom.json")
-//        1 * finalStageNexus.logger.info("Successfully uploaded xUnit results to Nexus.")
-//    }
+    def "uploadTestReportToNexus should throw exception if name is null"() {
+        given:
+        def fileMock = Mock(File)
+        fileMock.exists() >> false
+
+        when:
+        finalStage.uploadTestReportToNexus(null, fileMock)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to upload test report. 'name' is undefined."
+    }
+
+    def "uploadTestReportToNexus should throw exception if file is null"() {
+        given:
+        def name = "test.zip"
+
+        when:
+        finalStage.uploadTestReportToNexus(name, null)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to upload test report. 'file' is undefined."
+    }
+
+    def "uploadTestReportToNexus should throw exception if file does not exist"() {
+        given:
+        def name = "test.zip"
+        def fileMock = Mock(File)
+        fileMock.exists() >> false
+
+        when:
+        finalStage.uploadTestReportToNexus(name, fileMock)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to upload test report. 'file' is undefined."
+    }
+
+    def "uploadTestReportToNexus should call nexus.storeArtifact and logger methods"() {
+        given:
+        def name = "test.zip"
+        def tempFile = File.createTempFile("test", ".zip")
+        tempFile.deleteOnExit()
+        tempFile.bytes = [1, 2, 3]
+
+        when:
+        finalStage.uploadTestReportToNexus(name, tempFile)
+
+        then:
+        project.key >> "testProject"
+
+        and:
+        1 * nexusService.storeArtifact(
+            'leva-documentation',
+            'testproject-1.0/xunit',
+            'test.zip',
+            [1, 2, 3],
+            "application/zip"
+        )
+    }
+
+    def "uploadTestReportToNexus should log error and rethrow if nexus throws"() {
+        given:
+        def name = "test.zip"
+        def tempFile = File.createTempFile("test", ".zip")
+        tempFile.deleteOnExit()
+        tempFile.bytes = [1, 2, 3]
+
+        when:
+        finalStage.uploadTestReportToNexus(name, tempFile)
+
+        then:
+        1 * nexusService.storeArtifact(_, _, _, _, _) >> { throw new RuntimeException("Nexus error") }
+
+        and:
+        thrown(RuntimeException)
+    }
 }
