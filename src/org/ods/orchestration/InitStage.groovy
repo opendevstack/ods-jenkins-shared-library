@@ -171,21 +171,22 @@ class InitStage extends Stage {
         boolean reloginRequired = false
         try {
             for (MROPipelineUtil.PipelineEnv env : MROPipelineUtil.PipelineEnv.values()) {
-                logger.debug("Check cluster config for env ${env.value}")
+                def targetProjectForEnv = "${project.key}-${env}"
+                logger.debug("Check cluster config for env ${env.value} and project ${targetProjectForEnv}")
                 try {
                     String openshiftClusterApiUrl = envs."$env.value"?.apiUrl
                         ?: envs."$env.value"?.openshiftClusterApiUrl
                     String openshiftClusterCredentialsId = envs."$env.value"?.credentialsId
                         ?: envs."$env.value"?.openshiftClusterCredentialsId
                     if (!openshiftClusterApiUrl && !openshiftClusterCredentialsId) {
-                        if (!os.envExists(project.targetProject)) {
+                        if (!os.envExists(targetProjectForEnv)) {
                             wronglyConfiguredEnvs.add(env.value)
                         }
                     } else {
                         reloginRequired = true
                         util.verifyEnvLoginAndExistence(script,
                             os,
-                            project.targetProject,
+                            targetProjectForEnv,
                             project.data.openshift.sessionApiUrl,
                             openshiftClusterApiUrl,
                             openshiftClusterCredentialsId
