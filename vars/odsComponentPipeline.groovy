@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 def call(Map config, Closure body) {
-
     ServiceRegistry registry = ServiceRegistry.instance
     IPipelineSteps steps = registry.get(IPipelineSteps)
     if (!steps) {

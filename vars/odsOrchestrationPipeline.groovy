@@ -140,7 +140,6 @@ private void uploadJenkinsLogsToNexus(Map config, Logger logger, PipelineSteps s
     JenkinsService jenkinsService = registry.get(JenkinsService)
     String text = jenkinsService.currentBuildLogAsText
 
-
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     def repoName = project.services.nexus.repository.name
     nexusService.storeArtifact(
@@ -154,10 +153,12 @@ private void uploadJenkinsLogsToNexus(Map config, Logger logger, PipelineSteps s
 }
 
 private String getStartAgent(String startAgentStage, result) {
+    def resStartAgentStage = startAgentStage
+
     if (!startAgentStage) {
-        startAgentStage = result.startAgent
+        resStartAgentStage = result.startAgent
     }
-    return startAgentStage
+    return resStartAgentStage
 }
 
 // Clean workspace from previous runs
