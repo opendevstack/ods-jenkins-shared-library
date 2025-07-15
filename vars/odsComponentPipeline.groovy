@@ -14,8 +14,6 @@ import java.lang.reflect.Method
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-String defaultNexusRepository = "leva-documentation"
-
 def call(Map config, Closure body) {
 
     ServiceRegistry registry = ServiceRegistry.instance
@@ -65,6 +63,8 @@ def call(Map config, Closure body) {
 }
 
 private void uploadJenkinsLogsToNexus(ServiceRegistry registry, Map config, Logger logger, IPipelineSteps steps) {
+    String defaultNexusRepository = "leva-documentation"
+
     NexusService nexusService = registry.get(NexusService)
     def context = new Context(null, config, logger)
 
