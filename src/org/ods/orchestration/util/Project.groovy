@@ -299,7 +299,6 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
-
     private TestResults aggregatedTestResults;
 
     protected Map data = [:]
