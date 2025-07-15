@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import java.nio.file.Paths
 import com.google.common.base.Strings
 import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
@@ -315,14 +316,16 @@ class FinalizeStage extends Stage {
         }
 
         try {
+            def repoName = project.services.nexus.repository.name
+            def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
             this.nexus.storeArtifact(
-                project.services.nexus.repository.name,
-                "${project.key.toLowerCase()}-${project.buildParams.version}/xunit",
+                repoName,
+                directory,
                 name,
                 file.bytes,
                 "application/zip"
             )
-            logger.info("Successfully uploaded xUnit results to Nexus: ${project.services.nexus.repository.name}:${project.key.toLowerCase()}-${project.buildParams.version}/xunit")
+            logger.info("Successfully uploaded xUnit results to Nexus: ${repoName}:${directory}")
         } catch (Exception e) {
             logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
             throw e
@@ -331,6 +334,7 @@ class FinalizeStage extends Stage {
 
     private File buildXunitZipFile(def steps, def testDir, def zipFileName) {
         steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-        return new File(testDir + "/" + zipFileName)
+        def zipFilePath = Paths.get(testDir, zipFileName)
+        return zipFilePath.toFile()
     }
 }

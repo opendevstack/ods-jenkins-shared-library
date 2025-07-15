@@ -14,9 +14,9 @@ import java.lang.reflect.Method
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-def call(Map config, Closure body) {
+String defaultNexusRepository = "leva-documentation"
 
-    String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
+def call(Map config, Closure body) {
 
     ServiceRegistry registry = ServiceRegistry.instance
     IPipelineSteps steps = registry.get(IPipelineSteps)
@@ -47,28 +47,7 @@ def call(Map config, Closure body) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             logger.resetStopwatch()
             try {
-                NexusService nexusService = registry.get(NexusService)
-                def context = new Context(null, config, logger)
-
-                String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
-
-                def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-
-                if (!nexusService) {
-                    nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-                    registry.add(NexusService, nexusService)
-                }
-                JenkinsService jenkinsService = registry.get(JenkinsService)
-                String text = jenkinsService.currentBuildLogAsText
-                nexusService.storeArtifact(
-                    DEFAULT_NEXUS_REPOSITORY,
-                    "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs",
-                    "jenkins_logs",
-                    text.bytes,
-                    "application/text"
-                )
-                logger.debug("Successfully uploaded Jenkins logs to Nexus: ${DEFAULT_NEXUS_REPOSITORY}/${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs")
-
+                uploadJenkinsLogsToNexus(registry, config, logger, steps)
                 new ClassLoaderCleaner().clean(logger, processId)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
@@ -83,6 +62,32 @@ def call(Map config, Closure body) {
             UnirestConfig.shutdown()
         }
     }
+}
+
+private void uploadJenkinsLogsToNexus(ServiceRegistry registry, Map config, Logger logger, IPipelineSteps steps) {
+    NexusService nexusService = registry.get(NexusService)
+    def context = new Context(null, config, logger)
+
+    String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
+
+    def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
+    }
+    JenkinsService jenkinsService = registry.get(JenkinsService)
+    String text = jenkinsService.currentBuildLogAsText
+    String directory = "${defaultNexusRepository}/${context.getProjectId().toLowerCase()}/${repo}/" +
+        "${formattedDate}-${context.getBuildNumber()}/logs"
+    nexusService.storeArtifact(
+        defaultNexusRepository,
+        directory,
+        "jenkins_logs",
+        text.bytes,
+        "application/text"
+    )
+    logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
 }
 
 return this

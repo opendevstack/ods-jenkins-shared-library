@@ -105,28 +105,7 @@ def call(Map config) {
         }
     } finally {
         try {
-            def registry = ServiceRegistry.instance
-
-            NexusService nexusService = registry.get(NexusService)
-            def context = new Context(null, config, logger)
-
-            if (!nexusService) {
-                nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-                registry.add(NexusService, nexusService)
-            }
-
-            JenkinsService jenkinsService = registry.get(JenkinsService)
-            String text = jenkinsService.currentBuildLogAsText
-
-            nexusService.storeArtifact(
-                project.services.nexus.repository.name,
-                "${project.key.toLowerCase()}-${project.buildParams.version}/logs",
-                "jenkins_logs",
-                text.bytes,
-                "application/text"
-            )
-            logger.debug("Successfully uploaded Jenkins logs to Nexus: ${project.services.nexus.repository.name}/${project.key.toLowerCase()}-${project.buildParams.version}/logs")
-
+            uploadJenkinsLogsToNexus(config, logger, steps, project)
             new ClassLoaderCleaner().clean(logger, processId)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
@@ -145,6 +124,33 @@ def call(Map config) {
         steps = null
         project = null
     }
+}
+
+private void uploadJenkinsLogsToNexus(Map config, Logger logger, PipelineSteps steps, Project project) {
+    def registry = ServiceRegistry.instance
+
+    NexusService nexusService = registry.get(NexusService)
+    def context = new Context(null, config, logger)
+
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
+    }
+
+    JenkinsService jenkinsService = registry.get(JenkinsService)
+    String text = jenkinsService.currentBuildLogAsText
+
+
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
+    def repoName = project.services.nexus.repository.name
+    nexusService.storeArtifact(
+        repoName,
+        directory,
+        "jenkins_logs",
+        text.bytes,
+        "application/text"
+    )
+    logger.debug("Successfully uploaded Jenkins logs to Nexus: ${repoName}/${directory}")
 }
 
 private String getStartAgent(String startAgentStage, result) {
