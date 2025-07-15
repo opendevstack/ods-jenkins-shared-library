@@ -4,6 +4,7 @@
 
 ### Added
 
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1221])
 
 ### Changed
 * Helm parity with Tailor ([#1219](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1219))
