@@ -1,8 +1,8 @@
 package org.ods.services
 
-import hudson.console.AnnotatedLargeText
-import org.ods.util.ILogger
+
 import hudson.scm.ChangeLogSet
+import org.ods.util.ILogger
 
 class JenkinsService {
 
@@ -88,7 +88,7 @@ class JenkinsService {
 
     String getCompletedBuildLogAsText () {
         StringWriter writer = new StringWriter()
-        AnnotatedLargeText largeText = this.script.currentBuild.getRawBuild().getLogText()
+        def largeText = this.script.currentBuild.getRawBuild().getLogText()
         largeText.markAsComplete()
         largeText.writeLogTo(0, writer)
         return writer.getBuffer().toString()
