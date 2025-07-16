@@ -333,8 +333,21 @@ class FinalizeStage extends Stage {
     }
 
     private File buildXunitZipFile(def steps, def testDir, def zipFileName) {
-        steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+        if (!testDir || !steps.fileExists(testDir)) {
+            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+        }
+
         def zipFilePath = Paths.get(testDir, zipFileName)
-        return zipFilePath.toFile()
+        try {
+            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+            def file = zipFilePath.toFile()
+            if (!file.exists() || file.length() == 0) {
+                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
+            }
+            return file
+        } catch (Exception e) {
+            logger.error("Error creating the xUnit ZIP file: ${e.message}")
+            throw e
+        }
     }
 }

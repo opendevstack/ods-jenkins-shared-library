@@ -228,4 +228,76 @@ class FinalizeStageSpec extends SpecHelper {
         and:
         thrown(RuntimeException)
     }
+
+    def "buildXunitZipFile throws exception if testDir is null"() {
+        given:
+        def stepsMock = Mock(IPipelineSteps)
+        def testDir = null
+        def zipFileName = "xunit.zip"
+
+        when:
+        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: The test directory 'null' does not exist."
+    }
+
+    def "buildXunitZipFile throws exception if testDir not exists"() {
+        given:
+        def stepsMock = Mock(IPipelineSteps)
+        def testDir = "/ruta/falsa"
+        def zipFileName = "xunit.zip"
+        stepsMock.fileExists(testDir) >> false
+
+        when:
+        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: The test directory '/ruta/falsa' does not exist."
+    }
+
+    def "buildXunitZipFile throws exception if zip file was not created"() {
+        given:
+        def stepsMock = Mock(IPipelineSteps)
+        def testDir = File.createTempDir().absolutePath
+        def zipFileName = "xunit.zip"
+        stepsMock.fileExists(testDir) >> true
+        stepsMock.sh(_) >> null
+
+        // Simula que el archivo zip no existe
+        def zipFilePath = java.nio.file.Paths.get(testDir, zipFileName)
+        def zipFile = zipFilePath.toFile()
+        zipFile.delete() // Asegura que no existe
+
+        when:
+        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Error: The ZIP file was not created correctly")
+    }
+
+    def "buildXunitZipFile returns file"() {
+        given:
+        def stepsMock = Mock(IPipelineSteps)
+        def testDir = File.createTempDir().absolutePath
+        def zipFileName = "xunit.zip"
+        stepsMock.fileExists(testDir) >> true
+        stepsMock.sh(_) >> null
+
+        // Crea el archivo zip simulado
+        def zipFilePath = java.nio.file.Paths.get(testDir, zipFileName)
+        def zipFile = zipFilePath.toFile()
+        zipFile.bytes = [1,2,3]
+
+        when:
+        def result = finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
+
+        then:
+        result.exists()
+        result.length() > 0
+        result == zipFile
+    }
 }

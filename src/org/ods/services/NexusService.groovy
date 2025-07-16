@@ -3,8 +3,8 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-import kong.unirest.Unirest
 import kong.unirest.ContentType
+import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
@@ -67,6 +67,28 @@ class NexusService {
             throw new IllegalArgumentException('NEXUS_PASSWORD is required, but not set')
         }
         config
+    }
+
+    URI uploadJenkinsLogsToNexus(String text, String repoName, String directory) {
+        if (!text?.trim()) {
+            throw new IllegalArgumentException("The parameter 'text' must not be empty.")
+        }
+
+        if (!repoName?.trim()) {
+            throw new IllegalArgumentException("The parameter 'repoName' must not be empty.")
+        }
+
+        if (!directory?.trim()) {
+            throw new IllegalArgumentException("The parameter 'directory' must not be empty.")
+        }
+
+        return storeArtifact(
+            repoName,
+            directory,
+            "jenkins_logs",
+            text.bytes,
+            "application/text"
+        )
     }
 
     URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {

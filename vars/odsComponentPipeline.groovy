@@ -44,7 +44,13 @@ def call(Map config, Closure body) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             logger.resetStopwatch()
             try {
-                uploadJenkinsLogsToNexus(registry, config, logger, steps)
+                def jenkinsService = registry.get(JenkinsService)
+                def nexusService = getNexusService(registry)
+                String text = jenkinsService.getCompletedBuildLogAsText()
+                String repoName = "leva-documentation"
+                String directory = getJenkinsLogsDirectory(repoName)
+                nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
+                logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
                 new ClassLoaderCleaner().clean(logger, processId)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
@@ -61,32 +67,21 @@ def call(Map config, Closure body) {
     }
 }
 
-private void uploadJenkinsLogsToNexus(ServiceRegistry registry, Map config, Logger logger, IPipelineSteps steps) {
-    String defaultNexusRepository = "leva-documentation"
-
-    NexusService nexusService = registry.get(NexusService)
+private String getJenkinsLogsDirectory(String repoName) {
     def context = new Context(null, config, logger)
-
     String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
-
     def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    return "${repoName}/${context.getProjectId().toLowerCase()}/${repo}/" +
+        "${formattedDate}-${context.getBuildNumber()}/logs"
+}
 
+private NexusService getNexusService(def registry) {
+    NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
-    JenkinsService jenkinsService = registry.get(JenkinsService)
-    String text = jenkinsService.currentBuildLogAsText
-    String directory = "${defaultNexusRepository}/${context.getProjectId().toLowerCase()}/${repo}/" +
-        "${formattedDate}-${context.getBuildNumber()}/logs"
-    nexusService.storeArtifact(
-        defaultNexusRepository,
-        directory,
-        "jenkins_logs",
-        text.bytes,
-        "application/text"
-    )
-    logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
+    return nexusService
 }
 
 return this
