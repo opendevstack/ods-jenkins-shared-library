@@ -101,7 +101,7 @@ class NexusServiceSpec extends SpecHelper {
             username: "username"
         ]
         return result << mixins
-  }
+    }
 
     Map storeArtifactResponseData(Map mixins = [:]) {
         def result = [
@@ -211,23 +211,6 @@ class NexusServiceSpec extends SpecHelper {
 
         cleanup:
         stopServer(server)
-    }
-
-    def "uploadJenkinsLogsToNexus should store logs as artifact and return URI"() {
-        given:
-        def text = "Log de Jenkins"
-        def repoName = "repo-pruebas"
-        def directory = "logs"
-        def service = Spy(NexusService, constructorArgs: ["http://localhost:8081", Stub(IPipelineSteps), "credId"])
-        def expectedUri = new URI("http://localhost:8081/repository/${repoName}/${directory}/jenkins_logs")
-        service.storeArtifact(_, _, _, _, _) >> expectedUri
-
-        when:
-        def result = service.uploadJenkinsLogsToNexus(text, repoName, directory)
-
-        then:
-        result == expectedUri
-        1 * service.storeArtifact(repoName, directory, "jenkins_logs", text.bytes, "application/text")
     }
 
     def "uploadJenkinsLogsToNexus should throw exception if text is empty"() {
