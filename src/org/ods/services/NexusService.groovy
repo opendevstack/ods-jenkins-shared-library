@@ -126,6 +126,23 @@ class NexusService {
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
+    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
+        // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
+        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
+        def restCall
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+        }
+        return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
+    }
+
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
     private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
@@ -171,23 +188,6 @@ class NexusService {
                 "${nexusParams['raw.asset1.filename']}")
         }
         return this.baseURL.resolve("/repository/${repository}")
-    }
-
-    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
-    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
-        // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
-        def restCall
-        steps.withCredentials([
-            steps.usernamePassword(
-                credentialsId: credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
-        }
-        return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
