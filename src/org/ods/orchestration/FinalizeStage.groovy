@@ -152,8 +152,8 @@ class FinalizeStage extends Stage {
     private void uploadTestReportToNexus(IPipelineSteps steps) {
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-        def zipFile = buildXunitZipFile(steps, testDir, "xunit.zip")
-        def name = "${zipFile.getName()}-WIP-${steps.env.BUILD_NUMBER}"
+        def name = "xunit-WIP-${steps.env.BUILD_NUMBER}.zip"
+        def zipFile = buildXunitZipFile(steps, testDir, name)
         uploadTestReportToNexus(name, zipFile)
     }
 

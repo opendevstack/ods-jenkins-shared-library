@@ -73,8 +73,8 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger, de
     logger.error("AMP 04")
     String repoName = "leva-documentation"
     String directory = getJenkinsLogsDirectory(repoName, config, logger)
-    logger.error("AMP 05")
-    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+<    logger.error("AMP 05")
+>    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.error("AMP 06")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
