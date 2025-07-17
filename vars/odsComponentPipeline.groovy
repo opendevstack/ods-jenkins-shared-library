@@ -44,11 +44,11 @@ def call(Map config, Closure body) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             logger.resetStopwatch()
             try {
+                // Upload Jenkins logs to Nexus
+                uploadJenkinsLogToNexus(registry, logger)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 new ClassLoaderCleaner().clean(logger, processId)
-                // Upload Jenkins logs to Nexus
-                uploadJenkinsLogToNexus(registry, logger)
                 // Force cleanup of the heap to release memory
                 Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
                 cleanupHeap.setAccessible(true)

@@ -134,9 +134,9 @@ private void uploadJenkinsLogToNexus(Project project, Logger logger) {
     String text = jenkinsService.getCompletedBuildLogAsText()
     def repoName = project.services.nexus.repository.name
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
-    logger.debug("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
-    logger.debug("Successfully uploaded Jenkins logs to Nexus")
+    logger.warn("Successfully uploaded Jenkins logs to Nexus")
 }
 
 private String getStartAgent(String startAgentStage, result) {
