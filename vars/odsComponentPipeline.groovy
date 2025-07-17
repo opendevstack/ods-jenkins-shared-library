@@ -69,9 +69,9 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
     String text = jenkinsService.getCompletedBuildLogAsText()
     String repoName = "leva-documentation"
     String directory = getJenkinsLogsDirectory(repoName)
-    logger.debug("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
-    logger.debug("Successfully uploaded Jenkins logs to Nexus")
+    logger.warn("Successfully uploaded Jenkins logs to Nexus")
 }
 
 private String getJenkinsLogsDirectory(String repoName) {
