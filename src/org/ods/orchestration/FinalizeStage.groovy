@@ -136,6 +136,7 @@ class FinalizeStage extends Stage {
 
             logger.debug(message)
             util.failBuild(message)
+            uploadTestReportToNexus(steps)
             throw new IllegalStateException(message)
         } else {
             logger.debug("Reporting pipeline status to Jira...")
@@ -144,8 +145,11 @@ class FinalizeStage extends Stage {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
             }
+            uploadTestReportToNexus(steps)
         }
+    }
 
+    private void uploadTestReportToNexus(IPipelineSteps steps) {
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
         def zipFile = buildXunitZipFile(steps, testDir, "xunit.zip")
