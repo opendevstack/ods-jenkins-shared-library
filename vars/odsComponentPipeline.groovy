@@ -76,7 +76,8 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger, de
     logger.error("AMP 05")
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.error("AMP 06")
-    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
+    String name = "jenkins.log"
+    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
     logger.error("AMP 07")
 }

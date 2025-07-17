@@ -145,14 +145,14 @@ class FinalizeStage extends Stage {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
             }
-            uploadTestReportToNexus(steps)
+            uploadTestReportToNexus(script, steps)
         }
     }
 
-    private void uploadTestReportToNexus(IPipelineSteps steps) {
+    private void uploadTestReportToNexus(def script, IPipelineSteps steps) {
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-        def name = "xunit-WIP-${steps.env.BUILD_NUMBER}.zip"
+        def name = "xunit-${script.env.VERSION}-${steps.env.BUILD_NUMBER}.zip"
         def zipFile = buildXunitZipFile(steps, testDir, name)
         uploadTestReportToNexus(name, zipFile)
     }

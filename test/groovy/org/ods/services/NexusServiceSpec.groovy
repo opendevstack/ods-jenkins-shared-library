@@ -218,7 +218,7 @@ class NexusServiceSpec extends SpecHelper {
         def service = new NexusService("http://localhost:8081", Stub(IPipelineSteps), "credId")
 
         when:
-        service.uploadJenkinsLogsToNexus("", "repo", "dir")
+        service.uploadJenkinsLogsToNexus("", "repo", "dir", "name")
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -230,7 +230,7 @@ class NexusServiceSpec extends SpecHelper {
         def service = new NexusService("http://localhost:8081", Stub(IPipelineSteps), "credId")
 
         when:
-        service.uploadJenkinsLogsToNexus("texto", "", "dir")
+        service.uploadJenkinsLogsToNexus("texto", "", "dir", "name")
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -242,7 +242,7 @@ class NexusServiceSpec extends SpecHelper {
         def service = new NexusService("http://localhost:8081", Stub(IPipelineSteps), "credId")
 
         when:
-        service.uploadJenkinsLogsToNexus("texto", "repo", "")
+        service.uploadJenkinsLogsToNexus("texto", "repo", "", "name")
 
         then:
         def e = thrown(IllegalArgumentException)

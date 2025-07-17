@@ -69,7 +69,7 @@ class NexusService {
         config
     }
 
-    URI uploadJenkinsLogsToNexus(String text, String repoName, String directory) {
+    URI uploadJenkinsLogsToNexus(String text, String repoName, String directory, String name) {
         if (!text?.trim()) {
             throw new IllegalArgumentException("The parameter 'text' must not be empty.")
         }
@@ -85,7 +85,7 @@ class NexusService {
         return storeArtifact(
             repoName,
             directory,
-            "jenkins_logs",
+            name,
             text.bytes,
             "application/text"
         )

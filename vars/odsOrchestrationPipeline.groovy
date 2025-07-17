@@ -141,7 +141,8 @@ private void uploadJenkinsLogToNexus(Project project, Logger logger) {
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.error("AMP 006")
-    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
+    String name = "jenkins-${project.buildParams.version}--${project.buildParams.version}.log"
+    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.error("AMP 007")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
 }
