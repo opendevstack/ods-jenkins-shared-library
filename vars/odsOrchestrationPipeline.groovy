@@ -109,13 +109,7 @@ def call(Map config) {
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)
             // Upload Jenkins logs to Nexus
-            NexusService nexusService = getNexusService(ServiceRegistry.instance)
-            JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
-            String text = jenkinsService.getCompletedBuildLogAsText()
-            def repoName = project.services.nexus.repository.name
-            def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
-            nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
-            logger.debug("Successfully uploaded Jenkins logs to Nexus: ${repoName}/${directory}")
+            uploadJenkinsLogToNexus(project, logger)
             // Force cleanup of the heap to release memory
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
@@ -132,6 +126,17 @@ def call(Map config) {
         steps = null
         project = null
     }
+}
+
+private void uploadJenkinsLogToNexus(Project project, Logger logger) {
+    NexusService nexusService = getNexusService(ServiceRegistry.instance)
+    JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
+    String text = jenkinsService.getCompletedBuildLogAsText()
+    def repoName = project.services.nexus.repository.name
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
+    logger.debug("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
+    logger.debug("Successfully uploaded Jenkins logs to Nexus")
 }
 
 private String getStartAgent(String startAgentStage, result) {

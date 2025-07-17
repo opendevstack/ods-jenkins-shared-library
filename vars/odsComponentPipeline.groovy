@@ -48,13 +48,7 @@ def call(Map config, Closure body) {
                 logger.debug("forceClean via jenkins internals....")
                 new ClassLoaderCleaner().clean(logger, processId)
                 // Upload Jenkins logs to Nexus
-                def jenkinsService = registry.get(JenkinsService)
-                def nexusService = getNexusService(registry)
-                String text = jenkinsService.getCompletedBuildLogAsText()
-                String repoName = "leva-documentation"
-                String directory = getJenkinsLogsDirectory(repoName)
-                nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
-                logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
+                uploadJenkinsLogToNexus(registry, logger)
                 // Force cleanup of the heap to release memory
                 Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
                 cleanupHeap.setAccessible(true)
@@ -67,6 +61,17 @@ def call(Map config, Closure body) {
             UnirestConfig.shutdown()
         }
     }
+}
+
+private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
+    def jenkinsService = registry.get(JenkinsService)
+    def nexusService = getNexusService(registry)
+    String text = jenkinsService.getCompletedBuildLogAsText()
+    String repoName = "leva-documentation"
+    String directory = getJenkinsLogsDirectory(repoName)
+    logger.debug("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
+    logger.debug("Successfully uploaded Jenkins logs to Nexus")
 }
 
 private String getJenkinsLogsDirectory(String repoName) {
