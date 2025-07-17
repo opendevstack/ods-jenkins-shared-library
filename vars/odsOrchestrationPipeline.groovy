@@ -105,6 +105,10 @@ def call(Map config) {
         }
     } finally {
         try {
+            // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
+            logger.debug("forceClean via jenkins internals....")
+            new ClassLoaderCleaner().clean(logger, processId)
+            // Upload Jenkins logs to Nexus
             NexusService nexusService = getNexusService(ServiceRegistry.instance)
             JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
             String text = jenkinsService.getCompletedBuildLogAsText()
@@ -112,9 +116,7 @@ def call(Map config) {
             def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
             nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
             logger.debug("Successfully uploaded Jenkins logs to Nexus: ${repoName}/${directory}")
-            new ClassLoaderCleaner().clean(logger, processId)
-            // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
-            logger.debug("forceClean via jenkins internals....")
+            // Force cleanup of the heap to release memory
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
             cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
