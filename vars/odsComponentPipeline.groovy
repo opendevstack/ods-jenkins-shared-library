@@ -43,7 +43,7 @@ def call(Map config, Closure body) {
         if (!env.MULTI_REPO_BUILD) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             // Upload Jenkins logs to Nexus
-            uploadJenkinsLogToNexus(registry, logger)
+            uploadJenkinsLogToNexus(registry, logger, config)
             logger.resetStopwatch()
             try {
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
@@ -63,7 +63,7 @@ def call(Map config, Closure body) {
     }
 }
 
-private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
+private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger, def config) {
     logger.error("AMP 01")
     def jenkinsService = registry.get(JenkinsService)
     logger.error("AMP 02")
@@ -72,7 +72,7 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
     String text = jenkinsService.getCompletedBuildLogAsText()
     logger.error("AMP 04")
     String repoName = "leva-documentation"
-    String directory = getJenkinsLogsDirectory(repoName)
+    String directory = getJenkinsLogsDirectory(repoName, config, logger)
     logger.error("AMP 05")
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.error("AMP 06")
@@ -81,7 +81,7 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
     logger.error("AMP 07")
 }
 
-private String getJenkinsLogsDirectory(String repoName) {
+private String getJenkinsLogsDirectory(String repoName, def config, def logger) {
     def context = new Context(null, config, logger)
     String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
     def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
