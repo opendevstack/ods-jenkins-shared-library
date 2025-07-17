@@ -106,7 +106,7 @@ def call(Map config) {
     } finally {
         try {
             // Upload Jenkins logs to Nexus
-            uploadJenkinsLogToNexus(project, logger)
+            uploadJenkinsLogToNexus(steps, project, logger)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)
@@ -128,7 +128,7 @@ def call(Map config) {
     }
 }
 
-private void uploadJenkinsLogToNexus(Project project, Logger logger) {
+private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
     logger.error("AMP 001")
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     logger.error("AMP 002")
@@ -141,7 +141,7 @@ private void uploadJenkinsLogToNexus(Project project, Logger logger) {
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.error("AMP 006")
-    String name = "jenkins-${project.buildParams.version}--${project.buildParams.version}.log"
+    String name = "jenkins-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.log"
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.error("AMP 007")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
