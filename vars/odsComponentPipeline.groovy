@@ -42,10 +42,10 @@ def call(Map config, Closure body) {
         }
         if (!env.MULTI_REPO_BUILD) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
+            // Upload Jenkins logs to Nexus
+            uploadJenkinsLogToNexus(registry, logger)
             logger.resetStopwatch()
             try {
-                // Upload Jenkins logs to Nexus
-                uploadJenkinsLogToNexus(registry, logger)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 new ClassLoaderCleaner().clean(logger, processId)
@@ -64,14 +64,21 @@ def call(Map config, Closure body) {
 }
 
 private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger) {
+    logger.error("AMP 01")
     def jenkinsService = registry.get(JenkinsService)
+    logger.error("AMP 02")
     def nexusService = getNexusService(registry)
+    logger.error("AMP 03")
     String text = jenkinsService.getCompletedBuildLogAsText()
+    logger.error("AMP 04")
     String repoName = "leva-documentation"
     String directory = getJenkinsLogsDirectory(repoName)
+    logger.error("AMP 05")
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    logger.error("AMP 06")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory)
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
+    logger.error("AMP 07")
 }
 
 private String getJenkinsLogsDirectory(String repoName) {
