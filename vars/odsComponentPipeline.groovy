@@ -42,10 +42,10 @@ def call(Map config, Closure body) {
         }
         if (!env.MULTI_REPO_BUILD) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
-            // Upload Jenkins logs to Nexus
-            uploadJenkinsLogToNexus(registry, logger, config)
             logger.resetStopwatch()
             try {
+                // Upload Jenkins logs to Nexus
+                uploadJenkinsLogToNexus(registry, logger, config)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 new ClassLoaderCleaner().clean(logger, processId)
