@@ -51,7 +51,7 @@ def call(Map config, Closure body) {
                 def nexusService = getNexusService(registry)
                 String text = jenkinsService.getCompletedBuildLogAsText()
                 String repoName = "leva-documentation"
-                String directory = getJenkinsLogsDirectory(repoName)
+                String directory = getJenkinsLogsDirectory(repoName, config, logger)
                 nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, "jenkins_log")
                 logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
@@ -69,25 +69,6 @@ def call(Map config, Closure body) {
             UnirestConfig.shutdown()
         }
     }
-}
-
-private void uploadJenkinsLogToNexus(ServiceRegistry registry, Logger logger, def config) {
-    logger.error("AMP 01")
-    def jenkinsService = registry.get(JenkinsService)
-    logger.error("AMP 02")
-    def nexusService = getNexusService(registry)
-    logger.error("AMP 03")
-    String text = jenkinsService.getCompletedBuildLogAsText()
-    logger.error("AMP 04")
-    String repoName = "leva-documentation"
-    String directory = getJenkinsLogsDirectory(repoName, config, logger)
-    logger.error("AMP 05")
-    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
-    logger.error("AMP 06")
-    String name = "jenkins_log"
-    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
-    logger.warn("Successfully uploaded Jenkins logs to Nexus")
-    logger.error("AMP 07")
 }
 
 private String getJenkinsLogsDirectory(String repoName, def config, def logger) {
