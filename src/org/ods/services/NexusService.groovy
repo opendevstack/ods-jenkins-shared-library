@@ -3,10 +3,13 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
+import com.google.common.base.Strings
 import kong.unirest.ContentType
 import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
+
+import java.nio.file.Paths
 
 class NexusService {
 
@@ -240,5 +243,48 @@ class NexusService {
         }
         return !response.getBody().contains('\"items\" : [ ]')
 
+    }
+
+    File buildXunitZipFile(def steps, def testDir, def zipFileName) {
+        if (!testDir || !steps.fileExists(testDir)) {
+            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+        }
+
+        def zipFilePath=  Paths.get(testDir, zipFileName)
+        try {
+            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+            def file = zipFilePath.toFile()
+            if (!file.exists() || file.length() == 0) {
+                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
+            }
+            return file
+        } catch (Exception e) {
+            //logger.error("Error creating the xUnit ZIP file: ${e.message}")
+            throw e
+        }
+    }
+
+    void uploadTestReportToNexus(def name, def file, def repoName, def directory) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
+        }
+
+        if (file == null || file.exists() == false) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
+        }
+
+        try {
+            storeArtifact(
+                repoName,
+                directory,
+                name,
+                file.bytes,
+                "application/zip"
+            )
+            //logger.info("Successfully uploaded xUnit results to Nexus: ${repoName}:${directory}")
+        } catch (Exception e) {
+            //logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
+            throw e
+        }
     }
 }

@@ -57,6 +57,14 @@ def call(Map config, Closure body) {
                     nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
                     registry.add(NexusService, nexusService)
                 }
+
+                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+                def zipFileName = "xunit.zip"
+                def file = nexusService.buildXunitZipFile(steps, testDir, zipFileName)
+                def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
+                nexusService.uploadTestReportToNexus(zipFileName, file, nexusRepository, directory)
+                logger.debug("Successfully uploaded xunit file to Nexus: ${nexusRepository}/${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit")
+
                 JenkinsService jenkinsService = registry.get(JenkinsService)
                 String text = jenkinsService.getCompletedBuildLogAsText()
                 nexusService.storeArtifact(

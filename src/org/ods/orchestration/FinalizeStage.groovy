@@ -136,7 +136,7 @@ class FinalizeStage extends Stage {
 
             logger.debug(message)
             util.failBuild(message)
-            uploadTestReportToNexus(steps)
+            nexus.uploadTestReportToNexus(steps)
             throw new IllegalStateException(message)
         } else {
             logger.debug("Reporting pipeline status to Jira...")
@@ -153,7 +153,7 @@ class FinalizeStage extends Stage {
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
         def name = "xunit-${script.env.VERSION}-${steps.env.BUILD_NUMBER}.zip"
-        def zipFile = buildXunitZipFile(steps, testDir, name)
+        def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
         uploadTestReportToNexus(name, zipFile)
     }
 
@@ -308,51 +308,6 @@ class FinalizeStage extends Stage {
             // To overwrite the existing tag (if redeploy)
             // FIXME: Review this functionality to avoid orphaned commits
             git.pushForceBranchWithTags(project.gitReleaseBranch)
-        }
-    }
-
-    private void uploadTestReportToNexus(def name, def file) {
-        if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
-        }
-
-        if (file == null || file.exists() == false) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
-        }
-
-        try {
-            def repoName = project.services.nexus.repository.name
-            def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-            this.nexus.storeArtifact(
-                repoName,
-                directory,
-                name,
-                file.bytes,
-                "application/zip"
-            )
-            logger.info("Successfully uploaded xUnit results to Nexus: ${repoName}:${directory}")
-        } catch (Exception e) {
-            logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
-            throw e
-        }
-    }
-
-    private File buildXunitZipFile(def steps, def testDir, def zipFileName) {
-        if (!testDir || !steps.fileExists(testDir)) {
-            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
-        }
-
-        def zipFilePath = Paths.get(testDir, zipFileName)
-        try {
-            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-            def file = zipFilePath.toFile()
-            if (!file.exists() || file.length() == 0) {
-                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
-            }
-            return file
-        } catch (Exception e) {
-            logger.error("Error creating the xUnit ZIP file: ${e.message}")
-            throw e
         }
     }
 }
