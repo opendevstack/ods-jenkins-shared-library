@@ -64,6 +64,9 @@ def call(Map config, Closure body) {
                 def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
                 logger.error("testDir: ${testDir}")
                 def zipFileName = "xunit.zip"
+                if (!testDir || !steps.fileExists(testDir)) {
+                    throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+                }
 //                def file = buildXunitZipFile(steps, testDir, zipFileName, logger)
 //                def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
 //                nexusService.uploadTestReportToNexus(zipFileName, file, nexusRepository, directory)
