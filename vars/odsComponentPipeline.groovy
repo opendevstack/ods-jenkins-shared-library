@@ -45,7 +45,15 @@ def call(Map config, Closure body) {
             logger.resetStopwatch()
             try {
                 // Upload Jenkins logs to Nexus
-                uploadJenkinsLogToNexus(registry, logger, config)
+                // uploadJenkinsLogToNexus(registry, logger, config)
+                // Upload Jenkins logs to Nexus
+                def jenkinsService = registry.get(JenkinsService)
+                def nexusService = getNexusService(registry)
+                String text = jenkinsService.getCompletedBuildLogAsText()
+                String repoName = "leva-documentation"
+                String directory = getJenkinsLogsDirectory(repoName)
+                nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, "jenkins_log")
+                logger.debug("Successfully uploaded Jenkins logs to Nexus: ${directory}")
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 new ClassLoaderCleaner().clean(logger, processId)
