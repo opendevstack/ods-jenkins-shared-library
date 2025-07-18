@@ -58,11 +58,11 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
                 JenkinsService jenkinsService = registry.get(JenkinsService)
-                String text = jenkinsService.currentBuildLogAsText
+                String text = jenkinsService.getCompletedBuildLogAsText()
                 nexusService.storeArtifact(
                     nexusRepository,
                     "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs",
-                    "jenkins_logs",
+                    "jenkins.log",
                     text.bytes,
                     "application/text"
                 )
