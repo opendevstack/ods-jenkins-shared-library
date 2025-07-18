@@ -1,5 +1,6 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
+import org.ods.orchestration.util.PipelineUtil
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -59,8 +60,9 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
 
-//                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-//                logger.error("testDir: ${testDir}")
+                def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+                logger.error("testDir: ${testDir}")
                 def zipFileName = "xunit.zip"
 //                def file = buildXunitZipFile(steps, testDir, zipFileName, logger)
 //                def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
