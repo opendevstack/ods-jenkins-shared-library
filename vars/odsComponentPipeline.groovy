@@ -59,7 +59,7 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
 
-                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+//                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
 //                logger.error("testDir: ${testDir}")
                 def zipFileName = "xunit.zip"
 //                def file = buildXunitZipFile(steps, testDir, zipFileName, logger)
