@@ -60,7 +60,7 @@ def call(Map config, Closure body) {
                 }
 
                 def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-                logger.error("testDir: ${testDir}")
+//                logger.error("testDir: ${testDir}")
                 def zipFileName = "xunit.zip"
 //                def file = buildXunitZipFile(steps, testDir, zipFileName, logger)
 //                def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
