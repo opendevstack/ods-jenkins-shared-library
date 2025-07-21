@@ -151,10 +151,15 @@ class FinalizeStage extends Stage {
 
     private void uploadTestReportToNexus(def script, IPipelineSteps steps) {
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        logger.debug("AMP X01 - xunitDir: ${xunitDir}")
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+        logger.debug("AMP X02 - testDir: ${testDir}")
         def name = "xunit-${script.env.VERSION}-${steps.env.BUILD_NUMBER}.zip"
+        logger.debug("AMP X03 - zip name: ${name}")
         def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
+        logger.debug("AMP X04 - zipFile exists?: ${zipFile.exists()}")
         nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", testDir)
+        logger.debug("AMP X05 - Test report uploaded to Nexus: ${name}")
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
