@@ -158,7 +158,9 @@ class FinalizeStage extends Stage {
         logger.debug("AMP X03 - zip name: ${name}")
         def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
         logger.debug("AMP X04 - zipFile exists?: ${zipFile.exists()}")
-        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", testDir)
+        def directory = "${project.key.toLowerCase()}-${script.env.VERSION}/xunit"
+        logger.debug("AMP X05 - directory: ${directory}")
+        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
         logger.debug("AMP X05 - Test report uploaded to Nexus: ${name}")
     }
 
