@@ -108,7 +108,7 @@ def call(Map config) {
             // Upload Jenkins logs to Nexus
             uploadJenkinsLogToNexus(steps, project, logger)
             // Upload test reports to Nexus
-            uploadTestReportToNexus(steps, project)
+            uploadTestReportToNexus(steps, project, logger)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)
@@ -130,7 +130,7 @@ def call(Map config) {
     }
 }
 
-private void uploadTestReportToNexus(IPipelineSteps steps, Project project) {
+private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
     def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
     logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
     def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
