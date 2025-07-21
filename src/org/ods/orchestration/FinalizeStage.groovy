@@ -136,7 +136,7 @@ class FinalizeStage extends Stage {
 
             logger.debug(message)
             util.failBuild(message)
-            nexus.uploadTestReportToNexus(steps)
+            uploadTestReportToNexus(script, steps)
             throw new IllegalStateException(message)
         } else {
             logger.debug("Reporting pipeline status to Jira...")
@@ -154,7 +154,7 @@ class FinalizeStage extends Stage {
         def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
         def name = "xunit-${script.env.VERSION}-${steps.env.BUILD_NUMBER}.zip"
         def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
-        uploadTestReportToNexus(name, zipFile)
+        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", testDir)
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {

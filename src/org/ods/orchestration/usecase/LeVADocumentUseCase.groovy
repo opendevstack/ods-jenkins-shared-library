@@ -885,9 +885,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
+        uploadTestReportToNexus(steps, data_)
+
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    private void uploadTestReportToNexus(IPipelineSteps steps, def data) {
+        logger.debug("uploadTestReportToNexus - init")
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
+        def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+        logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
+        def name = "xunit-${steps.env.RELEASE_PARAM_VERSION}-${steps.env.BUILD_NUMBER}.json"
+        logger.debug("uploadTestReportToNexus - name: ${name}")
+        nexus.uploadTestReportToNexus(name, data, "leva-documentation", testDir)
+        logger.debug("uploadTestReportToNexus - completed")
     }
 
     String createTCP(Map repo = null, Map data = null) {
