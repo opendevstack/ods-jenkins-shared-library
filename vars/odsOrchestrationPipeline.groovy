@@ -107,6 +107,8 @@ def call(Map config) {
         try {
             // Upload Jenkins logs to Nexus
             uploadJenkinsLogToNexus(steps, project, logger)
+            // Upload test reports to Nexus
+            uploadTestReportToNexus(steps, project)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)
@@ -128,22 +130,35 @@ def call(Map config) {
     }
 }
 
+private void uploadTestReportToNexus(IPipelineSteps steps, Project project) {
+    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+    logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
+    def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+    logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
+    def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
+    logger.debug("uploadTestReportToNexus - zip name: ${name}")
+    def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
+    logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+    logger.debug("uploadTestReportToNexus - directory: ${directory}")
+    nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
+    logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
+}
+
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
-    logger.error("AMP 001")
+    logger.debug("uploadJenkinsLogToNexus - Start")
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
-    logger.error("AMP 002")
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
-    logger.error("AMP 003")
     String text = jenkinsService.getCompletedBuildLogAsText()
-    logger.error("AMP 004")
+    logger.debug("uploadJenkinsLogToNexus - text length: ${text?.length()}")
     def repoName = project.services.nexus.repository.name
-    logger.error("AMP 005")
+    logger.debug("uploadJenkinsLogToNexus - repoName: ${repoName}")
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
-    logger.error("AMP 006")
+    logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
     String name = "jenkins-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.log"
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
-    logger.error("AMP 007")
+    logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
 }
 

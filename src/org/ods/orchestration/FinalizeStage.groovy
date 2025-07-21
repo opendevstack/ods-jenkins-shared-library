@@ -1,7 +1,5 @@
 package org.ods.orchestration
 
-import java.nio.file.Paths
-import com.google.common.base.Strings
 import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
@@ -9,7 +7,6 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.services.NexusService
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
@@ -136,7 +133,6 @@ class FinalizeStage extends Stage {
 
             logger.debug(message)
             util.failBuild(message)
-            uploadTestReportToNexus(script, steps)
             throw new IllegalStateException(message)
         } else {
             logger.debug("Reporting pipeline status to Jira...")
@@ -145,23 +141,7 @@ class FinalizeStage extends Stage {
                 bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                     "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
             }
-            uploadTestReportToNexus(script, steps)
         }
-    }
-
-    private void uploadTestReportToNexus(def script, IPipelineSteps steps) {
-        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        logger.debug("AMP X01 - xunitDir: ${xunitDir}")
-        def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-        logger.debug("AMP X02 - testDir: ${testDir}")
-        def name = "xunit-${script.env.VERSION}-${steps.env.BUILD_NUMBER}.zip"
-        logger.debug("AMP X03 - zip name: ${name}")
-        def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
-        logger.debug("AMP X04 - zipFile exists?: ${zipFile.exists()}")
-        def directory = "${project.key.toLowerCase()}-${script.env.VERSION}/xunit"
-        logger.debug("AMP X05 - directory: ${directory}")
-        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
-        logger.debug("AMP X05 - Test report uploaded to Nexus: ${name}")
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {

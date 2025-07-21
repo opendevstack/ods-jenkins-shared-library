@@ -259,7 +259,6 @@ class NexusService {
             }
             return file
         } catch (Exception e) {
-            //logger.error("Error creating the xUnit ZIP file: ${e.message}")
             throw e
         }
     }

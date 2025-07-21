@@ -67,10 +67,6 @@ def call(Map config, Closure body) {
                 if (!testDir || !steps.fileExists(testDir)) {
                     throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
                 }
-//                def file = buildXunitZipFile(steps, testDir, zipFileName, logger)
-//                def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
-//                nexusService.uploadTestReportToNexus(zipFileName, file, nexusRepository, directory)
-//                logger.debug("Successfully uploaded xunit file to Nexus: ${nexusRepository}/${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit")
 
                 JenkinsService jenkinsService = registry.get(JenkinsService)
                 String text = jenkinsService.getCompletedBuildLogAsText()
@@ -98,30 +94,5 @@ def call(Map config, Closure body) {
         }
     }
 }
-
-//private File buildXunitZipFile(def steps, def testDir, def zipFileName, def logger) {
-//    logger.error("AMP X01")
-//    if (!testDir || !steps.fileExists(testDir)) {
-//        throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
-//    }
-//    logger.error("AMP X02")
-//
-//    def zipFilePath=  Paths.get(testDir, zipFileName)
-//    logger.error("AMP X03")
-//    try {
-//        steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-//        logger.error("AMP X04")
-//        def file = zipFilePath.toFile()
-//        logger.error("AMP X05")
-//        if (!file.exists() || file.length() == 0) {
-//            throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
-//        }
-//        logger.error("AMP X06")
-//        return file
-//    } catch (Exception e) {
-//        //logger.error("Error creating the xUnit ZIP file: ${e.message}")
-//        throw e
-//    }
-//}
 
 return this
