@@ -99,7 +99,7 @@ def call(Map config) {
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
                     new ReleaseStage(this, project, repos).execute()
-                    new FinalizeStage(this, project, repos, nexusService, logger).execute()
+                    new FinalizeStage(this, project, repos).execute()
                 }
             }
         }
