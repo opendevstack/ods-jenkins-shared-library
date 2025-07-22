@@ -168,7 +168,6 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     } else {
         text += "STATUS ${steps.currentBuild.result}"
     }
-    logger.warn("HEREEE 1" + text + " HEREEE2")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
