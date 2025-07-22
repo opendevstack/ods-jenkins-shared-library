@@ -321,6 +321,8 @@ class Project {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
 
+        this.logger.debug "Project after init: ${this}"
+
         return this
     }
 
