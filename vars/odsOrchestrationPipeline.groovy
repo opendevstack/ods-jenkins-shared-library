@@ -131,18 +131,20 @@ def call(Map config) {
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
-    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-    logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
-    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
-    logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
-    def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
-    logger.debug("uploadTestReportToNexus - zip name: ${name}")
-    def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
-    logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
-    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-    logger.debug("uploadTestReportToNexus - directory: ${directory}")
-    nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
-    logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
+    node {
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
+        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+        logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
+        def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
+        logger.debug("uploadTestReportToNexus - zip name: ${name}")
+        def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
+        logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
+        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+        logger.debug("uploadTestReportToNexus - directory: ${directory}")
+        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
+        logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
+    }
 }
 
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
