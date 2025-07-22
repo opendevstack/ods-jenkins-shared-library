@@ -77,7 +77,14 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
                                      Logger logger) {
     final def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     JenkinsService jenkinsService = registry.get(JenkinsService)
-    final String text = jenkinsService.getCompletedBuildLogAsText()
+    String text = jenkinsService.getCompletedBuildLogAsText()
+    IPipelineSteps steps = new PipelineSteps(this)
+
+    if (!steps.currentBuild.result) {
+        text += " STATUS: SUCCESS"
+    } else {
+        text += " STATUS ${steps.currentBuild.result}"
+    }
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
