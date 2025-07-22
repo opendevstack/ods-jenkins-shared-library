@@ -133,7 +133,7 @@ def call(Map config) {
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
     def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
     logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
-    def testDir = "${env.WORKSPACE}/${xunitDir}"
+    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
     logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
     def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
     logger.debug("uploadTestReportToNexus - zip name: ${name}")
