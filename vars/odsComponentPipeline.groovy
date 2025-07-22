@@ -60,12 +60,17 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
 
-                def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-                def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-                logger.error("testDir: ${testDir}")
-                def zipFileName = "xunit.zip"
-                if (!testDir || !steps.fileExists(testDir)) {
-                    throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+                node {
+                    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+                    def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
+                    logger.error("testDir: ${testDir}")
+                    def zipFileName = "xunit.zip"
+                    if (!testDir || !steps.fileExists(testDir)) {
+                        throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+                    }
+                    def zipFile = nexusService.buildXunitZipFile(steps, testDir, zipFileName)
+                    def directory = "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/xunit"
+                    nexusService.uploadTestReportToNexus(zipFileName, zipFile, "leva-documentation", directory)
                 }
 
                 JenkinsService jenkinsService = registry.get(JenkinsService)
