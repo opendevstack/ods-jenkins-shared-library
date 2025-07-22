@@ -12,12 +12,11 @@ import org.ods.util.IPipelineSteps
 import java.nio.file.Paths
 
 class NexusService {
-
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
 
-    private URI baseURL
-    private IPipelineSteps steps
-    private String credentialsId
+    final private URI baseURL
+    final private IPipelineSteps steps
+    final private String credentialsId
 
     NexusService(String baseURL, IPipelineSteps steps, String credentialsId) {
         if (!baseURL?.trim()) {
@@ -113,7 +112,8 @@ class NexusService {
     }
 
     @SuppressWarnings('LineLength')
-    URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    URI storeComplextArtifact(String repository, byte[] artifact, String contentType,
+                              String repositoryType, Map nexusParams = [ : ]) {
         def restCall
         steps.withCredentials([
             steps.usernamePassword(
@@ -132,7 +132,7 @@ class NexusService {
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
+        final String URL_TO_DOWNLOAD = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
         def restCall
         steps.withCredentials([
             steps.usernamePassword(
@@ -141,14 +141,79 @@ class NexusService {
                 passwordVariable: 'PASSWORD'
             )
         ]) {
-            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+            restCall = Unirest.get("${URL_TO_DOWNLOAD}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
         }
-        return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
+        return (processRetrieveArtifactRes(restCall, URL_TO_DOWNLOAD, nexusRepository, nexusDirectory,
+            name, extractionPath))
+    }
+
+    boolean groupExists(String nexusRepository, String groupName) {
+        final String URL_TO_DOWNLOAD =
+            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
+        def response
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            response = Unirest.get("${URL_TO_DOWNLOAD}")
+                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+                .asString()
+        }
+        response.ifFailure {
+            throw new RuntimeException("Could not retrieve data from '${URL_TO_DOWNLOAD}'")
+        }
+        return !response.getBody().contains('\"items\" : [ ]')
+
+    }
+
+    File buildXunitZipFile(def steps, def testDir, def zipFileName) {
+        if (!testDir || !steps.fileExists(testDir)) {
+            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+        }
+
+        def zipFilePath=  Paths.get(testDir, zipFileName)
+        try {
+            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+            def file = zipFilePath.toFile()
+            if (!file.exists() || file.length() == 0) {
+                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
+            }
+            return file
+        } catch (Exception e) {
+            throw e
+        }
+    }
+
+    void uploadTestReportToNexus(def name, def file, def repoName, def directory) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
+        }
+
+        if (file == null || file.exists() == false) {
+            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
+        }
+
+        try {
+            storeArtifact(
+                repoName,
+                directory,
+                name,
+                file.bytes,
+                "application/zip"
+            )
+        } catch (Exception e) {
+            throw e
+        }
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
-    private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact,
+                                        String contentType, String repositoryType, Map nexusParams = [ : ]) {
+
         nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
@@ -195,7 +260,8 @@ class NexusService {
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
-    private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
+    private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository,
+                                                      String nexusDirectory, String name, String extractionPath) {
         // hurray - unirest, in case file exists - don't do anything.
         File artifactExists = new File("${extractionPath}/${name}")
         if (artifactExists) {
@@ -221,69 +287,5 @@ class NexusService {
             uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
         ]
-    }
-
-    boolean groupExists(String nexusRepository, String groupName) {
-        String urlToDownload =
-            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-        def response
-        steps.withCredentials([
-            steps.usernamePassword(
-                credentialsId: credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            response = Unirest.get("${urlToDownload}")
-                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
-                .asString()
-        }
-        response.ifFailure {
-            throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
-        }
-        return !response.getBody().contains('\"items\" : [ ]')
-
-    }
-
-    File buildXunitZipFile(def steps, def testDir, def zipFileName) {
-        if (!testDir || !steps.fileExists(testDir)) {
-            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
-        }
-
-        def zipFilePath=  Paths.get(testDir, zipFileName)
-        try {
-            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-            def file = zipFilePath.toFile()
-            if (!file.exists() || file.length() == 0) {
-                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
-            }
-            return file
-        } catch (Exception e) {
-            throw e
-        }
-    }
-
-    void uploadTestReportToNexus(def name, def file, def repoName, def directory) {
-        if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
-        }
-
-        if (file == null || file.exists() == false) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
-        }
-
-        try {
-            storeArtifact(
-                repoName,
-                directory,
-                name,
-                file.bytes,
-                "application/zip"
-            )
-            //logger.info("Successfully uploaded xUnit results to Nexus: ${repoName}:${directory}")
-        } catch (Exception e) {
-            //logger.error("Failed to upload xUnit results to Nexus: ${e.message}")
-            throw e
-        }
     }
 }

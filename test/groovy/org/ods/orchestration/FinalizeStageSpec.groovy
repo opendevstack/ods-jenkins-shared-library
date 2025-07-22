@@ -5,11 +5,11 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-import org.ods.services.NexusService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+
 import util.PipelineSteps
 import util.SpecHelper
 
@@ -24,18 +24,15 @@ class FinalizeStageSpec extends SpecHelper {
     GitService gitService
     LeVADocumentScheduler levaDocScheduler
     ILogger logger
-    NexusService nexusService
 
     def setup() {
         script = new PipelineSteps()
         levaDocScheduler = Mock(LeVADocumentScheduler)
-        project = Spy(createProject(["version":"1.0"]))
+        project = Spy(createProject())
         util = Mock(MROPipelineUtil)
         gitService = Mock(GitService)
         jira = Mock(JiraUseCase)
         logger = new Logger(script, true)
-        nexusService = Mock(NexusService)
-
         createService()
         for (repo in project.data.metadata.repositories) {
             repo.data.git = [:]
@@ -43,7 +40,7 @@ class FinalizeStageSpec extends SpecHelper {
 
         }
         project.gitData.createdExecutionCommit = 'd240853866f20fc3e536cb3bca86c86c54b723ce'
-        finalStage = Spy(new FinalizeStage(script, project, project.data.metadata.repositories, nexusService, logger))
+        finalStage = Spy(new FinalizeStage(script, project, project.data.metadata.repositories))
     }
 
     ServiceRegistry createService() {
@@ -57,9 +54,9 @@ class FinalizeStageSpec extends SpecHelper {
         return registry
     }
 
-    def "pushToMasterWhenWIPandNoReleaseBranch"() {
+    def "pushToMasterWhenWIPandNoReleaseBranch"(){
         given:
-        Map buildParams = [:]
+        Map buildParams = [ : ]
         buildParams.version = "WIP"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -73,9 +70,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushRef('master')
     }
 
-    def "pushToReleaseAndMasterWhenWipAndReleaseBranch"() {
+    def "pushToReleaseAndMasterWhenWipAndReleaseBranch"(){
         given:
-        Map buildParams = [:]
+        Map buildParams = [ : ]
         buildParams.version = "WIP"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -91,9 +88,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
-    def "pushToReleaseAndTag"() {
+    def "pushToReleaseAndTag"(){
         given:
-        Map buildParams = [:]
+        Map buildParams = [ : ]
         buildParams.version = "1.0.0"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -109,9 +106,9 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
-    def "pushToReleaseWithExistingTag"() {
+    def "pushToReleaseWithExistingTag"(){
         given:
-        Map buildParams = [:]
+        Map buildParams = [ : ]
         buildParams.version = "1.0.0"
         buildParams.changeId = "1.0.0"
         buildParams.targetEnvironmentToken = "D"
@@ -143,161 +140,10 @@ class FinalizeStageSpec extends SpecHelper {
         0 * finalStageNotInstallable.doIntegrateIntoMainBranches(_)
 
         where:
-        type               | _
-        'ods-test'         | _
-        'ods-library'      | _
-        'ods-infra'        | _
-        'ods-saas-service' | _
-    }
-
-    def "uploadTestReportToNexus should throw exception if name is null"() {
-        given:
-        def fileMock = Mock(File)
-        fileMock.exists() >> false
-
-        when:
-        finalStage.uploadTestReportToNexus(null, fileMock)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to upload test report. 'name' is undefined."
-    }
-
-    def "uploadTestReportToNexus should throw exception if file is null"() {
-        given:
-        def name = "test.zip"
-
-        when:
-        finalStage.uploadTestReportToNexus(name, null)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to upload test report. 'file' is undefined."
-    }
-
-    def "uploadTestReportToNexus should throw exception if file does not exist"() {
-        given:
-        def name = "test.zip"
-        def fileMock = Mock(File)
-        fileMock.exists() >> false
-
-        when:
-        finalStage.uploadTestReportToNexus(name, fileMock)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to upload test report. 'file' is undefined."
-    }
-
-    def "uploadTestReportToNexus should call nexus.storeArtifact and logger methods"() {
-        given:
-        def name = "test.zip"
-        def tempFile = File.createTempFile("test", ".zip")
-        tempFile.deleteOnExit()
-        tempFile.bytes = [1, 2, 3]
-
-        when:
-        finalStage.uploadTestReportToNexus(name, tempFile)
-
-        then:
-        project.key >> "testProject"
-
-        and:
-        1 * nexusService.storeArtifact(
-            'leva-documentation',
-            'testproject-1.0/xunit',
-            'test.zip',
-            [1, 2, 3],
-            "application/zip"
-        )
-    }
-
-    def "uploadTestReportToNexus should log error and rethrow if nexus throws"() {
-        given:
-        def name = "test.zip"
-        def tempFile = File.createTempFile("test", ".zip")
-        tempFile.deleteOnExit()
-        tempFile.bytes = [1, 2, 3]
-
-        when:
-        finalStage.uploadTestReportToNexus(name, tempFile)
-
-        then:
-        1 * nexusService.storeArtifact(_, _, _, _, _) >> { throw new RuntimeException("Nexus error") }
-
-        and:
-        thrown(RuntimeException)
-    }
-
-    def "buildXunitZipFile throws exception if testDir is null"() {
-        given:
-        def stepsMock = Mock(IPipelineSteps)
-        def testDir = null
-        def zipFileName = "xunit.zip"
-
-        when:
-        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: The test directory 'null' does not exist."
-    }
-
-    def "buildXunitZipFile throws exception if testDir not exists"() {
-        given:
-        def stepsMock = Mock(IPipelineSteps)
-        def testDir = "/ruta/falsa"
-        def zipFileName = "xunit.zip"
-        stepsMock.fileExists(testDir) >> false
-
-        when:
-        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: The test directory '/ruta/falsa' does not exist."
-    }
-
-    def "buildXunitZipFile throws exception if zip file was not created"() {
-        given:
-        def stepsMock = Mock(IPipelineSteps)
-        def testDir = File.createTempDir().absolutePath
-        def zipFileName = "xunit.zip"
-        stepsMock.fileExists(testDir) >> true
-        stepsMock.sh(_) >> null
-
-        // Simula que el archivo zip no existe
-        def zipFilePath = java.nio.file.Paths.get(testDir, zipFileName)
-        def zipFile = zipFilePath.toFile()
-        zipFile.delete() // Asegura que no existe
-
-        when:
-        finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message.contains("Error: The ZIP file was not created correctly")
-    }
-
-    def "buildXunitZipFile returns file"() {
-        given:
-        def stepsMock = Mock(IPipelineSteps)
-        def testDir = File.createTempDir().absolutePath
-        def zipFileName = "xunit.zip"
-        stepsMock.fileExists(testDir) >> true
-        stepsMock.sh(_) >> null
-
-        // Crea el archivo zip simulado
-        def zipFilePath = java.nio.file.Paths.get(testDir, zipFileName)
-        def zipFile = zipFilePath.toFile()
-        zipFile.bytes = [1,2,3]
-
-        when:
-        def result = finalStage.buildXunitZipFile(stepsMock, testDir, zipFileName)
-
-        then:
-        result.exists()
-        result.length() > 0
-        result == zipFile
+        type                | _
+        'ods-test'          | _
+        'ods-library'       | _
+        'ods-infra'         | _
+        'ods-saas-service'  | _
     }
 }
