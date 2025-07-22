@@ -67,7 +67,7 @@ class FinalizeStageSpec extends SpecHelper {
         finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
 
         then:
-        1 * gitService.pushRef('master')
+        1 * gitService.pushRef('master2')
     }
 
     def "pushToReleaseAndMasterWhenWipAndReleaseBranch"(){

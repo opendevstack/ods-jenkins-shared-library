@@ -164,9 +164,9 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
     String name = "jenkins-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.log"
     if (!steps.currentBuild.result) {
-        text += " STATUS: SUCCESS"
+        text += "STATUS: SUCCESS"
     } else {
-        text += " STATUS ${steps.currentBuild.result}"
+        text += "STATUS ${steps.currentBuild.result}"
     }
     logger.warn("HEREEE 1" + text + " HEREEE2")
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)

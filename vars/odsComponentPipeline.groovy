@@ -81,9 +81,9 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
     IPipelineSteps steps = new PipelineSteps(this)
 
     if (!steps.currentBuild.result) {
-        text += " STATUS: SUCCESS"
+        text += "STATUS: SUCCESS"
     } else {
-        text += " STATUS ${steps.currentBuild.result}"
+        text += "STATUS ${steps.currentBuild.result}"
     }
     nexusService.storeArtifact(
         "leva-documentation",
