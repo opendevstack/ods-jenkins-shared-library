@@ -132,17 +132,23 @@ def call(Map config) {
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
     node {
+        logger.debug("uploadTestReportToNexus - Start")
+        NexusService nexusService = getNexusService(ServiceRegistry.instance)
         def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
         logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
         def testDir = "${this.env.WORKSPACE}/${xunitDir}"
         logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
+        if (!steps.fileExists(testDir)) {
+            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+            return
+        }
         def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
-        def zipFile = nexus.buildXunitZipFile(steps, testDir, name)
+        def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
         logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
         def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
         logger.debug("uploadTestReportToNexus - directory: ${directory}")
-        nexus.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
+        nexusService.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
         logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
     }
 }
