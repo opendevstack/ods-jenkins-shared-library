@@ -1,6 +1,5 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -54,7 +53,6 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
 
-                uploadTestReportToNexus(steps, nexusService, context, repo, logger)
                 uploadJenkinsLogToNexus(registry, nexusService, context, repo, logger)
 
                 new ClassLoaderCleaner().clean(logger, PROCESS_ID)
@@ -95,24 +93,6 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: ${nexusRepository}/" +
         "${context.getProjectId().toLowerCase()}/${repo}/${FORMATTED_DATE}-${context.getBuildNumber()}/logs")
-}
-
-private void uploadTestReportToNexus(IPipelineSteps steps, NexusService nexusService, def context, String repo,
-                                     def logger) {
-    node {
-        final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        final def XUNIT_DIR = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        final def TEST_DIR = "${steps.env.WORKSPACE}/${XUNIT_DIR}"
-        logger.error("TEST_DIR: ${TEST_DIR}")
-        def zipFileName = "xunit.zip"
-        if (!TEST_DIR || !steps.fileExists(TEST_DIR)) {
-            throw new IllegalArgumentException("Error: The test directory '${TEST_DIR}' does not exist.")
-        }
-        def zipFile = nexusService.buildXunitZipFile(steps, TEST_DIR, zipFileName)
-        def directory = "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${FORMATTED_DATE}-${context.getBuildNumber()}/xunit"
-        nexusService.uploadTestReportToNexus(zipFileName, zipFile, "leva-documentation", directory)
-    }
 }
 
 return this
