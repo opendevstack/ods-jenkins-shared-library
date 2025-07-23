@@ -156,10 +156,10 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
-    if (!steps.currentBuild.result) {
-        text += "STATUS: SUCCESS"
-    } else {
+    if (steps.currentBuild.result) {
         text += "STATUS ${steps.currentBuild.result}"
+    } else {
+        text += "STATUS: SUCCESS"
     }
     logger.debug("uploadJenkinsLogToNexus - text length: ${text?.length()}")
     def repoName = project.services.nexus.repository.name
