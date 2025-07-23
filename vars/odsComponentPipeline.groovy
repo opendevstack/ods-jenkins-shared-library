@@ -33,7 +33,7 @@ def call(Map config, Closure body) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
     def pipeline = new Pipeline(this, logger)
-    final String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
+    final String PROCESS_ID = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
 
     try {
         pipeline.execute(config, body)
@@ -57,7 +57,7 @@ def call(Map config, Closure body) {
                 uploadTestReportToNexus(steps, nexusService, context, repo, logger)
                 uploadJenkinsLogToNexus(registry, nexusService, context, repo, logger)
 
-                new ClassLoaderCleaner().clean(logger, processId)
+                new ClassLoaderCleaner().clean(logger, PROCESS_ID)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
@@ -75,35 +75,35 @@ def call(Map config, Closure body) {
 
 private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexusService, Context context, String repo,
                                      Logger logger) {
-    final def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     JenkinsService jenkinsService = registry.get(JenkinsService)
-    final String text = jenkinsService.getCompletedBuildLogAsText()
+    def text = jenkinsService.getCompletedBuildLogAsText()
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${formattedDate}-${context.getBuildNumber()}/logs",
+            "${FORMATTED_DATE}-${context.getBuildNumber()}/logs",
         "jenkins.log",
         text.bytes,
         "application/text"
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: ${nexusRepository}/" +
-        "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs")
+        "${context.getProjectId().toLowerCase()}/${repo}/${FORMATTED_DATE}-${context.getBuildNumber()}/logs")
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, NexusService nexusService, def context, String repo,
                                      def logger) {
     node {
-        final def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        final def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        final def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-        logger.error("testDir: ${testDir}")
+        final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        final def XUNIT_DIR = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        final def TEST_DIR = "${steps.env.WORKSPACE}/${XUNIT_DIR}"
+        logger.error("TEST_DIR: ${TEST_DIR}")
         def zipFileName = "xunit.zip"
-        if (!testDir || !steps.fileExists(testDir)) {
-            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+        if (!TEST_DIR || !steps.fileExists(TEST_DIR)) {
+            throw new IllegalArgumentException("Error: The test directory '${TEST_DIR}' does not exist.")
         }
-        def zipFile = nexusService.buildXunitZipFile(steps, testDir, zipFileName)
+        def zipFile = nexusService.buildXunitZipFile(steps, TEST_DIR, zipFileName)
         def directory = "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${formattedDate}-${context.getBuildNumber()}/xunit"
+            "${FORMATTED_DATE}-${context.getBuildNumber()}/xunit"
         nexusService.uploadTestReportToNexus(zipFileName, zipFile, "leva-documentation", directory)
     }
 }
