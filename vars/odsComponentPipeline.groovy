@@ -86,7 +86,7 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${formattedDate}-${context.getBuildNumber()}/logs",
+            "${FORMATTED_DATE}-${context.getBuildNumber()}/logs",
         "jenkins.log",
         text.bytes,
         "application/text"
