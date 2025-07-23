@@ -105,8 +105,8 @@ def call(Map config) {
         }
     } finally {
         try {
-            uploadJenkinsLogToNexus(steps, project, logger)
             uploadTestReportToNexus(steps, project, logger)
+            uploadJenkinsLogToNexus(steps, project, logger)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)
@@ -156,6 +156,11 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
+    if (!steps.currentBuild.result) {
+        text += "STATUS: SUCCESS"
+    } else {
+        text += "STATUS ${steps.currentBuild.result}"
+    }
     logger.debug("uploadJenkinsLogToNexus - text length: ${text?.length()}")
     def repoName = project.services.nexus.repository.name
     logger.debug("uploadJenkinsLogToNexus - repoName: ${repoName}")
