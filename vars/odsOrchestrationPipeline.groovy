@@ -99,7 +99,7 @@ def call(Map config) {
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
                     new ReleaseStage(this, project, repos).execute()
-                    new FinalizeStage(this, project, repos, nexusService, logger).execute()
+                    new FinalizeStage(this, project, repos).execute()
                 }
             }
         }
@@ -163,6 +163,11 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
     String name = "jenkins-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.log"
+    if (!steps.currentBuild.result) {
+        text += "STATUS: SUCCESS"
+    } else {
+        text += "STATUS ${steps.currentBuild.result}"
+    }
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")
