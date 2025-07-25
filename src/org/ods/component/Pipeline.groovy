@@ -262,19 +262,35 @@ class Pipeline implements Serializable {
                             }
                             context.sonarExecuted = false
                             logger.info("sonarExecuted: ${context.sonarExecuted}")
-                            if(!context.sonarExecuted) {
-								logger.info("SonarQube not configured, using default conf")
+                            
+                            // Check if odsComponentStageScanWithSonar is already defined in the pipeline
+                            boolean hasSonarStageInPipeline = checkForSonarStageInPipeline()
+                            logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
+                            
+                            if(!context.sonarExecuted && !hasSonarStageInPipeline) {
+								logger.info("SonarQube not configured and no explicit stage found, using default conf")
                               	
-                              	def registry = ServiceRegistry.instance
-                              	if (!registry.get(SonarQubeService)) {
-                                  logger.info 'Registering SonarQubeService'
-                                  this.sonarQubeService = new SonarQubeService(
-                                      script, logger, 'SonarServerConfig')
-                                  registry.add(SonarQubeService, this.sonarQubeService)
-                              }
-                              
-                              	Stage sonarStage = new ScanWithSonarStage(script, context, [:], this.bitbucketService, this.sonarQubeService, registry.get(NexusService), logger)
-                              	sonarStage.execute() 
+                              	try {
+                                  def registry = ServiceRegistry.instance
+                                  if (!registry.get(SonarQubeService)) {
+                                      logger.info 'Registering SonarQubeService'
+                                      this.sonarQubeService = new SonarQubeService(
+                                          script, logger, 'SonarServerConfig')
+                                      registry.add(SonarQubeService, this.sonarQubeService)
+                                  }
+                                  
+                                  Stage sonarStage = new ScanWithSonarStage(script, context, [:], this.bitbucketService, this.sonarQubeService, registry.get(NexusService), logger)
+                                  sonarStage.execute()
+                                  context.sonarExecuted = true
+                                  logger.info("Automatic SonarQube scan completed successfully")
+                              	} catch (Exception e) {
+                                  logger.warn("Automatic SonarQube scan failed but pipeline will continue: ${e.message}")
+                                  logger.debug("Full SonarQube scan error: ${e}")
+                                  context.sonarExecuted = false
+                                  // Continue pipeline execution without failing
+                              	}
+                            } else if (hasSonarStageInPipeline) {
+                                logger.info("Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage is defined in pipeline")
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
@@ -477,6 +493,75 @@ class Pipeline implements Serializable {
         } else {
             block()
         }
+    }
+
+    private boolean checkForSonarStageInPipeline() {
+        try {
+            // Get the script path from the pipeline configuration
+            def scriptPath = getJenkinsfileScriptPath()
+            if (!scriptPath) {
+                logger.debug("Could not determine script path, defaulting to 'Jenkinsfile'")
+                scriptPath = 'Jenkinsfile'
+            }
+            
+            // Try to read the pipeline script file to check if odsComponentStageScanWithSonar is present
+            def jenkinsfileContent = script.readFile(file: scriptPath)
+            boolean containsSonarStage = jenkinsfileContent.contains('odsComponentStageScanWithSonar')
+            if (containsSonarStage) {
+                logger.debug("Found 'odsComponentStageScanWithSonar' in ${scriptPath}")
+            } else {
+                // Also check for deprecated stage name
+                containsSonarStage = jenkinsfileContent.contains('stageScanForSonarqube')
+                if (containsSonarStage) {
+                    logger.debug("Found deprecated 'stageScanForSonarqube' in ${scriptPath}")
+                }
+            }
+            return containsSonarStage
+        } catch (Exception e) {
+            logger.warn("Could not read pipeline script to check for SonarQube stage: ${e.message}")
+            logger.debug("Full error: ${e}")
+            // If we can't read the file, assume no explicit stage is defined
+            // This ensures the pipeline doesn't fail due to file reading issues
+            return false
+        }
+    }
+
+    private String getJenkinsfileScriptPath() {
+        try {
+            // Try to get the script path from the current build's SCM configuration
+            def scmConfig = script.scm
+            if (scmConfig && scmConfig.hasProperty('scriptPath')) {
+                logger.debug("Found script path from SCM config: ${scmConfig.scriptPath}")
+                return scmConfig.scriptPath
+            }
+        } catch (Exception e) {
+            logger.debug("Could not get script path from SCM configuration: ${e.message}")
+        }
+        
+        try {
+            // Fallback: try to get from build configuration in OpenShift
+            if (this.localCheckoutEnabled && context?.cdProject) {
+                def pipelinePrefix = "${context.cdProject}/${context.cdProject}-"
+                def buildConfigName = script.env.JOB_NAME?.substring(pipelinePrefix.size())
+                if (buildConfigName) {
+                    def contextDir = script.sh(
+                        returnStdout: true,
+                        label: 'getting pipeline script context directory from build config',
+                        script: "oc get bc/${buildConfigName} -n ${context.cdProject} -o jsonpath='{.spec.source.contextDir}' 2>/dev/null || echo ''"
+                    ).trim()
+                    
+                    if (contextDir) {
+                        logger.debug("Found context directory from build config: ${contextDir}")
+                        return "${contextDir}/Jenkinsfile"
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Could not get script path from OpenShift build config: ${e.message}")
+        }
+        
+        logger.debug("Could not determine script path, returning null")
+        return null
     }
 
 }
