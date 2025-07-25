@@ -15,10 +15,13 @@ class ScanWithSonarStage extends Stage {
     static final String STAGE_NAME = 'SonarQube Analysis'
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "ods.sonarqube"
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
+    static final String SONAR_CONFIG_MAP_NAME = "sonar"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
     private final ScanWithSonarOptions options
+    private final Map configurationSonarCluster
+    private final Map configurationSonarProject
 
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
@@ -28,7 +31,10 @@ class ScanWithSonarStage extends Stage {
         BitbucketService bitbucket,
         SonarQubeService sonarQube,
         NexusService nexus,
-        ILogger logger) {
+        ILogger logger,
+        Map configurationSonarCluster = [:],
+        Map configurationSonarProject = [:]
+    ) {
         super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
@@ -58,11 +64,20 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
-
+        // Handle exclusions from config map
+        if (configurationSonarCluster['exclusions']) {
+            config.exclusions = configurationSonarCluster['exclusions']
+        }
+        // Handle Nexus repository from config map
+        if (configurationSonarCluster['nexusRepository']) {
+            config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
+        }
         this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
         this.nexus = nexus
+        this.configurationSonarCluster = configurationSonarCluster
+        this.configurationSonarProject = configurationSonarProject
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -121,8 +136,9 @@ class ScanWithSonarStage extends Stage {
     }
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
+        def exclusions = options.exclusions ?: ""
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
