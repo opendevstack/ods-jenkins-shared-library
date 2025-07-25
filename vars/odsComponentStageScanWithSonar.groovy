@@ -91,13 +91,19 @@ def call(IContext context, Map config = [:]) {
                 logger
             ).execute()
         } else if (!enabledInCluster && !enabledInProject) {
-            logger.warn("Skipping SonarQube scan because it is not enabled at cluster nor project level in 'sonarqube' ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            logger.warn("Skipping SonarQube scan because is not enabled nor cluster nor project " +
+            "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
+            "in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at cluster nor project level</li>"
         } else if (enabledInCluster) {
-            logger.warn("Skipping SonarQube scan because it is not enabled at project level in 'sonarqube' ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            logger.warn("Skipping SonarQube scan because is not enabled at project level " +
+            "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
+            "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at project level</li>"
         } else {
-            logger.warn("Skipping SonarQube scan because it is not enabled at cluster level in 'sonarqube' ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            logger.warn("Skipping SonarQube scan because is not enabled at cluster level " +
+            "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
+            "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at cluster level</li>"
         }
     } catch (Exception e) {
