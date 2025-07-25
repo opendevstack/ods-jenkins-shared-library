@@ -32,7 +32,7 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition) {
+    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
@@ -40,8 +40,8 @@ class SonarQubeService {
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
-              	"-Dsonar.sources=.",
-              	"-Dsonar.exclusions=",
+                "-Dsonar.sources=.",
+                "-Dsonar.exclusions=${exclusions}",
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
