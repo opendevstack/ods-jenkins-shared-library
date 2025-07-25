@@ -75,10 +75,6 @@ def call(IContext context, Map config = [:]) {
         }
         boolean enabledInCluster = Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true")
         boolean enabledInProject = Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
-        // Set exclusions from ConfigMap if present
-        if (configurationSonarCluster['exclusions']) {
-            config.exclusions = configurationSonarCluster['exclusions']
-        }
         // Set Nexus repository from ConfigMap if present
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']

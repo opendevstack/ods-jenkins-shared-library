@@ -22,6 +22,7 @@ class ScanWithSonarStage extends Stage {
     private final ScanWithSonarOptions options
     private final Map configurationSonarCluster
     private final Map configurationSonarProject
+    private String exclusions
 
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
@@ -64,10 +65,6 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
-        // Handle exclusions from config map
-        if (configurationSonarCluster['exclusions']) {
-            config.exclusions = configurationSonarCluster['exclusions']
-        }
         // Handle Nexus repository from config map
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
@@ -78,6 +75,7 @@ class ScanWithSonarStage extends Stage {
         this.nexus = nexus
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
+        this.exclusions = configurationSonarCluster['exclusions'] ?: ""
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -136,7 +134,6 @@ class ScanWithSonarStage extends Stage {
     }
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
-        def exclusions = options.exclusions ?: ""
         def doScan = { Map<String, Object> prInfo ->
             sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions)
         }
