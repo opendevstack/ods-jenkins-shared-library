@@ -38,15 +38,20 @@ def call(IContext context, Map config = [:]) {
         IPipelineSteps steps = new PipelineSteps(this)
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
     }
-    def stage = new ScanWithSonarStage(
-        this,
-        context,
-        config,
-        bitbucketService,
-        sonarQubeService,
-        nexusService,
-        logger
-    )
-    stage.execute()
+    try {
+        def stage = new ScanWithSonarStage(
+            this,
+            context,
+            config,
+            bitbucketService,
+            sonarQubeService,
+            nexusService,
+            logger
+        )
+        stage.execute()
+    } catch (Exception e) {
+        logger.warn("Error with Sonarqube scan due to: ${e.message}")
+        logger.debug("Stacktrace: ${e.getStackTrace().join('\n')}")
+    }
 }
 return this
