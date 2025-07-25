@@ -506,12 +506,16 @@ class Pipeline implements Serializable {
             
             // Try to read the pipeline script file to check if odsComponentStageScanWithSonar is present
             def jenkinsfileContent = script.readFile(file: scriptPath)
-            boolean containsSonarStage = jenkinsfileContent.contains('odsComponentStageScanWithSonar')
+            
+            // Parse content to exclude commented lines
+            def uncommentedContent = removeCommentedCode(jenkinsfileContent)
+            
+            boolean containsSonarStage = uncommentedContent.contains('odsComponentStageScanWithSonar')
             if (containsSonarStage) {
                 logger.debug("Found 'odsComponentStageScanWithSonar' in ${scriptPath}")
             } else {
                 // Also check for deprecated stage name
-                containsSonarStage = jenkinsfileContent.contains('stageScanForSonarqube')
+                containsSonarStage = uncommentedContent.contains('stageScanForSonarqube')
                 if (containsSonarStage) {
                     logger.debug("Found deprecated 'stageScanForSonarqube' in ${scriptPath}")
                 }
@@ -524,6 +528,55 @@ class Pipeline implements Serializable {
             // This ensures the pipeline doesn't fail due to file reading issues
             return false
         }
+    }
+
+    private String removeCommentedCode(String content) {
+        def lines = content.split('\n')
+        def result = new StringBuilder()
+        boolean inBlockComment = false
+        
+        for (String line : lines) {
+            String processedLine = line
+            
+            // Handle block comments (/* */)
+            if (inBlockComment) {
+                def blockCommentEnd = processedLine.indexOf('*/')
+                if (blockCommentEnd != -1) {
+                    // End of block comment found
+                    processedLine = processedLine.substring(blockCommentEnd + 2)
+                    inBlockComment = false
+                } else {
+                    // Still inside block comment, skip entire line
+                    continue
+                }
+            }
+            
+            // Check for start of block comment
+            def blockCommentStart = processedLine.indexOf('/*')
+            if (blockCommentStart != -1) {
+                def blockCommentEnd = processedLine.indexOf('*/', blockCommentStart + 2)
+                if (blockCommentEnd != -1) {
+                    // Complete block comment on same line
+                    processedLine = processedLine.substring(0, blockCommentStart) + 
+                                   processedLine.substring(blockCommentEnd + 2)
+                } else {
+                    // Block comment starts but doesn't end on this line
+                    processedLine = processedLine.substring(0, blockCommentStart)
+                    inBlockComment = true
+                }
+            }
+            
+            // Handle single-line comments (//)
+            def singleCommentIndex = processedLine.indexOf('//')
+            if (singleCommentIndex != -1) {
+                processedLine = processedLine.substring(0, singleCommentIndex)
+            }
+            
+            // Add processed line to result
+            result.append(processedLine).append('\n')
+        }
+        
+        return result.toString()
     }
 
     private String getJenkinsfileScriptPath() {
