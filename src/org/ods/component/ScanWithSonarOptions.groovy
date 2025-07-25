@@ -44,7 +44,7 @@ class ScanWithSonarOptions extends Options {
     String resourceName
     /**
      * Patterns to exclude from SonarQube scan.
-     * Example: `'**/test/**,**/docs/**'`.
+     * Example: "**/test/**,**/docs/**".
      */
     String exclusions
 
