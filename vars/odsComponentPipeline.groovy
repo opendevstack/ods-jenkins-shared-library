@@ -1,6 +1,7 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
 import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -79,6 +80,7 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
     JenkinsService jenkinsService = registry.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
     IPipelineSteps steps = new PipelineSteps(this)
+    Project project = new Project(steps, logger)
 
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
@@ -89,7 +91,7 @@ private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexu
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
             "${formattedDate}-${context.getBuildNumber()}/logs",
-        "jenkins.log",
+        "jenkins-${project.gitReleaseBranch}-${context.gitBranch}-${project.buildParams.targetEnvironment}-${new Date()}-1.LOG",
         text.bytes,
         "application/text"
     )

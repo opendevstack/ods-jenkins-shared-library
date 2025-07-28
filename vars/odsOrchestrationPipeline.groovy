@@ -162,7 +162,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
-    String name = "jenkins-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.log"
+    String name = "jenkins-${project.gitReleaseBranch}-1.log"
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
     } else {
