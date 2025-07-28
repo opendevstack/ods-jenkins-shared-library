@@ -105,8 +105,8 @@ def call(Map config) {
         }
     } finally {
         try {
-            uploadJenkinsLogToNexus(steps, project, logger)
             uploadTestReportToNexus(steps, project, logger)
+            uploadJenkinsLogToNexus(steps, project, logger)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
             new ClassLoaderCleaner().clean(logger, processId)

@@ -1,7 +1,10 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
+<<<<<<< HEAD
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
+=======
+>>>>>>> 4395d32a11cde274f2508d1a707471c87f98b76b
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -34,7 +37,7 @@ def call(Map config, Closure body) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
     def pipeline = new Pipeline(this, logger)
-    final String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
+    final String PROCESS_ID = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
 
     try {
         pipeline.execute(config, body)
@@ -55,10 +58,9 @@ def call(Map config, Closure body) {
                     registry.add(NexusService, nexusService)
                 }
 
-                uploadTestReportToNexus(steps, nexusService, context, repo, logger)
                 uploadJenkinsLogToNexus(registry, nexusService, context, repo, logger)
 
-                new ClassLoaderCleaner().clean(logger, processId)
+                new ClassLoaderCleaner().clean(logger, PROCESS_ID)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
@@ -76,45 +78,27 @@ def call(Map config, Closure body) {
 
 private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexusService, Context context, String repo,
                                      Logger logger) {
-    final def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     JenkinsService jenkinsService = registry.get(JenkinsService)
-    String text = jenkinsService.getCompletedBuildLogAsText()
+    def text = jenkinsService.getCompletedBuildLogAsText()
     IPipelineSteps steps = new PipelineSteps(this)
     Project project = new Project(steps, logger)
 
-    if (!steps.currentBuild.result) {
-        text += "STATUS: SUCCESS"
-    } else {
+    if (steps.currentBuild.result) {
         text += "STATUS ${steps.currentBuild.result}"
+    } else {
+        text += "STATUS: SUCCESS"
     }
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${formattedDate}-${context.getBuildNumber()}/logs",
+            "${FORMATTED_DATE}-${context.getBuildNumber()}/logs",
         "jenkins-${project.gitReleaseBranch}-${context.gitBranch}-${project.buildParams.targetEnvironment}-${new Date()}-1.LOG",
         text.bytes,
         "application/text"
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: ${nexusRepository}/" +
-        "${context.getProjectId().toLowerCase()}/${repo}/${formattedDate}-${context.getBuildNumber()}/logs")
-}
-
-private void uploadTestReportToNexus(IPipelineSteps steps, NexusService nexusService, def context, String repo,
-                                     def logger) {
-    node {
-        final def formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        final def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        final def testDir = "${steps.env.WORKSPACE}/${xunitDir}"
-        logger.error("testDir: ${testDir}")
-        def zipFileName = "xunit.zip"
-        if (!testDir || !steps.fileExists(testDir)) {
-            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
-        }
-        def zipFile = nexusService.buildXunitZipFile(steps, testDir, zipFileName)
-        def directory = "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${formattedDate}-${context.getBuildNumber()}/xunit"
-        nexusService.uploadTestReportToNexus(zipFileName, zipFile, "leva-documentation", directory)
-    }
+        "${context.getProjectId().toLowerCase()}/${repo}/${FORMATTED_DATE}-${context.getBuildNumber()}/logs")
 }
 
 return this
