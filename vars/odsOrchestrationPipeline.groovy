@@ -23,6 +23,8 @@ import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
 import java.nio.file.Paths
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @SuppressWarnings('AbcMetric')
 def call(Map config) {
@@ -162,12 +164,14 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
-    String name = "jenkins-${project.gitReleaseBranch}-1.log"
+    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-mm-dd-hh-mm-ss"))
+    String name = "jenkins-${project.buildParams.version}-${FORMATTED_DATE}-${env.BUILD_NUMBER}.LOG"
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
     } else {
         text += "STATUS ${steps.currentBuild.result}"
     }
+
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
     logger.warn("Successfully uploaded Jenkins logs to Nexus")

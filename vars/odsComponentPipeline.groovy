@@ -1,10 +1,6 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
-<<<<<<< HEAD
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
-=======
->>>>>>> 4395d32a11cde274f2508d1a707471c87f98b76b
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -78,22 +74,22 @@ def call(Map config, Closure body) {
 
 private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexusService, Context context, String repo,
                                      Logger logger) {
-    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-mm-dd-hh-mm-ss"))
     JenkinsService jenkinsService = registry.get(JenkinsService)
     def text = jenkinsService.getCompletedBuildLogAsText()
     IPipelineSteps steps = new PipelineSteps(this)
-    Project project = new Project(steps, logger)
 
     if (steps.currentBuild.result) {
         text += "STATUS ${steps.currentBuild.result}"
     } else {
         text += "STATUS: SUCCESS"
     }
+
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
             "${FORMATTED_DATE}-${context.getBuildNumber()}/logs",
-        "jenkins-${project.gitReleaseBranch}-${context.gitBranch}-${project.buildParams.targetEnvironment}-${new Date()}-1.LOG",
+        "jenkins.log",
         text.bytes,
         "application/text"
     )
