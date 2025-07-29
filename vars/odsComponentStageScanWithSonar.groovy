@@ -59,7 +59,7 @@ def call(IContext context, Map config = [:]) {
     try {
         // Read SonarQube config from ConfigMap (namespace and configmap name must be provided in config.imageLabels)
         configurationSonarCluster = openShiftService.getConfigMapData(
-            config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE,
+            config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
             ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
         )
         // Addresses for notification emails (optional)
@@ -93,17 +93,17 @@ def call(IContext context, Map config = [:]) {
         } else if (!enabledInCluster && !enabledInProject) {
             logger.warn("Skipping SonarQube scan because is not enabled nor cluster nor project " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
-            "in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            "in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at cluster nor project level</li>"
         } else if (enabledInCluster) {
             logger.warn("Skipping SonarQube scan because is not enabled at project level " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
-            "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            "ConfigMap in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at project level</li>"
         } else {
             logger.warn("Skipping SonarQube scan because is not enabled at cluster level " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
-            "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
+            "ConfigMap in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
             errorMessages += "<li>SonarQube scan not enabled at cluster level</li>"
         }
     } catch (Exception e) {
