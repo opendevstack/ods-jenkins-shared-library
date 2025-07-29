@@ -268,27 +268,83 @@ class Pipeline implements Serializable {
                             logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
                             
                             if(!context.sonarExecuted && !hasSonarStageInPipeline) {
-								logger.info("SonarQube not configured and no explicit stage found, using default conf")
-                              	
-                              	try {
-                                  def registry = ServiceRegistry.instance
-                                  if (!registry.get(SonarQubeService)) {
-                                      logger.info 'Registering SonarQubeService'
-                                      this.sonarQubeService = new SonarQubeService(
-                                          script, logger, 'SonarServerConfig')
-                                      registry.add(SonarQubeService, this.sonarQubeService)
-                                  }
-                                  
-                                  Stage sonarStage = new ScanWithSonarStage(script, context, [:], this.bitbucketService, this.sonarQubeService, registry.get(NexusService), logger)
-                                  sonarStage.execute()
-                                  context.sonarExecuted = true
-                                  logger.info("Automatic SonarQube scan completed successfully")
-                              	} catch (Exception e) {
-                                  logger.warn("Automatic SonarQube scan failed but pipeline will continue: ${e.message}")
-                                  logger.debug("Full SonarQube scan error: ${e}")
-                                  context.sonarExecuted = false
-                                  // Continue pipeline execution without failing
-                              	}
+                                logger.info("SonarQube not configured and no explicit stage found, using default conf")
+                                
+                                try {
+                                    def registry = ServiceRegistry.instance
+                                    
+                                    // Initialize required services
+                                    if (!registry.get(SonarQubeService)) {
+                                        logger.info 'Registering SonarQubeService'
+                                        this.sonarQubeService = new SonarQubeService(
+                                            script, logger, 'SonarServerConfig')
+                                        registry.add(SonarQubeService, this.sonarQubeService)
+                                    }
+
+                                    // Initialize config.imageLabels if not present
+                                    if (!config.imageLabels) {
+                                        config.imageLabels = [:]
+                                    }
+                                    
+                                    // Set OPENSHIFT_BUILD_NAMESPACE from environment if not already set
+                                    if (!config.imageLabels.OPENSHIFT_BUILD_NAMESPACE) {
+                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE = script.env.OPENSHIFT_BUILD_NAMESPACE
+                                    }
+
+                                    def openShiftService = registry.get(OpenShiftService)
+                                    Map configurationSonarCluster = [:]
+                                    Map configurationSonarProject = [:]
+
+                                    // Read SonarQube config from ConfigMap
+                                    configurationSonarCluster = openShiftService.getConfigMapData(
+                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
+                                        ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
+                                    )
+
+                                    // Project-level enabled flag
+                                    def key = "projects." + context.projectId + ".enabled"
+                                    if (configurationSonarCluster.containsKey(key)) {
+                                        configurationSonarProject.put('enabled', configurationSonarCluster.get(key))
+                                        logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
+                                    } else {
+                                        configurationSonarProject.put('enabled', true)
+                                        logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level. Default enabled"
+                                    }
+
+                                    boolean enabledInCluster = Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true")
+                                    boolean enabledInProject = Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
+
+                                    // Only run scan if enabled in both cluster and project
+                                    if (enabledInCluster && enabledInProject) {
+                                        Stage sonarStage = new ScanWithSonarStage(
+                                            script, 
+                                            context, 
+                                            [:], 
+                                            this.bitbucketService, 
+                                            this.sonarQubeService, 
+                                            registry.get(NexusService), 
+                                            logger,
+                                            configurationSonarCluster,
+                                            configurationSonarProject
+                                        )
+                                        sonarStage.execute()
+                                        context.sonarExecuted = true
+                                        logger.info("Automatic SonarQube scan completed successfully")
+                                    } else {
+                                        if (!enabledInCluster && !enabledInProject) {
+                                            logger.warn("Skipping SonarQube scan because it is not enabled at cluster nor project level")
+                                        } else if (enabledInCluster) {
+                                            logger.warn("Skipping SonarQube scan because it is not enabled at project level")
+                                        } else {
+                                            logger.warn("Skipping SonarQube scan because it is not enabled at cluster level")
+                                        }
+                                        context.sonarExecuted = false
+                                    }
+                                } catch (Exception e) {
+                                    logger.warn("Automatic SonarQube scan failed but pipeline will continue: ${e.message}")
+                                    logger.debug("Full SonarQube scan error: ${e}")
+                                    context.sonarExecuted = false
+                                }
                             } else if (hasSonarStageInPipeline) {
                                 logger.info("Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage is defined in pipeline")
                             }
