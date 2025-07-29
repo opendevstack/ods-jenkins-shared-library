@@ -98,7 +98,9 @@ def call(IContext context, Map config = [:]) {
                 bitbucketService,
                 sonarQubeService,
                 nexusService,
-                logger
+                logger,
+                configurationSonarCluster,
+                configurationSonarProject
             ).execute()
         } else if (!enabledInCluster && !enabledInProject) {
             logger.warn("Skipping SonarQube scan because is not enabled nor cluster nor project " +
