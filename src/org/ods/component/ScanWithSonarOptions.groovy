@@ -45,6 +45,15 @@ class ScanWithSonarOptions extends Options {
     /**
      * Patterns to exclude from SonarQube scan.
      */
+
+    /**
+     * Pass labels which should be added on the image.
+     * Each label will be prefixed with `ext.`. */
+    Map<String, String> imageLabels
+    
+    /**
+     * Patterns to exclude from SonarQube scan.
+     */
     String exclusions
 
 }
