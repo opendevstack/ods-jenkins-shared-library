@@ -76,6 +76,11 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
+        if (this.exclusions) {
+            logger.info "Exclusions for SonarQube scan: ${this.exclusions}"
+        } else {
+            logger.info 'No exclusions configured for SonarQube scan.'
+        }
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
