@@ -52,6 +52,16 @@ def call(IContext context, Map config = [:]) {
         registry.add(OpenShiftService, openShiftService)
     }
 
+    // Initialize config.imageLabels if not present
+    if (!config.imageLabels) {
+        config.imageLabels = [:]
+    }
+    
+    // Set OPENSHIFT_BUILD_NAMESPACE from environment if not already set
+    if (!config.imageLabels.OPENSHIFT_BUILD_NAMESPACE) {
+        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE = env.OPENSHIFT_BUILD_NAMESPACE
+    }
+
     Map configurationSonarCluster = [:]
     Map configurationSonarProject = [:]
     String errorMessages = ''
