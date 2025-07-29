@@ -41,8 +41,10 @@ class SonarQubeService {
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
                 "-Dsonar.sources=.",
-                "-Dsonar.exclusions=${exclusions}",
             ]
+            if (exclusions?.trim()) {
+                scannerParams << "-Dsonar.exclusions=${exclusions}"
+            }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
             }
