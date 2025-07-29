@@ -48,12 +48,19 @@ class ScanWithSonarOptions extends Options {
 
     /**
      * Pass labels which should be added on the image.
-     * Each label will be prefixed with `ext.`. */
+     * Each label will be prefixed with `ext.`.
+     */
     Map<String, String> imageLabels
     
     /**
      * Patterns to exclude from SonarQube scan.
      */
     String exclusions
+
+    /**
+     * Nexus repository to upload the SonarQube report to.
+     * Automaticaly set by sonarqube configMap if present.
+     */
+    String sonarQubeNexusRepository
 
 }
