@@ -164,7 +164,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
-    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-mm-dd-hh-mm-ss"))
+    final FORMATTED_DATE = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
     String name = "jenkins-${project.buildParams.version}-${FORMATTED_DATE}-${env.BUILD_NUMBER}.LOG"
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
