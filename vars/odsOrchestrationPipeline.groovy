@@ -166,7 +166,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
     
     def now = new Date()
-    final FORMATTED_DATE = now.format("yyyy-MM-dd HH:mm:ss")
+    final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
 
     String name = "jenkins-${project.buildParams.version}-${FORMATTED_DATE}-${env.BUILD_NUMBER}.LOG"
     if (!steps.currentBuild.result) {
