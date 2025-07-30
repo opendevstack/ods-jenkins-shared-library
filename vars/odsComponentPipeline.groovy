@@ -12,7 +12,7 @@ import org.ods.util.ClassLoaderCleaner
 import org.ods.util.PipelineSteps
 import org.ods.util.UnirestConfig
 import java.lang.reflect.Method
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 def call(Map config, Closure body) {
@@ -28,8 +28,9 @@ def call(Map config, Closure body) {
     def pipeline = new Pipeline(this, logger)
     String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
 
+    def result
     try {
-        pipeline.execute(config, body)
+        result = pipeline.execute(config, body)
         uploadJenkinsLogToNexus(config, logger)
     } finally {
         if (env.MULTI_REPO_BUILD) {
@@ -53,6 +54,7 @@ def call(Map config, Closure body) {
             logger = null
         }
     }
+    return result
 }
 
 private void uploadJenkinsLogToNexus(Map config, Logger logger) {
@@ -71,8 +73,8 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
-
-    final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-mm-dd-hh-mm-ss"))
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
     JenkinsService jenkinsService = registry.get(JenkinsService)
     def text = jenkinsService.getCompletedBuildLogAsText()
 
@@ -90,8 +92,6 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
         text.bytes,
         "application/text"
     )
-    logger.debug("Successfully uploaded Jenkins logs to Nexus: ${nexusRepository}/" +
+    logger.debug("Successfully uploaded Jenkins logs to Nexus: leva-documentation/" +
         "${context.getProjectId().toLowerCase()}/${repo}/${FORMATTED_DATE}-${context.getBuildNumber()}/logs")
 }
-
-return this
