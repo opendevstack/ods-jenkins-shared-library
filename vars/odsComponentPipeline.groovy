@@ -1,6 +1,5 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
-import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger

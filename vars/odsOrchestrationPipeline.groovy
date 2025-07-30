@@ -23,8 +23,6 @@ import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
 import java.nio.file.Paths
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @SuppressWarnings('AbcMetric')
 def call(Map config) {
@@ -143,7 +141,7 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
             return
         }
         def now = new Date()
-        final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")        
+        final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
         def name = "xunit--${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
         def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
@@ -165,7 +163,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
-    
+
     def now = new Date()
     final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
 
