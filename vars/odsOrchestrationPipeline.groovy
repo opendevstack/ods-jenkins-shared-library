@@ -86,14 +86,6 @@ def call(Map config) {
                         return
                     }
 
-                    def registry = ServiceRegistry.instance
-                    NexusService nexusService = registry.get(NexusService)
-                    def context = new Context(null, config, logger)
-
-                    if (!nexusService) {
-                        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-                        registry.add(NexusService, nexusService)
-                    }
 
                     new BuildStage(this, project, repos, startAgentStage).execute()
                     new DeployStage(this, project, repos, startAgentStage).execute()
@@ -104,12 +96,20 @@ def call(Map config) {
             }
         }
     } finally {
+        uploadResourcesToNexus(config, steps, project, logger)
+        logger.resetStopwatch()
+        project.clear()
+        ServiceRegistry.removeInstance()
+        UnirestConfig.shutdown()
+        project = null
+        git = null
+        repos = null
+        steps = null
+
         try {
-            uploadTestReportToNexus(steps, project, logger)
-            uploadJenkinsLogToNexus(steps, project, logger)
+            new ClassLoaderCleaner().clean(logger, processId)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
-            new ClassLoaderCleaner().clean(logger, processId)
             // Force cleanup of the heap to release memory
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
@@ -117,14 +117,6 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
-        logger.resetStopwatch()
-        project.clear()
-        ServiceRegistry.removeInstance()
-        UnirestConfig.shutdown()
-        git = null
-        repos = null
-        steps = null
-        project = null
     }
 }
 
@@ -259,6 +251,24 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         } finally {
             logger.infoClocked('ods-mro-pipeline', '**** ENDED orchestration pipeline ****')
         }
+    }
+}
+
+private void uploadResourcesToNexus(Map config, IPipelineSteps steps, Project project, ILogger logger) {
+    try {
+        // upload resources to nexus
+        def registry = ServiceRegistry.instance
+        NexusService nexusService = registry.get(NexusService)
+        def context = new Context(null, config, logger)
+
+        if (!nexusService) {
+            nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+            registry.add(NexusService, nexusService)
+        }
+        uploadTestReportToNexus(steps, project, logger)
+        uploadJenkinsLogToNexus(steps, project, logger)
+    } catch (Exception e) {
+        logger.error("Error during upload of test report or Jenkins log: ${e.message}")
     }
 }
 
