@@ -23,7 +23,7 @@ import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
 import java.nio.file.Paths
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @SuppressWarnings('AbcMetric')
@@ -164,7 +164,10 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
     logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
-    final FORMATTED_DATE = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
+    
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd HH:mm:ss")
+
     String name = "jenkins-${project.buildParams.version}-${FORMATTED_DATE}-${env.BUILD_NUMBER}.LOG"
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
