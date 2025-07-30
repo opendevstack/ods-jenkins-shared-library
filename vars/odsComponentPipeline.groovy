@@ -1,5 +1,6 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
+import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -15,12 +16,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 def call(Map config, Closure body) {
-    ServiceRegistry registry = ServiceRegistry.instance
-    IPipelineSteps steps = registry.get(IPipelineSteps)
-    if (!steps) {
-        steps = new PipelineSteps(this)
-        registry.add(IPipelineSteps, steps)
-    }
+
     def debug = env.DEBUG
     if (debug != null) {
         config.debug = debug
@@ -28,14 +24,13 @@ def call(Map config, Closure body) {
 
     config.debug = !!config.debug
 
-    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
-    ILogger logger = ServiceRegistry.instance.get(Logger)
-
+    def logger = new Logger(this, config.debug)
     def pipeline = new Pipeline(this, logger)
-    final String PROCESS_ID = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
+    String processId = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
 
     try {
         pipeline.execute(config, body)
+        uploadJenkinsLogToNexus(config, logger)
     } finally {
         if (env.MULTI_REPO_BUILD) {
             logger.debug('-- in RM mode, shutdown skipped --')
@@ -43,19 +38,10 @@ def call(Map config, Closure body) {
         if (!env.MULTI_REPO_BUILD) {
             logger.warn('-- SHUTTING DOWN Component Pipeline (..) --')
             logger.resetStopwatch()
+            ServiceRegistry.removeInstance()
+            UnirestConfig.shutdown()
             try {
-                NexusService nexusService = registry.get(NexusService)
-                def context = new Context(null, config, logger)
-                String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
-
-                if (!nexusService) {
-                    nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-                    registry.add(NexusService, nexusService)
-                }
-
-                uploadJenkinsLogToNexus(registry, nexusService, context, repo, logger)
-
-                new ClassLoaderCleaner().clean(logger, PROCESS_ID)
+                new ClassLoaderCleaner().clean(logger, processId)
                 // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
                 logger.debug("forceClean via jenkins internals....")
                 Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
@@ -65,18 +51,30 @@ def call(Map config, Closure body) {
                 logger.debug("cleanupHeap err: ${e}")
             }
             logger = null
-            ServiceRegistry.removeInstance()
-            UnirestConfig.shutdown()
         }
     }
 }
 
-private void uploadJenkinsLogToNexus(ServiceRegistry registry, NexusService nexusService, Context context, String repo,
-                                     Logger logger) {
+private void uploadJenkinsLogToNexus(Map config, Logger logger) {
+    ServiceRegistry registry = ServiceRegistry.instance
+    IPipelineSteps steps = registry.get(IPipelineSteps)
+    if (!steps) {
+        steps = new PipelineSteps(this)
+        registry.add(IPipelineSteps, steps)
+    }
+
+    NexusService nexusService = registry.get(NexusService)
+    def context = new Context(null, config, logger)
+    String repo = context.getRepoName().replace("${context.getProjectId()}-", "")
+
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
+    }
+
     final FORMATTED_DATE = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-mm-dd-hh-mm-ss"))
     JenkinsService jenkinsService = registry.get(JenkinsService)
     def text = jenkinsService.getCompletedBuildLogAsText()
-    IPipelineSteps steps = new PipelineSteps(this)
 
     if (steps.currentBuild.result) {
         text += "STATUS ${steps.currentBuild.result}"
