@@ -142,7 +142,9 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
             logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
             return
         }
-        def name = "xunit-${project.buildParams.version}-${steps.env.BUILD_NUMBER}.zip"
+        def now = new Date()
+        final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")        
+        def name = "xunit--${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
         def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
         logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
@@ -158,7 +160,6 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
-    logger.debug("uploadJenkinsLogToNexus - text length: ${text?.length()}")
     def repoName = project.services.nexus.repository.name
     logger.debug("uploadJenkinsLogToNexus - repoName: ${repoName}")
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
@@ -168,7 +169,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     def now = new Date()
     final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
 
-    String name = "jenkins-${project.buildParams.version}-${FORMATTED_DATE}-${env.BUILD_NUMBER}.LOG"
+    String name = "jenkins-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.log"
     if (!steps.currentBuild.result) {
         text += "STATUS: SUCCESS"
     } else {
@@ -177,7 +178,6 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
 
     nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
     logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
-    logger.warn("Successfully uploaded Jenkins logs to Nexus")
 }
 
 private String getStartAgent(String startAgentStage, result) {
