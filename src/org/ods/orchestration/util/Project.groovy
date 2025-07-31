@@ -299,7 +299,6 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
-
     private TestResults aggregatedTestResults;
 
     protected Map data = [:]
@@ -720,7 +719,7 @@ class Project {
 
     void setOpenShiftData(String sessionApiUrl) {
         def envConfig = getEnvironmentConfig()
-        def targetApiUrl = envConfig?.apiUrl
+        def targetApiUrl = envConfig?.apiUrl ?: envConfig?.openshiftClusterApiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
         }
@@ -730,10 +729,13 @@ class Project {
     }
 
     @NonCPS
-    boolean getTargetClusterIsExternal() {
+    boolean isTargetClusterExternal() {
+        return isTargetClusterExternal(this.data.openshift.sessionApiUrl, this.data.openshift.targetApiUrl)
+    }
+
+    @NonCPS
+    static boolean isTargetClusterExternal(def sessionApiUrl, def targetApiUrl) {
         def isExternal = false
-        def sessionApiUrl = this.data.openshift.sessionApiUrl
-        def targetApiUrl = this.data.openshift.targetApiUrl
         def targetApiUrlMatcher = targetApiUrl =~ /:[0-9]+$/
         if (targetApiUrlMatcher.find()) {
             isExternal = sessionApiUrl != targetApiUrl
@@ -777,6 +779,15 @@ class Project {
             environment = 'test'
         }
         environment
+    }
+
+    static String getTargetProjectForEnv(Project project, String env) {
+        def concreteEnv = Project.getConcreteEnvironment(
+            env,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+        return "${project.key}-${concreteEnv}"
     }
 
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false, boolean versionedDevEnvsEnabled = false) {

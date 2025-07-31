@@ -427,6 +427,10 @@ class JiraUseCase {
     }
 
     void addCommentInReleaseStatus(String message) {
+        if (!this.jira) {
+            logger.debug("Jira not connected, cannot append comment: ${message}")
+            return
+        }
         def changeId = this.project.buildParams.changeId
         if (message) {
             def projectKey = this.project.jiraProjectKey
