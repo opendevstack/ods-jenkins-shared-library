@@ -17,7 +17,8 @@ def call(IContext context, Map config = [:]) {
 
     def stage = new EKSLoginStage(
         this,
-        context,       
+        context,
+        config,
         logger
     )
     stage.execute()

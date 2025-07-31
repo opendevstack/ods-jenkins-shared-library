@@ -2,7 +2,6 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
@@ -10,13 +9,16 @@ import org.ods.util.ILogger
 class EKSLoginStage extends Stage {
 
     public final String STAGE_NAME = 'EKS Login'
+    private final Options options
 
     @TypeChecked(TypeCheckingMode.SKIP)
     EKSLoginStage(
         def script,
-        IContext context,       
+        IContext context,
+        Map<String, Object> config,       
         ILogger logger) {
-        super(script, context, logger)       
+        super(script, context, logger)
+        this.options = new Options(config) 
     }
     
     // This is called from Stage#execute
