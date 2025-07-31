@@ -177,8 +177,8 @@ class Pipeline implements Serializable {
                                 ' in the commit message ...'
                             updateBuildStatus('NOT_BUILT')
                             setBitbucketBuildStatus('SUCCESSFUL')
-                            return this
                         }
+                        return // Return from bootstrap closure, not execute method
                     }
                 }
             } catch (err) {
@@ -196,6 +196,10 @@ class Pipeline implements Serializable {
             script.node('master', bootstrap)
         } else {
             bootstrap()
+        }
+
+        if (skipCi) {
+            return this
         }
 
         if (!skipCi) {
@@ -231,7 +235,7 @@ class Pipeline implements Serializable {
             ) {
                 script.node(config.podLabel) {
                     try {
-                        logger.debugClocked("${config.podLabel}")
+                        logger.debugClocked("${config.podLabel}", "Starting execution in pod")
                         setBitbucketBuildStatus('INPROGRESS')
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
