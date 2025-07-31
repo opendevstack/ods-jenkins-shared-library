@@ -87,6 +87,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         
         // TODO s2o: import image
+        // In EKS we don't import images, we use the ECR repository directly.
+        // This is different from OpenShift, where we import images into the ImageStream.        
         // Tag images which have been built in this pipeline from cd project into target project
         // retagImages(context.targetProject, getBuiltImages())
 

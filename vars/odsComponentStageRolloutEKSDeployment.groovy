@@ -15,25 +15,27 @@ def call(IContext context, Map config = [:]) {
         logger = new Logger (this, !!env.DEBUG)
     }
 
-    def stage = new EKSLoginStage(
+    // Get the current token of OC, as later we login to EKS and we need the token to copy the images
+    def currentOCToken = sh(script: "oc whoami -t >& /dev/null", label: "Get OpenShift Token", returnStdout: true)
+    // This step should be executed before the EKSLoginStage, so that the OpenShift token is available
+    def stageLogin = new EKSLoginStage(
         this,
         context,
         config,
         logger
     )
-    stage.execute()
-
-    // ODS 3.x allowed to specify resourceName, which is no longer possible.
-    // Fail if the option is still given to inform about this breaking change.
-    if (config.resourceName) {
-        error(
-            "The config option 'resourceName' has been removed from odsComponentStageRolloutOpenShiftDeployment. " +
-            "Instead, all resources with a common label are rolled out together. " +
-            "If you need separate rollouts, consider specifying additional labels " +
-            "and target those via the 'selector' config option."
-        )
-        return
+    this.withCredentials([
+            string(credentialsId: "${context.cdProject}-aws-region", variable: 'AWS_REGION')
+            string(credentialsId: "${context.cdProject}-aws-account-id", variable: 'AWS_ACCOUNT_ID'), 
+            string(credentialsId: "${context.cdProject}-aws-access-key-id-dev", variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: "${context.cdProject}-aws-secret-access-key-dev", variable: 'AWS_SECRET_ACCESS_KEY')]) {        
+        stageLogin.execute()
     }
+
+    // TODO: 
+    // sent currentOCToken to RolloutOpenShiftDeploymentStage 
+    // and copy the images from OpenShift to EKS
+    // change retagImages for something compatible with EKS
     return new RolloutOpenShiftDeploymentStage(
         this,
         context,
