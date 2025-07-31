@@ -2,6 +2,7 @@ package org.ods.orchestration.util
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.services.OpenShiftService
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -265,5 +266,142 @@ class PipelineUtilSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to load Groovy source file. Path ${path} does not exist."
+    }
+
+    def "given 3 installable repos return these 3"() {
+        when:
+        def result = util.getInstallableRepos()
+
+        then:
+        result != null
+        result.size() == 3
+    }
+
+    def "given 2 ods repos and 1 ods-infra of total 3 return the 2"() {
+        given:
+        for (repo in project.data.metadata.repositories) {
+            if (repo.id == "demo-app-catalogue") {
+                repo.type = "ods-infra"
+            }
+        }
+
+        when:
+        def result = util.getInstallableRepos()
+
+        then:
+        result != null
+        result.size() == 2
+    }
+
+    def "given 2 uninstallable repos and one ods-test of total 3 return the 2"() {
+        given:
+        for (repo in project.data.metadata.repositories) {
+            if (repo.id == "demo-app-catalogue") {
+                repo.type = "ods-test"
+            } else {
+                repo.include = false
+            }
+        }
+
+        when:
+        def result = util.getInstallableRepos()
+
+        then:
+        result != null
+        result.size() == 0
+    }
+
+    def "given 1 uninstallable repo, 1 ods-infra and one ods-test of total 3 return nothing"() {
+        given:
+        for (repo in project.data.metadata.repositories) {
+            if (repo.id == "demo-app-catalogue") {
+                repo.type = "ods-test"
+            } else if (repo.id == "demo-app-carts") {
+                repo.type = "ods-infra"
+            } else {
+                repo.include = false
+            }
+        }
+
+        when:
+        def result = util.getInstallableRepos()
+
+        then:
+        result != null
+        result.size() == 0
+    }
+
+    def "verify env login and existance for same cluster"() {
+        given:
+        IPipelineSteps script = Spy(new PipelineSteps() {
+            def EXTERNAL_OCP_API_TOKEN = "TEST"
+        })
+        OpenShiftService openshiftService = Mock(OpenShiftService)
+        String targetProject = "test-prj",
+               sessionApiUrl = "test.api.url:1234",
+               targetApiUrl = "test.api.url:1234",
+               credentialsId = "TEST"
+        openshiftService.envExists(targetProject) >> true
+
+        when:
+        util.verifyEnvLoginAndExistence(
+            script,
+            openshiftService,
+            targetProject,
+            sessionApiUrl,
+            targetApiUrl,
+            credentialsId)
+
+        then:
+        0 * script.withCredentials(*_)
+    }
+
+    def "verify env login and existance throw error for non existing env"() {
+        given:
+        IPipelineSteps script = Spy(new PipelineSteps() {
+            def EXTERNAL_OCP_API_TOKEN = "TEST"
+        })
+        OpenShiftService openshiftService = Mock(OpenShiftService)
+        String targetProject = "test-prj",
+               sessionApiUrl = "test.api.url:1234",
+               targetApiUrl = "test.api.url:1234",
+               credentialsId = "TEST"
+
+        when:
+        util.verifyEnvLoginAndExistence(
+            script,
+            openshiftService,
+            targetProject,
+            sessionApiUrl,
+            targetApiUrl,
+            credentialsId)
+
+        then:
+        thrown(RuntimeException.class)
+    }
+
+    def "verify env login and existance for external cluster"() {
+        given:
+        IPipelineSteps script = Spy(new PipelineSteps() {
+            def EXTERNAL_OCP_API_TOKEN = "TEST"
+        })
+        OpenShiftService openshiftService = Mock(OpenShiftService)
+        String targetProject = "test-prj",
+               sessionApiUrl = "test.api.url:1234",
+               targetApiUrl = "external.api.url:1234",
+               credentialsId = "TEST"
+        openshiftService.envExists(targetProject) >> true
+
+        when:
+        util.verifyEnvLoginAndExistence(
+            script,
+            openshiftService,
+            targetProject,
+            sessionApiUrl,
+            targetApiUrl,
+            credentialsId)
+
+        then:
+        1 * script.withCredentials(*_)
     }
 }

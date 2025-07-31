@@ -271,7 +271,7 @@ class DeployOdsComponent {
             def imageInfo = imageParts.last().split('@')
             def imageName = imageInfo.first()
             def imageSha = imageInfo.last()
-            if (project.targetClusterIsExternal) {
+            if (project.targetClusterExternal) {
                 os.importImageShaFromSourceRegistry(
                     project.targetProject,
                     imageName,

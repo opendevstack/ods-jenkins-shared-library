@@ -331,7 +331,7 @@ class ProjectSpec extends SpecHelper {
         project.setOpenShiftData('https://api.example.openshift.com:443')
 
         expect:
-        project.getTargetClusterIsExternal() == false
+        project.isTargetClusterExternal() == false
     }
 
     def "target cluster can be external when an API URL is configured"() {
@@ -356,7 +356,7 @@ class ProjectSpec extends SpecHelper {
         project.setOpenShiftData('https://api.example.openshift.com:443')
 
         then:
-        project.getTargetClusterIsExternal() == result
+        project.isTargetClusterExternal() == result
 
         where:
         environment | configuredProdApiUrl || result
