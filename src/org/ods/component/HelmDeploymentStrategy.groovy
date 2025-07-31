@@ -85,9 +85,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
         }
-
+        
+        // TODO s2o: import image
         // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+        // retagImages(context.targetProject, getBuiltImages())
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)
