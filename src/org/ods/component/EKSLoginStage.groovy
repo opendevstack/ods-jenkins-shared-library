@@ -24,11 +24,11 @@ class EKSLoginStage extends Stage {
     // This is called from Stage#execute
     @SuppressWarnings(['AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
-    protected run() {        
-        executeCommand("aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile default")
-        executeCommand("aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default")
-        executeCommand("aws configure set region $AWS_REGION --profile default")
-        executeCommand("aws eks update-kubeconfig --region $AWS_REGION --name ${context.getProjectId()}-${context.getEnvironment()}")                     
+    protected run() {
+        executeCommand('aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile default')
+        executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
+        executeCommand('aws configure set region $AWS_REGION --profile default')
+        executeCommand('aws eks update-kubeconfig --region $AWS_REGION --name' + "${context.getProjectId()}-${context.getEnvironment()}")
     }
 
     private void executeCommand(String command) {

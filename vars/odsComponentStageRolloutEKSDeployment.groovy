@@ -15,9 +15,10 @@ def call(IContext context, Map config = [:]) {
         logger = new Logger (this, !!env.DEBUG)
     }
 
-    // Get the current token of OC, as later we login to EKS and we need the token to copy the images
-    def currentOCToken = sh(script: "oc whoami -t >& /dev/null", label: "Get OpenShift Token", returnStdout: true)
     // This step should be executed before the EKSLoginStage, so that the OpenShift token is available
+    // as later we need the token to copy the images
+    def currentOCToken = sh(script: "oc whoami -t >& /dev/null", label: "Get OpenShift Token", returnStdout: true)
+    
     def stageLogin = new EKSLoginStage(
         this,
         context,
