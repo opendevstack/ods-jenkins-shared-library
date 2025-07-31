@@ -11,6 +11,14 @@ class EKSLoginStage extends Stage {
 
     public final String STAGE_NAME = 'EKS Login'
 
+    @TypeChecked(TypeCheckingMode.SKIP)
+    EKSLoginStage(
+        def script,
+        IContext context,       
+        ILogger logger) {
+        super(script, context, logger)       
+    }
+    
     // This is called from Stage#execute
     @SuppressWarnings(['AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
