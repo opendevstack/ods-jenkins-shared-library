@@ -9,7 +9,7 @@ import org.ods.util.ILogger
 class EKSLoginStage extends Stage {
 
     public final String STAGE_NAME = 'EKS Login'
-    private final Options options
+    private final RolloutOpenShiftDeploymentOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
     EKSLoginStage(
@@ -18,7 +18,7 @@ class EKSLoginStage extends Stage {
         Map<String, Object> config,       
         ILogger logger) {
         super(script, context, logger)
-        this.options = new Options(config) 
+        this.options = new RolloutOpenShiftDeploymentOptions(config) 
     }
     
     // This is called from Stage#execute
