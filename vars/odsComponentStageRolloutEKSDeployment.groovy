@@ -25,10 +25,11 @@ def call(IContext context, Map config = [:]) {
         logger
     )
     this.withCredentials([
-            string(credentialsId: "${context.cdProject}-aws-region", variable: 'AWS_REGION')
-            string(credentialsId: "${context.cdProject}-aws-account-id", variable: 'AWS_ACCOUNT_ID'), 
-            string(credentialsId: "${context.cdProject}-aws-access-key-id-dev", variable: 'AWS_ACCESS_KEY_ID'),
-            string(credentialsId: "${context.cdProject}-aws-secret-access-key-dev", variable: 'AWS_SECRET_ACCESS_KEY')]) {        
+            this.string(credentialsId: "${context.cdProject}-aws-region", variable: 'AWS_REGION'),
+            this.string(credentialsId: "${context.cdProject}-aws-account-id", variable: 'AWS_ACCOUNT_ID'),
+            this.string(credentialsId: "${context.cdProject}-aws-access-key-id-dev", variable: 'AWS_ACCESS_KEY_ID'),
+            this.string(credentialsId: "${context.cdProject}-aws-secret-access-key-dev", variable: 'AWS_SECRET_ACCESS_KEY')
+    ]) {
         stageLogin.execute()
     }
 
