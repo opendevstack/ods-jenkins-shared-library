@@ -396,7 +396,7 @@ class Context implements IContext {
         config.sonarQubeBranch = sonarQubeBranch
     }
 
-  	@NonCPS
+    @NonCPS
     boolean getSonarExecuted() {
         config.sonarExecuted
     }
