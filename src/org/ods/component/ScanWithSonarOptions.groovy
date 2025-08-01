@@ -51,7 +51,7 @@ class ScanWithSonarOptions extends Options {
      * Each label will be prefixed with `ext.`.
      */
     Map<String, String> imageLabels
-    
+
     /**
      * Patterns to exclude from SonarQube scan.
      */
