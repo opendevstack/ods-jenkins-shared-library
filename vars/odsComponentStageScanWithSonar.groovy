@@ -11,9 +11,38 @@ import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 
 def call(IContext context, Map config = [:]) {
+    def (logger, registry, steps, bitbucketService, sonarQubeService, nexusService, openShiftService) =
+        initializeServices(context)
+    initializeConfig(config)
+    Map configurationSonarCluster = [:]
+    Map configurationSonarProject = [:]
+    String errorMessages = ''
+    String alertEmails = ''
+    try {
+        (configurationSonarCluster, configurationSonarProject, alertEmails) =
+            fetchSonarConfig(openShiftService, context, config, logger)
+        errorMessages = handleSonarScan(
+            configurationSonarCluster,
+            configurationSonarProject,
+            context,
+            config,
+            bitbucketService,
+            sonarQubeService,
+            nexusService,
+            logger
+        )
+    } catch (Exception e) {
+        logger.warn("Error with SonarQube scan due to: ${e.message}")
+        logger.debug("Stacktrace: ${e.getStackTrace().join('\n')}")
+        errorMessages += "<li>Error with SonarQube scan: ${e.message}</li>"
+    }
+    notifySonar(steps, context, alertEmails, errorMessages)
+}
+
+private List initializeServices(IContext context) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     if (!logger) {
-        logger = new Logger (this, !!env.DEBUG)
+        logger = new Logger(this, !!env.DEBUG)
     }
     ServiceRegistry registry = ServiceRegistry.instance
     IPipelineSteps steps = registry.get(IPipelineSteps)
@@ -51,79 +80,81 @@ def call(IContext context, Map config = [:]) {
         openShiftService = new OpenShiftService(steps, logger)
         registry.add(OpenShiftService, openShiftService)
     }
+    return [logger, registry, steps, bitbucketService, sonarQubeService, nexusService, openShiftService]
+}
 
-    // Initialize config.imageLabels if not present
+private void initializeConfig(Map config) {
     if (!config.imageLabels) {
         config.imageLabels = [:]
     }
-    
-    // Set OPENSHIFT_BUILD_NAMESPACE from environment if not already set
     if (!config.imageLabels.OPENSHIFT_BUILD_NAMESPACE) {
         config.imageLabels.OPENSHIFT_BUILD_NAMESPACE = env.OPENSHIFT_BUILD_NAMESPACE
     }
+}
 
-    Map configurationSonarCluster = [:]
+private List fetchSonarConfig(OpenShiftService openShiftService, IContext context, Map config, ILogger logger) {
+    Map configurationSonarCluster = openShiftService.getConfigMapData(
+        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
+        ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
+    )
+    String alertEmails = configurationSonarCluster['alertEmails']
     Map configurationSonarProject = [:]
+    def key = "projects." + context.projectId + ".enabled"
+    if (configurationSonarCluster.containsKey(key)) {
+        configurationSonarProject.put('enabled', configurationSonarCluster.get(key))
+        logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
+    } else {
+        configurationSonarProject.put('enabled', true)
+        logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level. Default enabled"
+    }
+    return [configurationSonarCluster, configurationSonarProject, alertEmails]
+}
+
+private String handleSonarScan(
+    Map configurationSonarCluster,
+    Map configurationSonarProject,
+    IContext context,
+    Map config,
+    BitbucketService bitbucketService,
+    SonarQubeService sonarQubeService,
+    NexusService nexusService,
+    ILogger logger
+) {
     String errorMessages = ''
-    String alertEmails = ''
-    try {
-        // Read SonarQube config from ConfigMap (namespace and configmap name must be provided in config.imageLabels)
-        configurationSonarCluster = openShiftService.getConfigMapData(
-            config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
-            ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
-        )
-        // Addresses for notification emails (optional)
-        alertEmails = configurationSonarCluster['alertEmails']
-        // Project-level enabled flag
-        def key = "projects." + context.projectId + ".enabled"
-        if (configurationSonarCluster.containsKey(key)) {
-            configurationSonarProject.put('enabled', configurationSonarCluster.get(key))
-            logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
-        } else {
-            configurationSonarProject.put('enabled', true)
-            logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level. Default enabled"
-        }
-        boolean enabledInCluster = Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true")
-        boolean enabledInProject = Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
-        // Set Nexus repository from ConfigMap if present
-        if (configurationSonarCluster['nexusRepository']) {
-            config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
-        }
-        // Only run scan if enabled in both cluster and project
-        if (enabledInCluster && enabledInProject) {
-            new ScanWithSonarStage(
-                this,
-                context,
-                config,
-                bitbucketService,
-                sonarQubeService,
-                nexusService,
-                logger,
-                configurationSonarCluster,
-                configurationSonarProject
-            ).execute()
-        } else if (!enabledInCluster && !enabledInProject) {
-            logger.warn("Skipping SonarQube scan because is not enabled nor cluster nor project " +
+    boolean enabledInCluster = Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true")
+    boolean enabledInProject = Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
+    if (configurationSonarCluster['nexusRepository']) {
+        config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
+    }
+    if (enabledInCluster && enabledInProject) {
+        new ScanWithSonarStage(
+            this,
+            context,
+            config,
+            bitbucketService,
+            sonarQubeService,
+            nexusService,
+            logger,
+            configurationSonarCluster,
+            configurationSonarProject
+        ).execute()
+    } else if (!enabledInCluster && !enabledInProject) {
+        logger.warn("Skipping SonarQube scan because is not enabled nor cluster nor project " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
             "in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
-            errorMessages += "<li>SonarQube scan not enabled at cluster nor project level</li>"
-        } else if (enabledInCluster) {
-            logger.warn("Skipping SonarQube scan because is not enabled at project level " +
+        errorMessages += "<li>SonarQube scan not enabled at cluster nor project level</li>"
+    } else if (enabledInCluster) {
+        logger.warn("Skipping SonarQube scan because is not enabled at project level " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
             "ConfigMap in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
-            errorMessages += "<li>SonarQube scan not enabled at project level</li>"
-        } else {
-            logger.warn("Skipping SonarQube scan because is not enabled at cluster level " +
+        errorMessages += "<li>SonarQube scan not enabled at project level</li>"
+    } else {
+        logger.warn("Skipping SonarQube scan because is not enabled at cluster level " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' " +
             "ConfigMap in ${config.imageLabels.OPENSHIFT_BUILD_NAMESPACE} project")
-            errorMessages += "<li>SonarQube scan not enabled at cluster level</li>"
-        }
-    } catch (Exception e) {
-        logger.warn("Error with SonarQube scan due to: ${e.message}")
-        logger.debug("Stacktrace: ${e.getStackTrace().join('\n')}")
-        errorMessages += "<li>Error with SonarQube scan: ${e.message}</li>"
+        errorMessages += "<li>SonarQube scan not enabled at cluster level</li>"
     }
-    notifySonar(steps, context, alertEmails, errorMessages)
+    return errorMessages
 }
 
 private void notifySonar(IPipelineSteps steps, IContext context, String recipients = '', String message = '') {
