@@ -87,11 +87,11 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${context.buildTime.format('yyyy-MM-dd_mm-ss')}-${context.buildNumber}/logs",
+            "${context.buildTime.format('yyyy-MM-dd_HH-mm')}-${context.buildNumber}/logs",
         "jenkins.log",
         text.bytes,
         "application/text"
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: leva-documentation/" +
-        "${context.getProjectId().toLowerCase()}/${repo}/${FORMATTED_DATE}-${context.getBuildNumber()}/logs")
+        "${context.getProjectId().toLowerCase()}/${repo}/${context.buildTime.format('yyyy-MM-dd_mm-ss')}-${context.buildNumber}/logs/jenkins.log")
 }
