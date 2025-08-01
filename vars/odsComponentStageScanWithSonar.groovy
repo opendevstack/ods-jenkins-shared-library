@@ -27,10 +27,10 @@ def call(IContext context, Map config = [:]) {
             context,
             config,
             [
-                bitbucketService : bitbucketService,
-                sonarQubeService : sonarQubeService,
-                nexusService     : nexusService,
-                logger           : logger
+                bitbucketService: bitbucketService,
+                sonarQubeService: sonarQubeService,
+                nexusService: nexusService,
+                logger: logger,
             ]
         )
     } catch (Exception e) {
@@ -170,5 +170,4 @@ private void notifySonar(IPipelineSteps steps, IContext context, String recipien
     }
 }
 
-return this
 return this
