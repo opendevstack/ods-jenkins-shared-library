@@ -58,11 +58,18 @@ def call(Map config, Closure body) {
 }
 
 private void uploadJenkinsLogToNexus(Map config, Logger logger) {
+
     ServiceRegistry registry = ServiceRegistry.instance
     IPipelineSteps steps = registry.get(IPipelineSteps)
     if (!steps) {
         steps = new PipelineSteps(this)
         registry.add(IPipelineSteps, steps)
+    }
+
+    if (steps.currentBuild instanceof String && steps.currentBuild && steps.currentBuild == 'NOT_BUILT' ||
+        steps.currentBuild.result && steps.currentBuild.result == 'NOT_BUILT') {
+        logger.warn('Build was not executed, skipping log upload.')
+        return
     }
 
     NexusService nexusService = registry.get(NexusService)
