@@ -322,7 +322,8 @@ class Pipeline implements Serializable {
                                     } else {
                                         configurationSonarProject.put('enabled', true)
                                         logger.info(
-                                            "Not parameter 'projects.${context.projectId}.enabled' at cluster level. Default enabled"
+                                            "Not parameter 'projects.${context.projectId}.enabled' at cluster level. " +
+                                            "Default enabled"
                                         )
                                     }
 
@@ -352,7 +353,8 @@ class Pipeline implements Serializable {
                                     } else {
                                         if (!enabledInCluster && !enabledInProject) {
                                             logger.warn(
-                                                "Skipping SonarQube scan because it is not enabled at cluster nor project level"
+                                                "Skipping SonarQube scan because it is not enabled at cluster nor " +
+                                                "project level"
                                             )
                                         } else if (enabledInCluster) {
                                             logger.warn(
@@ -374,7 +376,8 @@ class Pipeline implements Serializable {
                                 }
                             } else if (hasSonarStageInPipeline) {
                                 logger.info(
-                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage is defined in pipeline"
+                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
+                                    "is defined in pipeline"
                                 )
                             }
                             stages(context)
