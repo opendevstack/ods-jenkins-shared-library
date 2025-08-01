@@ -22,7 +22,7 @@ class ScanWithSonarStage extends Stage {
     private final ScanWithSonarOptions options
     private final Map configurationSonarCluster
     private final Map configurationSonarProject
-    private String exclusions
+    private final String exclusions
 
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
@@ -274,7 +274,7 @@ class ScanWithSonarStage extends Stage {
     }
 
     private createBitbucketCodeInsightReport(
-        String qualityGateResult, String nexusUrlReport,String sonarProjectKey, String edition, String branch) {
+        String qualityGateResult, String nexusUrlReport, String sonarProjectKey, String edition, String branch) {
         String sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"

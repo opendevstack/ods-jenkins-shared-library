@@ -401,7 +401,7 @@ class Context implements IContext {
         config.sonarExecuted
     }
 
-  	void setSonarExecuted(boolean executed) {
+    void setSonarExecuted(boolean executed) {
         config.sonarExecuted = executed
     }
 
