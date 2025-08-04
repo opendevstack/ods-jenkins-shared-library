@@ -21,7 +21,7 @@ class ImageRepositoryOpenshift implements IImageRepository {
         this.openShift = openShift
     }
 
-    protected void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
+    public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
         images.each { image ->
             findOrCreateImageStream(targetProject, image)
             openShift.importImageTagFromProject(

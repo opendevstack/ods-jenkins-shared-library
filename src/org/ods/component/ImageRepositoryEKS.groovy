@@ -29,7 +29,7 @@ class ImageRepositoryEKS implements IImageRepository {
         this.awsPassword = awsPassword        
     }
 
-    protected void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
+    public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
         images.each { image ->
             findOrCreateRepository(targetProject, image)
             copyImage(image, context, sourceTag, targetTag)
