@@ -2,6 +2,7 @@ package org.ods.component
 
 import org.ods.services.EKSService
 import org.ods.util.IPipelineSteps
+import org.ods.component.IContext
 
 class ImageRepositoryEKS implements IImageRepository {
 
@@ -49,7 +50,7 @@ class ImageRepositoryEKS implements IImageRepository {
         dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
         awsTarget="docker://${eks.getECRRegistry()}/${image}:${targetTag}"
 
-        int status = steps.sh(
+        return = steps.sh(
             script: """
                 skopeo copy \
                 --src-tls-verify=false --src-creds "${ocCredentials}"\
@@ -59,7 +60,5 @@ class ImageRepositoryEKS implements IImageRepository {
             returnStatus: true,
             label: "Copy image to awsTarget ${awsTarget}"
         ) as int
-
-        return status
     }
 }

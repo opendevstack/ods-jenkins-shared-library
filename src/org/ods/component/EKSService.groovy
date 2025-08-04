@@ -1,5 +1,9 @@
 package org.ods.component
 
+import org.ods.util.IPipelineSteps
+import org.ods.component.IContext
+import org.ods.util.ILogger
+
 class EKSService {
     // Constructor arguments
     private final IPipelineSteps steps
