@@ -90,7 +90,7 @@ class RolloutEKSDeploymentStage extends Stage {
         String ocToken = eks.getOCTOken()
         eks.setEKSCluster() // This should be set after getOCTOken!!!
         String awsPassword = eks.getLoginPassword()
-        imageRepository = new ImageRepositoryEKS(steps, context, eks, ocToken, awsPassword)
+        ImageRepositoryEKS imageRepository = new ImageRepositoryEKS(steps, context, eks, ocToken, awsPassword)
         deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
         
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
