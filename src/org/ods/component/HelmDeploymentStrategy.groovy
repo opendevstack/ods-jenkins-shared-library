@@ -49,7 +49,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     @Override
     Map<String, List<PodData>> deploy() {      
         logger.info("Retagging images for ${context.targetProject} ") 
-        imageRepository.retagImages(context.targetProject, getBuiltImages())
+        imageRepository.retagImages(context.targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)

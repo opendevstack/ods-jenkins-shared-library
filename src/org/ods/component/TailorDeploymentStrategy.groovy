@@ -65,7 +65,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def refreshResources = false
 
         // Tag images which have been built in this pipeline from cd project into target project
-        imageRepository.retagImages(context.targetProject, getBuiltImages())
+        imageRepository.retagImages(context.targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         if (steps.fileExists(options.openshiftDir)) {
             refreshResources = true
