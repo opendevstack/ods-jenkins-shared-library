@@ -1,4 +1,4 @@
-package org.ods.component
+package org.ods.services
 
 import org.ods.util.IPipelineSteps
 import org.ods.component.IContext
