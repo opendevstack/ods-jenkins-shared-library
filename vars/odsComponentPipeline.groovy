@@ -81,7 +81,6 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
         registry.add(NexusService, nexusService)
     }
     def now = new Date()
-    final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
     JenkinsService jenkinsService = registry.get(JenkinsService)
     def text = jenkinsService.getCompletedBuildLogAsText()
 
@@ -94,11 +93,11 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${context.buildTime.format('yyyy-MM-dd_HH-mm')}-${context.buildNumber}/logs",
+            "${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}-${context.buildNumber}/logs",
         "jenkins.log",
         text.bytes,
         "application/text"
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: leva-documentation/" +
-        "${context.getProjectId().toLowerCase()}/${repo}/${context.buildTime.format('yyyy-MM-dd_mm-ss')}-${context.buildNumber}/logs/jenkins.log")
+        "${context.getProjectId().toLowerCase()}/${repo}/${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}-${context.buildNumber}/logs/jenkins.log")
 }
