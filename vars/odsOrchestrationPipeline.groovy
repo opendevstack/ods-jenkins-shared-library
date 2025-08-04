@@ -133,7 +133,7 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
             return
         }
         def now = new Date()
-        final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
+        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
         def name = "xunit--${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
         def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
@@ -157,7 +157,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
 
     def now = new Date()
-    final FORMATTED_DATE = now.format("yyyy-MM-dd-HH-mm-ss")
+    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
 
     String name = "jenkins-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.log"
     if (!steps.currentBuild.result) {
