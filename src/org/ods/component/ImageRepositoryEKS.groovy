@@ -45,10 +45,10 @@ class ImageRepositoryEKS implements IImageRepository {
     }   
 
    private int copyImage(image, context, sourceTag, targetTag) {
-        ocCredentials="jenkins:$ocToken"
-        awsCredentials="AWS:$awsPassword"
-        dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
-        awsTarget="docker://${eks.getECRRegistry()}/${image}:${targetTag}"
+        String ocCredentials="jenkins:$ocToken"
+        String awsCredentials="AWS:$awsPassword"
+        String dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
+        String awsTarget="docker://${eks.getECRRegistry()}/${image}:${targetTag}"
 
         return steps.sh(
             script: """
