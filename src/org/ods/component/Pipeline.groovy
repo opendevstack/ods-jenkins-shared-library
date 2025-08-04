@@ -618,63 +618,27 @@ class Pipeline implements Serializable {
         }
     }
 
-    private String removeCommentedCode(String content) {
-        def lines = content.split('\n')
-        def result = new StringBuilder()
-        boolean inBlockComment = false
-
-        for (String line : lines) {
-            String processedLine = line
-
-            // Handle block comments (/* */)
-            if (inBlockComment) {
-                def blockCommentEnd = processedLine.indexOf('*/')
-                if (blockCommentEnd != -1) {
-                    // End of block comment found
-                    if (blockCommentEnd + 2 <= processedLine.length()) {
-                        processedLine = processedLine[(blockCommentEnd + 2)..-1]
-                    } else {
-                        processedLine = ""
-                    }
-                    inBlockComment = false
-                } else {
-                    // Still inside block comment, skip entire line
-                    continue
-                }
-            }
-
-            // Check for start of block comment
-            def blockCommentStart = processedLine.indexOf('/*')
-            if (blockCommentStart != -1) {
-                def blockCommentEnd = processedLine.indexOf('*/', blockCommentStart + 2)
-                if (blockCommentEnd != -1) {
-                    // Complete block comment on same line
-                    String before = blockCommentStart > 0
-                        ? processedLine[0..(blockCommentStart - 1)]
-                        : ""
-                    String after = ""
-                    if (blockCommentEnd + 2 < processedLine.length()) {
-                        after = processedLine[(blockCommentEnd + 2)..-1]
-                    }
-                    processedLine = before + after
-                } else {
-                    // Block comment starts but doesn't end on this line
-                    processedLine = blockCommentStart > 0 ? processedLine[0..(blockCommentStart - 1)] : ""
-                    inBlockComment = true
-                }
-            }
-
-            // Handle single-line comments (//)
-            def singleCommentIndex = processedLine.indexOf('//')
-            if (singleCommentIndex != -1) {
-                processedLine = singleCommentIndex > 0 ? processedLine[0..(singleCommentIndex - 1)] : ""
-            }
-
-            // Add processed line to result
-            result.append(processedLine).append('\n')
+    /**
+     * Removes all commented code from the given string.
+     * Handles // single-line, /* block , and multi-line comments.
+     */
+    def removeCommentedCode(String content) {
+        if (!content) {
+            return content
         }
-
-        return result.toString()
+        // Remove block comments (including multi-line)
+        content = content.replaceAll(/(?s)\/\*.*?\*\//, "")
+        // Remove single-line comments (// ...), but keep code before //
+        content = content.readLines().collect { line ->
+            def idx = line.indexOf('//')
+            if (idx >= 0) {
+                return line.substring(0, idx)
+            }
+            return line
+        }.join('\n')
+        // Remove lines that are now empty or whitespace only
+        content = content.readLines().findAll { it.trim() }.join('\n')
+        return content
     }
 
     private String getJenkinsfileScriptPath() {
