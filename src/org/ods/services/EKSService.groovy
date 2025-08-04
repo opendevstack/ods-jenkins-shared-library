@@ -33,30 +33,30 @@ class EKSService {
     }
 
     protected setEKSCluster() {
-        withCredentials((environmentVars.credentials.key as String).toLowerCase(),
-                        (environmentVars.credentials.secret as String).toLowerCase()) {
+        withCredentials((awsEnvironmentVars.credentials.key as String).toLowerCase(),
+                        (awsEnvironmentVars.credentials.secret as String).toLowerCase()) {
             executeCommand('aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile default')
             executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
-            executeCommand("aws configure set region ${environmentVars.region} --profile default")
-            executeCommand("aws eks update-kubeconfig --region ${environmentVars.region} --name" + "${context.getProjectId()}-${context.getEnvironment()}")
+            executeCommand("aws configure set region ${awsEnvironmentVars.region} --profile default")
+            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name" + "${context.getProjectId()}-${context.getEnvironment()}")
         }
     }
 
     protected String getLoginPassword() {
         return steps.sh(
-            script: "aws ecr get-login-password --region ${environmentVars.region}",
+            script: "aws ecr get-login-password --region ${awsEnvironmentVars.region}",
             returnStdout: true
         ).trim()
     }
     
     protected String getECRRegistry() {
-        return "${environmentVars.accountId}.dkr.ecr.${environmentVars.region}.amazonaws.com"
-    }    
+        return "${awsEnvironmentVars.accountId}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
+    }
 
     protected boolean existRepository(String repositoryName) {
         try {
             steps.sh(
-                script: "aws ecr describe-repositories --repository-names ${repositoryName} --region ${environmentVars.region}",
+                script: "aws ecr describe-repositories --repository-names ${repositoryName} --region ${awsEnvironmentVars.region}",
                 returnStatus: true
             )
             return true
@@ -66,7 +66,7 @@ class EKSService {
     }
 
     protected void createRepository(String repositoryName) {
-        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${environmentVars.region}")
+        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${awsEnvironmentVars.region}")
     }
 
     private void executeCommand(String command) {
