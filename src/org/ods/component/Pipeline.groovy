@@ -631,7 +631,11 @@ class Pipeline implements Serializable {
                 def blockCommentEnd = processedLine.indexOf('*/')
                 if (blockCommentEnd != -1) {
                     // End of block comment found
-                    processedLine = processedLine[(blockCommentEnd + 2)..-1]
+                    if (blockCommentEnd + 2 <= processedLine.length()) {
+                        processedLine = processedLine[(blockCommentEnd + 2)..-1]
+                    } else {
+                        processedLine = ""
+                    }
                     inBlockComment = false
                 } else {
                     // Still inside block comment, skip entire line
@@ -645,11 +649,17 @@ class Pipeline implements Serializable {
                 def blockCommentEnd = processedLine.indexOf('*/', blockCommentStart + 2)
                 if (blockCommentEnd != -1) {
                     // Complete block comment on same line
-                    processedLine = processedLine[0..<blockCommentStart] +
-                        processedLine[(blockCommentEnd + 2)..-1]
+                    String before = blockCommentStart > 0
+                        ? processedLine[0..(blockCommentStart - 1)]
+                        : ""
+                    String after = ""
+                    if (blockCommentEnd + 2 < processedLine.length()) {
+                        after = processedLine[(blockCommentEnd + 2)..-1]
+                    }
+                    processedLine = before + after
                 } else {
                     // Block comment starts but doesn't end on this line
-                    processedLine = processedLine[0..<blockCommentStart]
+                    processedLine = blockCommentStart > 0 ? processedLine[0..(blockCommentStart - 1)] : ""
                     inBlockComment = true
                 }
             }
@@ -657,7 +667,7 @@ class Pipeline implements Serializable {
             // Handle single-line comments (//)
             def singleCommentIndex = processedLine.indexOf('//')
             if (singleCommentIndex != -1) {
-                processedLine = processedLine[0..<singleCommentIndex]
+                processedLine = singleCommentIndex > 0 ? processedLine[0..(singleCommentIndex - 1)] : ""
             }
 
             // Add processed line to result
