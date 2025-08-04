@@ -30,71 +30,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         ILogger logger) {
         super(script, context, logger)
 
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        // Helm options
-        if (!config.chartDir) {
-            config.chartDir = 'chart'
-        }
-        if (!config.containsKey('helmReleaseName')) {
-            config.helmReleaseName = context.componentId
-        }
-        if (!config.containsKey('helmValues')) {
-            config.helmValues = [:]
-        }
-        if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = [ 'values.yaml' ]
-        }
-        if (!config.containsKey('helmEnvBasedValuesFiles')) {
-            config.helmEnvBasedValuesFiles = []
-        }
-        if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
-        }
-        if (!config.containsKey('helmAdditionalFlags')) {
-            config.helmAdditionalFlags = []
-        }
-        if (!config.containsKey('helmDiff')) {
-            config.helmDiff = true
-        }
-        if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
-        }
-        // Tailor options
-        if (!config.openshiftDir) {
-            config.openshiftDir = 'openshift'
-        }
-        if (!config.tailorPrivateKeyCredentialsId) {
-            config.tailorPrivateKeyCredentialsId = "${context.cdProject}-tailor-private-key"
-        }
-        if (!config.tailorSelector) {
-            config.tailorSelector = config.selector
-        }
-        if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = true
-        }
-        if (!config.containsKey('tailorExclude')) {
-            config.tailorExclude = 'bc,is'
-        }
-        if (!config.containsKey('tailorParamFile')) {
-            config.tailorParamFile = '' // none apart the automatic param file
-        }
-        if (!config.containsKey('tailorPreserve')) {
-            config.tailorPreserve = [] // do not preserve any paths in live config
-        }
-        if (!config.containsKey('tailorParams')) {
-            config.tailorParams = []
-        }
+        DeploymentConfig.updateCommonConfig(context, config)
+        DeploymentConfig.updateHelmConfig(context, config)
+        DeploymentConfig.updateTailorConfig(config)
 
         this.config = config
         this.options = new RolloutOpenShiftDeploymentOptions(config)
@@ -121,18 +59,20 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             throw new IllegalStateException("Must be either a Tailor based deployment or a Helm based deployment")
         }
 
+        IPipelineSteps steps = new PipelineSteps(script)
+        IImageRepository imageRepository = new ImageRepositoryOpenShift(steps, context, openShift)
+
         // Use tailorDeployment in the following cases:
         // (1) We have an openshiftDir
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
-        IPipelineSteps steps = new PipelineSteps(script)
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
-            deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
             String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
             def msg = this.steps.libraryResource(resourcePath)
             logger.warn(msg)
         }
         if (isHelmDeployment) {
-            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
         }
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()

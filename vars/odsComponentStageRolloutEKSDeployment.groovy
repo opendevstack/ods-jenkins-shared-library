@@ -1,4 +1,4 @@
-import org.ods.component.RolloutOpenShiftDeploymentStage
+import org.ods.component.RolloutEKSDeploymentStage
 import org.ods.component.IContext
 import org.ods.component.EKSLoginStage
 
@@ -14,37 +14,23 @@ def call(IContext context, Map config = [:]) {
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }
-
-    // This step should be executed before the EKSLoginStage, so that the OpenShift token is available
-    // as later we need the token to copy the images
-    def currentOCToken = sh(script: "oc whoami -t >& /dev/null", label: "Get OpenShift Token", returnStdout: true)
-    
-    def stageLogin = new EKSLoginStage(
-        this,
-        context,
-        config,
-        logger
-    )
-    this.withCredentials([
-            this.string(credentialsId: "${context.cdProject}-aws-region", variable: 'AWS_REGION'),
-            this.string(credentialsId: "${context.cdProject}-aws-account-id", variable: 'AWS_ACCOUNT_ID'),
-            this.string(credentialsId: "${context.cdProject}-aws-access-key-id-dev", variable: 'AWS_ACCESS_KEY_ID'),
-            this.string(credentialsId: "${context.cdProject}-aws-secret-access-key-dev", variable: 'AWS_SECRET_ACCESS_KEY')
-    ]) {
-        stageLogin.execute()
+    if (!context.environment) {
+        logger.warn 'Skipping because of empty (target) environment ...'
+        return
+    }
+    if (!config.envPath) {
+        config.envPath = "./environments"
     }
 
-    // TODO: 
-    // sent currentOCToken to RolloutOpenShiftDeploymentStage 
-    // and copy the images from OpenShift to EKS
-    // change retagImages for something compatible with EKS
-    return new RolloutOpenShiftDeploymentStage(
+    Map awsEnvironmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
+    return new RolloutEKSDeploymentStage(
         this,
         context,
         config,
         ServiceRegistry.instance.get(OpenShiftService),
         ServiceRegistry.instance.get(JenkinsService),
+        awsEnvironmentVars,
         logger
-    ).execute()
+    ).execute()     
 }
 return this

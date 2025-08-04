@@ -18,6 +18,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
+
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
 
@@ -28,48 +30,12 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        // Helm options
-        if (!config.chartDir) {
-            config.chartDir = 'chart'
-        }
-        if (!config.containsKey('helmReleaseName')) {
-            config.helmReleaseName = context.componentId
-        }
-        if (!config.containsKey('helmValues')) {
-            config.helmValues = [:]
-        }
-        if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = ['values.yaml']
-        }
-        if (!config.containsKey('helmEnvBasedValuesFiles')) {
-            config.helmEnvBasedValuesFiles = []
-        }
-        if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
-        }
-        if (!config.containsKey('helmAdditionalFlags')) {
-            config.helmAdditionalFlags = []
-        }
-        if (!config.containsKey('helmDiff')) {
-            config.helmDiff = true
-        }
-        if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
-        }
+        DeploymentConfig.updateCommonConfig(context, config)
+        DeploymentConfig.updateHelmConfig(context, config)
+
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -77,20 +43,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
-    Map<String, List<PodData>> deploy() {
-        if (!context.environment) {
-            logger.warn 'Skipping because of empty (target) environment ...'
-            return [:]
-        }
-        
-        // TODO s2o: import image
-        // In EKS we don't import images, we use the ECR repository directly.
-        // This is different from OpenShift, where we import images into the ImageStream.        
-        // Tag images which have been built in this pipeline from cd project into target project
-        // retagImages(context.targetProject, getBuiltImages())
+    Map<String, List<PodData>> deploy() {      
+        logger.info("Retagging images for ${context.targetProject} ") 
+        imageRepository.retagImages(context.targetProject, getBuiltImages())
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)

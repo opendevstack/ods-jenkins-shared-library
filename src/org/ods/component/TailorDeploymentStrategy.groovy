@@ -19,6 +19,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
+    private final IImageRepository imageRepository
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     TailorDeploymentStrategy(
@@ -27,45 +28,12 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        // Tailor options
-        if (!config.openshiftDir) {
-            config.openshiftDir = 'openshift'
-        }
-        if (!config.tailorPrivateKeyCredentialsId) {
-            config.tailorPrivateKeyCredentialsId = "${context.cdProject}-tailor-private-key"
-        }
-        if (!config.tailorSelector) {
-            config.tailorSelector = config.selector
-        }
-        if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = true
-        }
-        if (!config.containsKey('tailorExclude')) {
-            config.tailorExclude = 'bc,is'
-        }
-        if (!config.containsKey('tailorParamFile')) {
-            config.tailorParamFile = '' // none apart the automatic param file
-        }
-        if (!config.containsKey('tailorPreserve')) {
-            config.tailorPreserve = [] // do not preserve any paths in live config
-        }
-        if (!config.containsKey('tailorParams')) {
-            config.tailorParams = []
-        }
+        DeploymentConfig.updateCommonConfig(context, config)
+        DeploymentConfig.updateTailorConfig(context, config)
+        
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -73,6 +41,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
@@ -96,7 +65,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def refreshResources = false
 
         // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+        imageRepository.retagImages(context.targetProject, getBuiltImages())
 
         if (steps.fileExists(options.openshiftDir)) {
             refreshResources = true
