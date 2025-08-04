@@ -54,7 +54,7 @@ class ImageRepositoryEKS implements IImageRepository {
             script: """
                 skopeo copy \
                 --src-tls-verify=false --src-creds "${ocCredentials}"\
-                --dest-tls-verify=false--dest-creds "${awsCredentials}"\
+                --dest-tls-verify=false --dest-creds "${awsCredentials}"\
                 $dockerSource $awsTarget
             """,
             returnStatus: true,
