@@ -45,6 +45,16 @@ _List<String>_
  all other editions (which are capable of handling multiple branches).
 
 
+| *exclusions* +
+_String_
+|Patterns to exclude from SonarQube scan.
+
+
+| *imageLabels* +
+_Map<String,&nbsp;String>_
+|Patterns to exclude from SonarQube scan.
+
+
 | *longLivedBranches* +
 _List<String>_
 |Branch(es) for which no PR analysis should be performed. If not set, it
@@ -63,5 +73,11 @@ _String_
  BuildOpenShiftImageStage puts the imageRef into a map with the `resourceName` as key.
  In order to be able to receive the imageRef for scanning, the `resourceName` needs
  to be the same as in BuildOpenShiftImageStage.
+
+
+| *sonarQubeNexusRepository* +
+_String_
+|Nexus repository to upload the SonarQube report to.
+ Automaticaly set by sonarqube configMap if present.
 
 |===
