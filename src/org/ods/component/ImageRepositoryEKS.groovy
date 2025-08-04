@@ -50,7 +50,7 @@ class ImageRepositoryEKS implements IImageRepository {
         dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
         awsTarget="docker://${eks.getECRRegistry()}/${image}:${targetTag}"
 
-        return = steps.sh(
+        return steps.sh(
             script: """
                 skopeo copy \
                 --src-tls-verify=false --src-creds "${ocCredentials}"\
