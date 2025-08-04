@@ -144,7 +144,7 @@ class PipelineSpec extends PipelineSpockTestBase {
             /* Multi-line
                comment */
             code3
-            // Inline comment code4
+            code4 // Inline comment
         """
 
         when:
@@ -154,10 +154,11 @@ class PipelineSpec extends PipelineSpockTestBase {
         !result.contains('Single line comment')
         !result.contains('Block comment')
         !result.contains('Multi-line')
-        !result.contains('code4')  // code4 is part of inline comment and should be removed
+        !result.contains('// Inline comment')  // Inline comment should be removed
         result.contains('code1')
         result.contains('code2')
         result.contains('code3')
+        result.contains('code4') // code4 should remain, only the comment after // should be removed
     }
 
     def "execute handles multi-repo build setup correctly"() {
