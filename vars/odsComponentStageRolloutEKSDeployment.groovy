@@ -1,6 +1,5 @@
 import org.ods.component.RolloutEKSDeploymentStage
 import org.ods.component.IContext
-import org.ods.component.EKSLoginStage
 
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
