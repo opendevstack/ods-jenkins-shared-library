@@ -15,6 +15,11 @@ import spock.lang.*
 
 class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
+    def setupSpec() {
+        System.setProperty("java.awt.headless", "true")
+        org.ods.component.ScanWithSonarStage.metaClass.generateAndArchiveReportInNexus = { Map args -> null }
+    }
+    
     @Rule
     public TemporaryFolder tempFolder
 
@@ -57,13 +62,13 @@ def "run successfully"() {
     sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context)
 
     then:
@@ -88,13 +93,13 @@ def "run successfully"() {
     sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, ['branch': '*', 'analyzePullRequests': 'true'])
 
     then:
@@ -111,7 +116,8 @@ def "run successfully"() {
         branch: 'feature/foo',
         baseBranch: 'master'
       ],
-      "developer"
+      "developer",
+      ""
     )
     assertJobStatusSuccess()
   }
@@ -133,7 +139,6 @@ def "run successfully"() {
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
     NexusService nexusService = Mock(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
-
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.env.WORKSPACE = tempFolder.getRoot().absolutePath
@@ -143,6 +148,7 @@ def "run successfully"() {
       [projectStatus: [status: projectStatusKey]]
     }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, [requireQualityGatePass: true])
 
     then:
@@ -169,11 +175,11 @@ def "run successfully"() {
       nexusUrl: 'http://nexus'
     ]
     def context = new Context(null, config, logger)
-
     when:
     NexusService nexusService = Stub(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, ['branch': 'master'])
 
     then:
@@ -192,16 +198,17 @@ def "run successfully"() {
       nexusUrl: 'http://nexus'
     ]
     def context = new Context(null, config, logger)
-
     when:
     NexusService nexusService = Stub(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, options)
 
     then:
-    def exception = thrown(wantEx)
-    exception.message == wantExMessage
+    printCallStack()
+    assertCallStackContains("WARN: Error with SonarQube scan due to: ${wantExMessage}")
+    assertJobStatusSuccess()
 
     where:
     options           || wantEx                   | wantExMessage
