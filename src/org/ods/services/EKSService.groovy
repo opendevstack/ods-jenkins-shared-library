@@ -50,7 +50,7 @@ class EKSService {
     }
     
     protected String getECRRegistry() {
-        return "${awsEnvironmentVars.accountId}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
+        return "${awsEnvironmentVars.account}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
     }
 
     protected boolean existRepository(String repositoryName) {
