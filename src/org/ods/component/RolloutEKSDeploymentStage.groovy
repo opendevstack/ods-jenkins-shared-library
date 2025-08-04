@@ -7,6 +7,7 @@ import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
+import org.ods.services.EKSService
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
