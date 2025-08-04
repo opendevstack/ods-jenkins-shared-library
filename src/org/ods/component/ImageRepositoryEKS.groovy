@@ -31,9 +31,7 @@ class ImageRepositoryEKS implements IImageRepository {
     protected void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
         images.each { image ->
             findOrCreateRepository(targetProject, image)
-            copyImageToECR(
-                targetProject, image, context.cdProject, sourceTag, targetTag
-            )
+            copyImage(image, context, sourceTag, targetTag)
         }
     }
 
@@ -45,16 +43,7 @@ class ImageRepositoryEKS implements IImageRepository {
         }
     }   
 
-    void copyImageToECR(
-        String project,
-        String name,
-        String sourceProject,
-        String sourceTag,
-        String targetTag) {
-        
-    } 
-
-   private int copyImage(targetProject, image, context.cdProject, sourceTag, targetTag) {
+   private int copyImage(image, context, sourceTag, targetTag) {
         ocCredentials="jenkins:$ocToken"
         awsCredentials="AWS:$awsPassword"
         dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
