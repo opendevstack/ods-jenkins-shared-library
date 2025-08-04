@@ -1,12 +1,9 @@
 
 package org.ods.component
 
-import com.cloudbees.groovy.cps.NonCPS
-
 class DeploymentConfig {
 
-    @NonCPS
-    public static void updateCommonConfig(IContext context, Map<String, Object> config) {
+    public void updateCommonConfig(IContext context, Map<String, Object> config) {
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -21,8 +18,7 @@ class DeploymentConfig {
         }
     }
 
-    @NonCPS
-    public static void updateHelmConfig(IContext context, Map<String, Object> config){
+    public void updateHelmConfig(IContext context, Map<String, Object> config){
         if (!config.chartDir) {
             config.chartDir = 'chart'
         }

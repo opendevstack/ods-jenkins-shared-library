@@ -22,7 +22,6 @@ class RolloutEKSDeploymentStage extends Stage {
     private Map<String, Object> config
     private Map<String, Object> awsEnvironmentVars
 
-    @NonCPS
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
     RolloutEKSDeploymentStage(
@@ -34,9 +33,9 @@ class RolloutEKSDeploymentStage extends Stage {
         Map<String, Object> awsEnvironmentVars,
         ILogger logger) {
         super(script, context, logger)
-
-        DeploymentConfig.updateCommonConfig(context, config)
-        DeploymentConfig.updateHelmConfig(context, config)
+        DeploymentConfig deploymentConfig = new DeploymentConfig()
+        deploymentConfig.updateCommonConfig(context, config)
+        deploymentConfig.updateHelmConfig(context, config)
        
         this.config = config
         this.options = new RolloutOpenShiftDeploymentOptions(config)

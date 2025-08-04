@@ -29,10 +29,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, logger)
-
-        DeploymentConfig.updateCommonConfig(context, config)
-        DeploymentConfig.updateHelmConfig(context, config)
-        DeploymentConfig.updateTailorConfig(config)
+        
+        DeploymentConfig deploymentConfig = new DeploymentConfig()
+        deploymentConfig.updateCommonConfig(context, config)
+        deploymentConfig.updateHelmConfig(context, config)
+        deploymentConfig.updateTailorConfig(config)
 
         this.config = config
         this.options = new RolloutOpenShiftDeploymentOptions(config)

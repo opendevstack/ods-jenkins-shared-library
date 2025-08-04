@@ -33,8 +33,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         IImageRepository imageRepository,
         ILogger logger
     ) {
-        DeploymentConfig.updateCommonConfig(context, config)
-        DeploymentConfig.updateHelmConfig(context, config)
+        DeploymentConfig deploymentConfig = new DeploymentConfig()
+        deploymentConfig.updateCommonConfig(context, config)
+        deploymentConfig.updateHelmConfig(context, config)
 
         this.context = context
         this.logger = logger

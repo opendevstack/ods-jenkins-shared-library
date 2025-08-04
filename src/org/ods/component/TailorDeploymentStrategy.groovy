@@ -31,9 +31,10 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         IImageRepository imageRepository,
         ILogger logger
     ) {
-        DeploymentConfig.updateCommonConfig(context, config)
-        DeploymentConfig.updateTailorConfig(context, config)
-        
+        DeploymentConfig deploymentConfig = new DeploymentConfig()
+        deploymentConfig.updateCommonConfig(context, config)
+        deploymentConfig.updateTailorConfig(context, config)
+
         this.context = context
         this.logger = logger
         this.steps = steps
