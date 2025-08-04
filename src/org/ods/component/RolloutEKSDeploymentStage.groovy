@@ -8,6 +8,7 @@ import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.services.EKSService
+import com.cloudbees.groovy.cps.NonCPS
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -21,6 +22,7 @@ class RolloutEKSDeploymentStage extends Stage {
     private Map<String, Object> config
     private Map<String, Object> awsEnvironmentVars
 
+    @NonCPS
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
     RolloutEKSDeploymentStage(
