@@ -134,7 +134,7 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
         }
         def now = new Date()
         final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
-        def name = "xunit--${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
         def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
         logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
