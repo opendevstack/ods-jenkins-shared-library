@@ -23,7 +23,11 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                        repoName: "component1",
                        gitCommit: "12112121212121",
                        cdProject: "prj1-cd",
-                       credentialsId: "cd-user"]
+                       credentialsId: "cd-user",
+                       buildTime: new Date(),
+                       branchToEnvironmentMapping: [
+                           '*': 'dev'
+                       ]]
         contextConfig << extraConfig
 
         IContext context = new Context(script, contextConfig, logger)
