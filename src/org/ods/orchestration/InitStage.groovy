@@ -135,12 +135,8 @@ class InitStage extends Stage {
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 
         // Compute target project. For now, the existance of DEV on the same cluster is verified.
-        def concreteEnv = Project.getConcreteEnvironment(
-            project.buildParams.targetEnvironment,
-            project.buildParams.version.toString(),
-            project.versionedDevEnvsEnabled
-        )
-        def targetProject = "${project.key}-${concreteEnv}"
+        def targetProject = Project.getTargetProjectForEnv(project, project.buildParams.targetEnvironment)
+
         def os = registry.get(OpenShiftService)
         if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
             throw new RuntimeException(
@@ -150,11 +146,76 @@ class InitStage extends Stage {
         }
         project.setTargetProject(targetProject)
 
+        if (util.getInstallableRepos()?.size() > 0) {
+            validateEnvConfig(logger, registry, util)
+        } else {
+            logger.debug("No installable repos found, skipping env existence check.")
+        }
+
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
         registry.get(LeVADocumentScheduler).run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
+    }
+
+    protected void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+        logger.debug("Validate environment metadata.yml config started")
+        def os = registry.get(OpenShiftService)
+        Map envs = project.getEnvironments()
+        def wronglyConfiguredEnvs = []
+        boolean reloginRequired = false
+        try {
+            for (MROPipelineUtil.PipelineEnv env : MROPipelineUtil.PipelineEnv.values()) {
+                def targetProjectForEnv = Project.getTargetProjectForEnv(project, env.value)
+                logger.debug("Check cluster config for env ${env.value} and project ${targetProjectForEnv}")
+                try {
+                    String openshiftClusterApiUrl = envs."$env.value"?.apiUrl
+                        ?: envs."$env.value"?.openshiftClusterApiUrl
+                    String openshiftClusterCredentialsId = envs."$env.value"?.credentialsId
+                        ?: envs."$env.value"?.openshiftClusterCredentialsId
+                    if (!openshiftClusterApiUrl && !openshiftClusterCredentialsId) {
+                        if (!os.envExists(targetProjectForEnv)) {
+                            wronglyConfiguredEnvs.add(env.value)
+                        }
+                    } else {
+                        reloginRequired = true
+                        util.verifyEnvLoginAndExistence(script,
+                            os,
+                            targetProjectForEnv,
+                            project.data.openshift.sessionApiUrl,
+                            openshiftClusterApiUrl,
+                            openshiftClusterCredentialsId
+                        )
+                    }
+                } catch (Exception e) {
+                    wronglyConfiguredEnvs.add(env.value)
+                }
+            }
+            if (wronglyConfiguredEnvs.size() > 0) {
+                String message = "The Release Manager configuration for environment(s) " +
+                    "${wronglyConfiguredEnvs.join(', ')} is incorrect in the metadata.yml. " +
+                    "Please verify the openshift cluster api url and credentials for " +
+                    "each environment mentioned."
+                if (project.isWorkInProgress) { // Warn build pipeline in this case
+                    project.addCommentInReleaseStatus(message)
+                    util.warnBuild(message)
+                } else {                        // Error
+                    util.failBuild(message)
+                    throw new RuntimeException(message) // This also add a comment in the release status issue
+                }
+            }
+        } finally {
+            if (reloginRequired) {
+                logger.debug("Try to relogin to current cluster")
+                try {
+                    os.reloginToCurrentClusterIfNeeded()
+                } catch (ex) {
+                    logger.error("Error logging back to current cluster ${ex.getMessage()}")
+                }
+                logger.debug("Success relogging in to current cluster.")
+            }
+        }
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
