@@ -5,6 +5,8 @@ import groovy.transform.TypeChecked
 @TypeChecked
 class RolloutOpenShiftDeploymentOptions extends Options {
 
+    String envPath
+    
     /**
      * Selector scope used to determine which resources are part of a component
      * (defaults to `context.selector`). */
