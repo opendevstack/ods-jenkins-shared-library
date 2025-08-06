@@ -1,9 +1,7 @@
 import org.ods.component.Context
 import org.ods.component.Pipeline
-import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
-import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
@@ -12,11 +10,8 @@ import org.ods.util.ClassLoaderCleaner
 import org.ods.util.PipelineSteps
 import org.ods.util.UnirestConfig
 import java.lang.reflect.Method
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 def call(Map config, Closure body) {
-
     def debug = env.DEBUG
     if (debug != null) {
         config.debug = debug
@@ -58,7 +53,6 @@ def call(Map config, Closure body) {
 }
 
 private void uploadJenkinsLogToNexus(Map config, Logger logger) {
-
     ServiceRegistry registry = ServiceRegistry.instance
     IPipelineSteps steps = registry.get(IPipelineSteps)
     if (!steps) {
@@ -66,8 +60,8 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
         registry.add(IPipelineSteps, steps)
     }
 
-    if (steps.currentBuild instanceof String && steps.currentBuild && steps.currentBuild == 'NOT_BUILT' ||
-        steps.currentBuild.result && steps.currentBuild.result == 'NOT_BUILT') {
+    if ((steps.currentBuild && steps.currentBuild.getClass() == String && steps.currentBuild == 'NOT_BUILT') ||
+        (steps.currentBuild?.result && steps.currentBuild.result == 'NOT_BUILT')) {
         logger.warn('Build was not executed, skipping log upload.')
         return
     }
@@ -80,7 +74,6 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
         registry.add(NexusService, nexusService)
     }
-    def now = new Date()
     JenkinsService jenkinsService = registry.get(JenkinsService)
     def text = jenkinsService.getCompletedBuildLogAsText()
 
@@ -89,15 +82,15 @@ private void uploadJenkinsLogToNexus(Map config, Logger logger) {
     } else {
         text += "STATUS: SUCCESS"
     }
-
+    def buidDateFormatted = context.buildTime.format('yyyy-MM-dd_HH-mm-ss')
     nexusService.storeArtifact(
         "leva-documentation",
         "${context.getProjectId().toLowerCase()}/${repo}/" +
-            "${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}_${context.buildNumber}/logs",
+            "${buidDateFormatted}_${context.buildNumber}/logs",
         "jenkins.log",
         text.bytes,
         "application/text"
     )
     logger.debug("Successfully uploaded Jenkins logs to Nexus: leva-documentation/" +
-        "${context.getProjectId().toLowerCase()}/${repo}/${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}_${context.buildNumber}/logs/jenkins.log")
+        "${context.getProjectId().toLowerCase()}/${repo}/${buidDateFormatted}_${context.buildNumber}/logs/jenkins.log")
 }
