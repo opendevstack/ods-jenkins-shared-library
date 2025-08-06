@@ -4,6 +4,7 @@
 
 ### Added
 
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1221])
 
 ### Changed
 
