@@ -90,12 +90,14 @@ class DeployStage extends Stage {
                     "'${project.buildParams.targetEnvironment}' installable repos? ${installableRepos?.size()}")
 
                 if (installableRepos?.size() > 0) {
+                    String openshiftClusterCredentialsId = project.environmentConfig?.credentialsId
+                        ?: project.environmentConfig?.openshiftClusterCredentialsId
                     util.verifyEnvLoginAndExistence(script,
                         os,
                         project.targetProject,
                         project.data.openshift?.sessionApiUrl,
                         project.data.openshift?.targetApiUrl,
-                        project.environmentConfig?.credentialsId)
+                        openshiftClusterCredentialsId)
                 }
             }
 
