@@ -8,6 +8,7 @@
 ### Changed
 
 ### Fixed
+* Fix credentials id retrieval ([#1228](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1228))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.9.0] - 2025-8-06
