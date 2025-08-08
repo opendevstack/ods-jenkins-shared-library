@@ -1370,7 +1370,6 @@ class OpenShiftService {
             returnStdout: true,
             label: "read source cluster registry host from ${secretName}"
         )
-        logger.info "getSourceClusterRegistryHost: project '${project}' secret ${secretName} returned ${dockerConfig}."
         def dockerConfigJson = steps.readJSON(text: dockerConfig)
         def auths = dockerConfigJson.auths
         def authKeys = auths.keySet()
