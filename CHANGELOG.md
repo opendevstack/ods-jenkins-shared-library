@@ -10,6 +10,11 @@
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
+## [4.9.1] - 2025-8-11
+### Fixed
+* Fix credentials id retrieval ([#1228](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1228))
+
+
 ## [4.9.0] - 2025-8-06
 ### Changed
 * Enforce prod config in metadata.yml ([#1222](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1222))
