@@ -5,6 +5,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
+import org.ods.services.SonarQubeService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.TailorDeploymentException
@@ -20,10 +21,11 @@ class Pipeline implements Serializable {
     private OpenShiftService openShiftService
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
+    private SonarQubeService sonarQubeService
 
-    private ILogger logger
-    private def script
-    private IPipelineSteps steps
+    private final ILogger logger
+    private final def script
+    private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled = true
@@ -175,8 +177,8 @@ class Pipeline implements Serializable {
                                 ' in the commit message ...'
                             updateBuildStatus('NOT_BUILT')
                             setBitbucketBuildStatus('SUCCESSFUL')
-                            return this
                         }
+                        return // Return from bootstrap closure, not execute method
                     }
                 }
             } catch (err) {
@@ -194,6 +196,10 @@ class Pipeline implements Serializable {
             script.node('master', bootstrap)
         } else {
             bootstrap()
+        }
+
+        if (skipCi) {
+            return this
         }
 
         if (!skipCi) {
@@ -229,7 +235,7 @@ class Pipeline implements Serializable {
             ) {
                 script.node(config.podLabel) {
                     try {
-                        logger.debugClocked("${config.podLabel}")
+                        logger.debugClocked("${config.podLabel}", "Starting execution in pod")
                         setBitbucketBuildStatus('INPROGRESS')
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
@@ -257,6 +263,122 @@ class Pipeline implements Serializable {
                                         script.env.BITBUCKET_PW as String)
                                 }
                                 gitService.switchToRemoteBranch(context.gitBranch)
+                            }
+                            context.sonarExecuted = false
+                            logger.info("sonarExecuted: ${context.sonarExecuted}")
+
+                            // Check if odsComponentStageScanWithSonar is already defined in the pipeline
+                            boolean hasSonarStageInPipeline = checkForSonarStageInPipeline()
+                            logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
+
+                            if (!context.sonarExecuted && !hasSonarStageInPipeline) {
+                                logger.info(
+                                    "SonarQube not configured and no explicit stage found, using default conf"
+                                )
+
+                                try {
+                                    def registry = ServiceRegistry.instance
+
+                                    // Initialize required services
+                                    if (!registry.get(SonarQubeService)) {
+                                        logger.info 'Registering SonarQubeService'
+                                        this.sonarQubeService = new SonarQubeService(
+                                            script, logger, 'SonarServerConfig'
+                                        )
+                                        registry.add(SonarQubeService, this.sonarQubeService)
+                                    }
+
+                                    // Initialize config.imageLabels if not present
+                                    if (!config.imageLabels) {
+                                        config.imageLabels = [:]
+                                    }
+
+                                    // Set OPENSHIFT_BUILD_NAMESPACE from environment if not already set
+                                    if (!config.imageLabels.OPENSHIFT_BUILD_NAMESPACE) {
+                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE =
+                                            script.env.OPENSHIFT_BUILD_NAMESPACE
+                                    }
+
+                                    def openShiftService = registry.get(OpenShiftService)
+                                    Map configurationSonarCluster = [:]
+                                    Map configurationSonarProject = [:]
+
+                                    // Read SonarQube config from ConfigMap
+                                    configurationSonarCluster = openShiftService.getConfigMapData(
+                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
+                                        ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
+                                    )
+
+                                    // Project-level enabled flag
+                                    def key = "projects." + context.projectId + ".enabled"
+                                    if (configurationSonarCluster.containsKey(key)) {
+                                        configurationSonarProject.put(
+                                            'enabled',
+                                            configurationSonarCluster.get(key)
+                                        )
+                                        logger.info(
+                                            "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
+                                        )
+                                    } else {
+                                        configurationSonarProject.put('enabled', true)
+                                        logger.info(
+                                            "Not parameter 'projects.${context.projectId}.enabled' at cluster level. " +
+                                            "Default enabled"
+                                        )
+                                    }
+
+                                    boolean enabledInCluster = Boolean.valueOf(
+                                        configurationSonarCluster['enabled']?.toString() ?: "true"
+                                    )
+                                    boolean enabledInProject = Boolean.valueOf(
+                                        configurationSonarProject['enabled']?.toString() ?: "true"
+                                    )
+
+                                    // Only run scan if enabled in both cluster and project
+                                    if (enabledInCluster && enabledInProject) {
+                                        Stage sonarStage = new ScanWithSonarStage(
+                                            script,
+                                            context,
+                                            [:],
+                                            this.bitbucketService,
+                                            this.sonarQubeService,
+                                            registry.get(NexusService),
+                                            logger,
+                                            configurationSonarCluster,
+                                            configurationSonarProject
+                                        )
+                                        sonarStage.execute()
+                                        context.sonarExecuted = true
+                                        logger.info("Automatic SonarQube scan completed successfully")
+                                    } else {
+                                        if (!enabledInCluster && !enabledInProject) {
+                                            logger.warn(
+                                                "Skipping SonarQube scan because it is not enabled at cluster nor " +
+                                                "project level"
+                                            )
+                                        } else if (enabledInCluster) {
+                                            logger.warn(
+                                                "Skipping SonarQube scan because it is not enabled at project level"
+                                            )
+                                        } else {
+                                            logger.warn(
+                                                "Skipping SonarQube scan because it is not enabled at cluster level"
+                                            )
+                                        }
+                                        context.sonarExecuted = false
+                                    }
+                                } catch (Exception e) {
+                                    logger.warn(
+                                        "Automatic SonarQube scan failed but pipeline will continue: ${e.message}"
+                                    )
+                                    logger.debug("Full SonarQube scan error: ${e}")
+                                    context.sonarExecuted = false
+                                }
+                            } else if (hasSonarStageInPipeline) {
+                                logger.info(
+                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
+                                    "is defined in pipeline"
+                                )
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
@@ -459,6 +581,103 @@ class Pipeline implements Serializable {
         } else {
             block()
         }
+    }
+
+    private boolean checkForSonarStageInPipeline() {
+        try {
+            // Get the script path from the pipeline configuration
+            def scriptPath = getJenkinsfileScriptPath()
+            if (!scriptPath) {
+                logger.debug("Could not determine script path, defaulting to 'Jenkinsfile'")
+                scriptPath = 'Jenkinsfile'
+            }
+
+            // Try to read the pipeline script file to check if odsComponentStageScanWithSonar is present
+            def jenkinsfileContent = script.readFile(file: scriptPath)
+
+            // Parse content to exclude commented lines
+            def uncommentedContent = removeCommentedCode(jenkinsfileContent)
+
+            boolean containsSonarStage = uncommentedContent.contains('odsComponentStageScanWithSonar')
+            if (containsSonarStage) {
+                logger.debug("Found 'odsComponentStageScanWithSonar' in ${scriptPath}")
+            } else {
+                // Also check for deprecated stage name
+                containsSonarStage = uncommentedContent.contains('stageScanForSonarqube')
+                if (containsSonarStage) {
+                    logger.debug("Found deprecated 'stageScanForSonarqube' in ${scriptPath}")
+                }
+            }
+            return containsSonarStage
+        } catch (Exception e) {
+            logger.warn("Could not read pipeline script to check for SonarQube stage: ${e.message}")
+            logger.debug("Full error: ${e}")
+            // If we can't read the file, assume no explicit stage is defined
+            // This ensures the pipeline doesn't fail due to file reading issues
+            return false
+        }
+    }
+
+    /**
+     * Removes all commented code from the given string.
+     * Handles // single-line, /* block , and multi-line comments.
+     */
+    def removeCommentedCode(String content) {
+        if (!content) {
+            return content
+        }
+        // Remove block comments (including multi-line)
+        content = content.replaceAll(/(?s)\/\*.*?\*\//, "")
+        // Remove single-line comments (// ...), but keep code before //
+        content = content.readLines().collect { line ->
+            def idx = line.indexOf('//')
+            if (idx >= 0) {
+                return line.substring(0, idx)
+            }
+            return line
+        }.join('\n')
+        // Remove lines that are now empty or whitespace only
+        content = content.readLines().findAll { it.trim() }.join('\n')
+        return content
+    }
+
+    private String getJenkinsfileScriptPath() {
+        try {
+            // Try to get the script path from the current build's SCM configuration
+            def scmConfig = script.scm
+            if (scmConfig && scmConfig.hasProperty('scriptPath')) {
+                logger.debug("Found script path from SCM config: ${scmConfig.scriptPath}")
+                return scmConfig.scriptPath
+            }
+        } catch (Exception e) {
+            logger.debug("Could not get script path from SCM configuration: ${e.message}")
+        }
+
+        try {
+            // Fallback: try to get from build configuration in OpenShift
+            if (this.localCheckoutEnabled && context?.cdProject) {
+                def pipelinePrefix = "${context.cdProject}/${context.cdProject}-"
+                def buildConfigName = script.env.JOB_NAME?.substring(pipelinePrefix.size())
+                if (buildConfigName) {
+                    def contextDir = script.sh(
+                        returnStdout: true,
+                        label: 'getting pipeline script context directory from build config',
+                        script: "oc get bc/${buildConfigName} -n ${context.cdProject} " +
+                            "-o jsonpath='{.spec.source.contextDir}' 2>/dev/null || echo ''"
+                    ).trim()
+
+                    if (contextDir) {
+                        logger.debug("Found context directory from build config: ${contextDir}")
+                        return "${contextDir}/Jenkinsfile"
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Could not get script path from OpenShift build config: ${e.message}")
+        }
+
+        logger.debug("Could not determine script path, returning null")
+        return null
     }
 
 }

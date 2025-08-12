@@ -42,5 +42,25 @@ class ScanWithSonarOptions extends Options {
      * In order to be able to receive the imageRef for scanning, the `resourceName` needs
      * to be the same as in BuildOpenShiftImageStage. */
     String resourceName
+    /**
+     * Patterns to exclude from SonarQube scan.
+     */
+
+    /**
+     * Pass labels which should be added on the image.
+     * Each label will be prefixed with `ext.`.
+     */
+    Map<String, String> imageLabels
+
+    /**
+     * Patterns to exclude from SonarQube scan.
+     */
+    String exclusions
+
+    /**
+     * Nexus repository to upload the SonarQube report to.
+     * Automaticaly set by sonarqube configMap if present.
+     */
+    String sonarQubeNexusRepository
 
 }
