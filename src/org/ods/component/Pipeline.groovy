@@ -469,6 +469,29 @@ class Pipeline implements Serializable {
         return context.getBuildArtifactURIs()
     }
 
+    /**
+     * Removes all commented code from the given string.
+     * Handles // single-line, /* block , and multi-line comments.
+     */
+    def removeCommentedCode(String content) {
+        if (!content) {
+            return content
+        }
+        // Remove block comments (including multi-line)
+        def noBlockComments = content.replaceAll(/(?s)\/\*.*?\*\//, "")
+        // Remove single-line comments (// ...), but keep code before //
+        def noSingleLineComments = noBlockComments.readLines().collect { line ->
+            def idx = line.indexOf('//')
+            if (idx >= 0) {
+                return line.substring(0, idx)
+            }
+            return line
+        }.join('\n')
+        // Remove lines that are now empty or whitespace only
+        def result = noSingleLineComments.readLines().findAll { it.trim() }.join('\n')
+        return result
+    }
+
     private void setBitbucketBuildStatus(String state) {
         if (!this.bitbucketNotificationEnabled) {
             return
@@ -616,29 +639,6 @@ class Pipeline implements Serializable {
             // This ensures the pipeline doesn't fail due to file reading issues
             return false
         }
-    }
-
-    /**
-     * Removes all commented code from the given string.
-     * Handles // single-line, /* block , and multi-line comments.
-     */
-    def removeCommentedCode(String content) {
-        if (!content) {
-            return content
-        }
-        // Remove block comments (including multi-line)
-        content = content.replaceAll(/(?s)\/\*.*?\*\//, "")
-        // Remove single-line comments (// ...), but keep code before //
-        content = content.readLines().collect { line ->
-            def idx = line.indexOf('//')
-            if (idx >= 0) {
-                return line.substring(0, idx)
-            }
-            return line
-        }.join('\n')
-        // Remove lines that are now empty or whitespace only
-        content = content.readLines().findAll { it.trim() }.join('\n')
-        return content
     }
 
     private String getJenkinsfileScriptPath() {
