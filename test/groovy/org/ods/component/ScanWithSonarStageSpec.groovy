@@ -154,4 +154,69 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
     }
+
+    def "stage uses exclusions from configurationSonarCluster and logs them"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def config = [:]
+        def configurationSonarCluster = [exclusions: "**/test/**"]
+        def stage = new ScanWithSonarStage(
+            Spy(PipelineSteps),
+            new Context(Spy(PipelineSteps), [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], Spy(new Logger(Spy(PipelineSteps), false))),
+            config,
+            Spy(BitbucketService),
+            Spy(SonarQubeService),
+            Spy(NexusService),
+            Spy(new Logger(Spy(PipelineSteps), false)),
+            configurationSonarCluster,
+            [:]
+        )
+
+        when:
+        stage.run()
+
+        then:
+        1 * stage.logger.info("Exclusions for SonarQube scan: **/test/**")
+    }
+
+    def "stage uses nexusRepository from configurationSonarCluster"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def config = [:]
+        def configurationSonarCluster = [nexusRepository: "custom-nexus"]
+        def stage = new ScanWithSonarStage(
+            Spy(PipelineSteps),
+            new Context(Spy(PipelineSteps), [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], Spy(new Logger(Spy(PipelineSteps), false))),
+            config,
+            Spy(BitbucketService),
+            Spy(SonarQubeService),
+            Spy(NexusService),
+            Spy(new Logger(Spy(PipelineSteps), false)),
+            configurationSonarCluster,
+            [:]
+        )
+
+        expect:
+        stage.options.sonarQubeNexusRepository == "custom-nexus"
+    }
 }
