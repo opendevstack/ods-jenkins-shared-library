@@ -15,10 +15,14 @@ class ScanWithSonarStage extends Stage {
     static final String STAGE_NAME = 'SonarQube Analysis'
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "ods.sonarqube"
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
+    static final String SONAR_CONFIG_MAP_NAME = "sonarqube-scan"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
     private final ScanWithSonarOptions options
+    private final Map configurationSonarCluster
+    private final Map configurationSonarProject
+    private final String exclusions
 
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
@@ -28,7 +32,10 @@ class ScanWithSonarStage extends Stage {
         BitbucketService bitbucket,
         SonarQubeService sonarQube,
         NexusService nexus,
-        ILogger logger) {
+        ILogger logger,
+        Map configurationSonarCluster = [:],
+        Map configurationSonarProject = [:]
+    ) {
         super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
@@ -58,11 +65,17 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
-
+        // Handle Nexus repository from config map
+        if (configurationSonarCluster['nexusRepository']) {
+            config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
+        }
         this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
         this.nexus = nexus
+        this.configurationSonarCluster = configurationSonarCluster
+        this.configurationSonarProject = configurationSonarProject
+        this.exclusions = configurationSonarCluster['exclusions'] ?: ""
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -71,6 +84,11 @@ class ScanWithSonarStage extends Stage {
             logger.info "Long-lived branches: ${options.longLivedBranches.join(', ')}"
         } else {
             logger.info 'No long-lived branches configured.'
+        }
+        if (exclusions) {
+            logger.info "Exclusions for SonarQube scan: ${exclusions}"
+        } else {
+            logger.info 'No exclusions configured for SonarQube scan.'
         }
 
         def sonarProperties = sonarQube.readProperties()
@@ -103,6 +121,7 @@ class ScanWithSonarStage extends Stage {
             pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null
         )
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
+        logger.info "SonarQube options.requireQualityGatePass: ${options.requireQualityGatePass}"
         if (options.requireQualityGatePass) {
             if (qualityGateResult == 'ERROR') {
                 steps.error 'Quality gate failed!'
@@ -121,7 +140,7 @@ class ScanWithSonarStage extends Stage {
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
@@ -255,7 +274,7 @@ class ScanWithSonarStage extends Stage {
     }
 
     private createBitbucketCodeInsightReport(
-        String qualityGateResult, String nexusUrlReport,String sonarProjectKey, String edition, String branch) {
+        String qualityGateResult, String nexusUrlReport, String sonarProjectKey, String edition, String branch) {
         String sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"
