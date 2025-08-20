@@ -15,7 +15,7 @@ class ScanWithSonarStage extends Stage {
     static final String STAGE_NAME = 'SonarQube Analysis'
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "ods.sonarqube"
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
-    static final String SONAR_CONFIG_MAP_NAME = "sonar"
+    static final String SONAR_CONFIG_MAP_NAME = "sonarqube-scan"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
