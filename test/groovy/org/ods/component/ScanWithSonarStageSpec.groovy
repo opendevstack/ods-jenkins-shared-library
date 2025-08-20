@@ -24,6 +24,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
     ScanWithSonarStage createStage(tempFolderPath) {
         def script = Spy(PipelineSteps)
         script.env.WORKSPACE = tempFolderPath
+        script.readProperties(_) >> [:] // Add stub for readProperties
         def logger = Spy(new Logger(script, false))
         IContext context = new Context(script,
             [componentId: "component1",
@@ -158,11 +159,14 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
     def "stage uses exclusions from configurationSonarCluster and logs them"() {
         given:
         def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
         def config = [:]
         def configurationSonarCluster = [exclusions: "**/test/**"]
         def stage = new ScanWithSonarStage(
-            Spy(PipelineSteps),
-            new Context(Spy(PipelineSteps), [
+            script,
+            new Context(script, [
                 componentId: "component1",
                 projectId: "prj1",
                 buildUrl: "http://build",
@@ -172,12 +176,12 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 cdProject: "prj1-cd",
                 credentialsId: "cd-user",
                 branchToEnvironmentMapping: ['*': 'dev']
-            ], Spy(new Logger(Spy(PipelineSteps), false))),
+            ], logger),
             config,
-            Spy(BitbucketService),
-            Spy(SonarQubeService),
-            Spy(NexusService),
-            Spy(new Logger(Spy(PipelineSteps), false)),
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
             configurationSonarCluster,
             [:]
         )
@@ -187,16 +191,21 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
         then:
         1 * stage.logger.info("Exclusions for SonarQube scan: **/test/**")
+        thrown(Exception)
     }
 
     def "stage uses nexusRepository from configurationSonarCluster"() {
         given:
         def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.readProperties([file: 'sonar-project.properties']) >> [:]
+        script.readProperties(_) >> [:] // fallback for any other call
+        def logger = Spy(new Logger(script, false))
         def config = [:]
         def configurationSonarCluster = [nexusRepository: "custom-nexus"]
         def stage = new ScanWithSonarStage(
-            Spy(PipelineSteps),
-            new Context(Spy(PipelineSteps), [
+            script,
+            new Context(script, [
                 componentId: "component1",
                 projectId: "prj1",
                 buildUrl: "http://build",
@@ -206,12 +215,12 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 cdProject: "prj1-cd",
                 credentialsId: "cd-user",
                 branchToEnvironmentMapping: ['*': 'dev']
-            ], Spy(new Logger(Spy(PipelineSteps), false))),
+            ], logger),
             config,
-            Spy(BitbucketService),
-            Spy(SonarQubeService),
-            Spy(NexusService),
-            Spy(new Logger(Spy(PipelineSteps), false)),
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
             configurationSonarCluster,
             [:]
         )
