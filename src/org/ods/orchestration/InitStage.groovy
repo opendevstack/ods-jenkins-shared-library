@@ -13,7 +13,6 @@ import org.ods.orchestration.usecase.JiraUseCaseSupport
 import org.ods.orchestration.usecase.JiraUseCaseZephyrSupport
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
-// import org.ods.orchestration.usecase.SonarQubeUseCase
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
@@ -279,13 +278,6 @@ class InitStage extends Stage {
                 registry.get(IPipelineSteps)
             )
         )
-        // registry.add(SonarQubeUseCase,
-        //     new SonarQubeUseCase(
-        //         registry.get(Project),
-        //         registry.get(IPipelineSteps),
-        //         registry.get(NexusService)
-        //     )
-        // )
         addBitBucketToRegistry(steps, logger, registry)
         addLeVADocumentUseCaseToRegistry(registry, logger)
         registry.add(LeVADocumentScheduler,
@@ -387,7 +379,6 @@ class InitStage extends Stage {
                 registry.get(NexusService),
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
-                // registry.get(SonarQubeUseCase),
                 registry.get(BitbucketTraceabilityUseCase),
                 logger
             )
