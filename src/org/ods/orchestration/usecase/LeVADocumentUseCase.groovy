@@ -100,14 +100,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private final JUnitTestReportsUseCase junit
     private final LeVADocumentChaptersFileService levaFiles
     private final OpenShiftService os
-    // private final SonarQubeUseCase sq
     private final BitbucketTraceabilityUseCase bbt
     private final ILogger logger
 
-    // LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
-    //                     JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
-    //                     LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
-    //                     PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt, ILogger logger) {
     LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
                         JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
                         LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
@@ -117,7 +112,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.junit = junit
         this.levaFiles = levaFiles
         this.os = os
-        // this.sq = sq
         this.bbt = bbt
         this.logger = logger
     }
@@ -1136,19 +1130,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             legacy: deploymentMean?.type == 'tailor'
         ]
 
-        // Code review report - in the special case of NO jira ..
-        // def isOdsCodeRepo = repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase()
-
-        // List<byte[]> codeReviewReport = (this.project.isAssembleMode && !this.jiraUseCase.jira && isOdsCodeRepo)
-        //     ? obtainCodeReviewReport([repo])
-        //     : null
-
-        // def modifier = { byte[] document ->
-        //     codeReviewReport
-        //         ? this.pdf.merge(this.steps.env.WORKSPACE as String, [document] + codeReviewReport)
-        //         : document
-        // }
-
         def modifier = { document ->
             return document
         }
@@ -1517,46 +1498,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
     }
-
-    // protected List obtainCodeReviewReport(List<Map> repos) {
-    //     def reports = repos.collect { r ->
-    //         // resurrect?
-    //         Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
-    //         this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
-    //         if (resurrectedDocument.found) {
-    //             return resurrectedDocument.content
-    //         }
-
-    //         def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
-    //         def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
-
-    //         // Unstash SonarQube reports into path
-    //         def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
-    //         if (!hasStashedSonarQubeReports) {
-    //             throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${r.id}' from stash '${sqReportsStashName}'.")
-    //         }
-
-    //         // Load SonarQube report files from path
-    //         def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
-    //         if (sqReportFiles.isEmpty()) {
-    //             throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
-    //         }
-
-    //         def name = this.getDocumentBasename('SCRR-MD', this.project.buildParams.version, this.steps.env.BUILD_ID, r)
-    //         def sqReportFile = sqReportFiles.first()
-
-    //         def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
-
-    //         // store doc - we may need it later for partial deployments
-    //         if (!resurrectedDocument.found) {
-    //             def result = this.storeDocument("${name}.pdf", generatedSCRR, 'application/pdf')
-    //             this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
-    //         }
-    //         return generatedSCRR
-    //     }
-
-    //     return reports
-    // }
 
     /**
      * This computes the information related to the components (modules) that are being developed
