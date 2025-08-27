@@ -32,11 +32,10 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions) {
+    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions, Boolean sonarQubeProjectsPrivate, String privateToken) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
-                "-Dsonar.auth.token=${authToken}",
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
@@ -44,6 +43,11 @@ class SonarQubeService {
             ]
             if (exclusions?.trim()) {
                 scannerParams << "-Dsonar.exclusions=${exclusions}"
+            }
+            if (sonarQubeProjectsPrivate) {
+                scannerParams << "-Dsonar.auth.token=${privateToken}"
+            } else {
+                scannerParams << "-Dsonar.auth.token=${authToken}"  
             }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
@@ -179,4 +183,90 @@ class SonarQubeService {
         }
     }
 
+    /**
+     * Checks if a SonarQube portfolio exists with the name of the projectKey value.
+     * If it exists, adds the SonarQube project to the portfolio.
+     */
+    def addProjectToPortfolioIfExists(String projectKey, String sonarProjectKey) {
+        withSonarServerConfig { hostUrl, authToken ->
+            // Get all portfolios (views)
+            // Authentication is required for this API endpoint.
+            def getPortfoliosUrl = "${hostUrl}/api/views/portfolios"
+            def portfoliosJson = script.sh(
+                label: 'Get SonarQube portfolios',
+                script: "curl -s -u ${authToken}: ${getPortfoliosUrl}",
+                returnStdout: true
+            )
+            def portfolios = script.readJSON(text: portfoliosJson)
+            def portfolio = portfolios?.views?.find { it.name == "${projectKey}" }
+            if (portfolio) {
+                // Add project to portfolio
+                // Requires 'Administrator' permission on the portfolio and 'Browse' permission for adding project.
+                def addProjectUrl = "${hostUrl}/api/views/add_project"
+                def curlCmd = "curl -s -u ${authToken}: --data \"key=${projectKey}&project=${sonarProjectKey}\" ${addProjectUrl}"
+                script.sh(
+                    label: "Add project ${sonarProjectKey} to portfolio ${projectKey}",
+                    script: curlCmd
+                )
+                logger.info("Project ${sonarProjectKey} added to portfolio ${projectKey}.")
+                return true
+            } else {
+                logger.info("Portfolio ${projectKey} does not exist. No action taken.")
+                return false
+            }
+        }
+    }
+
+    /**
+     * Generates and stores a SonarQube token in OpenShift secret, or retrieves it if it already exists.
+     * Returns the token string, or empty string if not available.
+     */
+    def generateAndStoreSonarQubeToken(String credentialsId, String ocNamespace) {
+        withSonarServerConfig { hostUrl, authToken ->
+            def ocSecretName = "sonarqube-token"
+            def getTokenCmd = "oc get secret ${ocSecretName} -n ${ocNamespace} -o jsonpath='{.data.sonarqube-token}' || true"
+            def encodedToken = script.sh(
+                label: "Fetch SonarQube token from OpenShift secret ${ocSecretName}",
+                script: getTokenCmd,
+                returnStdout: true
+            )?.trim()
+            if (encodedToken) {
+                def decodeCmd = "echo ${encodedToken} | base64 --decode"
+                def token = script.sh(
+                    label: "Decode SonarQube token",
+                    script: decodeCmd,
+                    returnStdout: true
+                )?.trim()
+                logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
+                return token
+            }
+            // If not found, create and store the token
+            script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
+                // Generate SonarQube token via API
+                def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
+                def tokenName = "jenkins-${ocNamespace}"
+                def curlCmd = "curl -s -u ${username}:${password} --data \"name=${tokenName}\" ${createTokenUrl}"
+                def response = script.sh(
+                    label: "Generate SonarQube token for user ${username}",
+                    script: curlCmd,
+                    returnStdout: true
+                )
+                def json = script.readJSON(text: response)
+                def token = json?.token
+                if (!token) {
+                    logger.info("Failed to generate SonarQube token for user ${username}.")
+                    return ""
+                }
+                // Store token in OpenShift secret
+                def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-literal=sonarqube-token=${token}"
+                script.sh(
+                    label: "Store SonarQube token in OpenShift secret ${ocSecretName}",
+                    script: ocCmd
+                )
+                logger.info("SonarQube token stored in OpenShift secret ${ocSecretName}.")
+                return token
+            }
+        }
+    }
 }
+
