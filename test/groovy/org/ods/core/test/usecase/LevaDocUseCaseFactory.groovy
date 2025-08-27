@@ -100,7 +100,6 @@ class LevaDocUseCaseFactory {
                 nexusService,
                 os,
                 new PDFUtil(),
-                new SonarQubeUseCase(project, steps, nexusService),
                 bbt,
                 new LoggerStub(log)
             )
