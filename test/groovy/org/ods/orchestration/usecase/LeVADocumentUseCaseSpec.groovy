@@ -1229,7 +1229,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         // Jira enabled
-        2 * jiraUseCase.jira >> Mock(JiraService)
+        1 * jiraUseCase.jira >> Mock(JiraService)
         1 * usecase.getDocumentSectionsFileOptional(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
@@ -1261,7 +1261,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         // No Jira enabled
-        2 * jiraUseCase.jira >> null
+        1 * jiraUseCase.jira >> null
         1 * project.getDocumentChaptersForDocument(documentType) >> []
         1 * usecase.getDocumentSectionsFileOptional(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
