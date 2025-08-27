@@ -32,6 +32,7 @@ class LevaDocUseCaseFactory {
     private WiremockManager jiraServer
     private WiremockManager docGenServer
     private WiremockManager nexusServer
+    private WiremockManager sonarQuServer
     private EnvironmentVariables env
     private TemporaryFolder tempFolder
     private JenkinsService jenkins
@@ -43,6 +44,7 @@ class LevaDocUseCaseFactory {
     LevaDocUseCaseFactory(WiremockManager jiraServer,
                           WiremockManager docGenServer,
                           WiremockManager nexusServer,
+                          WiremockManager sonarQuServer,
                           EnvironmentVariables env,
                           TemporaryFolder tempFolder,
                           JenkinsService jenkins,
@@ -52,6 +54,7 @@ class LevaDocUseCaseFactory {
         this.docGenServer = docGenServer
         this.jiraServer = jiraServer
         this.nexusServer = nexusServer
+        this.sonarQuServer = sonarQuServer
         this.gitService = gitService
 
         this.os = os
@@ -97,6 +100,7 @@ class LevaDocUseCaseFactory {
                 nexusService,
                 os,
                 new PDFUtil(),
+                new SonarQubeUseCase(project, steps, nexusService),
                 bbt,
                 new LoggerStub(log)
             )
