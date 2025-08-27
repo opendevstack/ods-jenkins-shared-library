@@ -1832,7 +1832,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
             when:
             LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-                null, null, null, null, null, null, null,
+                null, null, null, null, null, null,
                 null, null, null, null)
             def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
 
@@ -1850,7 +1850,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 1L
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def versions = useCase.getReferencedDocumentsVersion()
@@ -1891,7 +1891,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         steps.env.BUILD_NUMBER = '56'
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -1907,7 +1907,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -1924,7 +1924,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -1942,7 +1942,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -1961,7 +1961,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -1980,7 +1980,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
@@ -2050,7 +2050,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "dash to unicode conversion"() {
         given:
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null, null, null, null, null)
+            null, null, null, null, null, null, null, null, null, null)
 
         expect:
         leVADocumentUseCase.replaceDashToNonBreakableUnicode(value) == result
@@ -2068,7 +2068,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         given:
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
             null, null, null, null, null, null, null, null,
-            null, null, null)
+            null, null)
 
         when:
         def result = leVADocumentUseCase.getTestDescription(testIssue)
