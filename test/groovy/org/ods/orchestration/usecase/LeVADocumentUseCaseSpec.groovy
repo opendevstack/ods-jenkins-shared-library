@@ -68,7 +68,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     NexusService nexus
     OpenShiftService os
     PDFUtil pdf
-    SonarQubeUseCase sq
     LeVADocumentUseCase usecase
     ILogger logger
     DocumentHistory docHistory
@@ -91,7 +90,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         nexus = Mock(NexusService)
         os = Mock(OpenShiftService)
         pdf = Mock(PDFUtil)
-        sq = Mock(SonarQubeUseCase)
         logger =  new org.ods.core.test.LoggerStub(log)
         ServiceRegistry.instance.add(Logger, logger)
         bbt = Mock(BitbucketTraceabilityUseCase)
@@ -109,7 +107,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         }
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
-        jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         steps.getEnv() >> ['RELEASE_PARAM_VERSION': 'WIP', 'BUILD_NUMBER': '10', 'BUILD_URL': 'http://jenkins-project-cd/job/10', 'JOB_NAME': 'project-cd/project-cd-releasemanager-master']
         stepsNoWip.getEnv() >> ['RELEASE_PARAM_VERSION': 'CHG00001']
     }
@@ -1238,7 +1235,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
-        0 * usecase.obtainCodeReviewReport(_) >> []
         1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText) >> {
             assert it[2]."deploymentMean"
             assert it[2]."legacy" == legacy
@@ -1272,7 +1268,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
-        1 * usecase.obtainCodeReviewReport(_) >> []
         1 * usecase.createDocument(documentType, repo, _, [:], _, documentTemplate, watermarkText) >> {
             assert it[2]."deploymentMean"
             assert it[2]."legacy" == legacy
@@ -1817,7 +1812,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         2 * usecase.convertImages(_)
         1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
-        usecase.obtainCodeReviewReport(*_) >> []
         project.getTechnicalSpecifications() >> techSpecs
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
