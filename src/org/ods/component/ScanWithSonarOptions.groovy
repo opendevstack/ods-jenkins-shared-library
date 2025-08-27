@@ -53,11 +53,6 @@ class ScanWithSonarOptions extends Options {
     Map<String, String> imageLabels
 
     /**
-     * Patterns to exclude from SonarQube scan.
-     */
-    String exclusions
-
-    /**
      * Nexus repository to upload the SonarQube report to.
      * Automaticaly set by sonarqube configMap if present.
      */

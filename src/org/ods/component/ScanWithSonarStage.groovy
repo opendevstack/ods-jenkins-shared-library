@@ -23,6 +23,8 @@ class ScanWithSonarStage extends Stage {
     private final Map configurationSonarCluster
     private final Map configurationSonarProject
     private final String exclusions
+    private final String sonarQubeAccount
+    private final Boolean sonarQubeProjectsPrivate
 
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
@@ -69,6 +71,7 @@ class ScanWithSonarStage extends Stage {
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
         }
+
         this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
@@ -76,6 +79,8 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
+        this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: ""
+        this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate'] ?: false
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -100,10 +105,12 @@ class ScanWithSonarStage extends Stage {
 
         def pullRequestInfo = assemblePullRequestInfo()
 
+        def privateToken = sonarQube.generateAndStoreSonarQubeToken("${context.cdProject}-${sonarQubeAccount}","${context.cdProject}")
         logger.startClocked("${sonarProjectKey}-sq-scan")
-        scan(sonarProperties, pullRequestInfo)
+        scan(sonarProperties, pullRequestInfo, privateToken)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
         retryComputeEngineStatusCheck()
+        addProjectToPortfolioIfExists("${context.projectId}", "${sonarProjectKey}")
 
         generateAndArchiveReports(
             sonarProjectKey,
@@ -138,9 +145,9 @@ class ScanWithSonarStage extends Stage {
             context.sonarQubeEdition, context.gitBranch)
     }
 
-    private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo) {
+    private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions, sonarQubeProjectsPrivate, privateToken)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
