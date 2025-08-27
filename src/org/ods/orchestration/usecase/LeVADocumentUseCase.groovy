@@ -13,7 +13,6 @@ import org.ods.orchestration.util.Environment
 import org.ods.orchestration.util.LeVADocumentUtil
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.SortUtil
 import org.ods.services.GitService
