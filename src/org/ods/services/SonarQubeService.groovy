@@ -224,7 +224,7 @@ class SonarQubeService {
     def generateAndStoreSonarQubeToken(String credentialsId, String ocNamespace) {
         withSonarServerConfig { hostUrl, authToken ->
             def ocSecretName = "sonarqube-token"
-            def getTokenCmd = "oc get secret ${ocSecretName} -n ${ocNamespace} -o jsonpath='{.data.sonarqube-token}' || true"
+            def getTokenCmd = "oc get secret ${ocSecretName} -n ${ocNamespace} -o jsonpath='{.data.sonarqube-token}' 2>/dev/null"
             def encodedToken = script.sh(
                 label: "Fetch SonarQube token from OpenShift secret ${ocSecretName}",
                 script: getTokenCmd,
