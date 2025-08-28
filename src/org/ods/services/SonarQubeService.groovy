@@ -275,7 +275,3 @@ class SonarQubeService {
         }
     }
 }
-        }
-    }
-}
-
