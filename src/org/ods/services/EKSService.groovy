@@ -38,6 +38,7 @@ class EKSService {
             executeCommand('aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile default')
             executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
             executeCommand("aws configure set region ${awsEnvironmentVars.region} --profile default")
+            executeCommand("aws eks list-clusters")
             executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name gaia-newdev")
 //            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name gaia-newdev" + "${context.getProjectId()}-${context.getEnvironment()}")
         }
