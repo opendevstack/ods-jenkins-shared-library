@@ -246,15 +246,13 @@ class SonarQubeService {
                 logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
                 return token
             }
-                def username = ""
-                def password = ""
             script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
                 def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
                 def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
-                def curlCmd = "curl -s -o ${tokenName}.json -w '%{http_code}' -u ${username}:${password} --data \"name=${tokenName}\" ${createTokenUrl}"
+                def curlCmd = "curl -s -o ${tokenName}.json -w '%{http_code}' -u ${script.env.username}:${script.env.password} --data \"name=${tokenName}\" ${createTokenUrl}"
 
                 def httpCode = script.sh(
-                    label: "Generate SonarQube token for user ${username}",
+                    label: "Generate SonarQube token for user ${script.env.username}",
                     script: curlCmd,
                     returnStdout: true
                 )?.trim()
@@ -268,10 +266,10 @@ class SonarQubeService {
                 
                 script.sh(script: "rm -f ${tokenName}.json", label: "Clean up response file")
                 if (httpCode == "401") {
-                    logger.info("Authentication failed when generating SonarQube token. HTTP 401 - Check credentials for user ${username}")
+                    logger.info("Authentication failed when generating SonarQube token. HTTP 401 - Check credentials for user ${script.env.username}")
                     return ""
                 } else if (httpCode == "403") {
-                    logger.info("Access denied when generating SonarQube token. HTTP 403 - User ${username} lacks permission to generate tokens")
+                    logger.info("Access denied when generating SonarQube token. HTTP 403 - User ${script.env.username} lacks permission to generate tokens")
                     return ""
                 } else if (httpCode != "200") {
                     logger.info("SonarQube API call failed with HTTP ${httpCode}.")
