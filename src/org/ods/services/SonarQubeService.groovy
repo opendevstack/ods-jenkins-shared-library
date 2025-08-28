@@ -32,7 +32,7 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions, Boolean sonarQubeProjectsPrivate, String privateToken) {
+    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions, String privateToken) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
@@ -44,7 +44,7 @@ class SonarQubeService {
             if (exclusions?.trim()) {
                 scannerParams << "-Dsonar.exclusions=${exclusions}"
             }
-            if (sonarQubeProjectsPrivate) {
+            if (privateToken) {
                 scannerParams << "-Dsonar.auth.token=${privateToken}"
             } else {
                 scannerParams << "-Dsonar.auth.token=${authToken}"  

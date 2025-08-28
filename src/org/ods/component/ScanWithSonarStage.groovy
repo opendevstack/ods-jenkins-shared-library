@@ -79,7 +79,7 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
-        this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: ""
+        this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: "cd-user-with-password"
         this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate'] ?: false
     }
 
@@ -105,7 +105,10 @@ class ScanWithSonarStage extends Stage {
 
         def pullRequestInfo = assemblePullRequestInfo()
 
-        def privateToken = sonarQube.generateAndStoreSonarQubeToken("${context.cdProject}-${sonarQubeAccount}","${context.cdProject}")
+        def privateToken = ""
+        if (sonarQubeProjectsPrivate) {
+            privateToken = sonarQube.generateAndStoreSonarQubeToken("${context.cdProject}-${sonarQubeAccount}","${context.cdProject}")
+        }
         logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties, pullRequestInfo, privateToken)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
@@ -147,7 +150,7 @@ class ScanWithSonarStage extends Stage {
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions, sonarQubeProjectsPrivate, privateToken)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions, privateToken)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
