@@ -225,11 +225,17 @@ class SonarQubeService {
         withSonarServerConfig { hostUrl, authToken ->
             def ocSecretName = "sonarqube-token"
             def getTokenCmd = "oc get secret ${ocSecretName} -n ${ocNamespace} -o jsonpath='{.data.sonarqube-token}' 2>/dev/null"
-            def encodedToken = script.sh(
-                label: "Fetch SonarQube token from OpenShift secret ${ocSecretName}",
-                script: getTokenCmd,
-                returnStdout: true
-            )?.trim()
+            def encodedToken = ""
+            try {
+                encodedToken = script.sh(
+                    script: getTokenCmd,
+                    returnStdout: true,
+                    label: "Fetch SonarQube token from OpenShift secret ${ocSecretName}"
+                )?.trim()
+            } catch (Exception e) {
+                logger.info("OpenShift secret ${ocSecretName} not found in namespace ${ocNamespace}.")
+                encodedToken = ""
+            }
             if (encodedToken) {
                 def decodeCmd = "echo ${encodedToken} | base64 --decode"
                 def token = script.sh(
@@ -266,6 +272,9 @@ class SonarQubeService {
                 logger.info("SonarQube token stored in OpenShift secret ${ocSecretName}.")
                 return token
             }
+        }
+    }
+}
         }
     }
 }
