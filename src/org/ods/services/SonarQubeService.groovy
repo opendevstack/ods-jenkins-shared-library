@@ -247,10 +247,12 @@ class SonarQubeService {
                 return token
             }
             // If not found, create and store the token
+                def username = ""
+                def password = ""
             script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
                 // Generate SonarQube token via API
                 def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
-                def tokenName = "jenkins-${ocNamespace}"
+                def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
                 def curlCmd = "curl -s -u ${username}:${password} --data \"name=${tokenName}\" ${createTokenUrl}"
                 def response = script.sh(
                     label: "Generate SonarQube token for user ${username}",
