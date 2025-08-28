@@ -30,6 +30,7 @@ class ImageRepositoryEKS implements IImageRepository {
     }
 
     public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
+        steps.echo "retagImages ${images.size()} images."
         images.each { image ->
             findOrCreateRepository(targetProject, image)
             copyImage(image, context, sourceTag, targetTag)
