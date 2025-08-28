@@ -246,33 +246,62 @@ class SonarQubeService {
                 logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
                 return token
             }
-            // If not found, create and store the token
                 def username = ""
                 def password = ""
             script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
-                // Generate SonarQube token via API
                 def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
                 def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
-                def curlCmd = "curl -s -u ${username}:${password} --data \"name=${tokenName}\" ${createTokenUrl}"
-                def response = script.sh(
+                def curlCmd = "curl -s -o ${tokenName}.json -w '%{http_code}' -u ${username}:${password} --data \"name=${tokenName}\" ${createTokenUrl}"
+
+                def httpCode = script.sh(
                     label: "Generate SonarQube token for user ${username}",
                     script: curlCmd,
                     returnStdout: true
-                )
-                def json = script.readJSON(text: response)
-                def token = json?.token
-                if (!token) {
-                    logger.info("Failed to generate SonarQube token for user ${username}.")
+                )?.trim()
+                
+                def jsonResponse = ""
+                try {
+                    jsonResponse = script.readFile("${tokenName}.json")?.trim()
+                } catch (Exception e) {
+                    logger.info("Failed to read response file: ${e.message}")
+                }
+                
+                script.sh(script: "rm -f ${tokenName}.json", label: "Clean up response file")
+                if (httpCode == "401") {
+                    logger.info("Authentication failed when generating SonarQube token. HTTP 401 - Check credentials for user ${username}")
+                    return ""
+                } else if (httpCode == "403") {
+                    logger.info("Access denied when generating SonarQube token. HTTP 403 - User ${username} lacks permission to generate tokens")
+                    return ""
+                } else if (httpCode != "200") {
+                    logger.info("SonarQube API call failed with HTTP ${httpCode}.")
                     return ""
                 }
-                // Store token in OpenShift secret
-                def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-literal=sonarqube-token=${token}"
-                script.sh(
-                    label: "Store SonarQube token in OpenShift secret ${ocSecretName}",
-                    script: ocCmd
-                )
-                logger.info("SonarQube token stored in OpenShift secret ${ocSecretName}.")
-                return token
+                
+                if (!jsonResponse) {
+                    logger.info("Empty response from SonarQube API despite HTTP 200 status")
+                    return ""
+                }
+                
+                try {
+                    def json = script.readJSON(text: jsonResponse)
+                    def token = json?.token
+                    if (!token) {
+                        logger.info("No token found in SonarQube API response")
+                        return ""
+                    }
+                    // Store token in OpenShift secret
+                    def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-literal=sonarqube-token=${token}"
+                    script.sh(
+                        label: "Store SonarQube token in OpenShift secret ${ocSecretName}",
+                        script: ocCmd
+                    )
+                    logger.info("SonarQube token generated and stored in OpenShift secret ${ocSecretName}.")
+                    return token
+                } catch (Exception e) {
+                    logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
+                    return ""
+                }
             }
         }
     }
