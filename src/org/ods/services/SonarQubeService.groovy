@@ -69,10 +69,6 @@ class SonarQubeService {
                 script: "source use-j17.sh"
             )
             script.sh(
-                label: 'test credential ofuscation in Service',
-                script: "echo ${privateToken}"
-            )
-            script.sh(
                 label: 'Run SonarQube scan',
                 script: "${getScannerBinary()} ${scannerParams.join(' ')}"
             )
@@ -233,6 +229,14 @@ class SonarQubeService {
      */
     def generateAndStoreSonarQubeToken(String credentialsId, String ocNamespace, String ocSecretName) {
         def hostUrl = getSonarQubeHostUrl()
+        def secretExists = script.sh(
+            script: "oc -n ${ocNamespace} get secret ${ocSecretName} --ignore-not-found",
+            returnStatus: true
+        )
+        if (secretExists == 0) {
+            logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
+            return ""
+        }
         script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
             def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
             def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
