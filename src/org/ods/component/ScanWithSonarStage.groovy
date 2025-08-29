@@ -108,12 +108,12 @@ class ScanWithSonarStage extends Stage {
 
         if (sonarQubeProjectsPrivate) {
             sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
-            steps.withCredentials([string(credentialsId: jenkinsSonarCred, variable: 'privateToken')]) {
+            steps.withCredentials([steps.string(credentialsId: jenkinsSonarCred, variable: 'privateToken')]) {
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
                     sonarProperties,
                     pullRequestInfo,
-                    privateToken
+                    "${steps.env.privateToken}"
                 )
             }
         } else {
