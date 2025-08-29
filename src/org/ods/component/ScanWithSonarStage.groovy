@@ -79,7 +79,7 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
         this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: "cd-user-with-password"
-        this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate'] ?: false
+        this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate']?.toString()?.toLowerCase() == 'true' ?: false
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -105,7 +105,7 @@ class ScanWithSonarStage extends Stage {
         def ocSecretName = "sonarqube-private-token"
         def jenkinsCredID = "${context.cdProject}-${sonarQubeAccount}"
         def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
-        
+
         logger.info "Sonarqube private projects value is: ${sonarQubeProjectsPrivate}"
         if (sonarQubeProjectsPrivate) {
             sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
