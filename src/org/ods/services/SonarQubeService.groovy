@@ -286,7 +286,7 @@ class SonarQubeService {
                 logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
                 return ""
             }
-        }
+            
         }
     }
 }
