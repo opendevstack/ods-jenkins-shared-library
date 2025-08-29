@@ -232,7 +232,8 @@ class SonarQubeService {
         script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
             def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
             def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
-            def curlCmd = "curl -s -o ${tokenName}.json -w '%{http_code}' -u ${script.env.username}:${script.env.password} --data \"name=${tokenName}\" ${createTokenUrl}"
+            def tokenFile = "${tokenName}.json"
+            def curlCmd = "curl -s -o ${tokenFile} -w '%{http_code}' -u ${script.env.username}:${script.env.password} --data \"name=${tokenName}\" ${createTokenUrl}"
 
             def httpCode = script.sh(
                 label: "Generate SonarQube token for user ${script.env.username}",
@@ -242,12 +243,11 @@ class SonarQubeService {
             
             def jsonResponse = ""
             try {
-                jsonResponse = script.readFile("${tokenName}.json")?.trim()
+                jsonResponse = script.readFile("${tokenFile}")?.trim()
             } catch (Exception e) {
                 logger.info("Failed to read response file: ${e.message}")
             }
             
-            script.sh(script: "rm -f ${tokenName}.json", label: "Clean up response file")
             if (httpCode == "401") {
                 logger.info("Authentication failed when generating SonarQube token. HTTP 401 - Check credentials for user ${script.env.username}")
                 return ""
@@ -271,16 +271,20 @@ class SonarQubeService {
                     logger.info("No token found in SonarQube API response")
                     return ""
                 }
-                def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-literal=sonarqube-token=${token}"
+                // Overwrite the token file so it contains only the token string
+                script.writeFile(file: tokenFile, text: token)
+                def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-file=sonarqube-token=${tokenFile}"
                 def labelCmd = "oc -n ${ocNamespace} label secret ${ocSecretName} credential.sync.jenkins.openshift.io=true"
                 script.sh(
                     label: "Store SonarQube token in OpenShift secret ${ocSecretName}",
-                    script: ocCmd
+                    script: ocCmd,
+                    returnStdout: false
                 )
                 script.sh(
                     label: "Add jenkins sync label to OpenShift secret ${ocSecretName}",
                     script: labelCmd
                 )
+                script.sh(script: "rm -f ${tokenFile}", label: "Clean up token file")
                 logger.info("SonarQube token generated and stored in OpenShift secret ${ocSecretName} with jenkins sync label.")
             } catch (Exception e) {
                 logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
