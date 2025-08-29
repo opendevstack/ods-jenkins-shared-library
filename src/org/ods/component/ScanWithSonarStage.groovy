@@ -67,7 +67,6 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
-        // Handle Nexus repository from config map
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
         }
@@ -97,30 +96,54 @@ class ScanWithSonarStage extends Stage {
         }
 
         def sonarProperties = sonarQube.readProperties()
-
         def sonarProjectKey = "${context.projectId}-${context.componentId}".toString()
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
         sonarProperties['sonar.branch.name'] = context.gitBranch
 
         def pullRequestInfo = assemblePullRequestInfo()
+        def ocSecretName = "sonarqube-token"
+        def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
 
-        def privateToken = ""
         if (sonarQubeProjectsPrivate) {
-            privateToken = sonarQube.generateAndStoreSonarQubeToken("${context.cdProject}-${sonarQubeAccount}","${context.cdProject}")
+            sonarQube.generateAndStoreSonarQubeToken("${sonarQubeAccount}","${context.cdProject}", "${ocSecretName}")
+            withCredentials([string(credentialsId: jenkinsSonarCred, variable: 'privateToken')]) {
+                runSonarQubeScanAndReport(
+                    sonarProjectKey,
+                    sonarProperties,
+                    pullRequestInfo,
+                    privateToken
+                )
+            }
+        } else {
+            runSonarQubeScanAndReport(
+                sonarProjectKey,
+                sonarProperties,
+                pullRequestInfo,
+                ""
+            )
         }
+    }
+
+    private void runSonarQubeScanAndReport(
+        String sonarProjectKey,
+        Map sonarProperties,
+        Map pullRequestInfo,
+        String privateToken
+    ) {
         logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties, pullRequestInfo, privateToken)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
-        retryComputeEngineStatusCheck()
-        sonarQube.addProjectToPortfolioIfExists("${context.projectId}", "${sonarProjectKey}")
+        retryComputeEngineStatusCheck(privateToken)
+        sonarQube.addProjectToPortfolioIfExists("${context.projectId}", "${sonarProjectKey}", privateToken)
 
         generateAndArchiveReports(
             sonarProjectKey,
             context.buildTag,
             sonarProperties['sonar.branch.name'].toString(),
             context.sonarQubeEdition,
-            !context.triggeredByOrchestrationPipeline
+            !context.triggeredByOrchestrationPipeline,
+            privateToken
         )
 
         // We need always the QG to put in insight report in Bitbucket
@@ -128,8 +151,10 @@ class ScanWithSonarStage extends Stage {
             sonarProjectKey,
             context.sonarQubeEdition,
             context.gitBranch,
-            pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null
+            pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null,
+            privateToken
         )
+
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         logger.info "SonarQube options.requireQualityGatePass: ${options.requireQualityGatePass}"
         if (options.requireQualityGatePass) {
@@ -196,10 +221,11 @@ class ScanWithSonarStage extends Stage {
         String author,
         String sonarBranch,
         String sonarQubeEdition,
-        boolean archive) {
+        boolean archive,
+        String privateToken) {
         def targetReport = "SCRR-${projectKey}.docx"
         def targetReportMd = "SCRR-${projectKey}.md"
-        sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition)
+        sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition, privateToken)
         steps.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts'
@@ -237,12 +263,16 @@ class ScanWithSonarStage extends Stage {
         String sonarProjectKey,
         String sonarQubeEdition,
         String gitBranch,
-        String bitbucketPullRequestKey) {
+        String bitbucketPullRequestKey,
+        String privateToken
+    ) {
         def qualityGateJSON = sonarQube.getQualityGateJSON(
             sonarProjectKey,
             sonarQubeEdition,
             gitBranch,
-            bitbucketPullRequestKey)
+            bitbucketPullRequestKey,
+            privateToken
+        )
         try {
             def qualityGateResult = steps.readJSON(text: qualityGateJSON)
             def status = qualityGateResult?.projectStatus?.status ?: 'UNKNOWN'
@@ -254,15 +284,14 @@ class ScanWithSonarStage extends Stage {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String retryComputeEngineStatusCheck() {
+    private String retryComputeEngineStatusCheck(String token) {
         def waitTime = 5 // seconds
         def retries = 5
         def taskProperties = sonarQube.readTask()
-
         for (def i = 0; i < retries; i++) {
             def computeEngineTaskResult
             try {
-                computeEngineTaskResult = sonarQube.getComputeEngineTaskResult(taskProperties['ceTaskId'])
+                computeEngineTaskResult = sonarQube.getComputeEngineTaskResult(taskProperties['ceTaskId'], token)
             } catch (Exception ex) {
                 script.error 'Compute engine status could not be retrieved. ' +
                 "Status was: '${computeEngineTaskResult}'. Error was: ${ex}"
