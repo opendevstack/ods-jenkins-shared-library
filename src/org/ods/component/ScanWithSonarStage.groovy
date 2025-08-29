@@ -78,7 +78,7 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
-        this.jenkinsCredID = configurationSonarCluster['jenkinsCredID'] ?: "cd-user-with-password"
+        this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: "cd-user-with-password"
         this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate'] ?: false
     }
 
@@ -103,7 +103,7 @@ class ScanWithSonarStage extends Stage {
 
         def pullRequestInfo = assemblePullRequestInfo()
         def ocSecretName = "sonarqube-private-token"
-        def jenkinsCredID = "${context.cdProject}-${jenkinsCredID}"
+        def jenkinsCredID = "${context.cdProject}-${sonarQubeAccount}"
         def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
 
         if (sonarQubeProjectsPrivate) {
@@ -117,6 +117,7 @@ class ScanWithSonarStage extends Stage {
             //         steps.env.privateToken
             //     )
             // }
+            logger.info("Jenkins credential ID for SonarQube private token: ${jenkinsSonarCred}")
             steps.withCredentials([steps.usernamePassword(credentialsId: jenkinsSonarCred, passwordVariable: 'privateToken')]) {
                 logger.info("SonarQube private projects enabled, using private token.")
                 runSonarQubeScanAndReport(
