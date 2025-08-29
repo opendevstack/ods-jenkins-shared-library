@@ -109,6 +109,10 @@ class ScanWithSonarStage extends Stage {
         if (sonarQubeProjectsPrivate) {
             sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
             steps.withCredentials([steps.string(credentialsId: jenkinsSonarCred, variable: 'privateToken')]) {
+                script.sh(
+                    label: 'test credential ofuscation in stage',
+                    script: "echo ${steps.env.privateToken}"
+                )
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
                     sonarProperties,

@@ -69,6 +69,10 @@ class SonarQubeService {
                 script: "source use-j17.sh"
             )
             script.sh(
+                label: 'test credential ofuscation in Service',
+                script: "echo ${privateToken}"
+            )
+            script.sh(
                 label: 'Run SonarQube scan',
                 script: "${getScannerBinary()} ${scannerParams.join(' ')}"
             )
