@@ -39,8 +39,8 @@ class EKSService {
             executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
             executeCommand("aws configure set region ${awsEnvironmentVars.region} --profile default")
             executeCommand("aws eks list-clusters")
-            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name gaia-newdev")
-//            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name gaia-newdev" + "${context.getProjectId()}-${context.getEnvironment()}")
+            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name ${awsEnvironmentVars.eksCluster}")
+            executeCommand("kubectl create namespace ${context.getProjectId()}-${context.getEnvironment()}", false)
         }
     }
 
@@ -55,29 +55,17 @@ class EKSService {
         return "${awsEnvironmentVars.account}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
     }
 
-    protected boolean existRepository(String repositoryName) {
-        try {
-            steps.sh(
-                script: "aws ecr describe-repositories --repository-names ${repositoryName} --region ${awsEnvironmentVars.region}",
-                returnStatus: true
-            )
-            return true
-        } catch (Exception e) {
-            return false
-        }
-    }
-
     protected void createRepository(String repositoryName) {
-        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${awsEnvironmentVars.region}")
+        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${awsEnvironmentVars.region}", false)
     }
 
-    private void executeCommand(String command) {
-        return steps.sh(
+    private void executeCommand(String command, boolean showError = true) {
+        def status = steps.sh(
             script: command,
             returnStatus: true,
             label: "Executing command: ${command}"
         ) as int
-        if (status != 0) {
+        if (status != 0 && showError) {
             script.error("Error executing ${command}, status ${status}")
         } 
     }

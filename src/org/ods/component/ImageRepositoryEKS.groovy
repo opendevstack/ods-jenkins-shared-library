@@ -32,18 +32,10 @@ class ImageRepositoryEKS implements IImageRepository {
     public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
         steps.echo "retagImages ${images.size()} images."
         images.each { image ->
-            findOrCreateRepository(targetProject, image)
+            eks.createRepository(image)
             copyImage(image, context, sourceTag, targetTag)
         }
     }
-
-    private findOrCreateRepository(String targetProject, String image) {
-        if (!eks.existRepository(image)) {
-            eks.createRepository(image)
-        } else {
-            steps.echo "Repository ${image} already exists in ${targetProject}."
-        }
-    }   
 
    private int copyImage(image, context, sourceTag, targetTag) {
         String ocCredentials="jenkins:$ocToken"
