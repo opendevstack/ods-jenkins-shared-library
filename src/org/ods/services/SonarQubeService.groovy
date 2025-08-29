@@ -231,11 +231,11 @@ class SonarQubeService {
      */
     def generateAndStoreSonarQubeToken(String credentialsId, String ocNamespace, String ocSecretName) {
         def hostUrl = getSonarQubeHostUrl()
-        def secretExists = script.sh(
+        def secretOutput = script.sh(
             script: "oc -n ${ocNamespace} get secret ${ocSecretName} --ignore-not-found",
-            returnStatus: true
-        )
-        if (secretExists == 0) {
+            returnStdout: true
+        )?.trim()
+        if (secretOutput) {
             logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
             return ""
         }
