@@ -283,19 +283,33 @@ class SonarQubeService {
                 }
                 // Overwrite the token file so it contains only the token string
                 script.writeFile(file: tokenFile, text: token)
-                def ocCmd = "oc -n ${ocNamespace} create secret generic ${ocSecretName} --from-file=sonarqube-token=${tokenFile}"
-                def labelCmd = "oc -n ${ocNamespace} label secret ${ocSecretName} credential.sync.jenkins.openshift.io=true"
+                // Prepare basic auth secret YAML
+                def secretYaml = """
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${ocSecretName}
+  namespace: ${ocNamespace}
+type: kubernetes.io/basic-auth
+stringData:
+  username: ${script.env.username}
+  password: ${token}
+"""
+                def yamlFile = "${tokenName}-secret.yaml"
+                script.writeFile(file: yamlFile, text: secretYaml)
+                def ocApplyCmd = "oc apply -f ${yamlFile}"
                 script.sh(
-                    label: "Store SonarQube token in OpenShift secret ${ocSecretName}",
-                    script: ocCmd,
+                    label: "Store SonarQube token as basic-auth secret in OpenShift",
+                    script: ocApplyCmd,
                     returnStdout: false
                 )
+                def labelCmd = "oc -n ${ocNamespace} label secret ${ocSecretName} credential.sync.jenkins.openshift.io=true --overwrite"
                 script.sh(
                     label: "Add jenkins sync label to OpenShift secret ${ocSecretName}",
                     script: labelCmd
                 )
-                script.sh(script: "rm -f ${tokenFile}", label: "Clean up token file")
-                logger.info("SonarQube token generated and stored in OpenShift secret ${ocSecretName} with jenkins sync label.")
+                script.sh(script: "rm -f ${tokenFile} ${yamlFile}", label: "Clean up token and yaml files")
+                logger.info("SonarQube token generated and stored in OpenShift basic-auth secret ${ocSecretName} with jenkins sync label.")
             } catch (Exception e) {
                 logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
                 return ""
