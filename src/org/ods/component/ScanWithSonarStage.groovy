@@ -105,10 +105,10 @@ class ScanWithSonarStage extends Stage {
         def ocSecretName = "sonarqube-private-token"
         def jenkinsCredID = "${context.cdProject}-${sonarQubeAccount}"
         def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
-
+        
+        logger.info "Sonarqube private projects value is: ${sonarQubeProjectsPrivate}"
         if (sonarQubeProjectsPrivate) {
             sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
-            logger.info("Jenkins credential ID for SonarQube private token: ${jenkinsSonarCred}")
             steps.withCredentials([steps.usernamePassword(credentialsId: jenkinsSonarCred, usernameVariable: 'sonarQubeUser', passwordVariable: 'privateToken')]) {
                 logger.info("SonarQube private projects enabled, using private token.")
                 runSonarQubeScanAndReport(
