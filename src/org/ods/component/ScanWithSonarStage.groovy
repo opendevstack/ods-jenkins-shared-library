@@ -117,7 +117,7 @@ class ScanWithSonarStage extends Stage {
                     sonarProjectKey,
                     sonarProperties,
                     pullRequestInfo,
-                    "$privateToken"
+                    privateToken
                 )
             }
         } else {
