@@ -102,7 +102,7 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.branch.name'] = context.gitBranch
 
         def pullRequestInfo = assemblePullRequestInfo()
-        def ocSecretName = "sonarqube-token"
+        def ocSecretName = "sonarqube-private-token"
         def jenkinsCredID = "${context.cdProject}-${jenkinsCredID}"
         def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
 
