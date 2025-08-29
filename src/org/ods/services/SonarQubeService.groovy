@@ -45,9 +45,11 @@ class SonarQubeService {
                 scannerParams << "-Dsonar.exclusions=${exclusions}"
             }
             if (privateToken) {
+                logger.info("Using private token for SonarQube scan: ${privateToken}")
                 scannerParams << "-Dsonar.auth.token=${privateToken}"
             } else {
-                scannerParams << "-Dsonar.auth.token=${authToken}"  
+                logger.info("Using public token for SonarQube scan: ${authToken}")
+                scannerParams << "-Dsonar.auth.token=${authToken}"
             }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
