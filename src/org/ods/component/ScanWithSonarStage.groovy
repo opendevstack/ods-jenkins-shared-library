@@ -23,7 +23,7 @@ class ScanWithSonarStage extends Stage {
     private final Map configurationSonarCluster
     private final Map configurationSonarProject
     private final String exclusions
-    private final String jenkinsCredID
+    private final String sonarQubeAccount
     private final Boolean sonarQubeProjectsPrivate
 
     @TypeChecked(TypeCheckingMode.SKIP)
