@@ -48,7 +48,7 @@ class SonarQubeService {
                 logger.info("Using private token for SonarQube scan: ${privateToken}")
                 scannerParams << "-Dsonar.auth.token=${privateToken}"
             } else {
-                logger.info("Using public token for SonarQube scan: ${authToken}")
+                logger.info("Using public token for SonarQube scan: ${authToken}, private token is: ${privateToken}")
                 scannerParams << "-Dsonar.auth.token=${authToken}"
             }
             if (!properties.containsKey('sonar.projectVersion')) {
