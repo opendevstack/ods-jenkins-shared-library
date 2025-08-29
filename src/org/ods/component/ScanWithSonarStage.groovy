@@ -23,7 +23,7 @@ class ScanWithSonarStage extends Stage {
     private final Map configurationSonarCluster
     private final Map configurationSonarProject
     private final String exclusions
-    private final String sonarQubeAccount
+    private final String jenkinsCredID
     private final Boolean sonarQubeProjectsPrivate
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -78,7 +78,7 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarCluster = configurationSonarCluster
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
-        this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: "cd-user-with-password"
+        this.jenkinsCredID = configurationSonarCluster['jenkinsCredID'] ?: "cd-user-with-password"
         this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate'] ?: false
     }
 
@@ -103,10 +103,11 @@ class ScanWithSonarStage extends Stage {
 
         def pullRequestInfo = assemblePullRequestInfo()
         def ocSecretName = "sonarqube-token"
+        def jenkinsCredID = "${context.cdProject}-${jenkinsCredID}"
         def jenkinsSonarCred = "${context.cdProject}-${ocSecretName}"
 
         if (sonarQubeProjectsPrivate) {
-            sonarQube.generateAndStoreSonarQubeToken("${sonarQubeAccount}","${context.cdProject}", "${ocSecretName}")
+            sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
             withCredentials([string(credentialsId: jenkinsSonarCred, variable: 'privateToken')]) {
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
