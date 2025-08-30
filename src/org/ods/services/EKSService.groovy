@@ -66,7 +66,7 @@ class EKSService {
             label: "Executing command: ${command}"
         ) as int
         if (status != 0 && showError) {
-            script.error("Error executing ${command}, status ${status}")
+            steps.error("Error executing ${command}, status ${status}")
         } 
     }
     
