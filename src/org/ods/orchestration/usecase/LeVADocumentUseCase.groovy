@@ -638,6 +638,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!requirements) {
             requirements = risk.getResolvedSystemRequirements()
         }
+        if (requirements?.isEmpty()) {
+            throw new RuntimeException('There might be Risk Assessments that are not attached to either a TST or a Story. Please, review your working issues')
+        }
         return requirements.get(0)
     }
 

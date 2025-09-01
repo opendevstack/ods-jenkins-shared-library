@@ -2166,4 +2166,21 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         true            |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
         false           |  [:]
     }
+
+    def "getRequirement should throw exception if requirements are empty"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
+        def risk = Mock(Project.JiraDataItem)
+        risk.getResolvedTechnicalSpecifications() >> []
+        risk.getResolvedSystemRequirements() >> []
+
+        when:
+        usecase.metaClass.getMetaMethod("getRequirement", Project.JiraDataItem).invoke(usecase, risk)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'There might be Risk Assessments that are not attached to either a TST or a Story. Please, review your working issues'
+    }
+
 }
