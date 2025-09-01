@@ -2167,7 +2167,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         false           |  [:]
     }
 
-    def "getRequirement should throw exception if requirements are empty"() {
+    def "getRequirement can return empty requirement"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
@@ -2176,11 +2176,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         risk.getResolvedSystemRequirements() >> []
 
         when:
-        usecase.metaClass.getMetaMethod("getRequirement", Project.JiraDataItem).invoke(usecase, risk)
+        def result = usecase.metaClass.getMetaMethod("getRequirement", Project.JiraDataItem).invoke(usecase, risk)
 
         then:
-        def e = thrown(RuntimeException)
-        e.message == "The Risk Assessment '${risk.key}' is neither attached to a Story nor to a Technical Specification Task, which is where it is expected. Please review."
+        null == result
     }
 
 }
