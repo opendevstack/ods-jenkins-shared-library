@@ -639,7 +639,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             requirements = risk.getResolvedSystemRequirements()
         }
         if (requirements?.isEmpty()) {
-            throw new RuntimeException('There might be Risk Assessments that are not attached to either a TST or a Story. Please, review your working issues')
+            throw new RuntimeException("Risk Assessment '${risk.key}' is not attached to either a TST or a Story. Please, review it")
         }
         return requirements.get(0)
     }

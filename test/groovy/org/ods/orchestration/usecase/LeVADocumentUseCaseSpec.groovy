@@ -2180,7 +2180,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == 'There might be Risk Assessments that are not attached to either a TST or a Story. Please, review your working issues'
+        e.message == "Risk Assessment '${risk.key}' is not attached to either a TST or a Story. Please, review it"
     }
 
 }
