@@ -1923,7 +1923,7 @@ class Project {
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
-            def newDataExpanded = expandPredecessorInformation (oldData, newData, discontinuations)
+            def newDataExpanded = expandPredecessorInformation (oldData, newData)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
 
             // Update data from previous version
@@ -2099,7 +2099,7 @@ class Project {
      * @return Map new data with the issue predecessors expanded
      */
     @NonCPS
-    private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
+    private static Map expandPredecessorInformation(Map savedData, Map newData) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
             if (!predecessorIssue) {
