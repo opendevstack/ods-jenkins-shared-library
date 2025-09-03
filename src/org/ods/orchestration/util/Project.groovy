@@ -2126,11 +2126,7 @@ class Project {
                         def expandedPredecessors = predecessors.collect { predecessor ->
                             expandPredecessor(issueType, issueKey, predecessor)
                         }.flatten()
-                        // Get old links from predecessor (just one allowed)
-                        def predecessorIssue = savedData.get(issueType).get(predecessors.first())
-                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue, discontinuations)
-
-                        [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
+                        [(issueKey): (issue + [expandedPredecessors: expandedPredecessors])]
                     }
                 }
                 [(issueType): updatedIssues]
