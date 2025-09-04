@@ -200,7 +200,7 @@ class SonarQubeService {
             def getPortfoliosUrl = "${hostUrl}/api/views/portfolios"
             def portfoliosJson = script.sh(
                 label: 'Get SonarQube portfolios',
-                script: "curl -s -u ${tokenToUse}: ${getPortfoliosUrl}",
+                script: "curl -s -u ${tokenToUse}: ${getPortfoliosUrl} --data \"portfolio=${projectKey}",
                 returnStdout: true
             )
             def portfolios = script.readJSON(text: portfoliosJson)
