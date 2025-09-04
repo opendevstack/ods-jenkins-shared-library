@@ -602,7 +602,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!risksWithNullRequirement.isEmpty()) {
             throw new RuntimeException("The following Risk Assessments ${risksWithNullRequirement.join(', ')} " +
-                " are not linked to either a Story or a Technical Specification Task, as expected. Please review them.")
+                " are either not attached to a Story or Technical Specification Task, which is where they are expected, or were not properly discontinued")
         }
 
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
