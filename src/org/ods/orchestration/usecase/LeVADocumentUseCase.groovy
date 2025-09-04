@@ -597,6 +597,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
             }
 
+        // Check null requirement
+        def risksWithNullRequirement = risks.findAll { it.requirement == null }.collect { it.key }
+
+        if (!risksWithNullRequirement.isEmpty()) {
+            throw new RuntimeException("The following Risk Assessments ${risksWithNullRequirement.join(', ')} " +
+                " are either not attached to a Story or Technical Specification Task, which is where they are expected, or were not properly discontinued")
+        }
+
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
             (r.getResolvedTests().collect {
                 if (!it) throw new IllegalArgumentException("Error: test for requirement ${r.key} could not be obtained. Check if all of ${r.tests.join(", ")} exist in JIRA")
@@ -638,7 +646,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!requirements) {
             requirements = risk.getResolvedSystemRequirements()
         }
-        return requirements.get(0)
+        if (requirements) {
+            requirements.get(0)
+        }
     }
 
     private void fillRASections(def sections, def risks, def proposedMeasuresDesription) {
