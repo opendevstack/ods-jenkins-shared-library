@@ -204,7 +204,9 @@ class SonarQubeService {
                 returnStdout: true
             )
             def portfolios = script.readJSON(text: portfoliosJson)
+            logger.info("Portfolios JSON: ${portfolios}")
             def portfolio = portfolios?.portfolios?.find { it.name == "${projectKey}" }
+            logger.info("Looking for portfolio with name ${projectKey}: ${portfolio}")
             if (portfolio) {
                 // Add project to portfolio
                 // Requires 'Administrator' permission on the portfolio and 'Browse' permission for adding project.
