@@ -11,6 +11,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Ignore links from predecessor issues since all links are now duplicated ([#1231](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1231))
 
 ## [4.9.1] - 2025-8-11
 ### Fixed
