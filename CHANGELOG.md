@@ -6,6 +6,7 @@
 
 
 ### Changed
+* Descriptive error message when a Risk is orphan ([#1230](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1230))
 
 
 ### Fixed

@@ -2166,4 +2166,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         true            |  [usesPoo:"true", lowDescription:"low", mediumDescription:"medium", highDescription:"high"]
         false           |  [:]
     }
+
+    def "getRequirement can return empty requirement"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
+        def risk = Mock(Project.JiraDataItem)
+        risk.getResolvedTechnicalSpecifications() >> []
+        risk.getResolvedSystemRequirements() >> []
+
+        when:
+        def result = usecase.metaClass.getMetaMethod("getRequirement", Project.JiraDataItem).invoke(usecase, risk)
+
+        then:
+        null == result
+    }
+
 }
