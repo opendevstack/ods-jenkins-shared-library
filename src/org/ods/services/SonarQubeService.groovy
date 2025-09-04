@@ -197,10 +197,10 @@ class SonarQubeService {
             def tokenToUse = (privateToken) ? privateToken : authToken
             // Get all portfolios (views)
             // Authentication is required for this API endpoint.
-            def getPortfoliosUrl = "${hostUrl}/api/views/portfolios"
+            def getPortfoliosUrl = "${hostUrl}/api/views/portfolios?portfolio=${projectKey}"
             def portfoliosJson = script.sh(
                 label: 'Get SonarQube portfolios',
-                script: "curl -s -u ${tokenToUse}: ${getPortfoliosUrl} --data \"portfolio=${projectKey}\"",
+                script: "curl -s -u ${tokenToUse}: \"${getPortfoliosUrl}\"",
                 returnStdout: true
             )
             def portfolios = script.readJSON(text: portfoliosJson)
