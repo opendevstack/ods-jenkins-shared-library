@@ -189,43 +189,6 @@ class SonarQubeService {
     }
 
     /**
-     * Checks if a SonarQube portfolio exists with the name of the projectKey value.
-     * If it exists, adds the SonarQube project to the portfolio.
-     */
-    def addProjectToPortfolioIfExists(String projectKey, String sonarProjectKey, String privateToken) {
-        withSonarServerConfig { hostUrl, authToken ->
-            def tokenToUse = (privateToken) ? privateToken : authToken
-            // Get all portfolios (views)
-            // Authentication is required for this API endpoint.
-            def getPortfoliosUrl = "${hostUrl}/api/views/portfolios?portfolio=${projectKey}"
-            def portfoliosJson = script.sh(
-                label: 'Get SonarQube portfolios',
-                script: "curl -s -u ${tokenToUse}: \"${getPortfoliosUrl}\"",
-                returnStdout: true
-            )
-            def portfolios = script.readJSON(text: portfoliosJson)
-            logger.info("Portfolios JSON: ${portfolios}")
-            def portfolio = portfolios?.portfolios?.find { it.name == "${projectKey}" }
-            logger.info("Looking for portfolio with name ${projectKey}: ${portfolio}")
-            if (portfolio) {
-                // Add project to portfolio
-                // Requires 'Administrator' permission on the portfolio and 'Browse' permission for adding project.
-                def addProjectUrl = "${hostUrl}/api/views/add_project"
-                def curlCmd = "curl -s -u ${tokenToUse}: --data \"key=${projectKey}&project=${sonarProjectKey}\" ${addProjectUrl}"
-                script.sh(
-                    label: "Add project ${sonarProjectKey} to portfolio ${projectKey}",
-                    script: curlCmd
-                )
-                logger.info("Project ${sonarProjectKey} added to portfolio ${projectKey}.")
-                return true
-            } else {
-                logger.info("Portfolio ${projectKey} does not exist. No action taken.")
-                return false
-            }
-        }
-    }
-
-    /**
      * Generates and stores a SonarQube token in OpenShift secret, or retrieves it if it already exists.
      * Returns the token string, or empty string if not available.
      */

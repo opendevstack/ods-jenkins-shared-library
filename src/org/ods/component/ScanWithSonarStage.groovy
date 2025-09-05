@@ -139,7 +139,6 @@ class ScanWithSonarStage extends Stage {
         scan(sonarProperties, pullRequestInfo, privateToken)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
         retryComputeEngineStatusCheck(privateToken)
-        sonarQube.addProjectToPortfolioIfExists("${context.projectId}", "${sonarProjectKey}", privateToken)
 
         generateAndArchiveReports(
             sonarProjectKey,
