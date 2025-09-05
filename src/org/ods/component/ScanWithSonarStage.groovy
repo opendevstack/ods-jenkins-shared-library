@@ -79,7 +79,8 @@ class ScanWithSonarStage extends Stage {
         this.configurationSonarProject = configurationSonarProject
         this.exclusions = configurationSonarCluster['exclusions'] ?: ""
         this.sonarQubeAccount = configurationSonarCluster['sonarQubeAccount'] ?: "cd-user-with-password"
-        this.sonarQubeProjectsPrivate = configurationSonarCluster['sonarQubeProjectsPrivate']?.toString()?.toLowerCase() == 'true' ?: false
+        def privateProjectsValue = configurationSonarCluster['sonarQubeProjectsPrivate']
+        this.sonarQubeProjectsPrivate = privateProjectsValue?.toString()?.toLowerCase() == 'true' ?: false
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -108,14 +109,20 @@ class ScanWithSonarStage extends Stage {
 
         logger.info "Sonarqube private projects value is: ${sonarQubeProjectsPrivate}"
         if (sonarQubeProjectsPrivate) {
-            sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}","${context.cdProject}", "${ocSecretName}")
-            steps.withCredentials([steps.usernamePassword(credentialsId: jenkinsSonarCred, usernameVariable: 'sonarQubeUser', passwordVariable: 'privateToken')]) {
+            sonarQube.generateAndStoreSonarQubeToken("${jenkinsCredID}", "${context.cdProject}", "${ocSecretName}")
+            steps.withCredentials([
+                steps.usernamePassword(
+                    credentialsId: jenkinsSonarCred,
+                    usernameVariable: 'sonarQubeUser',
+                    passwordVariable: 'privateToken'
+                )
+            ]) {
                 logger.info("SonarQube private projects enabled, using private token.")
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
                     sonarProperties,
                     pullRequestInfo,
-                    steps.env.privateToken
+                    steps.env.privateToken as String
                 )
             }
         } else {
@@ -178,7 +185,14 @@ class ScanWithSonarStage extends Stage {
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, exclusions, privateToken)
+            sonarQube.scan(
+                sonarProperties,
+                context.gitCommit,
+                prInfo,
+                context.sonarQubeEdition,
+                exclusions,
+                privateToken
+            )
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->

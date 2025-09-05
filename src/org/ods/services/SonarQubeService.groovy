@@ -32,7 +32,14 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition, String exclusions, String privateToken) {
+    def scan(
+        Map properties,
+        String gitCommit,
+        Map pullRequestInfo = [:],
+        String sonarQubeEdition,
+        String exclusions,
+        String privateToken
+    ) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
@@ -75,10 +82,16 @@ class SonarQubeService {
         }
     }
 
-    def generateCNESReport(String projectKey, String author, String sonarBranch, String sonarQubeEdition, String privateToken) {
+    def generateCNESReport(
+        String projectKey,
+        String author,
+        String sonarBranch,
+        String sonarQubeEdition,
+        String privateToken
+    ) {
         withSonarServerConfig { hostUrl, authToken ->
             def branchParam = sonarQubeEdition == 'community' ? '' : "-b ${sonarBranch}"
-            def tokenToUse = (privateToken) ? privateToken : authToken
+            def tokenToUse = privateToken ?: authToken
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
@@ -109,7 +122,7 @@ class SonarQubeService {
             } else if (sonarQubeEdition != 'community') {
                 urlEncodingFlags += " --data-urlencode branch=${gitBranch}"
             }
-            def tokenToUse = (privateToken) ? privateToken : authToken
+            def tokenToUse = privateToken ?: authToken
             script.sh(
                 label: 'Get status of quality gate',
                 script: "curl -s -u ${tokenToUse}: --get --url ${getStatusUrl} ${urlEncodingFlags}",
@@ -145,7 +158,7 @@ class SonarQubeService {
     */
     def getComputeEngineTaskJSON(String taskid, String privateToken) {
         withSonarServerConfig { hostUrl, authToken ->
-            def tokenToUse = (privateToken) ? privateToken : authToken
+            def tokenToUse = privateToken ?: authToken
             script.sh(
                 label: 'Get status of compute engine task',
                 script: "curl -s -u ${tokenToUse}: ${hostUrl}/api/ce/task?id=${taskid}",
@@ -202,41 +215,52 @@ class SonarQubeService {
             logger.info("OpenShift secret ${ocSecretName} already exists in namespace ${ocNamespace}.")
             return ""
         }
-        script.withCredentials([script.usernamePassword(credentialsId: credentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
+        script.withCredentials([
+            script.usernamePassword(
+            credentialsId: credentialsId,
+            usernameVariable: 'username',
+            passwordVariable: 'password'
+            )
+        ]) {
             def createTokenUrl = "${hostUrl}/api/user_tokens/generate"
             def tokenName = "jenkins-${ocNamespace}-${new Date().format('yyyyMMddHHmmss')}"
             def tokenFile = "${tokenName}.json"
-            def curlCmd = "curl -s -o ${tokenFile} -w '%{http_code}' -u ${script.env.username}:${script.env.password} --data \"name=${tokenName}\" ${createTokenUrl}"
-
+            def curlCmd = (
+                "curl -s -o ${tokenFile} -w '%{http_code}' " +
+                "-u ${script.env.username}:${script.env.password} " +
+                "--data \"name=${tokenName}\" ${createTokenUrl}"
+            )
             def httpCode = script.sh(
                 label: "Generate SonarQube token for user ${script.env.username}",
                 script: curlCmd,
                 returnStdout: true
             )?.trim()
-            
             def jsonResponse = ""
             try {
                 jsonResponse = script.readFile("${tokenFile}")?.trim()
             } catch (Exception e) {
                 logger.info("Failed to read response file: ${e.message}")
             }
-            
             if (httpCode == "401") {
-                logger.info("Authentication failed when generating SonarQube token. HTTP 401 - Check credentials for user ${script.env.username}")
+                logger.info(
+                    "Authentication failed when generating SonarQube token. " +
+                    "HTTP 401 - Check credentials for user ${script.env.username}"
+                )
                 return ""
             } else if (httpCode == "403") {
-                logger.info("Access denied when generating SonarQube token. HTTP 403 - User ${script.env.username} lacks permission to generate tokens")
+                logger.info(
+                    "Access denied when generating SonarQube token. " +
+                    "HTTP 403 - User ${script.env.username} lacks permission to generate tokens"
+                )
                 return ""
             } else if (httpCode != "200") {
                 logger.info("SonarQube API call failed with HTTP ${httpCode}.")
                 return ""
             }
-            
             if (!jsonResponse) {
                 logger.info("Empty response from SonarQube API despite HTTP 200 status")
                 return ""
             }
-            
             try {
                 def json = script.readJSON(text: jsonResponse)
                 def token = json?.token
@@ -266,18 +290,24 @@ stringData:
                     script: ocApplyCmd,
                     returnStdout: false
                 )
-                def labelCmd = "oc -n ${ocNamespace} label secret ${ocSecretName} credential.sync.jenkins.openshift.io=true --overwrite"
+                def labelCmd = (
+                    "oc -n ${ocNamespace} label secret ${ocSecretName} " +
+                    "credential.sync.jenkins.openshift.io=true --overwrite"
+                )
                 script.sh(
                     label: "Add jenkins sync label to OpenShift secret ${ocSecretName}",
                     script: labelCmd
                 )
                 script.sh(script: "rm -f ${tokenFile} ${yamlFile}", label: "Clean up token and yaml files")
-                logger.info("SonarQube token generated and stored in OpenShift basic-auth secret ${ocSecretName} with jenkins sync label.")
+                logger.info(
+                    "SonarQube token generated and stored in OpenShift basic-auth secret " +
+                    "${ocSecretName} with jenkins sync label."
+                )
             } catch (Exception e) {
                 logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
                 return ""
             }
-            
         }
     }
+
 }
