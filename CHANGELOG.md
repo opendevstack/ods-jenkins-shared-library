@@ -10,6 +10,15 @@
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
+
+## [4.9.2] - 2025-09-08
+### Fixed
+* Ignore links from predecessor issues since all links are now duplicated ([#1231](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1231))
+
+### Changed
+* Descriptive error message when a Risk is orphan ([#1230](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1230))
+
+
 ## [4.9.1] - 2025-8-11
 ### Fixed
 * Fix credentials id retrieval ([#1228](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1228))
