@@ -98,16 +98,20 @@ def "run successfully"() {
     script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
-    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->""}
     helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, ['branch': '*', 'analyzePullRequests': 'true'])
 
     then:
     printCallStack()
-    1 * sonarQubeService.scan(
-      ['sonar.projectKey': 'foo-bar', 'sonar.projectName': 'foo-bar', 'sonar.branch.name': 'feature/foo'],
-      'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      [
+    1 * sonarQubeService.scan({
+      it.properties == [
+        'sonar.projectKey': 'foo-bar',
+        'sonar.projectName': 'foo-bar',
+        'sonar.branch.name': 'feature/foo'
+      ] &&
+      it.gitCommit == 'cd3e9082d7466942e1de86902bb9e663751dae8e' &&
+      it.pullRequestInfo == [
         bitbucketUrl: 'https://bitbucket.example.com',
         bitbucketToken: 's3cr3t',
         bitbucketProject: 'foo',
@@ -115,10 +119,10 @@ def "run successfully"() {
         bitbucketPullRequestKey: 1,
         branch: 'feature/foo',
         baseBranch: 'master'
-      ],
-      "developer",
-      ""
-    )
+      ] &&
+      it.sonarQubeEdition == 'developer' &&
+      it.exclusions == ''
+    })
     assertJobStatusSuccess()
   }
 
