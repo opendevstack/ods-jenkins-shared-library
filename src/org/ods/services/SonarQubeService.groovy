@@ -190,27 +190,6 @@ class SonarQubeService {
         }
     }
 
-    private String getScannerBinary() {
-        def scannerBinary = 'sonar-scanner'
-        def status = script.sh(
-            returnStatus: true,
-            script: "which ${scannerBinary}",
-            label: 'Find sq scanner binary'
-        )
-        if (status != 0) {
-            def scannerHome = script.tool('SonarScanner')
-            scannerBinary = "${scannerHome}/bin/sonar-scanner"
-        }
-        scannerBinary
-    }
-
-    private withSonarServerConfig(Closure block) {
-        // SonarServerConfig is set in the Jenkins master via init.groovy.d/sonarqube.groovy.
-        script.withSonarQubeEnv(sonarQubeEnv) {
-            block(script.SONAR_HOST_URL, script.SONAR_AUTH_TOKEN)
-        }
-    }
-
     /**
      * Generates and stores a SonarQube token in OpenShift secret, or retrieves it if it already exists.
      * Returns the token string, or empty string if not available.
@@ -317,6 +296,27 @@ stringData:
                 logger.info("Failed to parse SonarQube API response as JSON. Error: ${e.message}")
                 return ""
             }
+        }
+    }
+
+    private String getScannerBinary() {
+        def scannerBinary = 'sonar-scanner'
+        def status = script.sh(
+            returnStatus: true,
+            script: "which ${scannerBinary}",
+            label: 'Find sq scanner binary'
+        )
+        if (status != 0) {
+            def scannerHome = script.tool('SonarScanner')
+            scannerBinary = "${scannerHome}/bin/sonar-scanner"
+        }
+        scannerBinary
+    }
+
+    private withSonarServerConfig(Closure block) {
+        // SonarServerConfig is set in the Jenkins master via init.groovy.d/sonarqube.groovy.
+        script.withSonarQubeEnv(sonarQubeEnv) {
+            block(script.SONAR_HOST_URL, script.SONAR_AUTH_TOKEN)
         }
     }
 
