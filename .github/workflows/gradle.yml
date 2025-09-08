@@ -29,6 +29,9 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-gradle-
 
+            - name: Clean build directory
+              run: rm -rf build
+
             - name: Build with Gradle
               run: ./gradlew -Djava.io.tmpdir=${{ runner.temp }} clean build
               env:
