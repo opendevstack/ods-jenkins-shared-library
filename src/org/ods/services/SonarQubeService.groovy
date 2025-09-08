@@ -32,14 +32,24 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
-    def scan(
-        Map properties,
-        String gitCommit,
-        Map pullRequestInfo = [:],
-        String sonarQubeEdition,
-        String exclusions,
-        String privateToken
-    ) {
+    /**
+     * Runs a SonarQube scan.
+     * @param options Map containing:
+     *   - properties: Map
+     *   - gitCommit: String
+     *   - pullRequestInfo: Map (optional)
+     *   - sonarQubeEdition: String
+     *   - exclusions: String
+     *   - privateToken: String
+     */
+    def scan(Map options) {
+        Map properties = options.properties
+        String gitCommit = options.gitCommit
+        Map pullRequestInfo = options.pullRequestInfo ?: [:]
+        String sonarQubeEdition = options.sonarQubeEdition
+        String exclusions = options.exclusions
+        String privateToken = options.privateToken
+
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",

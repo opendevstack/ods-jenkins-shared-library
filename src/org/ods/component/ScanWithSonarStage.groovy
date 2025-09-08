@@ -185,14 +185,14 @@ class ScanWithSonarStage extends Stage {
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
-            sonarQube.scan(
-                sonarProperties,
-                context.gitCommit,
-                prInfo,
-                context.sonarQubeEdition,
-                exclusions,
-                privateToken
-            )
+            sonarQube.scan([
+                properties: sonarProperties,
+                gitCommit: context.gitCommit,
+                pullRequestInfo: prInfo,
+                sonarQubeEdition: context.sonarQubeEdition,
+                exclusions: exclusions,
+                privateToken: privateToken
+            ])
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
