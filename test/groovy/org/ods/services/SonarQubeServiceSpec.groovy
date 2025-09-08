@@ -57,7 +57,7 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         service.getComputeEngineTaskJSON(_) >> '{"task":{"status":"successful"}}'
 
         expect:
-        service.getComputeEngineTaskResult("id") == "SUCCESSFUL"
+        service.getComputeEngineTaskResult("id", "") == "SUCCESSFUL"
     }
 
     def "getSonarQubeHostUrl returns host url"() {
@@ -86,12 +86,17 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         def logger = Mock(org.ods.util.ILogger)
         logger.debugMode >> false
         def service = new SonarQubeService(steps, logger, "env")
-        def properties = ['sonar.projectKey': 'key', 'sonar.projectName': 'name']
-        def gitCommit = "abcdef123456"
-        def exclusions = "test/**"
+        def options = [
+            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name'],
+            gitCommit: "abcdef123456",
+            pullRequestInfo: [:],
+            sonarQubeEdition: "community",
+            exclusions: "test/**",
+            privateToken: ""
+        ]
 
         when:
-        service.scan(properties, gitCommit, [:], "community", exclusions)
+        service.scan(options)
 
         then:
         1 * steps.sh(label: 'Set Java 17 for SonarQube scan', script: "source use-j17.sh")
