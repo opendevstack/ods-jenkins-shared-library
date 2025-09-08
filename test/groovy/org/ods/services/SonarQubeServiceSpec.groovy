@@ -70,13 +70,13 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         service.getSonarQubeHostUrl() == "https://sonarqube.example.com"
     }
 
-    def "scan calls script.sh with correct params"() {
+    def "scan calls script.sh with correct params and uses correct token"() {
         given:
         def steps = GroovyMock(util.PipelineSteps)
         steps.tool('SonarScanner') >> '/opt/sonar-scanner'
-        steps.withSonarQubeEnv(_, _) >> { String env, Closure block ->
-            block()
-        }
+        steps.withSonarQubeEnv(_, _) >> { String env, Closure block -> block() }
+        steps.getSONAR_HOST_URL() >> 'https://sonarqube.example.com'
+        steps.getSONAR_AUTH_TOKEN() >> 'public-token'
         steps.sh(_) >> { Map args ->
             if (args.returnStatus) {
                 return 1 // which command fails, so tool() method is used
@@ -86,7 +86,15 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         def logger = Mock(org.ods.util.ILogger)
         logger.debugMode >> false
         def service = new SonarQubeService(steps, logger, "env")
-        def options = [
+        def optionsWithPrivateToken = [
+            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name'],
+            gitCommit: "abcdef123456",
+            pullRequestInfo: [:],
+            sonarQubeEdition: "community",
+            exclusions: "test/**",
+            privateToken: "my-private-token"
+        ]
+        def optionsWithoutPrivateToken = [
             properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name'],
             gitCommit: "abcdef123456",
             pullRequestInfo: [:],
@@ -96,39 +104,48 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        service.scan(options)
+        service.scan(optionsWithPrivateToken)
+        service.scan(optionsWithoutPrivateToken)
 
         then:
-        1 * steps.sh(label: 'Set Java 17 for SonarQube scan', script: "source use-j17.sh")
-        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") })
+        2 * steps.sh(label: 'Set Java 17 for SonarQube scan', script: "source use-j17.sh")
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") })
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
     }
 
-    def "generateCNESReport calls script.sh with correct params"() {
+    def "generateCNESReport calls script.sh with correct params and uses correct token"() {
         given:
         def steps = GroovyMock(util.PipelineSteps)
         steps.withSonarQubeEnv(_, _) >> { String env, Closure block -> block() }
+        steps.getSONAR_HOST_URL() >> 'https://sonarqube.example.com'
+        steps.getSONAR_AUTH_TOKEN() >> 'public-token'
         steps.sh(_) >> null
         def logger = Mock(org.ods.util.ILogger)
         logger.shellScriptDebugFlag >> "set -x"
         def service = new SonarQubeService(steps, logger, "env")
 
         when:
-        service.generateCNESReport("projectKey", "author", "branch", "developer", "token")
+        service.generateCNESReport("projectKey", "author", "branch", "developer", "my-private-token")
+        service.generateCNESReport("projectKey", "author", "branch", "developer", "")
 
         then:
-        1 * steps.sh(label: 'Generate CNES Report', script: { it.contains("java -jar /usr/local/cnes/cnesreport.jar") && it.contains("-s") && it.contains("-t token") && it.contains("-p projectKey") && it.contains("-a author") && it.contains("-b branch") })
+        1 * steps.sh(label: 'Generate CNES Report', script: { it.contains("java -jar /usr/local/cnes/cnesreport.jar") && it.contains("-s") && it.contains("-t my-private-token") && it.contains("-p projectKey") && it.contains("-a author") && it.contains("-b branch") })
+        1 * steps.sh(label: 'Generate CNES Report', script: { it.contains("java -jar /usr/local/cnes/cnesreport.jar") && it.contains("-s") && it.contains("-t public-token") && it.contains("-p projectKey") && it.contains("-a author") && it.contains("-b branch") })
     }
 
-    def "getQualityGateJSON calls script.sh with correct params"() {
+    def "getQualityGateJSON calls script.sh with correct params and uses correct token"() {
         given:
         def steps = GroovyMock(util.PipelineSteps)
         steps.withSonarQubeEnv(_, _) >> { String env, Closure block -> block() }
+        steps.getSONAR_HOST_URL() >> 'https://sonarqube.example.com'
+        steps.getSONAR_AUTH_TOKEN() >> 'public-token'
         steps.sh(_ as Map) >> "{}"
         def logger = Mock(org.ods.util.ILogger)
         def service = new SonarQubeService(steps, logger, "env")
 
         when:
-        service.getQualityGateJSON("projectKey", "developer", "branch", "prKey", "token")
+        service.getQualityGateJSON("projectKey", "developer", "branch", "prKey", "my-private-token")
+        service.getQualityGateJSON("projectKey", "developer", "branch", "prKey", "")
 
         then:
         1 * steps.sh({ args ->
@@ -136,7 +153,15 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
             args.script.contains("curl") &&
             args.script.contains("--data-urlencode projectKey=projectKey") &&
             args.script.contains("--data-urlencode pullRequest=prKey") &&
-            args.script.contains("-u token:") &&
+            args.script.contains("-u my-private-token:") &&
+            args.returnStdout == true
+        })
+        1 * steps.sh({ args ->
+            args.label == 'Get status of quality gate' &&
+            args.script.contains("curl") &&
+            args.script.contains("--data-urlencode projectKey=projectKey") &&
+            args.script.contains("--data-urlencode pullRequest=prKey") &&
+            args.script.contains("-u public-token:") &&
             args.returnStdout == true
         })
     }
