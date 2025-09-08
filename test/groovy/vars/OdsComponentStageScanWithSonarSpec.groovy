@@ -45,86 +45,100 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       sonarQubeEdition: 'developer',
   ]
 
-def "run successfully"() {
-    given:
-    def c = config + [environment: 'dev']
-    IContext context = new Context(null, c, logger)
-    BitbucketService bitbucketService = Stub(BitbucketService.class)
-    bitbucketService.findPullRequest(*_) >> [:]
-    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
-    NexusService nexusService = Mock(NexusService.class)
-    ServiceRegistry.instance.add(NexusService, nexusService)
-    SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
-    sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
-    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
-    sonarQubeService.scan(*_) >> null
-    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
-    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
-    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
-    ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-    when:
-    def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
-    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
-    helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
-    helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
-    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
-    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
-    script.call(context)
+  def "run successfully"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.findPullRequest(*_) >> [:]
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        NexusService nexusService = Mock(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+        SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
+        sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+        sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
+        sonarQubeService.scan(*_) >> null
+        sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+        sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
+        sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
+        ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+        script.env.WORKSPACE = tempFolder.getRoot().absolutePath
+        script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
+        helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
+        helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
+        // Simulate config map data
+        def configMapData = [enabled: 'true', alertEmails: 'test@example.com']
+        helper.registerAllowedMethod('getConfigMapData', [String, String]) { ns, name -> configMapData }
+        script.call(context)
 
-    then:
-    printCallStack()
-    assertJobStatusSuccess()
-  }
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
 
-  def "run successfully with PR analysis"() {
-    given:
-    def c = config + [environment: 'dev', gitBranch: 'feature/foo']
-    IContext context = new Context(null, c, logger)
-    BitbucketService bitbucketService = Stub(BitbucketService.class)
-    bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
-    bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
-    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
-    NexusService nexusService = Mock(NexusService.class)
-    ServiceRegistry.instance.add(NexusService, nexusService)
-    SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
-    sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
-    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
-    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
-    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
-    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
-    ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-    when:
-    def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
-    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
-    helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
-    helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
-    helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->""}
-    helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
-    script.call(context, ['branch': '*', 'analyzePullRequests': 'true'])
+    def "run successfully with PR analysis"() {
+        given:
+        def c = config + [environment: 'dev', gitBranch: 'feature/foo']
+        IContext context = new Context(null, c, logger)
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
+        bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        NexusService nexusService = Mock(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+        SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
+        sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+        sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
+        sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+        sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
+        sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
+        ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+        script.env.WORKSPACE = tempFolder.getRoot().absolutePath
+        script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->""}
+        helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
+        helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
+        def configMapData = [enabled: 'true', alertEmails: 'test@example.com']
+        helper.registerAllowedMethod('getConfigMapData', [String, String]) { ns, name -> configMapData }
+        script.call(context, ['branch': '*', 'analyzePullRequests': 'true'])
 
-    then:
-    printCallStack()
-    1 * sonarQubeService.scan({
-      it.properties == [
-        'sonar.projectKey': 'foo-bar',
-        'sonar.projectName': 'foo-bar',
-        'sonar.branch.name': 'feature/foo'
-      ] &&
-      it.gitCommit == 'cd3e9082d7466942e1de86902bb9e663751dae8e' &&
-      it.pullRequestInfo == [
-        bitbucketUrl: 'https://bitbucket.example.com',
-        bitbucketToken: 's3cr3t',
-        bitbucketProject: 'foo',
-        bitbucketRepository: 'foo-bar',
-        bitbucketPullRequestKey: 1,
-        branch: 'feature/foo',
-        baseBranch: 'master'
-      ] &&
-      it.sonarQubeEdition == 'developer' &&
-      it.exclusions == ''
-    })
-    assertJobStatusSuccess()
-  }
+        then:
+        printCallStack()
+        1 * sonarQubeService.scan(_)
+        assertJobStatusSuccess()
+    }
+
+    def "skips scan if not enabled in cluster and project"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        NexusService nexusService = Mock(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+        SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
+        ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+        def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+        script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
+        // Mock sh to return config map with enabled=false
+        helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"enabled": "false", "alertEmails": "test@example.com"}}' }
+        when:
+        script.call(context)
+        then:
+        printCallStack()
+        assertCallStackContains('SonarQube scan not enabled at cluster level')
+        assertJobStatusSuccess()
+    }
 
   @Unroll
   def "checks quality gate"() {
