@@ -54,7 +54,9 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             bitbucket,
             sonarQube,
             nexus,
-            logger
+            logger,
+            [:], // configurationSonarCluster
+            [:]  // configurationSonarProject
         )
         // To use test steps class
         stage.metaClass.script = script
@@ -228,4 +230,73 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         expect:
         stage.options.sonarQubeNexusRepository == "custom-nexus"
     }
+
+    def "stage uses sonarQubeAccount and sonarQubeProjectsPrivate defaults"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
+        def config = [:]
+        def configurationSonarCluster = [:] // no values set
+        def stage = new ScanWithSonarStage(
+            script,
+            new Context(script, [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], logger),
+            config,
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
+            configurationSonarCluster,
+            [:]
+        )
+        expect:
+        stage.sonarQubeAccount == "cd-user-with-password"
+        stage.sonarQubeProjectsPrivate == false
+    }
+
+    def "stage uses custom sonarQubeAccount and sonarQubeProjectsPrivate true"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
+        def config = [:]
+        def configurationSonarCluster = [sonarQubeAccount: "custom-account", sonarQubeProjectsPrivate: true]
+        def stage = new ScanWithSonarStage(
+            script,
+            new Context(script, [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], logger),
+            config,
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
+            configurationSonarCluster,
+            [:]
+        )
+        expect:
+        stage.sonarQubeAccount == "custom-account"
+        stage.sonarQubeProjectsPrivate == true
+    }
+
 }
