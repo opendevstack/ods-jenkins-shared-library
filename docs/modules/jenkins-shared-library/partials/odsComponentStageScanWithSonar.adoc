@@ -45,11 +45,6 @@ _List<String>_
  all other editions (which are capable of handling multiple branches).
 
 
-| *exclusions* +
-_String_
-|Patterns to exclude from SonarQube scan.
-
-
 | *imageLabels* +
 _Map<String,&nbsp;String>_
 |Patterns to exclude from SonarQube scan.
