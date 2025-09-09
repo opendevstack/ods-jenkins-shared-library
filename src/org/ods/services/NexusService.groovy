@@ -153,7 +153,7 @@ class NexusService {
         if (file == null || file.exists() == false) {
             throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
         }
-        
+
         storeArtifact(
             repoName,
             directory,
