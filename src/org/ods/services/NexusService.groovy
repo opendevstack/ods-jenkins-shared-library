@@ -140,7 +140,7 @@ class NexusService {
         String workspace = steps.pwd()
         Path tmpDir = Paths.get(workspace, "tmp")
         Files.createDirectories(tmpDir)
-
+        
         // Define the ZIP file path in the tmp directory
         Path zipFilePath = tmpDir.resolve(zipFileName)
 
