@@ -9,6 +9,7 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
 class NexusService {
@@ -88,7 +89,7 @@ class NexusService {
             repoName,
             directory,
             name,
-            text.bytes,
+            text.getBytes(StandardCharsets.UTF_8),
             "application/text"
         )
     }
@@ -127,46 +128,6 @@ class NexusService {
         }
 
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
-    }
-
-    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
-    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
-        // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        final String URL_TO_DOWNLOAD = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
-        def restCall
-        steps.withCredentials([
-            steps.usernamePassword(
-                credentialsId: credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            restCall = Unirest.get("${URL_TO_DOWNLOAD}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
-        }
-        return (processRetrieveArtifactRes(restCall, URL_TO_DOWNLOAD, nexusRepository, nexusDirectory,
-            name, extractionPath))
-    }
-
-    boolean groupExists(String nexusRepository, String groupName) {
-        final String URL_TO_DOWNLOAD =
-            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
-        def response
-        steps.withCredentials([
-            steps.usernamePassword(
-                credentialsId: credentialsId,
-                usernameVariable: 'USERNAME',
-                passwordVariable: 'PASSWORD'
-            )
-        ]) {
-            response = Unirest.get("${URL_TO_DOWNLOAD}")
-                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
-                .asString()
-        }
-        response.ifFailure {
-            throw new RuntimeException("Could not retrieve data from '${URL_TO_DOWNLOAD}'")
-        }
-        return !response.getBody().contains('\"items\" : [ ]')
-
     }
 
     File buildXunitZipFile(def steps, def testDir, def zipFileName) {
@@ -258,6 +219,23 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}")
     }
 
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
+    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
+        // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
+        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
+        def restCall
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            restCall = Unirest.get("${urlToDownload}").basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+        }
+        return (processRetrieveArtifactRes(restCall, urlToDownload, nexusRepository, nexusDirectory, name, extractionPath))
+    }
+
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
     private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository,
@@ -287,5 +265,27 @@ class NexusService {
             uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
         ]
+    }
+
+    boolean groupExists(String nexusRepository, String groupName) {
+        String urlToDownload =
+            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
+        def response
+        steps.withCredentials([
+            steps.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USERNAME',
+                passwordVariable: 'PASSWORD'
+            )
+        ]) {
+            response = Unirest.get("${urlToDownload}")
+                .basicAuth(steps.env.USERNAME, steps.env.PASSWORD)
+                .asString()
+        }
+        response.ifFailure {
+            throw new RuntimeException("Could not retrieve data from '${urlToDownload}'")
+        }
+        return !response.getBody().contains('\"items\" : [ ]')
+
     }
 }
