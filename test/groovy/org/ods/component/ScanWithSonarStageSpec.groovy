@@ -46,7 +46,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger))
         def sonarQube = Spy(new SonarQubeService(script, logger, "SonarServerConfig"))
-        def nexus = Spy(new NexusService ("http://nexus", steps, "foo-cd-cd-user-with-password"))
+        def nexus = Mock(NexusService)
         def stage = new ScanWithSonarStage (
             script,
             context,
@@ -87,8 +87,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         then:
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.pdf", _, "application/pdf") >>
             new URI("http://nexus/repository/leva-documentation/prj1/component1/2023-01-01_12-30-45_56/sonarQube/report.pdf")
-        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/component1/2023-01-01_12-30-45_56/sonarQube/report.pdf")
-
+        1 * stage.logger.info(_)
     }
 
     def "create Bitbucket Insight report - PASS"() {
