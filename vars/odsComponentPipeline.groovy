@@ -25,8 +25,13 @@ def call(Map config, Closure body) {
 
     def result
     try {
-        result = pipeline.execute(config, body)
-        uploadJenkinsLogToNexus(config, logger)
+        try {
+            result = pipeline.execute(config, body)
+            uploadJenkinsLogToNexus(config, logger)
+        } catch (Exception e) {
+            uploadJenkinsLogToNexus(config, logger)
+            throw e
+        }
     } finally {
         if (env.MULTI_REPO_BUILD) {
             logger.debug('-- in RM mode, shutdown skipped --')

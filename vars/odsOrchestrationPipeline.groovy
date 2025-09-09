@@ -22,6 +22,9 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 @SuppressWarnings('AbcMetric')
@@ -55,48 +58,53 @@ def call(Map config) {
 
     try {
         node('master') {
-            logger.debugClocked('orchestration-master-node')
-            cleanWorkspace(logger)
+            try {
+                logger.debugClocked('orchestration-master-node')
+                cleanWorkspace(logger)
 
-            logger.startClocked('pipeline-git-releasemanager')
-            checkOutLocalBranch(git, scm, logger)
+                logger.startClocked('pipeline-git-releasemanager')
+                checkOutLocalBranch(git, scm, logger)
 
-            logger.startClocked('pod-template')
-            def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-            withPodTemplate(odsImageTag, steps, alwaysPullImage, resourceLimitMemory) {
-                logger.debugClocked('pod-template')
-                withEnv(envs) {
-                    def result
-                    def cannotContinueAsHasOpenIssuesInClosingRelease = false
-                    try {
-                        result = new InitStage(this, project, repos, startAgentStage).execute()
-                    } catch (OpenIssuesException ex) {
-                        cannotContinueAsHasOpenIssuesInClosingRelease = true
+                logger.startClocked('pod-template')
+                def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
+                withPodTemplate(odsImageTag, steps, alwaysPullImage, resourceLimitMemory) {
+                    logger.debugClocked('pod-template')
+                    withEnv(envs) {
+                        def result
+                        def cannotContinueAsHasOpenIssuesInClosingRelease = false
+                        try {
+                            result = new InitStage(this, project, repos, startAgentStage).execute()
+                        } catch (OpenIssuesException ex) {
+                            cannotContinueAsHasOpenIssuesInClosingRelease = true
+                        }
+                        if (cannotContinueAsHasOpenIssuesInClosingRelease) {
+                            logger.warn('Cannot continue as it has open issues in the release.')
+                            return
+                        }
+                        if (result) {
+                            project = result.project
+                            repos = result.repos
+                            startAgentStage = getStartAgent(startAgentStage, result)
+                        } else {
+                            logger.warn('Skip pipeline as no project/repos computed')
+                            return
+                        }
+
+
+                        new BuildStage(this, project, repos, startAgentStage).execute()
+                        new DeployStage(this, project, repos, startAgentStage).execute()
+                        new TestStage(this, project, repos, startAgentStage).execute()
+                        new ReleaseStage(this, project, repos).execute()
+                        new FinalizeStage(this, project, repos).execute()
                     }
-                    if (cannotContinueAsHasOpenIssuesInClosingRelease) {
-                        logger.warn('Cannot continue as it has open issues in the release.')
-                        return
-                    }
-                    if (result) {
-                        project = result.project
-                        repos = result.repos
-                        startAgentStage = getStartAgent(startAgentStage, result)
-                    } else {
-                        logger.warn('Skip pipeline as no project/repos computed')
-                        return
-                    }
-
-
-                    new BuildStage(this, project, repos, startAgentStage).execute()
-                    new DeployStage(this, project, repos, startAgentStage).execute()
-                    new TestStage(this, project, repos, startAgentStage).execute()
-                    new ReleaseStage(this, project, repos).execute()
-                    new FinalizeStage(this, project, repos).execute()
                 }
+                uploadResourcesToNexus(config, steps, project, logger)
+            } catch (Exception e) {
+                uploadResourcesToNexus(config, steps, project, logger)
+                throw e
             }
         }
     } finally {
-        uploadResourcesToNexus(config, steps, project, logger)
         logger.resetStopwatch()
         project.clear()
         ServiceRegistry.removeInstance()
@@ -136,11 +144,18 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
         final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
         def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
-        def zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
         logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
         def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
         logger.debug("uploadTestReportToNexus - directory: ${directory}")
         nexusService.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
+        nexusService.storeArtifact(
+            "leva-documentation",
+            directory,
+            name,
+            Files.readAllBytes(zipFile),
+            "application/zip"
+        )
         logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
     }
 }
@@ -166,7 +181,13 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
         text += "STATUS ${steps.currentBuild.result}"
     }
 
-    nexusService.uploadJenkinsLogsToNexus(text, repoName, directory, name)
+    nexusService.storeArtifact(
+        repoName,
+        directory,
+        name,
+        text.getBytes(StandardCharsets.UTF_8),
+        "application/text"
+    )
     logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
 }
 
