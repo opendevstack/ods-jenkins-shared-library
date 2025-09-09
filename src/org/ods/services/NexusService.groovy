@@ -136,16 +136,13 @@ class NexusService {
         }
 
         def zipFilePath=  Paths.get(testDir, zipFileName)
-        try {
-            steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-            def file = zipFilePath.toFile()
-            if (!file.exists() || file.length() == 0) {
-                throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
-            }
-            return file
-        } catch (Exception e) {
-            throw e
+
+        steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
+        def file = zipFilePath.toFile()
+        if (!file.exists() || file.length() == 0) {
+            throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
         }
+        return file
     }
 
     void uploadTestReportToNexus(def name, def file, def repoName, def directory) {
@@ -156,18 +153,14 @@ class NexusService {
         if (file == null || file.exists() == false) {
             throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
         }
-
-        try {
-            storeArtifact(
-                repoName,
-                directory,
-                name,
-                file.bytes,
-                "application/zip"
-            )
-        } catch (Exception e) {
-            throw e
-        }
+        
+        storeArtifact(
+            repoName,
+            directory,
+            name,
+            file.bytes,
+            "application/zip"
+        )
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
