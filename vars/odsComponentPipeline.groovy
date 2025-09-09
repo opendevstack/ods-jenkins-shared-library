@@ -1,4 +1,3 @@
-import org.ods.component.Context
 import org.ods.component.Pipeline
 import org.ods.util.Logger
 
