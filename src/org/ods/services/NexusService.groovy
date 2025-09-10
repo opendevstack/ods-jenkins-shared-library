@@ -3,13 +3,11 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-import com.google.common.base.Strings
 import kong.unirest.ContentType
 import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
 class NexusService {
