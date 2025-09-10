@@ -72,28 +72,6 @@ class NexusService {
         config
     }
 
-    URI uploadJenkinsLogsToNexus(String text, String repoName, String directory, String name) {
-        if (!text?.trim()) {
-            throw new IllegalArgumentException("The parameter 'text' must not be empty.")
-        }
-
-        if (!repoName?.trim()) {
-            throw new IllegalArgumentException("The parameter 'repoName' must not be empty.")
-        }
-
-        if (!directory?.trim()) {
-            throw new IllegalArgumentException("The parameter 'directory' must not be empty.")
-        }
-
-        return storeArtifact(
-            repoName,
-            directory,
-            name,
-            text.getBytes(StandardCharsets.UTF_8),
-            "application/text"
-        )
-    }
-
     URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
         Map nexusParams = [
             'raw.directory': directory,
@@ -143,24 +121,6 @@ class NexusService {
             throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
         }
         return file
-    }
-
-    void uploadTestReportToNexus(def name, def file, def repoName, def directory) {
-        if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'name' is undefined.")
-        }
-
-        if (file == null || file.exists() == false) {
-            throw new IllegalArgumentException("Error: unable to upload test report. 'file' is undefined.")
-        }
-
-        storeArtifact(
-            repoName,
-            directory,
-            name,
-            file.bytes,
-            "application/zip"
-        )
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])

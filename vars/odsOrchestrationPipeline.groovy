@@ -145,7 +145,6 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
         logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
         def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
         logger.debug("uploadTestReportToNexus - directory: ${directory}")
-        nexusService.uploadTestReportToNexus(name, zipFile, "leva-documentation", directory)
         nexusService.storeArtifact(
             "leva-documentation",
             directory,
