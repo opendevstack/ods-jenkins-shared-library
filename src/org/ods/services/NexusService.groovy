@@ -8,6 +8,7 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
