@@ -8,6 +8,7 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
+import java.nio.file.Path
 import java.nio.file.Paths
 
 class NexusService {
@@ -106,19 +107,27 @@ class NexusService {
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
-    File buildXunitZipFile(def steps, def testDir, def zipFileName) {
+    Path buildXunitZipFile(def steps, String testDir, String zipFileName) {
         if (!testDir || !steps.fileExists(testDir)) {
             throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
         }
 
-        def zipFilePath=  Paths.get(testDir, zipFileName)
+        // Create a temporary directory inside the workspace
+        String workspace = steps.pwd()
+        Path tmpDir = Paths.get(workspace, "tmp")
+        Files.createDirectories(tmpDir)
 
-        steps.sh "cd ${testDir} && zip -r ${zipFileName} ."
-        def file = zipFilePath.toFile()
-        if (!file.exists() || file.length() == 0) {
+        // Define the ZIP file path in the tmp directory
+        Path zipFilePath = tmpDir.resolve(zipFileName)
+
+        // Run shell command to zip contents of testDir into tmp folder
+        steps.sh "cd ${testDir} && zip -r '${zipFilePath.toString()}' ."
+
+        if (!Files.exists(zipFilePath) || Files.size(zipFilePath) == 0) {
             throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
         }
-        return file
+
+        return zipFilePath
     }
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
