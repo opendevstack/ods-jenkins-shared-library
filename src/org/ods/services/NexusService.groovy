@@ -113,8 +113,7 @@ class NexusService {
         }
 
         // Create a temporary directory inside the workspace
-        String workspace = steps.pwd()
-        Path tmpDir = Paths.get(workspace, "tmp")
+        Path tmpDir = Paths.get(steps.env.WORKSPACE, "tmp")
         Files.createDirectories(tmpDir)
 
         // Define the ZIP file path in the tmp directory
