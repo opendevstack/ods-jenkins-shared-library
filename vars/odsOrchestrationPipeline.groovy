@@ -142,7 +142,6 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
         def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
         logger.debug("uploadTestReportToNexus - zip name: ${name}")
         Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
-        logger.debug("uploadTestReportToNexus - zipFile exists?: ${zipFile.exists()}")
         def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
         logger.debug("uploadTestReportToNexus - directory: ${directory}")
         nexusService.storeArtifact(
@@ -162,9 +161,8 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
     def repoName = project.services.nexus.repository.name
-    logger.debug("uploadJenkinsLogToNexus - repoName: ${repoName}")
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
-    logger.warn("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
+    logger.info("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
     logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
 
     def now = new Date()
