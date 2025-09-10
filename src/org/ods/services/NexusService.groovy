@@ -8,8 +8,8 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
-import java.nio.file.AccessMode
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -124,7 +124,7 @@ class NexusService {
         // Run shell command to zip contents of testDir into tmp folder
         steps.sh "cd ${testDir} && zip -r '${zipFilePath.toString()}' ."
 
-        if (!Files.exists(zipFilePath, AccessMode.READ) || Files.size(zipFilePath) == 0) {
+        if (!Files.exists(zipFilePath, LinkOption.NOFOLLOW_LINKS) || Files.size(zipFilePath) == 0) {
             throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
         }
 
