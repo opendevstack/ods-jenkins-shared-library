@@ -126,44 +126,37 @@ def call(Map config) {
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
-    node {
-        logger.debug("uploadTestReportToNexus - Start")
-        NexusService nexusService = getNexusService(ServiceRegistry.instance)
-        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        logger.debug("uploadTestReportToNexus - xunitDir: ${xunitDir}")
-        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
-        logger.debug("uploadTestReportToNexus - testDir: ${testDir}")
-        if (!steps.fileExists(testDir)) {
-            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
-            return
-        }
-        def now = new Date()
-        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
-        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
-        logger.debug("uploadTestReportToNexus - zip name: ${name}")
-        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
-        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-        logger.debug("uploadTestReportToNexus - directory: ${directory}")
-        nexusService.storeArtifact(
-            "leva-documentation",
-            directory,
-            name,
-            Files.readAllBytes(zipFile),
-            "application/zip"
-        )
-        logger.debug("uploadTestReportToNexus - Test report uploaded to Nexus: ${name}")
+    NexusService nexusService = getNexusService(ServiceRegistry.instance)
+    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+
+    if (!steps.fileExists(testDir)) {
+        logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+        return
     }
+
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+    def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+    Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+
+    nexusService.storeArtifact(
+        "leva-documentation",
+        directory,
+        name,
+        Files.readAllBytes(zipFile),
+        "application/zip"
+    )
+    logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
 }
 
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
-    logger.debug("uploadJenkinsLogToNexus - Start")
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
     String text = jenkinsService.getCompletedBuildLogAsText()
     def repoName = project.services.nexus.repository.name
     def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
-    logger.info("Started upload Jenkins logs to Nexus directory: ${repoName}/${directory}")
-    logger.debug("uploadJenkinsLogToNexus - directory: ${directory}")
 
     def now = new Date()
     final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
@@ -182,7 +175,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
         text.getBytes(StandardCharsets.UTF_8),
         "application/text"
     )
-    logger.debug("uploadJenkinsLogToNexus - Uploaded Jenkins logs to Nexus: ${name}")
+    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repo-name}/${directory}")
 }
 
 private String getStartAgent(String startAgentStage, result) {
