@@ -1,11 +1,10 @@
 package org.ods.services
 
-import com.github.tomakehurst.wiremock.client.*
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.http.client.utils.URIBuilder
-
 import org.ods.util.IPipelineSteps
-import util.*
+import util.SpecHelper
 
 class NexusServiceSpec extends SpecHelper {
 
@@ -101,7 +100,7 @@ class NexusServiceSpec extends SpecHelper {
             username: "username"
         ]
         return result << mixins
-  }
+    }
 
     Map storeArtifactResponseData(Map mixins = [:]) {
         def result = [
@@ -212,5 +211,4 @@ class NexusServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
-
 }
