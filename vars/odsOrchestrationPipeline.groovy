@@ -89,7 +89,6 @@ def call(Map config) {
                         return
                     }
 
-
                     new BuildStage(this, project, repos, startAgentStage).execute()
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
