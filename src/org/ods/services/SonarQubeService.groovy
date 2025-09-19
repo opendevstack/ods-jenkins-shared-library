@@ -15,12 +15,7 @@ class SonarQubeService {
     }
 
     Map<String, Object> readProperties(String filename = 'sonar-project.properties') {
-        try {
-            return script.readProperties(file: filename) as Map<String, Object>
-        } catch (Exception e) {
-            logger.info("SonarQube properties file '${filename}' not found or unreadable: ${e.message}")
-            return [:]
-        }
+        script.readProperties(file: filename)
     }
 
     /*
