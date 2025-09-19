@@ -126,29 +126,31 @@ def call(Map config) {
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
-    NexusService nexusService = getNexusService(ServiceRegistry.instance)
-    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+    node('master') {
+        NexusService nexusService = getNexusService(ServiceRegistry.instance)
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
 
-    if (!steps.fileExists(testDir)) {
-        logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
-        return
+        if (!steps.fileExists(testDir)) {
+            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+            return
+        }
+
+        def now = new Date()
+        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+
+        nexusService.storeArtifact(
+            "leva-documentation",
+            directory,
+            name,
+            Files.readAllBytes(zipFile),
+            "application/zip"
+        )
+        logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
     }
-
-    def now = new Date()
-    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
-    def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
-    Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
-    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-
-    nexusService.storeArtifact(
-        "leva-documentation",
-        directory,
-        name,
-        Files.readAllBytes(zipFile),
-        "application/zip"
-    )
-    logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
 }
 
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
