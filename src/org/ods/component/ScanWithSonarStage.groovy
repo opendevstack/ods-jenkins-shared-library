@@ -96,12 +96,7 @@ class ScanWithSonarStage extends Stage {
             logger.info 'No exclusions configured for SonarQube scan.'
         }
 
-        def sonarProperties = [:]
-        try {
-            sonarProperties = sonarQube.readProperties() ?: [:]
-        } catch (Exception ex) {
-            logger.info("Could not read SonarQube properties: ${ex}.")
-        }
+        def sonarProperties = sonarQube.readProperties() ?: [:]
         def sonarProjectKey = "${context.projectId}-${context.componentId}".toString()
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
