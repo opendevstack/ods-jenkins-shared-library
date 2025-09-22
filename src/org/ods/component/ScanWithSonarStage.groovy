@@ -91,9 +91,11 @@ class ScanWithSonarStage extends Stage {
             logger.info 'No long-lived branches configured.'
         }
         if (exclusions) {
-            logger.info "Exclusions for SonarQube scan: ${exclusions}"
+            logger.info("SonarQube scan will run for the entire repository source code." + 
+            " The following exclusions will be applied: ${exclusions}")
         } else {
-            logger.info 'No exclusions configured for SonarQube scan.'
+            logger.info("SonarQube scan will run for the entire repository source code." +
+            " No exclusions configured.")
         }
 
         def sonarProperties = sonarQube.readProperties() ?: [:]
