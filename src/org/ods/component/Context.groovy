@@ -397,15 +397,6 @@ class Context implements IContext {
     }
 
     @NonCPS
-    boolean getSonarExecuted() {
-        config.sonarExecuted
-    }
-
-    void setSonarExecuted(boolean executed) {
-        config.sonarExecuted = executed
-    }
-
-    @NonCPS
     boolean getFailOnSnykScanVulnerabilities() {
         config.failOnSnykScanVulnerabilities
     }

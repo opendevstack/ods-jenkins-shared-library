@@ -264,14 +264,12 @@ class Pipeline implements Serializable {
                                 }
                                 gitService.switchToRemoteBranch(context.gitBranch)
                             }
-                            context.sonarExecuted = false
-                            logger.info("sonarExecuted: ${context.sonarExecuted}")
 
                             // Check if odsComponentStageScanWithSonar is already defined in the pipeline
                             boolean hasSonarStageInPipeline = checkForSonarStageInPipeline()
                             logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
 
-                            if (!context.sonarExecuted && !hasSonarStageInPipeline) {
+                            if (!hasSonarStageInPipeline) {
                                 logger.info(
                                     "SonarQube not configured and no explicit stage found, using default conf"
                                 )
@@ -348,7 +346,6 @@ class Pipeline implements Serializable {
                                             configurationSonarProject
                                         )
                                         sonarStage.execute()
-                                        context.sonarExecuted = true
                                         logger.info("Automatic SonarQube scan completed successfully")
                                     } else {
                                         if (!enabledInCluster && !enabledInProject) {
@@ -365,16 +362,14 @@ class Pipeline implements Serializable {
                                                 "Skipping SonarQube scan because it is not enabled at cluster level"
                                             )
                                         }
-                                        context.sonarExecuted = false
                                     }
                                 } catch (Exception e) {
                                     logger.warn(
                                         "Automatic SonarQube scan failed but pipeline will continue: ${e.message}"
                                     )
                                     logger.debug("Full SonarQube scan error: ${e}")
-                                    context.sonarExecuted = false
                                 }
-                            } else if (hasSonarStageInPipeline) {
+                            } else {
                                 logger.info(
                                     "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
                                     "is defined in pipeline"
