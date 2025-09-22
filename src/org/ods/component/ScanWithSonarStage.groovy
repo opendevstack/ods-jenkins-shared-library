@@ -91,7 +91,7 @@ class ScanWithSonarStage extends Stage {
             logger.info 'No long-lived branches configured.'
         }
         if (exclusions) {
-            logger.info("SonarQube scan will run for the entire repository source code." + 
+            logger.info("SonarQube scan will run for the entire repository source code." +
             " The following exclusions will be applied: ${exclusions}")
         } else {
             logger.info("SonarQube scan will run for the entire repository source code." +
