@@ -282,11 +282,11 @@ class Pipeline implements Serializable {
                                     // Initialize required services
                                     if (!registry.get(SonarQubeService)) {
                                         logger.info 'Registering SonarQubeService'
-                                        this.sonarQubeService = new SonarQubeService(
+                                        registry.add(SonarQubeService, new SonarQubeService(
                                             script, logger, 'SonarServerConfig'
-                                        )
-                                        registry.add(SonarQubeService, this.sonarQubeService)
+                                        ))
                                     }
+                                    this.sonarQubeService = registry.get(SonarQubeService)
 
                                     // Initialize config.imageLabels if not present
                                     if (!config.imageLabels) {
