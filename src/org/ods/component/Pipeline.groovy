@@ -198,10 +198,6 @@ class Pipeline implements Serializable {
             bootstrap()
         }
 
-        if (skipCi) {
-            return this
-        }
-
         if (!skipCi) {
             if (!config.containsKey('podContainers')) {
                 config.podContainers = [
@@ -425,6 +421,8 @@ class Pipeline implements Serializable {
                     }
                 }
             }
+        } else {
+            return this
         }
     }
 

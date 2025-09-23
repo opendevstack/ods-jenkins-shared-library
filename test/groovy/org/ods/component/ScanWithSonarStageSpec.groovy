@@ -192,7 +192,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         stage.run()
 
         then:
-        1 * stage.logger.info("Exclusions for SonarQube scan: **/test/**")
+        1 * stage.logger.info("SonarQube scan will run for the entire repository source code. The following exclusions will be applied: **/test/**")
         thrown(Exception)
     }
 
