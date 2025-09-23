@@ -4,7 +4,7 @@
 
 ### Added
 
-* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1221])
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
 
 ### Changed
 

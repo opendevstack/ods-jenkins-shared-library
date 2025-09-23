@@ -8,6 +8,7 @@ import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -88,7 +89,7 @@ class NexusService {
         String name,
         File artifact,
         String contentType) {
-        return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
+        return storeArtifact(repository, directory, name, artifact.getBytes(StandardCharsets.UTF_8), contentType)
     }
 
     @SuppressWarnings('LineLength')

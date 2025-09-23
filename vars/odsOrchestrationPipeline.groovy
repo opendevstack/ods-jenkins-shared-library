@@ -266,13 +266,12 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 private void uploadResourcesToNexus(Map config, IPipelineSteps steps, Project project, ILogger logger) {
     try {
         // upload resources to nexus
-        def registry = ServiceRegistry.instance
-        NexusService nexusService = registry.get(NexusService)
+        NexusService nexusService = getNexusService(ServiceRegistry.instance)
         def context = new Context(null, config, logger)
 
         if (!nexusService) {
             nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
-            registry.add(NexusService, nexusService)
+            ServiceRegistry.instance.add(NexusService, nexusService)
         }
         uploadTestReportToNexus(steps, project, logger)
         uploadJenkinsLogToNexus(steps, project, logger)
