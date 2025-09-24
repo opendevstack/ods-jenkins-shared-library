@@ -7,7 +7,9 @@ class SonarStageChecker {
      */
     static boolean hasSonarStage(def script, def logger, def context, boolean localCheckoutEnabled) {
         try {
-            def scriptPath = JenkinsfilePathResolver.getJenkinsfileScriptPath(script, logger, context, localCheckoutEnabled)
+            def scriptPath = JenkinsfilePathResolver.getJenkinsfileScriptPath(
+                script, logger, context, localCheckoutEnabled
+            )
             if (!scriptPath) {
                 logger.debug("Could not determine script path, defaulting to 'Jenkinsfile'")
                 scriptPath = 'Jenkinsfile'
@@ -36,4 +38,5 @@ class SonarStageChecker {
             return false
         }
     }
+
 }

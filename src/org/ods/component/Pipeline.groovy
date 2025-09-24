@@ -5,7 +5,6 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
-import org.ods.services.SonarQubeService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.TailorDeploymentException
@@ -18,11 +17,12 @@ import org.ods.util.SonarStageChecker
 
 class Pipeline implements Serializable {
 
+    private static final Map ANSI_COLOR_BUILD_WRAPPER = [$class: 'AnsiColorBuildWrapper', colorMapName: 'XTerm']
+
     private GitService gitService
     private OpenShiftService openShiftService
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
-    private SonarQubeService sonarQubeService
 
     private final ILogger logger
     private final def script
@@ -86,7 +86,8 @@ class Pipeline implements Serializable {
         boolean skipCi = false
         def bootstrap = {
             try {
-                script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                // Use the shared wrapper constant
+                script.wrap(ANSI_COLOR_BUILD_WRAPPER) {
                     if (this.localCheckoutEnabled) {
                         script.checkout script.scm
                     }
@@ -234,7 +235,8 @@ class Pipeline implements Serializable {
                     try {
                         logger.debugClocked("${config.podLabel}", "Starting execution in pod")
                         setBitbucketBuildStatus('INPROGRESS')
-                        script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                        // Use the shared wrapper constant
+                        script.wrap(ANSI_COLOR_BUILD_WRAPPER) {
                             gitService.checkout(
                                 context.gitCommit,
                                 [],
@@ -268,7 +270,12 @@ class Pipeline implements Serializable {
                             )
                             logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
 
-                            if (!hasSonarStageInPipeline) {
+                            if (hasSonarStageInPipeline) {
+                                logger.info(
+                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
+                                    "is defined in pipeline"
+                                )
+                            } else {
                                 logger.info(
                                     "SonarQube not configured and no explicit stage found, using default conf"
                                 )
@@ -288,11 +295,6 @@ class Pipeline implements Serializable {
                                     )
                                     logger.debug("Full SonarQube scan error: ${e}")
                                 }
-                            } else {
-                                logger.info(
-                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
-                                    "is defined in pipeline"
-                                )
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
@@ -498,4 +500,5 @@ class Pipeline implements Serializable {
             block()
         }
     }
+
 }

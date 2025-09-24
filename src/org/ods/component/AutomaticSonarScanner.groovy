@@ -112,4 +112,5 @@ class AutomaticSonarScanner implements Serializable {
             }
         }
     }
+
 }

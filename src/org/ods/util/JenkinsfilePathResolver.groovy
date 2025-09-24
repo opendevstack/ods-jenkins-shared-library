@@ -20,7 +20,13 @@ class JenkinsfilePathResolver {
         try {
             if (localCheckoutEnabled && context?.cdProject) {
                 def pipelinePrefix = "${context.cdProject}/${context.cdProject}-"
-                def buildConfigName = script.env.JOB_NAME?.substring(pipelinePrefix.size())
+                // Use subscript operator with a length check to avoid exceptions and preserve null-safety
+                def jobName = script.env.JOB_NAME
+                def buildConfigName = null
+                if (jobName && jobName.length() > pipelinePrefix.size()) {
+                    buildConfigName = jobName[pipelinePrefix.size()..-1]
+                }
+
                 if (buildConfigName) {
                     def contextDir = script.sh(
                         returnStdout: true,
@@ -42,4 +48,5 @@ class JenkinsfilePathResolver {
         logger.debug("Could not determine script path, returning null")
         return null
     }
+
 }
