@@ -4,6 +4,8 @@ import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
+import org.ods.util.SonarStageChecker
+import org.ods.util.CommentRemover
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.Unroll
 
@@ -92,12 +94,9 @@ class PipelineSpec extends PipelineSpockTestBase {
             env: [:],   // Mock env object  
             sh: { Map args -> return "" }  // Mock sh method
         ]
-        def pipelineWithSonar = new Pipeline(mockScriptWithSonar, logger)
+        def result = SonarStageChecker.hasSonarStage(mockScriptWithSonar, logger, null, true)
 
-        when:
-        def result = pipelineWithSonar.invokeMethod('checkForSonarStageInPipeline', [] as Object[])
-
-        then:
+        expect:
         result == true
     }
 
@@ -125,12 +124,9 @@ class PipelineSpec extends PipelineSpockTestBase {
             env: [:],   // Mock env object  
             sh: { Map args -> return "" }  // Mock sh method
         ]
-        def pipelineWithComments = new Pipeline(mockScriptWithComments, logger)
+        def result = SonarStageChecker.hasSonarStage(mockScriptWithComments, logger, null, true)
 
-        when:
-        def result = pipelineWithComments.invokeMethod('checkForSonarStageInPipeline', [] as Object[])
-
-        then:
+        expect:
         result == false
     }
 
@@ -148,8 +144,8 @@ class PipelineSpec extends PipelineSpockTestBase {
         """
 
         when:
-        def result = pipeline.invokeMethod('removeCommentedCode', content)
-
+        def result = CommentRemover.removeCommentedCode(content)
+ 
         then:
         !result.contains('Single line comment')
         !result.contains('Block comment')
