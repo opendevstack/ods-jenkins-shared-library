@@ -16,7 +16,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
 import org.ods.util.Logger
 import org.ods.util.ILogger
-import org.ods.component.Context
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
@@ -96,10 +95,10 @@ def call(Map config) {
                     new FinalizeStage(this, project, repos).execute()
                 }
             }
-            uploadResourcesToNexus(config, steps, project, logger)
+            uploadResourcesToNexus(steps, project, logger)
         }
     } catch (Exception e) {
-        uploadResourcesToNexus(config, steps, project, logger)
+        uploadResourcesToNexus(steps, project, logger)
     } finally {
         logger.resetStopwatch()
         project.clear()
@@ -263,7 +262,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private void uploadResourcesToNexus(Map config, IPipelineSteps steps, Project project, ILogger logger) {
+private void uploadResourcesToNexus(IPipelineSteps steps, Project project, ILogger logger) {
     try {
         // upload resources to nexus
         uploadTestReportToNexus(steps, project, logger)
