@@ -45,15 +45,15 @@ _List<String>_
  all other editions (which are capable of handling multiple branches).
 
 
-| *imageLabels* +
-_Map<String,&nbsp;String>_
-|Patterns to exclude from SonarQube scan.
-
-
 | *longLivedBranches* +
 _List<String>_
 |Branch(es) for which no PR analysis should be performed. If not set, it
  will be extracted from  `branchToEnvironmentMapping` of the `context`.
+
+
+| *odsNamespace* +
+_Map<String,&nbsp;String>_
+|Patterns to exclude from SonarQube scan.
 
 
 | *requireQualityGatePass* +
