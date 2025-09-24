@@ -282,14 +282,14 @@ class Pipeline implements Serializable {
                                     }
                                     this.sonarQubeService = registry.get(SonarQubeService)
 
-                                    // Initialize config.imageLabels if not present
-                                    if (!config.imageLabels) {
-                                        config.imageLabels = [:]
+                                    // Initialize config.odsNamespace if not present
+                                    if (!config.odsNamespace) {
+                                        config.odsNamespace = [:]
                                     }
 
                                     // Set OPENSHIFT_BUILD_NAMESPACE from environment if not already set
-                                    if (!config.imageLabels.OPENSHIFT_BUILD_NAMESPACE) {
-                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE =
+                                    if (!config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE) {
+                                        config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE =
                                             script.env.OPENSHIFT_BUILD_NAMESPACE
                                     }
 
@@ -299,7 +299,7 @@ class Pipeline implements Serializable {
 
                                     // Read SonarQube config from ConfigMap
                                     configurationSonarCluster = openShiftService.getConfigMapData(
-                                        config.imageLabels.OPENSHIFT_BUILD_NAMESPACE,
+                                        config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE,
                                         ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
                                     )
 

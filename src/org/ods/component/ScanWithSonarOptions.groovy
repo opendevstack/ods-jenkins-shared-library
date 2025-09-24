@@ -50,7 +50,7 @@ class ScanWithSonarOptions extends Options {
      * Pass labels which should be added on the image.
      * Each label will be prefixed with `ext.`.
      */
-    Map<String, String> imageLabels
+    Map<String, String> odsNamespace
 
     /**
      * Nexus repository to upload the SonarQube report to.
