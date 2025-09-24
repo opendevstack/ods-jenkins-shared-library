@@ -53,7 +53,7 @@ _List<String>_
 
 | *odsNamespace* +
 _Map<String,&nbsp;String>_
-|Patterns to exclude from SonarQube scan.
+|ods namespace where the agents have been built on.
 
 
 | *requireQualityGatePass* +
