@@ -266,6 +266,8 @@ kind: Secret
 metadata:
   name: ${ocSecretName}
   namespace: ${ocNamespace}
+  labels:
+    credential.sync.jenkins.openshift.io: 'true'
 type: kubernetes.io/basic-auth
 stringData:
   username: ${script.env.username}
@@ -278,14 +280,6 @@ stringData:
                     label: "Store SonarQube token as basic-auth secret in OpenShift",
                     script: ocApplyCmd,
                     returnStdout: false
-                )
-                def labelCmd = (
-                    "oc -n ${ocNamespace} label secret ${ocSecretName} " +
-                    "credential.sync.jenkins.openshift.io=true --overwrite"
-                )
-                script.sh(
-                    label: "Add jenkins sync label to OpenShift secret ${ocSecretName}",
-                    script: labelCmd
                 )
                 script.sh(script: "rm -f ${tokenFile} ${yamlFile}", label: "Clean up token and yaml files")
                 logger.info(
