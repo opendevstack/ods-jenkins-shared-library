@@ -12,6 +12,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
 
 
 ## [4.9.2] - 2025-09-08
