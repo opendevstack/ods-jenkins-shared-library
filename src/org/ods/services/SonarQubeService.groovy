@@ -92,26 +92,20 @@ class SonarQubeService {
         }
     }
 
-    def generateCNESReport(
+    def generateReport(
         String projectKey,
-        String author,
-        String sonarBranch,
-        String sonarQubeEdition,
         String privateToken
     ) {
         withSonarServerConfig { hostUrl, authToken ->
-            def branchParam = sonarQubeEdition == 'community' ? '' : "-b ${sonarBranch}"
             def tokenToUse = privateToken ?: authToken
             script.sh(
-                label: 'Generate CNES Report',
+                label: 'Generate Sonar Report',
                 script: """
                 ${logger.shellScriptDebugFlag}
-                java -jar /usr/local/cnes/cnesreport.jar \
-                    -s ${hostUrl} \
-                    -t ${tokenToUse} \
-                    -p ${projectKey} \
-                    -a ${author} \
-                    ${branchParam}
+                java -jar /usr/local/sonar/sonar-report.jar \
+                    ${hostUrl} \
+                    ${tokenToUse} \
+                    ${projectKey}
                 """
             )
         }
