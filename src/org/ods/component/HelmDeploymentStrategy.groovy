@@ -18,6 +18,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
+
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
 
@@ -28,8 +30,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
+            // TODO
+       // DeploymentConfig deploymentConfig = new DeploymentConfig()
+        // deploymentConfig.updateCommonConfig(context, config)
+        // deploymentConfig.updateHelmConfig(context, config)
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -42,7 +49,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.deployTimeoutRetries) {
             config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
         }
-        // Helm options
         if (!config.chartDir) {
             config.chartDir = 'chart'
         }
@@ -53,7 +59,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             config.helmValues = [:]
         }
         if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = ['values.yaml']
+            config.helmValuesFiles = [ 'values.yaml' ]
         }
         if (!config.containsKey('helmEnvBasedValuesFiles')) {
             config.helmEnvBasedValuesFiles = []
@@ -70,6 +76,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
+        
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -77,17 +84,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
-    Map<String, List<PodData>> deploy() {
-        if (!context.environment) {
-            logger.warn 'Skipping because of empty (target) environment ...'
-            return [:]
-        }
-
-        // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+    Map<String, List<PodData>> deploy() {      
+        logger.info("Retagging images for ${context.targetProject} ") 
+        imageRepository.retagImages(context.targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(context.targetProject)
