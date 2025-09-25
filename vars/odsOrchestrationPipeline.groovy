@@ -1,6 +1,8 @@
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.TestStage
@@ -19,6 +21,9 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
 
 import java.lang.reflect.Method
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 @SuppressWarnings('AbcMetric')
@@ -49,6 +54,7 @@ def call(Map config) {
     def repos = []
 
     logger.startClocked('orchestration-master-node')
+
     try {
         node('master') {
             logger.debugClocked('orchestration-master-node')
@@ -89,7 +95,10 @@ def call(Map config) {
                     new FinalizeStage(this, project, repos).execute()
                 }
             }
+            uploadResourcesToNexus(steps, project, logger)
         }
+    } catch (Exception e) {
+        uploadResourcesToNexus(steps, project, logger)
     } finally {
         logger.resetStopwatch()
         project.clear()
@@ -99,10 +108,12 @@ def call(Map config) {
         git = null
         repos = null
         steps = null
+
         try {
             new ClassLoaderCleaner().clean(logger, processId)
             // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
             logger.debug("forceClean via jenkins internals....")
+            // Force cleanup of the heap to release memory
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
             cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
@@ -112,11 +123,68 @@ def call(Map config) {
     }
 }
 
-private String getStartAgent(String startAgentStage, result) {
-    if (!startAgentStage) {
-        startAgentStage = result.startAgent
+private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
+    node('master') {
+        NexusService nexusService = getNexusService(ServiceRegistry.instance)
+        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+
+        if (!steps.fileExists(testDir)) {
+            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+            return
+        }
+
+        def now = new Date()
+        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+
+        nexusService.storeArtifact(
+            "leva-documentation",
+            directory,
+            name,
+            Files.readAllBytes(zipFile),
+            "application/zip"
+        )
+        logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
     }
-    return startAgentStage
+}
+
+private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
+    NexusService nexusService = getNexusService(ServiceRegistry.instance)
+    JenkinsService jenkinsService = ServiceRegistry.instance.get(JenkinsService)
+    String text = jenkinsService.getCompletedBuildLogAsText()
+    def repoName = project.services.nexus.repository.name
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/logs"
+
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+
+    String name = "jenkins-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.log"
+    if (!steps.currentBuild.result) {
+        text += "STATUS: SUCCESS"
+    } else {
+        text += "STATUS ${steps.currentBuild.result}"
+    }
+
+    nexusService.storeArtifact(
+        repoName,
+        directory,
+        name,
+        text.getBytes(StandardCharsets.UTF_8),
+        "application/text"
+    )
+    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repo-name}/${directory}")
+}
+
+private String getStartAgent(String startAgentStage, result) {
+    def resStartAgentStage = startAgentStage
+
+    if (!startAgentStage) {
+        resStartAgentStage = result.startAgent
+    }
+    return resStartAgentStage
 }
 
 // Clean workspace from previous runs
@@ -149,7 +217,7 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 
 @SuppressWarnings('GStringExpressionWithinString')
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
-    String mroAgentLimit, Closure block) {
+                        String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
@@ -192,6 +260,25 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
             logger.infoClocked('ods-mro-pipeline', '**** ENDED orchestration pipeline ****')
         }
     }
+}
+
+private void uploadResourcesToNexus(IPipelineSteps steps, Project project, ILogger logger) {
+    try {
+        // upload resources to nexus
+        uploadTestReportToNexus(steps, project, logger)
+        uploadJenkinsLogToNexus(steps, project, logger)
+    } catch (Exception e) {
+        logger.error("Error during upload of test report or Jenkins log: ${e.message}")
+    }
+}
+
+private NexusService getNexusService(def registry) {
+    NexusService nexusService = registry.get(NexusService)
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
+    }
+    return nexusService
 }
 
 return this

@@ -1,7 +1,8 @@
 package org.ods.services
 
-import org.ods.util.ILogger
+
 import hudson.scm.ChangeLogSet
+import org.ods.util.ILogger
 
 class JenkinsService {
 
@@ -82,6 +83,14 @@ class JenkinsService {
     String getCurrentBuildLogAsText () {
         StringWriter writer = new StringWriter()
         this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
+        return writer.getBuffer().toString()
+    }
+
+    String getCompletedBuildLogAsText () {
+        StringWriter writer = new StringWriter()
+        def largeText = this.script.currentBuild.getRawBuild().getLogText()
+        largeText.markAsComplete()
+        largeText.writeLogTo(0, writer)
         return writer.getBuffer().toString()
     }
 
