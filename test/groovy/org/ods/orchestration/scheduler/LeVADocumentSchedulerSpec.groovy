@@ -5792,7 +5792,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -5805,7 +5804,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -5890,7 +5889,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -5903,7 +5901,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -5971,7 +5969,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -5984,7 +5981,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6035,7 +6032,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6047,7 +6043,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6095,7 +6091,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
 
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6108,7 +6103,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6155,7 +6150,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6168,7 +6162,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6239,7 +6233,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6252,7 +6245,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6354,7 +6347,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6367,7 +6359,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6485,7 +6477,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6498,7 +6489,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6567,7 +6558,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6580,7 +6570,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6629,7 +6619,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6642,7 +6631,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6691,7 +6680,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6704,7 +6692,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6773,7 +6761,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6786,7 +6773,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6840,7 +6827,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6853,7 +6839,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6892,7 +6878,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6905,7 +6890,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6945,7 +6930,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -6958,7 +6942,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7012,12 +6996,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7059,12 +7042,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7115,12 +7097,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7169,7 +7150,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def nexus = Mock(NexusService)
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
@@ -7182,7 +7162,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {

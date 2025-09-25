@@ -700,7 +700,7 @@ class Context implements IContext {
         def branch
         if (this.localCheckoutEnabled) {
             def pipelinePrefix = "${config.cdProject}/${config.cdProject}-"
-            def buildConfigName = config.jobName.substring(pipelinePrefix.size())
+            def buildConfigName = config.jobName[pipelinePrefix.size()..-1]
 
             def n = config.cdProject
             branch = script.sh(
