@@ -8,8 +8,11 @@
 ### Changed
 
 ### Fixed
-* Manage missing type in failures/errors in JUnit XML report ([#1233](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1233))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.9.3] - 2025-09-30
+### Fixed
+* Manage missing type in failures/errors in JUnit XML report ([#1233](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1233))
 
 
 ## [4.9.2] - 2025-09-08
