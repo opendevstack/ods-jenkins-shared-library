@@ -2438,6 +2438,39 @@ class FixtureHelper {
         """
     }
 
+    static String createSockShopJUnitXmlTestResultsWithoutType() {
+        """
+        <testsuites name="sockshop-suites" tests="4" failures="1" errors="1">
+            <testsuite name="sockshop-suite-1" tests="2" failures="0" errors="1" skipped="0" timestamp="2020-03-08T20:49:53Z">
+                <properties>
+                    <property name="my-property-a" value="my-property-a-value"/>
+                </properties>
+                <testcase name="NET130_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
+                <testcase name="NET139_verify-payment-service-installation" classname="org.sockshop.PaymentServiceInstallationTest" status="Error" time="2">
+                    <error message="my-error-message">This is an error.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-2" tests="2" failures="1" errors="0" skipped="1" timestamp="2020-03-08T20:46:54Z">
+                <testcase name="NET140_verify-order-service-installation" classname="org.sockshop.OrderServiceInstallationTest" status="Failed" time="3">
+                    <failure message="my-failure-message">This is a failure.</failure>
+                </testcase>
+                <testcase name="NET141_verify-databse-authentication" classname="org.sockshop.ShippingServiceInstallationTest" status="Missing" time="4">
+                    <skipped/>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-3" tests="1" failures="0" errors="0" skipped="0" timestamp="2020-03-08T20:46:55Z">
+                <testcase name="NET138_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
+            </testsuite>
+            <testsuite name="sockshop-suite-4" tests="4" failures="0" errors="0" skipped="1" timestamp="2020-03-08T20:46:56Z">
+                <testcase name="NET136_user-exists-in-system" classname="org.sockshop.integration.UserTest" status="Succeeded" time="3" />
+                <testcase name="NET142_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
+                <testcase name="NET143_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
+                <testcase name="NET144_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
+            </testsuite>
+        </testsuites>
+        """
+    }
+
     static Map createOpenShiftPodDataForComponent() {
         return [
             items: [
@@ -2480,6 +2513,12 @@ class FixtureHelper {
         )
     }
 
+    static Map createSockShopTestResultsWithoutType() {
+        return JUnitParser.parseJUnitXML(
+            createSockShopJUnitXmlTestResultsWithoutType()
+        )
+    }
+
     static Set createTestResultErrors() {
         return JUnitParser.Helper.getErrors(createTestResults())
     }
@@ -2494,6 +2533,9 @@ class FixtureHelper {
 
     static Set createSockShopTestResultFailures() {
         return JUnitParser.Helper.getFailures(createSockShopTestResults())
+    }
+    static Set createSockShopTestResultFailuresWithoutType() {
+        return JUnitParser.Helper.getFailures(createSockShopTestResultsWithoutType())
     }
 
     static List createSockShopJiraTestIssues() {
