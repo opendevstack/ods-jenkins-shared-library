@@ -891,6 +891,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Failed",
             env: 'D',
+            startDateTimestamp: null,
         ])
 
         then:
@@ -922,6 +923,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Successful",
             env: 'D',
+            startDateTimestamp: null,
         ])
     }
 
