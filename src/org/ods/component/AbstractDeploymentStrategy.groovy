@@ -32,23 +32,6 @@ abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
         originalVersions
     }
 
-    protected findOrCreateImageStream(String targetProject, String image) {
-        try {
-            openShift.findOrCreateImageStream(targetProject, image)
-        } catch (Exception ex) {
-            steps.error "Could not find/create ImageStream ${image} in ${targetProject}. Error was: ${ex}"
-        }
-    }
-
-    protected void retagImages(String targetProject, Set<String> images) {
-        images.each { image ->
-            findOrCreateImageStream(targetProject, image)
-            openShift.importImageTagFromProject(
-                targetProject, image, context.cdProject, options.imageTag, options.imageTag
-            )
-        }
-    }
-
     @TypeChecked(TypeCheckingMode.SKIP)
     protected Set<String> getBuiltImages() {
         context.buildArtifactURIs.builds.keySet().findAll { it ->
