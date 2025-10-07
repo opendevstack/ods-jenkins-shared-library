@@ -5,6 +5,7 @@
 ### Added
 
 * Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
+* When calling external jira plugin, start date of the job is passed ([#1236](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
 
 ### Changed
  * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
