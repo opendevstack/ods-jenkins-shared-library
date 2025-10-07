@@ -923,7 +923,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Successful",
             env: 'D',
-            startDateTimestamp: null,
+            startDateTimestamp: "1234567890",
         ])
     }
 
