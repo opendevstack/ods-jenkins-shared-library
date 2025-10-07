@@ -891,7 +891,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Failed",
             env: 'D',
-            startDateTimestamp: null,
+            startDateTimestamp: "1234567890",
         ])
 
         then:

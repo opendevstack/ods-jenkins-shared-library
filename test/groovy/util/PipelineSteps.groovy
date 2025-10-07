@@ -32,6 +32,7 @@ class PipelineSteps implements IPipelineSteps {
 
     def currentBuild = [
         "getPreviousBuild" : { [ ] },
+        "startTimeInMillis" : "1234567890"
     ]
 
     def containerTemplate(Map template) {
