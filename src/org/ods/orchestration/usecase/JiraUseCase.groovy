@@ -418,6 +418,7 @@ class JiraUseCase {
             ],
             status: status,
             env: env,
+            startDateTimestamp: this.steps.currentBuild.startTimeInMillis,
         ]
 
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
