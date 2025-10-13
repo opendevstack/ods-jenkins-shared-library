@@ -4,14 +4,16 @@
 
 ### Added
 
-* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
 
 ### Changed
  * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
 
-
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.10.0] - 2025-10-13
+### Added
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
 
 ## [4.9.4] - 2025-10-07
 ### Fixed
