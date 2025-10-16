@@ -97,7 +97,7 @@ def call(Map config) {
             }
             uploadResourcesToNexus(steps, project, logger)
         } catch (Exception e) {
-            logger.debug("Exception catched in the pipeline execution, try to upload the resources generated to nexus")
+            logger.error("Exception catched in the pipeline execution: ${e.message}")
             uploadResourcesToNexus(steps, project, logger)
         }
     }
@@ -128,7 +128,6 @@ private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logg
     NexusService nexusService = getNexusService(ServiceRegistry.instance)
     def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
     def testDir = "${this.env.WORKSPACE}/${xunitDir}"
-    logger.warn("uploadTestReportToNexus - testDir: ${testDir}")
 
     if (!steps.fileExists(testDir)) {
         logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
