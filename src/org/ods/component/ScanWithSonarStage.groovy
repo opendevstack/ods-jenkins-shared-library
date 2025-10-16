@@ -267,14 +267,14 @@ class ScanWithSonarStage extends Stage {
         sonarQube.generateReport(projectKey, privateToken)
         steps.sh(
             label: 'Create artifacts dir',
-            script: 'mkdir -p artifacts'
+            script: "mkdir -p ${steps.env.WORKSPACE}/artifacts"
         )
         steps.sh(
             label: 'Move and rename report to artifacts dir',
-            script: "mv sonarqube-report.pdf artifacts/${targetReport}"
+            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport}"
         )
         if (archive) {
-            steps.archiveArtifacts(artifacts: 'artifacts/sonarqube-report-*')
+            steps.archiveArtifacts(artifacts: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*")
         }
 
         def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
@@ -282,7 +282,7 @@ class ScanWithSonarStage extends Stage {
 
         steps.stash(
             name: "${sonarqubeStashPath}",
-            includes: 'artifacts/sonarqube-report-*'
+            includes: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*"
         )
 
         // Upload the generated PDF to Nexus immediately so it is available
