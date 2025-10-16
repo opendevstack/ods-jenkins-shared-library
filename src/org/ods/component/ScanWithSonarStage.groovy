@@ -168,42 +168,35 @@ class ScanWithSonarStage extends Stage {
         )
 
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
+
+        // Upload report to Nexus and create Bitbucket code insight
+        def targetReport = "sonarqube-report-${sonarProjectKey}.pdf"
+        def reportPath = "artifacts/${targetReport}"
+        def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
+        byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
+        
+        URI nexusUri = generateAndArchiveReportInNexus(pdfBytes, targetReport,
+            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
+        
+        createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), sonarProjectKey,
+            context.sonarQubeEdition, sonarProperties['sonar.branch.name'].toString())
+
         logger.info "SonarQube options.requireQualityGatePass: ${options.requireQualityGatePass}"
-        if (options.requireQualityGatePass) {
-            if (qualityGateResult == 'ERROR') {
+        if (qualityGateResult == 'OK') {
+            steps.echo 'Quality gate passed.'
+        } else if (qualityGateResult == 'ERROR') {
+            if (options.requireQualityGatePass) {
                 steps.error 'Quality gate failed!'
-            } else if (qualityGateResult == 'UNKNOWN') {
+            } else {
+                steps.echo 'Quality gate failed, but continuing anyway.'
+            }
+        } else if (qualityGateResult == 'UNKNOWN') {
+            if (options.requireQualityGatePass) {
                 steps.error 'Quality gate unknown!'
             } else {
-                steps.echo 'Quality gate passed.'
+                steps.echo 'Quality gate unknown, but continuing anyway.'
             }
         }
-        // // Prefer to use the already-created artifact file in the workspace if present
-        // def artifactName = context.getBuildArtifactURIs().get('sonarqube-report')
-        // if (!artifactName) {
-        //     logger.info "No 'sonarqube-report' artifact URI found in context. Falling back to default artifact name."
-        //     artifactName = "sonarqube-report-${sonarProjectKey}.pdf"
-        // } else {
-        //     logger.info "Configured sonarqube-report artifact: ${artifactName}"
-        // }
-        // def candidatePath = "${this.steps.env.WORKSPACE}/artifacts/${artifactName}"
-        // logger.info "Looking for SonarQube report at: ${candidatePath}"
-        // File reportFile = new File(candidatePath)
-        // if (reportFile.exists()) {
-        //     logger.info "Found SonarQube report in workspace: ${reportFile.absolutePath}"
-        // } else {
-        //     // If the artifact is not present on disk (e.g. different node), fall back to
-        //     // the previous behaviour which reads the report via steps.readFile and
-        //     // writes it to a temporary file in the workspace.
-        //     logger.info "SonarQube report not found in workspace. Falling back to reading artifact: artifacts/${artifactName}"
-        //     reportFile = generateTempFileFromReport("artifacts/${artifactName}")
-        //     logger.info "Temporary SonarQube report created at: ${reportFile.absolutePath}"
-        // }
-
-        // URI reportUriNexus = generateAndArchiveReportInNexus(reportFile,
-        //     context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-        // createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
-        //     context.sonarQubeEdition, context.gitBranch)
     }
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
@@ -285,21 +278,6 @@ class ScanWithSonarStage extends Stage {
             includes: "artifacts/sonarqube-report-*"
         )
         context.addArtifactURI('sonarqube-report', targetReport)
-
-        try {
-            def reportPath = "artifacts/${targetReport}"
-            def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
-            byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
-            
-            logger.info "Read SonarQube report from ${reportPath} (size: ${pdfBytes.length} bytes)"
-            
-            URI nexusUri = generateAndArchiveReportInNexus(pdfBytes, targetReport,
-                context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-            createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), projectKey,
-                sonarQubeEdition, sonarBranch)
-        } catch (e) {
-            logger.info "Failed to upload SonarQube report to Nexus in generation stage: ${e}."
-        }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -400,7 +378,6 @@ class ScanWithSonarStage extends Stage {
 
     private URI generateAndArchiveReportInNexus(byte[] pdfBytes, String reportName, nexusRepository) {
 
-        logger.info "Preparing to upload SonarQube report ${reportName} (size: ${pdfBytes.length} bytes) to Nexus"
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
