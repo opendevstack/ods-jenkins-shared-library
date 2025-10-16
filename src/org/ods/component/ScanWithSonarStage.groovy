@@ -182,18 +182,18 @@ class ScanWithSonarStage extends Stage {
         logger.info "SonarQube requireQualityGatePass option is set to: ${options.requireQualityGatePass}"
         logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         if (qualityGateResult == 'OK') {
-            steps.echo 'Quality gate passed.'
+            logger.info 'Quality gate passed.'
         } else if (qualityGateResult == 'ERROR') {
             if (options.requireQualityGatePass) {
                 steps.error 'Quality gate failed!'
             } else {
-                steps.echo 'Quality gate failed, but continuing anyway.'
+                logger.info 'Quality gate failed, but continuing anyway.'
             }
         } else if (qualityGateResult == 'UNKNOWN') {
             if (options.requireQualityGatePass) {
                 steps.error 'Quality gate unknown!'
             } else {
-                steps.echo 'Quality gate unknown, but continuing anyway.'
+                logger.info 'Quality gate unknown, but continuing anyway.'
             }
         }
     }
