@@ -285,7 +285,17 @@ class ScanWithSonarStage extends Stage {
             includes: 'artifacts/sonarqube-report-*'
         )
 
-        context.addArtifactURI('sonarqube-report', targetReport)
+        // Upload the generated PDF to Nexus immediately so it is available
+        // regardless of workspace or node changes later in the pipeline.
+        try {
+            def pdfFile = new File("${steps.env.WORKSPACE}/artifacts/${targetReport}")
+            URI nexusUri = generateAndArchiveReportInNexus(pdfFile,
+                context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
+            context.addArtifactURI('sonarqube-report', targetReport)
+        } catch (e) {
+            logger.info "Failed to upload SonarQube report to Nexus in generation stage: ${e}. Will attempt later."
+            context.addArtifactURI('sonarqube-report', targetReport)
+        }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -386,10 +396,11 @@ class ScanWithSonarStage extends Stage {
 
     private URI generateAndArchiveReportInNexus(File pdfReport, nexusRepository) {
 
+        logger.info "Preparing to upload SonarQube report (size: ${pdfReport.length()} bytes) to Nexus"
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
-                "${context.buildTime.format('YYYY-MM-dd_HH-mm-ss')}_${context.buildNumber}/sonarQube",
+                "${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}_${context.buildNumber}/sonarQube",
             "report.pdf",
             pdfReport.bytes,
             "application/pdf")
