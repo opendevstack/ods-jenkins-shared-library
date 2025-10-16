@@ -293,7 +293,7 @@ class ScanWithSonarStage extends Stage {
             
             logger.info "Read SonarQube report from ${reportPath} (size: ${pdfBytes.length} bytes)"
             
-            URI nexusUri = uploadReportToNexus(pdfBytes, targetReport,
+            URI nexusUri = generateAndArchiveReportInNexus(pdfBytes, targetReport,
                 context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
             createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), projectKey,
                 sonarQubeEdition, sonarBranch)
