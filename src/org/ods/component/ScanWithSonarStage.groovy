@@ -202,8 +202,8 @@ class ScanWithSonarStage extends Stage {
 
         // URI reportUriNexus = generateAndArchiveReportInNexus(reportFile,
         //     context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-        createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
-            context.sonarQubeEdition, context.gitBranch)
+        // createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
+        //     context.sonarQubeEdition, context.gitBranch)
     }
 
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
@@ -284,17 +284,21 @@ class ScanWithSonarStage extends Stage {
             name: "${sonarqubeStashPath}",
             includes: "artifacts/sonarqube-report-*"
         )
+        context.addArtifactURI('sonarqube-report', targetReport)
 
-        // Upload the generated PDF to Nexus immediately so it is available
-        // regardless of workspace or node changes later in the pipeline.
         try {
-            def pdfFile = new File("${steps.env.WORKSPACE}/artifacts/${targetReport}")
-            URI nexusUri = generateAndArchiveReportInNexus(pdfFile,
+            def reportPath = "artifacts/${targetReport}"
+            def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
+            byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
+            
+            logger.info "Read SonarQube report from ${reportPath} (size: ${pdfBytes.length} bytes)"
+            
+            URI nexusUri = uploadReportToNexus(pdfBytes, targetReport,
                 context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-            context.addArtifactURI('sonarqube-report', targetReport)
+            createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), projectKey,
+                sonarQubeEdition, sonarBranch)
         } catch (e) {
-            logger.info "Failed to upload SonarQube report to Nexus in generation stage: ${e}. Will attempt later."
-            context.addArtifactURI('sonarqube-report', targetReport)
+            logger.info "Failed to upload SonarQube report to Nexus in generation stage: ${e}."
         }
     }
 
@@ -394,15 +398,15 @@ class ScanWithSonarStage extends Stage {
         return file
     }
 
-    private URI generateAndArchiveReportInNexus(File pdfReport, nexusRepository) {
+    private URI generateAndArchiveReportInNexus(byte[] pdfBytes, String reportName, nexusRepository) {
 
-        logger.info "Preparing to upload SonarQube report (size: ${pdfReport.length()} bytes) to Nexus"
+        logger.info "Preparing to upload SonarQube report ${reportName} (size: ${pdfBytes.length} bytes) to Nexus"
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
                 "${context.buildTime.format('yyyy-MM-dd_HH-mm-ss')}_${context.buildNumber}/sonarQube",
             "report.pdf",
-            pdfReport.bytes,
+            pdfBytes,
             "application/pdf")
 
         logger.info "Report stored in: ${report}"
