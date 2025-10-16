@@ -366,12 +366,14 @@ class ScanWithSonarStage extends Stage {
 
     private URI generateAndArchiveReportInNexus(File pdfReport, nexusRepository) {
         
+        // read file content as bytes because NexusService.storeArtifact expects a byte[] for the artifact payload
+        byte[] payload = pdfReport.bytes
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
                 "${context.buildTime.format('YYYY-MM-dd_HH-mm-ss')}_${context.buildNumber}/sonarQube",
             "report.pdf",
-            pdfReport, "application/pdf")
+            payload, "application/pdf")
 
         logger.info "Report stored in: ${report}"
 
