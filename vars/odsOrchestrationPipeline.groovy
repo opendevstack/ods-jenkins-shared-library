@@ -98,7 +98,9 @@ def call(Map config) {
             uploadResourcesToNexus(steps, project, logger)
         }
     } catch (Exception e) {
-        uploadResourcesToNexus(steps, project, logger)
+        node('master') {
+            uploadResourcesToNexus(steps, project, logger)
+        }
     } finally {
         logger.resetStopwatch()
         project.clear()
