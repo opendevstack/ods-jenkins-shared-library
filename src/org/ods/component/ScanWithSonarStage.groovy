@@ -178,30 +178,30 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
-        // Prefer to use the already-created artifact file in the workspace if present
-        def artifactName = context.getBuildArtifactURIs().get('sonarqube-report')
-        if (!artifactName) {
-            logger.info "No 'sonarqube-report' artifact URI found in context. Falling back to default artifact name."
-            artifactName = "sonarqube-report-${sonarProjectKey}.pdf"
-        } else {
-            logger.info "Configured sonarqube-report artifact: ${artifactName}"
-        }
-        def candidatePath = "${this.steps.env.WORKSPACE}/artifacts/${artifactName}"
-        logger.info "Looking for SonarQube report at: ${candidatePath}"
-        File reportFile = new File(candidatePath)
-        if (reportFile.exists()) {
-            logger.info "Found SonarQube report in workspace: ${reportFile.absolutePath}"
-        } else {
-            // If the artifact is not present on disk (e.g. different node), fall back to
-            // the previous behaviour which reads the report via steps.readFile and
-            // writes it to a temporary file in the workspace.
-            logger.info "SonarQube report not found in workspace. Falling back to reading artifact: artifacts/${artifactName}"
-            reportFile = generateTempFileFromReport("artifacts/${artifactName}")
-            logger.info "Temporary SonarQube report created at: ${reportFile.absolutePath}"
-        }
+        // // Prefer to use the already-created artifact file in the workspace if present
+        // def artifactName = context.getBuildArtifactURIs().get('sonarqube-report')
+        // if (!artifactName) {
+        //     logger.info "No 'sonarqube-report' artifact URI found in context. Falling back to default artifact name."
+        //     artifactName = "sonarqube-report-${sonarProjectKey}.pdf"
+        // } else {
+        //     logger.info "Configured sonarqube-report artifact: ${artifactName}"
+        // }
+        // def candidatePath = "${this.steps.env.WORKSPACE}/artifacts/${artifactName}"
+        // logger.info "Looking for SonarQube report at: ${candidatePath}"
+        // File reportFile = new File(candidatePath)
+        // if (reportFile.exists()) {
+        //     logger.info "Found SonarQube report in workspace: ${reportFile.absolutePath}"
+        // } else {
+        //     // If the artifact is not present on disk (e.g. different node), fall back to
+        //     // the previous behaviour which reads the report via steps.readFile and
+        //     // writes it to a temporary file in the workspace.
+        //     logger.info "SonarQube report not found in workspace. Falling back to reading artifact: artifacts/${artifactName}"
+        //     reportFile = generateTempFileFromReport("artifacts/${artifactName}")
+        //     logger.info "Temporary SonarQube report created at: ${reportFile.absolutePath}"
+        // }
 
-        URI reportUriNexus = generateAndArchiveReportInNexus(reportFile,
-            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
+        // URI reportUriNexus = generateAndArchiveReportInNexus(reportFile,
+        //     context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
         createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
             context.sonarQubeEdition, context.gitBranch)
     }
