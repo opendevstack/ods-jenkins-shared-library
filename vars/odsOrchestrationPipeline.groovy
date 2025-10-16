@@ -55,8 +55,8 @@ def call(Map config) {
 
     logger.startClocked('orchestration-master-node')
 
-    try {
-        node('master') {
+    node('master') {
+        try {
             logger.debugClocked('orchestration-master-node')
             cleanWorkspace(logger)
 
@@ -96,61 +96,59 @@ def call(Map config) {
                 }
             }
             uploadResourcesToNexus(steps, project, logger)
-        }
-    } catch (Exception e) {
-        node('master') {
+        } catch (Exception e) {
+            logger.debug("Exception catched in the pipeline execution, try to upload the resources generated to nexus")
             uploadResourcesToNexus(steps, project, logger)
         }
-    } finally {
-        logger.resetStopwatch()
-        project.clear()
-        ServiceRegistry.removeInstance()
-        UnirestConfig.shutdown()
-        project = null
-        git = null
-        repos = null
-        steps = null
+    }
+    
+    logger.resetStopwatch()
+    project.clear()
+    ServiceRegistry.removeInstance()
+    UnirestConfig.shutdown()
+    project = null
+    git = null
+    repos = null
+    steps = null
 
-        try {
-            new ClassLoaderCleaner().clean(logger, processId)
-            // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
-            logger.debug("forceClean via jenkins internals....")
-            // Force cleanup of the heap to release memory
-            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
-            cleanupHeap.setAccessible(true)
-            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
-        } catch (Exception e) {
-            logger.debug("cleanupHeap err: ${e}")
-        }
+    try {
+        new ClassLoaderCleaner().clean(logger, processId)
+        // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
+        logger.debug("forceClean via jenkins internals....")
+        // Force cleanup of the heap to release memory
+        Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+        cleanupHeap.setAccessible(true)
+        cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+    } catch (Exception e) {
+        logger.debug("cleanupHeap err: ${e}")
     }
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
-    node('master') {
-        NexusService nexusService = getNexusService(ServiceRegistry.instance)
-        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+    NexusService nexusService = getNexusService(ServiceRegistry.instance)
+    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+    logger.warn("uploadTestReportToNexus - testDir: ${testDir}")
 
-        if (!steps.fileExists(testDir)) {
-            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
-            return
-        }
-
-        def now = new Date()
-        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
-        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
-        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
-        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-
-        nexusService.storeArtifact(
-            "leva-documentation",
-            directory,
-            name,
-            Files.readAllBytes(zipFile),
-            "application/zip"
-        )
-        logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
+    if (!steps.fileExists(testDir)) {
+        logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+        return
     }
+
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+    def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+    Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+
+    nexusService.storeArtifact(
+        "leva-documentation",
+        directory,
+        name,
+        Files.readAllBytes(zipFile),
+        "application/zip"
+    )
+    logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
 }
 
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
@@ -266,11 +264,15 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 
 private void uploadResourcesToNexus(IPipelineSteps steps, Project project, ILogger logger) {
     try {
-        // upload resources to nexus
         uploadTestReportToNexus(steps, project, logger)
+    } catch (Exception e) {
+        logger.error("Error during upload of test report : ${e.message}")
+    }
+
+    try {
         uploadJenkinsLogToNexus(steps, project, logger)
     } catch (Exception e) {
-        logger.error("Error during upload of test report or Jenkins log: ${e.message}")
+        logger.error("Error during upload of Jenkins log: ${e.message}")
     }
 }
 
