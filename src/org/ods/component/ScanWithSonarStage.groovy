@@ -282,7 +282,7 @@ class ScanWithSonarStage extends Stage {
 
         steps.stash(
             name: "${sonarqubeStashPath}",
-            includes: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*"
+            includes: "artifacts/sonarqube-report-*"
         )
 
         // Upload the generated PDF to Nexus immediately so it is available
