@@ -101,7 +101,7 @@ def call(Map config) {
             uploadResourcesToNexus(steps, project, logger)
         }
     }
-    
+
     logger.resetStopwatch()
     project.clear()
     ServiceRegistry.removeInstance()
