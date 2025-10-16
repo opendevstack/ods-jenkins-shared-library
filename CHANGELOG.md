@@ -10,6 +10,9 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.10.2] - 2025-10-16
+### Fixed
 * Fix in the orchestration pipeline that occurred pushing test evidences to nexus ([#1242](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1242))
 
 ## [4.10.1] - 2025-10-14
