@@ -175,7 +175,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
         text.getBytes(StandardCharsets.UTF_8),
         "application/text"
     )
-    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repo-name}/${directory}")
+    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repo}/${directory}")
 }
 
 private String getStartAgent(String startAgentStage, result) {
