@@ -364,10 +364,8 @@ class ScanWithSonarStage extends Stage {
         return file
     }
 
-    private URI generateAndArchiveReportInNexus(File reportMd, nexusRepository) {
-        // Generate the PDF from temp markdown file
-        def pdfReport = new PDFUtil().convertFromMarkdown(reportMd, true)
-
+    private URI generateAndArchiveReportInNexus(File pdfReport, nexusRepository) {
+        
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
