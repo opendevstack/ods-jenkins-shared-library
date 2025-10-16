@@ -178,8 +178,24 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
-        def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('sonarqube-report'))
-        URI reportUriNexus = generateAndArchiveReportInNexus(report,
+        // Prefer to use the already-created artifact file in the workspace if present
+        def artifactName = context.getBuildArtifactURIs().get('sonarqube-report')
+        File reportFile = null
+        if (artifactName) {
+            def candidatePath = "${this.steps.env.WORKSPACE}/artifacts/${artifactName}"
+            reportFile = new File(candidatePath)
+            if (!reportFile.exists()) {
+                // If the artifact is not present on disk (e.g. different node), fall back to
+                // the previous behaviour which reads the report via steps.readFile and
+                // writes it to a temporary file in the workspace.
+                reportFile = generateTempFileFromReport("artifacts/${artifactName}")
+            }
+        } else {
+            // No artifact name found in context; try to read the default path as a last resort
+            reportFile = generateTempFileFromReport("artifacts/sonarqube-report-${projectKey}.pdf")
+        }
+
+        URI reportUriNexus = generateAndArchiveReportInNexus(reportFile,
             context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
         createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
             context.sonarQubeEdition, context.gitBranch)
@@ -359,7 +375,7 @@ class ScanWithSonarStage extends Stage {
     @SuppressWarnings(['JavaIoPackageAccess', 'FileCreateTempFile'])
     private File generateTempFileFromReport(String report) {
         new File(this.steps.env.WORKSPACE.toString()).mkdirs()
-        File file = new File("${this.steps.env.WORKSPACE}/sonarReport.md")
+        File file = new File("${this.steps.env.WORKSPACE}/sonarReport.pdf")
         file.write(steps.readFile(file: report) as String)
         return file
     }
