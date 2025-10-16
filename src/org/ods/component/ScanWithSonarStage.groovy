@@ -274,7 +274,7 @@ class ScanWithSonarStage extends Stage {
             script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport}"
         )
         if (archive) {
-            steps.archiveArtifacts(artifacts: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*")
+            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
         }
 
         def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
