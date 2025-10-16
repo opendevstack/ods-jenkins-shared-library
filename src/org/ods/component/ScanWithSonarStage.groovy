@@ -178,7 +178,7 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
-        def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
+        def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('sonarqube-report'))
         URI reportUriNexus = generateAndArchiveReportInNexus(report,
             context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
         createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey,
