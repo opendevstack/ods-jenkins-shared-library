@@ -282,8 +282,7 @@ class ScanWithSonarStage extends Stage {
 
         steps.stash(
             name: "${sonarqubeStashPath}",
-            includes: 'artifacts/sonarqube-report-*',
-            allowEmpty: true
+            includes: 'artifacts/sonarqube-report-*'
         )
 
         context.addArtifactURI('sonarqube-report', targetReport)
