@@ -167,8 +167,6 @@ class ScanWithSonarStage extends Stage {
             privateToken
         )
 
-        logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
-
         // Upload report to Nexus and create Bitbucket code insight
         def targetReport = "sonarqube-report-${sonarProjectKey}.pdf"
         def reportPath = "artifacts/${targetReport}"
@@ -181,7 +179,8 @@ class ScanWithSonarStage extends Stage {
         createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), sonarProjectKey,
             context.sonarQubeEdition, sonarProperties['sonar.branch.name'].toString())
 
-        logger.info "SonarQube options.requireQualityGatePass: ${options.requireQualityGatePass}"
+        logger.info "SonarQube requireQualityGatePass option is set to: ${options.requireQualityGatePass}"
+        logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         if (qualityGateResult == 'OK') {
             steps.echo 'Quality gate passed.'
         } else if (qualityGateResult == 'ERROR') {
