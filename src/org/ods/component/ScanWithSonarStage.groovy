@@ -242,39 +242,30 @@ class ScanWithSonarStage extends Stage {
         String sonarQubeEdition,
         boolean archive,
         String privateToken) {
-        def targetReport = "SCRR-${projectKey}.docx"
-        def targetReportMd = "SCRR-${projectKey}.md"
+        def targetReport = "sonarqube-report-${projectKey}.pdf"
         sonarQube.generateReport(projectKey, privateToken)
         steps.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts'
         )
         steps.sh(
-            label: 'Move report to artifacts dir',
-            script: 'mv *-analysis-report.docx* artifacts/; mv *-analysis-report.md* artifacts/'
-        )
-        steps.sh(
-            label: 'Rename report to SCRR',
-            script: """
-            mv artifacts/*-analysis-report.docx* artifacts/${targetReport};
-            mv artifacts/*-analysis-report.md* artifacts/${targetReportMd}
-            """
+            label: 'Move and rename report to artifacts dir',
+            script: "mv sonarqube-report.pdf artifacts/${targetReport}"
         )
         if (archive) {
-            steps.archiveArtifacts(artifacts: 'artifacts/SCRR*')
+            steps.archiveArtifacts(artifacts: 'artifacts/sonarqube-report-*')
         }
 
-        def sonarqubeStashPath = "scrr-report-${context.componentId}-${context.buildNumber}"
+        def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
 
         steps.stash(
             name: "${sonarqubeStashPath}",
-            includes: 'artifacts/SCRR*',
+            includes: 'artifacts/sonarqube-report-*',
             allowEmpty: true
         )
 
-        context.addArtifactURI('SCRR', targetReport)
-        context.addArtifactURI('SCRR-MD', targetReportMd)
+        context.addArtifactURI('sonarqube-report', targetReport)
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
