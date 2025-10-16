@@ -381,8 +381,8 @@ class ScanWithSonarStage extends Stage {
     }
 
     private URI generateAndArchiveReportInNexus(File pdfReport, nexusRepository) {
-        
-        byte[] payload = PDFUtil.toByteArray(pdfReport)
+
+        byte[] payload = pdfReport.bytes
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
             "${context.projectId}/${this.options.resourceName}/" +
