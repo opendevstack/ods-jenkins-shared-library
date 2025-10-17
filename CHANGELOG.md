@@ -8,6 +8,7 @@
 
 ### Changed
  * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
+ * Switch SonarQube report tool ([#1244]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1244)
 
 
 ### Fixed
