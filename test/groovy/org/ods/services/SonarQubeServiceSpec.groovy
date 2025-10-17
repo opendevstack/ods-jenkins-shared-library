@@ -113,7 +113,7 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
     }
 
-    def "generateCNESReport calls script.sh with correct params and uses correct token"() {
+    def "generateReport calls script.sh with correct params and uses correct token"() {
         given:
         def steps = GroovyMock(util.PipelineSteps)
         steps.withSonarQubeEnv(_, _) >> { String env, Closure block -> block() }
@@ -121,16 +121,26 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         steps.getSONAR_AUTH_TOKEN() >> 'public-token'
         steps.sh(_) >> null
         def logger = Mock(org.ods.util.ILogger)
-        logger.shellScriptDebugFlag >> "set -x"
+        logger.shellScriptDebugFlag >> ""
         def service = new SonarQubeService(steps, logger, "env")
 
         when:
-        service.generateCNESReport("projectKey", "author", "branch", "developer", "my-private-token")
-        service.generateCNESReport("projectKey", "author", "branch", "developer", "")
+        service.generateReport("projectKey", "my-private-token")
+        service.generateReport("projectKey", "")
 
         then:
-        1 * steps.sh(label: 'Generate CNES Report', script: { it.contains("java -jar /usr/local/cnes/cnesreport.jar") && it.contains("-s") && it.contains("-t my-private-token") && it.contains("-p projectKey") && it.contains("-a author") && it.contains("-b branch") })
-        1 * steps.sh(label: 'Generate CNES Report', script: { it.contains("java -jar /usr/local/cnes/cnesreport.jar") && it.contains("-s") && it.contains("-t public-token") && it.contains("-p projectKey") && it.contains("-a author") && it.contains("-b branch") })
+        1 * steps.sh(label: 'Generate Sonar Report', script: { 
+            it.contains("java -jar /usr/local/sonar/sonar-report.jar") && 
+            it.contains("https://sonarqube.example.com") &&
+            it.contains("my-private-token") && 
+            it.contains("projectKey") 
+        })
+        1 * steps.sh(label: 'Generate Sonar Report', script: { 
+            it.contains("java -jar /usr/local/sonar/sonar-report.jar") && 
+            it.contains("https://sonarqube.example.com") &&
+            it.contains("public-token") && 
+            it.contains("projectKey") 
+        })
     }
 
     def "getQualityGateJSON calls script.sh with correct params and uses correct token"() {
