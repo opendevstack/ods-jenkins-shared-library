@@ -2,7 +2,6 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.orchestration.util.PDFUtil
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
@@ -149,13 +148,16 @@ class ScanWithSonarStage extends Stage {
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
         retryComputeEngineStatusCheck(privateToken)
 
+        def targetReport = "sonarqube-report-${sonarProjectKey}.pdf"
+
         generateAndArchiveReports(
             sonarProjectKey,
             context.buildTag,
             sonarProperties['sonar.branch.name'].toString(),
             context.sonarQubeEdition,
             !context.triggeredByOrchestrationPipeline,
-            privateToken
+            privateToken,
+            targetReport
         )
 
         // We need always the QG to put in insight report in Bitbucket
@@ -165,39 +167,58 @@ class ScanWithSonarStage extends Stage {
             context.gitBranch,
             pullRequestInfo ? pullRequestInfo.bitbucketPullRequestKey.toString() : null,
             privateToken
-        )
+        ).toUpperCase()
 
         // Upload report to Nexus and create Bitbucket code insight
-        def targetReport = "sonarqube-report-${sonarProjectKey}.pdf"
-        def reportPath = "artifacts/${targetReport}"
-        def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
-        byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
-        
-        URI nexusUri = generateAndArchiveReportInNexus(pdfBytes, targetReport,
+        URI nexusUri = generateAndArchiveReportInNexus(targetReport,
             context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
-        
         createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), sonarProjectKey,
             context.sonarQubeEdition, sonarProperties['sonar.branch.name'].toString())
 
-        logger.info "SonarQube requireQualityGatePass option is set to: ${options.requireQualityGatePass}"
-        logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
-        if (qualityGateResult == 'OK') {
-            logger.info 'Quality gate passed.'
-        } else if (qualityGateResult == 'ERROR') {
-            if (options.requireQualityGatePass) {
-                steps.error 'Quality gate failed!'
-            } else {
-                logger.info 'Quality gate failed, but continuing anyway.'
-            }
-        } else if (qualityGateResult == 'UNKNOWN') {
-            if (options.requireQualityGatePass) {
-                steps.error 'Quality gate unknown!'
-            } else {
-                logger.info 'Quality gate unknown, but continuing anyway.'
-            }
+        // Possible values for qualityGateResult are 'OK', 'WARN', 'ERROR', and 'NONE'.
+        // The NONE status is returned when there is no quality gate associated with the analysis.
+        switch (qualityGateResult) {
+            case 'OK':
+                logger.info "Quality gate passed with value ${qualityGateResult}."
+                break
+            case 'WARN':
+                logger.info(
+                    "Quality gate passed with value ${qualityGateResult}, " +
+                    "but there are conditions that triggered a warning."
+                )
+                break
+            case 'ERROR':
+                if (options.requireQualityGatePass) {
+                    steps.error "Quality gate failed with value '${qualityGateResult}'! Pipeline will be stopped."
+                } else {
+                    logger.info(
+                        "Quality gate failed with value ${qualityGateResult}, " +
+                        "but continuing due to not requiring quality gate pass."
+                    )
+                }
+                break
+            case 'NONE':
+                if (options.requireQualityGatePass) {
+                    steps.error "No quality gate was applied for this analysis! Pipeline will be stopped."
+                }
+                 else {
+                    logger.info(
+                        "No quality gate was applied for this analysis, " +
+                        "but continuing due to not requiring quality gate pass."
+                    )
+                }
+                break
+            default:
+                if (options.requireQualityGatePass) {
+                    steps.error "Quality gate is unknown! Value: '${qualityGateResult}'. Pipeline will be stopped."
+                } else {
+                    logger.info(
+                        "Quality gate is unknown, its value ${qualityGateResult}, " +
+                        "but continuing due to not requiring quality gate pass."
+                    )
+                }
+                break
         }
-    }
-
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
             sonarQube.scan([
@@ -254,8 +275,8 @@ class ScanWithSonarStage extends Stage {
         String sonarBranch,
         String sonarQubeEdition,
         boolean archive,
-        String privateToken) {
-        def targetReport = "sonarqube-report-${projectKey}.pdf"
+        String privateToken,
+        String targetReport) {
         sonarQube.generateReport(projectKey, privateToken)
         steps.sh(
             label: 'Create artifacts dir',
@@ -323,13 +344,13 @@ class ScanWithSonarStage extends Stage {
             } else if (computeEngineTaskResult == 'SUCCESS') {
                 logger.info "SonarQube background task has finished successfully."
                 break
-                } else if (computeEngineTaskResult == 'FAILED') {
+            } else if (computeEngineTaskResult == 'FAILED') {
                 logger.info "SonarQube background task has failed!"
                 steps.error 'SonarQube Scanner stage has ended with errors'
-                } else {
+            } else {
                 logger.info "Unknown status for the background task"
                 steps.error 'SonarQube Scanner stage has ended with errors'
-                }
+            }
         }
     }
 
@@ -375,7 +396,11 @@ class ScanWithSonarStage extends Stage {
         return file
     }
 
-    private URI generateAndArchiveReportInNexus(byte[] pdfBytes, String reportName, nexusRepository) {
+    private URI generateAndArchiveReportInNexus(String targetReport, nexusRepository) {
+
+        def reportPath = "artifacts/${targetReport}"
+        def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
+        byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
 
         URI report = nexus.storeArtifact(
             "${nexusRepository}",
