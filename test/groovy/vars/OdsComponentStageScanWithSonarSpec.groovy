@@ -180,9 +180,11 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     where:
     projectStatus                      | projectStatusKey || expectedToFail | message
-    """{"projectStatus": "ERROR"}"""   | 'ERROR'          || true           | 'Quality gate failed'
-    """{"projectStatus": "SUCCESS"}""" | 'SUCCESS'        || false          | 'Quality gate passed'
-    """{}"""                           | ''               || true           | 'Quality gate unknown'
+    """{"status": "ERROR"}"""          | 'ERROR'          || true           | 'Quality gate failed'
+    """{"status": "OK"}"""             | 'OK'             || false          | 'Quality gate passed'
+    """{"status": "WARN"}"""           | 'WARN'           || false          | 'Quality gate passed'
+    """{"status": "NONE"}"""           | 'NONE'           || true           | 'No quality gate was applied'
+    """{}"""                           | 'UNKNOWN'        || true           | 'Quality gate is unknown'
   }
 
   def "skip branch should not be scanned"() {

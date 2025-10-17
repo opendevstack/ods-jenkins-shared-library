@@ -1,6 +1,7 @@
 package org.ods.util
 
 class CommentRemover {
+
     /**
      * Removes all commented code from the given string.
      * Handles // single-line, /* block , and multi-line comments.
