@@ -152,9 +152,6 @@ class ScanWithSonarStage extends Stage {
 
         generateAndArchiveReports(
             sonarProjectKey,
-            context.buildTag,
-            sonarProperties['sonar.branch.name'].toString(),
-            context.sonarQubeEdition,
             !context.triggeredByOrchestrationPipeline,
             privateToken,
             targetReport
@@ -219,6 +216,7 @@ class ScanWithSonarStage extends Stage {
                 }
                 break
         }
+    }
     private void scan(Map sonarProperties, Map<String, Object> pullRequestInfo, String privateToken) {
         def doScan = { Map<String, Object> prInfo ->
             sonarQube.scan([
@@ -227,7 +225,7 @@ class ScanWithSonarStage extends Stage {
                 pullRequestInfo: prInfo,
                 sonarQubeEdition: context.sonarQubeEdition,
                 exclusions: exclusions,
-                privateToken: privateToken
+                privateToken: privateToken,
             ])
         }
         if (pullRequestInfo) {
@@ -271,9 +269,6 @@ class ScanWithSonarStage extends Stage {
 
     private generateAndArchiveReports(
         String projectKey,
-        String author,
-        String sonarBranch,
-        String sonarQubeEdition,
         boolean archive,
         String privateToken,
         String targetReport) {
@@ -388,16 +383,7 @@ class ScanWithSonarStage extends Stage {
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
-    @SuppressWarnings(['JavaIoPackageAccess', 'FileCreateTempFile'])
-    private File generateTempFileFromReport(String report) {
-        new File(this.steps.env.WORKSPACE.toString()).mkdirs()
-        File file = new File("${this.steps.env.WORKSPACE}/sonarReport.pdf")
-        file.write(steps.readFile(file: report) as String)
-        return file
-    }
-
     private URI generateAndArchiveReportInNexus(String targetReport, nexusRepository) {
-
         def reportPath = "artifacts/${targetReport}"
         def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
         byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
