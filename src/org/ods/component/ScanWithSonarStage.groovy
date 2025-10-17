@@ -152,7 +152,6 @@ class ScanWithSonarStage extends Stage {
 
         generateAndArchiveReports(
             sonarProjectKey,
-            !context.triggeredByOrchestrationPipeline,
             privateToken,
             targetReport
         )
@@ -269,7 +268,6 @@ class ScanWithSonarStage extends Stage {
 
     private generateAndArchiveReports(
         String projectKey,
-        boolean archive,
         String privateToken,
         String targetReport) {
         sonarQube.generateReport(projectKey, privateToken)
@@ -281,9 +279,7 @@ class ScanWithSonarStage extends Stage {
             label: 'Move and rename report to artifacts dir',
             script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport}"
         )
-        if (archive) {
-            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
-        }
+        steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
 
         def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
