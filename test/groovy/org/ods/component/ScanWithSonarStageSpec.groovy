@@ -65,32 +65,28 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         return stage
     }
 
-    def "generate temp file from report file"() {
+    def "generateAndArchiveReportInNexus stores artifact in Nexus"() {
         given:
         def tempFolderPath = tempFolder.getRoot().absolutePath
         def stage = createStage(tempFolderPath)
+        def targetReport = "sonarqube-report-prj1-component1.pdf"
+        
+        // Create a mock PDF file in artifacts directory
+        def artifactsDir = new File(tempFolderPath, "artifacts")
+        artifactsDir.mkdirs()
+        def reportFile = new File(artifactsDir, targetReport)
+        reportFile.text = "mock pdf content"
+        
+        stage.script.readFile(_) >> "mock pdf content"
 
         when:
-        def file = stage.generateTempFileFromReport("report.md")
-
-        then:
-        assert file.exists()
-        assert file.text == ""
-    }
-
-    def "archive report in Nexus"() {
-        given:
-        def tempFolderPath = tempFolder.getRoot().absolutePath
-        def stage = createStage(tempFolderPath)
-        def file =  new FixtureHelper().getResource("Test.md")
-
-        when:
-        stage.generateAndArchiveReportInNexus(file, "leva-documentation")
+        def result = stage.generateAndArchiveReportInNexus(targetReport, "leva-documentation")
 
         then:
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.pdf", _, "application/pdf") >>
             new URI("http://nexus/repository/leva-documentation/prj1/component1/2023-01-01_12-30-45_56/sonarQube/report.pdf")
         1 * stage.logger.info(_)
+        result.toString().contains("nexus/repository/leva-documentation")
     }
 
     def "create Bitbucket Insight report - PASS"() {
