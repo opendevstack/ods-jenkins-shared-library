@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-
+* Documented that multiple replicas are not supported by the orchestration pipeline ([#1245]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1245)
 
 ### Changed
  * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
