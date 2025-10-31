@@ -108,13 +108,16 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         return rolloutData
     }
 
-    private void helmUpgrade(String targetProject) {
+    private void helmUpgrade(String targetProject) {        
         steps.dir(options.chartDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->
                 if (pkeyFile) {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
                 }
-
+                // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
+                if (options.helmValues['namespaceOverride']) {
+                    targetProject = options.helmValues['namespaceOverride']
+                }
                 // we add two things persistent - as these NEVER change (and are env independent)
                 options.helmValues['registry'] = context.clusterRegistryAddress
                 options.helmValues['componentId'] = context.componentId
