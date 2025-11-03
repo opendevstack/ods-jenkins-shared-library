@@ -89,12 +89,18 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     @Override
     Map<String, List<PodData>> deploy() {      
-        logger.info("Retagging images for ${context.targetProject} ") 
-        imageRepository.retagImages(context.targetProject, getBuiltImages(), options.imageTag, options.imageTag)
+        // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
+        def targetProject = context.targetProject
+        if (options.helmValues['namespaceOverride']) {
+            targetProject = options.helmValues['namespaceOverride']
+            logger.info("Override namespace deployment to ${targetProject} ") 
+        }
+        logger.info("Retagging images for ${targetProject} ")
+        imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
-        helmUpgrade(context.targetProject)
-        HelmStatus helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
+        helmUpgrade(targetProject)
+        HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
         if (logger.debugMode) {
             def helmStatusMap = helmStatus.toMap()
             logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
@@ -113,11 +119,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->
                 if (pkeyFile) {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
-                }
-                // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
-                if (options.helmValues['namespaceOverride']) {
-                    targetProject = options.helmValues['namespaceOverride']
-                }
+                }              
                 // we add two things persistent - as these NEVER change (and are env independent)
                 options.helmValues['registry'] = context.clusterRegistryAddress
                 options.helmValues['componentId'] = context.componentId
