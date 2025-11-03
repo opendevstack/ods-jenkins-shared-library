@@ -110,7 +110,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(helmStatus)
+        def rolloutData = getRolloutData(helmStatus, targetProject)
         return rolloutData
     }
 
@@ -170,7 +170,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
-        HelmStatus helmStatus
+        HelmStatus helmStatus, String targetProject
     ) {
         Map<String, List<PodData>> rolloutData = [:]
 
@@ -183,7 +183,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     [
                         type: 'helm',
                         selector: options.selector,
-                        namespace: context.targetProject,
+                        namespace: targetProject,
                         chartDir: options.chartDir,
                         helmReleaseName: options.helmReleaseName,
                         helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
@@ -195,14 +195,14 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     ]
                 )
                 def podDataContext = [
-                    "targetProject=${context.targetProject}",
+                    "targetProject=${targetProject}",
                     "selector=${options.selector}",
                     "name=${name}",
                 ]
                 def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
                 List<PodData> podData = null
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                    podData = openShift.checkForPodData(targetProject, options.selector, name)
                     if (podData) {
                         break
                     }
