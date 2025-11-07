@@ -156,6 +156,44 @@ class JiraUseCaseSpec extends SpecHelper {
         testIssues.find { it.key == "NET-140" }.bugs.contains("BUG-1")
     }
 
+    def "create bugs and block impacted test cases but failure without type"() {
+        given:
+        // Test Parameters
+        project.data.buildParams.changeId = '1.0'
+        def testIssues = createSockShopJiraTestIssues()
+        def failures = createSockShopTestResultFailuresWithoutType()
+        def comment = "myComment"
+
+        // Stubbed Method Responses
+        def bug = [
+            key   : "BUG-1",
+            fields: [
+                summary: "my-bug"
+            ]
+        ]
+
+        when:
+        usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
+
+        then:
+        1 * jira.createIssueTypeBug(project.jiraProjectKey, 'Failure/Error in test', failures.first().text, "1.0") >> bug
+
+        then:
+        1 * jira.createIssueLinkTypeBlocks(bug, {
+            // the Jira issue that shall be linked to the bug
+            it.key == "NET-140"
+        })
+
+        then:
+        1 * jira.appendCommentToIssue(bug.key, comment)
+
+        then:
+        // verify that bug gets created and registered on the correct test issue
+        project.data.jira.bugs.containsKey("BUG-1")
+        project.data.jiraResolved.bugs.containsKey("BUG-1")
+        testIssues.find { it.key == "NET-140" }.bugs.contains("BUG-1")
+    }
+
     def "get document chapter data"() {
         given:
         // Test Parameters
@@ -853,6 +891,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Failed",
             env: 'D',
+            startDateTimestamp: "1234567890",
         ])
 
         then:
@@ -884,6 +923,7 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Successful",
             env: 'D',
+            startDateTimestamp: "1234567890",
         ])
     }
 

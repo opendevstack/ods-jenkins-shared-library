@@ -4,13 +4,46 @@
 
 ### Added
 
-* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
 
 ### Changed
-
+ * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.10.2] - 2025-10-16
+### Fixed
+* Fix in the orchestration pipeline that occurred pushing test evidences to nexus ([#1242](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1242))
+
+## [4.10.1] - 2025-10-14
+### Changed
+* Set default value for cdUserCredentialsId ([#1240](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1240))
+
+## [4.10.0] - 2025-10-13
+### Added
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
+
+## [4.9.4] - 2025-10-07
+### Fixed
+* When calling external jira plugin, start date of the job is passed ([#1236](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
+
+## [4.9.3] - 2025-09-30
+### Fixed
+* Manage missing type in failures/errors in JUnit XML report ([#1233](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1233))
+
+
+## [4.9.2] - 2025-09-08
+### Fixed
+* Ignore links from predecessor issues since all links are now duplicated ([#1231](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1231))
+
+### Changed
+* Descriptive error message when a Risk is orphan ([#1230](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1230))
+
+
+## [4.9.1] - 2025-8-11
+### Fixed
+* Fix credentials id retrieval ([#1228](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1228))
+
 
 ## [4.9.0] - 2025-8-06
 ### Changed

@@ -163,8 +163,9 @@ class JiraUseCase {
 
         testFailures.each { failure ->
             String version = this.project.buildParams.changeId
+            def summary = failure.type ? failure.type : 'Failure/Error in test'
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, failure.type, failure.text, version)
+                this.project.jiraProjectKey, summary, failure.text, version)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -187,7 +188,7 @@ class JiraUseCase {
             // Create a JiraDataItem from the newly created bug
             def bugJiraDataItem = new JiraDataItem(project, [ // add project reference for access to Project.JiraDataItem
               key: bug.key,
-              name: failure.type,
+              name: summary,
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
@@ -417,6 +418,7 @@ class JiraUseCase {
             ],
             status: status,
             env: env,
+            startDateTimestamp: this.steps.currentBuild.startTimeInMillis,
         ]
 
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)

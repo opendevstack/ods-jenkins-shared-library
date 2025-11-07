@@ -16,7 +16,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.ClassLoaderCleaner
 import org.ods.util.Logger
 import org.ods.util.ILogger
-import org.ods.component.Context
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.UnirestConfig
@@ -56,8 +55,8 @@ def call(Map config) {
 
     logger.startClocked('orchestration-master-node')
 
-    try {
-        node('master') {
+    node('master') {
+        try {
             logger.debugClocked('orchestration-master-node')
             cleanWorkspace(logger)
 
@@ -96,60 +95,59 @@ def call(Map config) {
                     new FinalizeStage(this, project, repos).execute()
                 }
             }
-            uploadResourcesToNexus(config, steps, project, logger)
-        }
-    } catch (Exception e) {
-        uploadResourcesToNexus(config, steps, project, logger)
-    } finally {
-        logger.resetStopwatch()
-        project.clear()
-        ServiceRegistry.removeInstance()
-        UnirestConfig.shutdown()
-        project = null
-        git = null
-        repos = null
-        steps = null
-
-        try {
-            new ClassLoaderCleaner().clean(logger, processId)
-            // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
-            logger.debug("forceClean via jenkins internals....")
-            // Force cleanup of the heap to release memory
-            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
-            cleanupHeap.setAccessible(true)
-            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+            uploadResourcesToNexus(steps, project, logger)
         } catch (Exception e) {
-            logger.debug("cleanupHeap err: ${e}")
+            logger.error("Exception catched in the pipeline execution: ${e.message}")
+            uploadResourcesToNexus(steps, project, logger)
         }
+    }
+
+    logger.resetStopwatch()
+    project.clear()
+    ServiceRegistry.removeInstance()
+    UnirestConfig.shutdown()
+    project = null
+    git = null
+    repos = null
+    steps = null
+
+    try {
+        new ClassLoaderCleaner().clean(logger, processId)
+        // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
+        logger.debug("forceClean via jenkins internals....")
+        // Force cleanup of the heap to release memory
+        Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+        cleanupHeap.setAccessible(true)
+        cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+    } catch (Exception e) {
+        logger.debug("cleanupHeap err: ${e}")
     }
 }
 
 private void uploadTestReportToNexus(IPipelineSteps steps, Project project, Logger logger) {
-    node('master') {
-        NexusService nexusService = getNexusService(ServiceRegistry.instance)
-        def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
-        def testDir = "${this.env.WORKSPACE}/${xunitDir}"
+    NexusService nexusService = getNexusService(ServiceRegistry.instance)
+    def xunitDir = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}"
+    def testDir = "${this.env.WORKSPACE}/${xunitDir}"
 
-        if (!steps.fileExists(testDir)) {
-            logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
-            return
-        }
-
-        def now = new Date()
-        final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
-        def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
-        Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
-        def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
-
-        nexusService.storeArtifact(
-            "leva-documentation",
-            directory,
-            name,
-            Files.readAllBytes(zipFile),
-            "application/zip"
-        )
-        logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
+    if (!steps.fileExists(testDir)) {
+        logger.warn("uploadTestReportToNexus - No xUnit test reports found, skipping upload")
+        return
     }
+
+    def now = new Date()
+    final FORMATTED_DATE = now.format("yyyy-MM-dd_HH-mm-ss")
+    def name = "xunit-${project.buildParams.version}-${env.BUILD_NUMBER}-${FORMATTED_DATE}.zip"
+    Path zipFile = nexusService.buildXunitZipFile(steps, testDir, name)
+    def directory = "${project.key.toLowerCase()}-${project.buildParams.version}/xunit"
+
+    nexusService.storeArtifact(
+        "leva-documentation",
+        directory,
+        name,
+        Files.readAllBytes(zipFile),
+        "application/zip"
+    )
+    logger.debug("Uploaded Test Reports ${name} to Nexus repository leva-documentation/${directory} ")
 }
 
 private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) {
@@ -176,7 +174,7 @@ private void uploadJenkinsLogToNexus(def steps, Project project, Logger logger) 
         text.getBytes(StandardCharsets.UTF_8),
         "application/text"
     )
-    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repo-name}/${directory}")
+    logger.debug("Uploaded Jenkins logs ${name} to Nexus repository ${repoName}/${directory}")
 }
 
 private String getStartAgent(String startAgentStage, result) {
@@ -263,13 +261,17 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private void uploadResourcesToNexus(Map config, IPipelineSteps steps, Project project, ILogger logger) {
+private void uploadResourcesToNexus(IPipelineSteps steps, Project project, ILogger logger) {
     try {
-        // upload resources to nexus
         uploadTestReportToNexus(steps, project, logger)
+    } catch (Exception e) {
+        logger.error("Error during upload of test report : ${e.message}")
+    }
+
+    try {
         uploadJenkinsLogToNexus(steps, project, logger)
     } catch (Exception e) {
-        logger.error("Error during upload of test report or Jenkins log: ${e.message}")
+        logger.error("Error during upload of Jenkins log: ${e.message}")
     }
 }
 

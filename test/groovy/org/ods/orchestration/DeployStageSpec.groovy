@@ -141,7 +141,7 @@ class DeployStageSpec extends SpecHelper {
         1 * bitbucketService.getUrl() >> "https://bitbucket"
         1 * util.getInstallableRepos()
         1 * util.verifyEnvLoginAndExistence(*_)
-        0 * script.usernamePassword(['credentialsId':'testCredentials',
+        0 * script.usernamePassword(['credentialsId':'',
                                      'usernameVariable':'EXTERNAL_OCP_API_SA',
                                      'passwordVariable':'EXTERNAL_OCP_API_TOKEN'])
     }
@@ -169,8 +169,8 @@ class DeployStageSpec extends SpecHelper {
         openshiftService.envExists(project.targetProject) >> true
         util.prepareExecutePhaseForReposNamedJob(*_) >> []
         project.data.metadata.environments.prod = [
-            'apiUrl': 'external.api.com',
-            'credentialsId': 'testCredentials'
+            'openshiftClusterApiUrl': 'external.api.com',
+            'openshiftClusterCredentialsId': 'testCredentials'
         ]
         project.setOpenShiftData("test.api.url")
 
