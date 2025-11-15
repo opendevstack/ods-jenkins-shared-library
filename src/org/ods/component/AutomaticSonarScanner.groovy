@@ -1,5 +1,6 @@
 package org.ods.component
 
+import org.ods.services.IScmService
 import org.ods.services.SonarQubeService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
@@ -11,10 +12,10 @@ class AutomaticSonarScanner implements Serializable {
     private final def script
     private final def context
     private final Map config
-    private final def bitbucketService
+    private final IScmService bitbucketService
     private final ILogger logger
 
-    AutomaticSonarScanner(def script, def context, Map config, def bitbucketService, ILogger logger) {
+    AutomaticSonarScanner(def script, def context, Map config, IScmService bitbucketService, ILogger logger) {
         this.script = script
         this.context = context
         this.config = config

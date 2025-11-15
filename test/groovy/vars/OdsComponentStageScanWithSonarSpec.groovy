@@ -5,8 +5,9 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.component.Context
 import org.ods.component.IContext
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
@@ -19,7 +20,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         System.setProperty("java.awt.headless", "true")
         org.ods.component.ScanWithSonarStage.metaClass.generateAndArchiveReportInNexus = { Map args -> null }
     }
-    
+
     @Rule
     public TemporaryFolder tempFolder
 
@@ -49,9 +50,9 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         given:
         def c = config + [environment: 'dev']
         IContext context = new Context(null, c, logger)
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.findPullRequest(*_) >> [:]
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
         NexusService nexusService = Mock(NexusService.class)
         ServiceRegistry.instance.add(NexusService, nexusService)
         SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
@@ -66,6 +67,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
         script.env.WORKSPACE = tempFolder.getRoot().absolutePath
         script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
@@ -85,10 +87,10 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         given:
         def c = config + [environment: 'dev', gitBranch: 'feature/foo']
         IContext context = new Context(null, c, logger)
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
         bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
         NexusService nexusService = Mock(NexusService.class)
         ServiceRegistry.instance.add(NexusService, nexusService)
         SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
@@ -102,6 +104,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
         script.env.WORKSPACE = tempFolder.getRoot().absolutePath
         script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->""}
@@ -121,14 +124,15 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         given:
         def c = config + [environment: 'dev']
         IContext context = new Context(null, c, logger)
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
         NexusService nexusService = Mock(NexusService.class)
         ServiceRegistry.instance.add(NexusService, nexusService)
         SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
         ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
         def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
         script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
         // Mock sh to return config map with enabled=false
         helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"enabled": "false", "alertEmails": "test@example.com"}}' }
@@ -152,14 +156,15 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> """{"projectStatus": ${projectStatus}}"""
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-    BitbucketService bitbucketService = Stub(BitbucketService.class)
+    ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
     bitbucketService.createCodeInsightReport(*_) >> null
-    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+    ServiceRegistry.instance.add(IScmService, bitbucketService)
     NexusService nexusService = Mock(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     script.env.WORKSPACE = tempFolder.getRoot().absolutePath
+    script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
@@ -199,6 +204,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     NexusService nexusService = Stub(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
     helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, ['branch': 'master'])
 
@@ -222,6 +228,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     NexusService nexusService = Stub(NexusService.class)
     ServiceRegistry.instance.add(NexusService, nexusService)
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
     helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"sonar.host.url": "https://sonarqube.example.com"}}' }
     script.call(context, options)
 

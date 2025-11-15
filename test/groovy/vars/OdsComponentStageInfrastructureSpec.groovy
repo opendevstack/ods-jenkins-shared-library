@@ -2,12 +2,9 @@ package vars
 
 import org.ods.component.Context
 import org.ods.component.IContext
-import org.ods.component.InfrastructureStage
+import org.ods.services.IScmService
 import org.ods.services.InfrastructureService
-import org.ods.services.BitbucketService
-import org.ods.services.NexusService
-import org.ods.services.NexusServiceSpec
-import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import spock.lang.Shared
@@ -45,9 +42,9 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         infrastructureService.runMake(*_) >> 0
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         when:
         def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
@@ -75,9 +72,9 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         infrastructureService.runMake(*_) >> 0
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         when:
         def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
@@ -110,9 +107,9 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         infrastructureService.runMake(rule, *_) >> 1
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         when:
         def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
@@ -155,9 +152,9 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         infrastructureService.runMake(*_) >> 0
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         when:
         def script = loadScript('vars/odsComponentStageInfrastructure.groovy')

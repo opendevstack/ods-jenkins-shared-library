@@ -1,11 +1,12 @@
 package org.ods.component
 
 import groovy.json.JsonOutput
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.IScmService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.ServiceRegistry
 import org.ods.services.TailorDeploymentException
 import org.ods.util.GitCredentialStore
@@ -22,7 +23,7 @@ class Pipeline implements Serializable {
     private GitService gitService
     private OpenShiftService openShiftService
     private JenkinsService jenkinsService
-    private BitbucketService bitbucketService
+    private IScmService bitbucketService
 
     private final ILogger logger
     private final def script
@@ -128,17 +129,17 @@ class Pipeline implements Serializable {
                         }
                         this.gitService = registry.get(GitService)
 
-                        if (!registry.get(BitbucketService)) {
-                            logger.debug 'Registering BitbucketService'
-                            registry.add(BitbucketService, new BitbucketService(
-                                script,
-                                context.bitbucketUrl,
+                        if (!registry.get(IScmService)) {
+                            logger.debug 'Registering IScmService'
+                            registry.add(IScmService, ScmServiceFactory.newFromEnv(
+                                this,
+                                steps.env,
                                 context.projectId,
                                 context.credentialsId,
                                 logger
                             ))
                         }
-                        this.bitbucketService = registry.get(BitbucketService)
+                        this.bitbucketService = registry.get(IScmService)
 
                         if (!registry.get(OpenShiftService)) {
                             logger.debug 'Registering OpenShiftService'

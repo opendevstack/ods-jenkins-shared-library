@@ -1,13 +1,13 @@
 package org.ods.orchestration
 
 import org.ods.orchestration.util.ProjectMessagesUtil
+import org.ods.services.IScmService
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.DeploymentDescriptor
-import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
@@ -31,7 +31,7 @@ class FinalizeStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        def bitbucket = ServiceRegistry.instance.get(BitbucketService)
+        def bitbucket = ServiceRegistry.instance.get(IScmService)
         def git = ServiceRegistry.instance.get(GitService)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 

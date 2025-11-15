@@ -1,18 +1,14 @@
 package org.ods.orchestration.util
 
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.ServiceRegistry
 
-import java.nio.file.Files
 import java.nio.file.Paths
 
-import org.ods.orchestration.parser.JUnitParser
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-
-import spock.lang.*
 
 import static util.FixtureHelper.*
 
@@ -24,7 +20,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     IPipelineSteps steps
     MROPipelineUtil util
     GitService gitService
-    BitbucketService bitbucketService
+    ScmBitbucketService bitbucketService
     def logger
 
     def setup() {
@@ -32,8 +28,8 @@ class MROPipelineUtilSpec extends SpecHelper {
         steps = Spy(util.PipelineSteps)
         gitService = Mock(GitService)
         logger = Mock(Logger)
-        bitbucketService = Mock(BitbucketService)
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        bitbucketService = Mock(ScmBitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
         util = new MROPipelineUtil(project, steps, gitService, logger)
     }
 

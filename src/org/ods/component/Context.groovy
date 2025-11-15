@@ -3,10 +3,10 @@ package org.ods.component
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
@@ -80,7 +80,7 @@ class Context implements IContext {
         config.buildTime = new Date()
         config.dockerRegistry = script.env.DOCKER_REGISTRY
         config.openshiftHost = script.env.OPENSHIFT_API_URL
-        config << BitbucketService.readConfigFromEnv(script.env)
+        config << ScmBitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
         config.triggeredByOrchestrationPipeline = !!script.env.MULTI_REPO_BUILD
 

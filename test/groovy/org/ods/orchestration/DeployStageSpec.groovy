@@ -3,9 +3,10 @@ package org.ods.orchestration
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.IScmService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -24,7 +25,7 @@ class DeployStageSpec extends SpecHelper {
     MROPipelineUtil util
     ILogger logger
     GitService gitService
-    BitbucketService bitbucketService
+    ScmBitbucketService bitbucketService
 
     def setup() {
         script = Spy(new PipelineSteps() {
@@ -35,7 +36,7 @@ class DeployStageSpec extends SpecHelper {
         logger = new Logger(script, true)
         project = Spy(createProject())
         gitService = Mock(GitService)
-        bitbucketService = Mock(BitbucketService)
+        bitbucketService = Mock(ScmBitbucketService)
         util = Spy(new MROPipelineUtil(project, script, gitService, logger))
 
         createService()
@@ -52,7 +53,7 @@ class DeployStageSpec extends SpecHelper {
         registry.add(MROPipelineUtil, util)
         registry.add(Logger, logger)
         registry.add(GitService, gitService)
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
 
         return registry
     }

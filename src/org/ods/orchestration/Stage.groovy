@@ -1,12 +1,11 @@
 package org.ods.orchestration
 
 import com.cloudbees.groovy.cps.NonCPS
-
+import org.ods.services.IScmService
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 
@@ -180,7 +179,7 @@ class Stage {
     protected def runOnAgentPod(boolean condition, Closure block) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
-            def bitbucket = ServiceRegistry.instance.get(BitbucketService)
+            def bitbucket = ServiceRegistry.instance.get(IScmService)
             def git = ServiceRegistry.instance.get(GitService)
             logger.startClocked("${project.key}-${STAGE_NAME}-stash")
             script.dir(script.env.WORKSPACE) {

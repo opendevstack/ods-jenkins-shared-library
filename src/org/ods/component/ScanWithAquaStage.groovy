@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils
 import org.ods.orchestration.util.GitUtil
 import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
@@ -21,7 +21,7 @@ class ScanWithAquaStage extends Stage {
     static final String BITBUCKET_AQUA_REPORT_KEY = "ods.sec"
     static final Integer AQUA_DEFAULT_TIMEOUT = 300
     private final AquaService aqua
-    private final BitbucketService bitbucket
+    private final IScmService bitbucket
     private final OpenShiftService openShift
     private final NexusService nexus
     private final ScanWithAquaOptions options
@@ -30,7 +30,7 @@ class ScanWithAquaStage extends Stage {
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
-    ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, BitbucketService bitbucket,
+    ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, IScmService bitbucket,
                       OpenShiftService openShift, NexusService nexusService, ILogger logger,
                       Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
         super(script, context, logger)

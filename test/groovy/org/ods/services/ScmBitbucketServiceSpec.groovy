@@ -4,12 +4,12 @@ import org.ods.component.ScanWithAquaStage
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
-class BitbucketServiceSpec extends PipelineSpockTestBase {
+class ScmBitbucketServiceSpec extends PipelineSpockTestBase {
 
     def "find pull request"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -17,7 +17,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
 
-        def res = readResource(jsonFixture);
+        def res = readResource(jsonFixture)
         service.getPullRequests(*_) >> res
 
         when:
@@ -35,7 +35,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "find default reviewers"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -43,7 +43,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
 
-        def res = readResource(jsonFixture);
+        def res = readResource(jsonFixture)
         service.getDefaultReviewerConditions(*_) >> res
 
         when:
@@ -60,9 +60,9 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     def "check user token secret yml"() {
         expect:
-        BitbucketService.userTokenSecretYml("my-secret", username, password) == expected
+        ScmBitbucketService.userTokenSecretYml("my-secret", username, password) == expected
         where:
-        username | password | expected
+        username           | password        | expected
         "test@example.com" | "\$1 2 3\u00a3" | readResource('user-token-secret-1.yml')
 
     }
@@ -70,7 +70,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -78,23 +78,23 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
-            title: "Title",
-            link: "http://link-nexus",
+            key       : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title     : "Title",
+            link      : "http://link-nexus",
             otherLinks: [
                 [
                     title: "Report",
-                    text: "Result in Aqua",
-                    link: "http://link"
+                    text : "Result in Aqua",
+                    link : "http://link"
                 ],
                 [
                     title: "Report",
-                    text: "Result in Nexus",
-                    link: "http://link-nexus"
+                    text : "Result in Nexus",
+                    link : "http://link-nexus"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details   : "Details",
+            result    : "PASS"
         ]
 
         when:
@@ -102,8 +102,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
         then:
         // we change this as we are mocking the answers
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -125,7 +125,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report without Aqua Link"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -133,26 +133,26 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
-            title: "Title",
-            link: "http://link-nexus",
+            key       : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title     : "Title",
+            link      : "http://link-nexus",
             otherLinks: [
                 [
                     title: "Report",
-                    text: "Result in Nexus",
-                    link: "http://link-nexus"
+                    text : "Result in Nexus",
+                    link : "http://link-nexus"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details   : "Details",
+            result    : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -173,7 +173,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report without Nexus link"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -181,25 +181,25 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
-            title: "Title",
+            key       : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
+            title     : "Title",
             otherLinks: [
                 [
                     title: "Report",
-                    text: "Result in Aqua",
-                    link: "http://link"
+                    text : "Result in Aqua",
+                    link : "http://link"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details   : "Details",
+            result    : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -220,7 +220,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report without Nexus and Aqua link"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -228,18 +228,18 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
-            title: "Title",
+            key    : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_123456",
+            title  : "Title",
             details: "Details",
-            result: "PASS"
+            result : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -259,7 +259,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report with links and messages"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -267,37 +267,37 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
-            title: "Title",
-            link: "http://link-nexus",
+            key       : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title     : "Title",
+            link      : "http://link-nexus",
             otherLinks: [
                 [
                     title: "Report",
-                    text: "Result in Aqua",
-                    link: "http://link"
+                    text : "Result in Aqua",
+                    link : "http://link"
                 ],
                 [
                     title: "Report",
-                    text: "Result in Nexus",
-                    link: "http://link-nexus"
+                    text : "Result in Nexus",
+                    link : "http://link-nexus"
                 ]
             ],
-            messages: [
+            messages  : [
                 [
                     title: "Messages",
                     value: "Messages"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details   : "Details",
+            result    : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -320,7 +320,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "create code insight report with messages but without links"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -328,24 +328,24 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             new Logger(steps, false)
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
-            title: "Title",
+            key     : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title   : "Title",
             messages: [
                 [
                     title: "Messages",
                     value: "Messages"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details : "Details",
+            result  : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
-        1 * steps.sh(_)>> {
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
             assert it.label == ['Create Bitbucket Code Insight report via API']
             assert it.script.toString().contains('curl')
             assert it.script.toString().contains('--fail')
@@ -367,7 +367,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         given:
         def steps = Spy(util.PipelineSteps)
         def logger = Spy(new Logger(steps, false))
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -375,38 +375,38 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             logger
         ])
         def data = [
-            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
-            title: "Title",
-            link: "http://link-nexus",
+            key       : ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY + "_12345",
+            title     : "Title",
+            link      : "http://link-nexus",
             otherLinks: [
                 [
                     title: "Report",
-                    text: "Result in Aqua",
-                    link: "http://link"
+                    text : "Result in Aqua",
+                    link : "http://link"
                 ],
                 [
                     title: "Report",
-                    text: "Result in Nexus",
-                    link: "http://link-nexus"
+                    text : "Result in Nexus",
+                    link : "http://link-nexus"
                 ]
             ],
-            messages: [
+            messages  : [
                 [
                     title: "Messages",
                     value: "Messages"
                 ]
             ],
-            details: "Details",
-            result: "PASS"
+            details   : "Details",
+            result    : "PASS"
         ]
 
         when:
         service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
         1 * steps.sh(_) >> {
-            throw new Exception ("Error with curl")
+            throw new Exception("Error with curl")
         }
         1 * logger.warn("Could not create Bitbucket Code Insight report due to: java.lang.Exception: Error with curl")
     }
@@ -414,7 +414,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     def "get default branch"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(BitbucketService, constructorArgs: [
+        def service = Spy(ScmBitbucketService, constructorArgs: [
             steps,
             'https://bitbucket.example.com',
             'FOO',
@@ -426,7 +426,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         service.getDefaultBranch("repo-name")
 
         then:
-        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        2 * steps.getEnv() >> ['USERNAME': 'user', 'TOKEN': 'tokenvalue']
         1 * steps.sh(_) >> {
             assert it.label == ['Get bitbucket repo default branch via API']
             assert it.script.toString().contains('curl')
@@ -437,7 +437,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--header "Authorization: Bearer $TOKEN"')
             // Avoid timestamp of creation
             assert it.script.toString().contains('https://bitbucket.example.com/rest/api/1.0/' +
-                'projects/FOO/repos/FOO-repo-name/branches/default' )
+                'projects/FOO/repos/FOO-repo-name/branches/default')
             return "{\n" +
                 "    \"id\": \"refs/heads/develop\",\n" +
                 "    \"displayId\": \"develop\",\n" +
@@ -450,8 +450,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
     }
 
     protected String readResource(String name) {
-        def classLoader = getClass().getClassLoader();
-        def file = new File(classLoader.getResource(name).getFile());
+        def classLoader = getClass().getClassLoader()
+        def file = new File(classLoader.getResource(name).getFile())
         file.text
     }
 }

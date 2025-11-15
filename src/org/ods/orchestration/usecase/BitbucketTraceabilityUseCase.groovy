@@ -3,7 +3,7 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.util.IPipelineSteps
 
 import java.text.SimpleDateFormat
@@ -16,11 +16,11 @@ class BitbucketTraceabilityUseCase {
         '@': '@\u200B',
     ]
 
-    private final BitbucketService bitbucketService
+    private final IScmService bitbucketService
     private final IPipelineSteps steps
     private final Project project
 
-    BitbucketTraceabilityUseCase(BitbucketService bitbucketService, IPipelineSteps steps, Project project) {
+    BitbucketTraceabilityUseCase(IScmService bitbucketService, IPipelineSteps steps, Project project) {
         this.steps = steps
         this.project = project
         this.bitbucketService = bitbucketService

@@ -18,11 +18,12 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.Project
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.IScmService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.ServiceRegistry
 import org.ods.util.GitCredentialStore
 import org.ods.util.Logger
@@ -76,7 +77,7 @@ class InitStage extends Stage {
         }
 
         logger.debug 'Checkout repositories into the workspace'
-        BitbucketService bitbucket = registry.get(BitbucketService)
+        IScmService bitbucket = registry.get(IScmService)
         configureGit(git, steps, bitbucket)
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
@@ -357,7 +358,7 @@ class InitStage extends Stage {
                                               Map<String, Object> buildParams,
                                               GitService git,
                                               IPipelineSteps steps) {
-        BitbucketService bitbucket = registry.get(BitbucketService)
+        IScmService bitbucket = registry.get(IScmService)
         Closure loadClosure = {
             logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
@@ -409,7 +410,7 @@ class InitStage extends Stage {
         return loadClosure
     }
 
-    private void configureGit(GitService git, IPipelineSteps steps, BitbucketService bitbucket) {
+    private void configureGit(GitService git, IPipelineSteps steps, IScmService bitbucket) {
         git.configureUser()
         steps.withCredentials(
             [steps.usernamePassword(
@@ -446,19 +447,19 @@ class InitStage extends Stage {
         )
     }
 
-    private BitbucketService addBitBucketToRegistry(IPipelineSteps steps, Logger logger, ServiceRegistry registry) {
-        def bitbucket = BitbucketService.newFromEnv(
+    private IScmService addBitBucketToRegistry(IPipelineSteps steps, Logger logger, ServiceRegistry registry) {
+        def bitbucket = ScmServiceFactory.newFromEnv(
             steps.unwrap(),
             steps.env,
             project.key,
             project.services.bitbucket.credentials.id,
             logger
         )
-        registry.add(BitbucketService, bitbucket)
+        registry.add(IScmService, bitbucket)
 
         registry.add(BitbucketTraceabilityUseCase,
             new BitbucketTraceabilityUseCase(
-                registry.get(BitbucketService),
+                registry.get(IScmService),
                 registry.get(IPipelineSteps),
                 registry.get(Project)
             )

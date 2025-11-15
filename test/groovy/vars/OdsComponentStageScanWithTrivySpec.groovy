@@ -2,11 +2,10 @@ package vars
 
 import org.ods.component.Context
 import org.ods.component.IContext
-import org.ods.component.ScanWithTrivyStage
+import org.ods.services.IScmService
 import org.ods.services.TrivyService
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.NexusService
-import org.ods.services.NexusServiceSpec
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
@@ -44,9 +43,9 @@ class OdsComponentStageScanWithTrivySpec extends PipelineSpockTestBase {
         trivyService.scanViaCli(*_) >> 0
         ServiceRegistry.instance.add(TrivyService, trivyService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)

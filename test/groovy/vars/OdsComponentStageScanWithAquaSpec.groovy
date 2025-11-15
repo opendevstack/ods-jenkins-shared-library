@@ -4,13 +4,12 @@ import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.component.ScanWithAquaStage
 import org.ods.services.AquaService
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
-import org.ods.services.NexusServiceSpec
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
-import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 
 import spock.lang.Shared
@@ -48,9 +47,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         aquaService.scanViaCli(*_) >> 0
         ServiceRegistry.instance.add(AquaService, aquaService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
         openShiftService.getConfigMapData('ods',
@@ -113,6 +112,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
         script.call(context)
 
@@ -144,6 +144,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
         script.call(context)
 
@@ -175,6 +176,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
         script.call(context)
 
@@ -193,9 +195,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         aquaService.scanViaCli(*_) >> 0
         ServiceRegistry.instance.add(AquaService, aquaService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
         openShiftService.getConfigMapData('ods',
@@ -243,9 +245,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         aquaService.scanViaCli(*_) >> 0
         ServiceRegistry.instance.add(AquaService, aquaService)
 
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        ScmBitbucketService bitbucketService = Stub(ScmBitbucketService.class)
         bitbucketService.createCodeInsightReport(*_) >> null
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        ServiceRegistry.instance.add(IScmService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
         openShiftService.getConfigMapData('ods',
@@ -302,6 +304,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.env.BITBUCKET_URL = 'https://bitbucket.example.com'
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
         script.call(context)
 

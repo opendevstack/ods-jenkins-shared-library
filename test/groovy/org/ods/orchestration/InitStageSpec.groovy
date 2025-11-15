@@ -3,10 +3,11 @@ package org.ods.orchestration
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -18,7 +19,7 @@ import static util.FixtureHelper.createProject
 
 class InitStageSpec extends SpecHelper {
     GitService gitService
-    BitbucketService bitbucketService
+    ScmBitbucketService bitbucketService
     OpenShiftService openShiftService
     NexusService nexusService
     IPipelineSteps script
@@ -31,7 +32,7 @@ class InitStageSpec extends SpecHelper {
     def setup() {
         script = new PipelineSteps()
         gitService = Mock(GitService)
-        bitbucketService = Mock(BitbucketService)
+        bitbucketService = Mock(ScmBitbucketService)
         openShiftService = Mock(OpenShiftService)
         nexusService = Mock(NexusService)
         jira = Mock(JiraUseCase)
@@ -50,7 +51,7 @@ class InitStageSpec extends SpecHelper {
         registry.add(JiraUseCase, jira)
         registry.add(Logger, logger)
         registry.add(GitService, gitService)
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
         registry.add(OpenShiftService, openShiftService)
         registry.add(NexusService, nexusService)
 

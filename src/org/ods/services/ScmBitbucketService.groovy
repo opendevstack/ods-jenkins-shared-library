@@ -11,7 +11,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
 
 @SuppressWarnings(['PublicMethodsBeforeNonPublicMethods', 'ParameterCount'])
-class BitbucketService {
+class ScmBitbucketService implements IScmService {
 
     // file name used to write token secret yaml
     static final String BB_TOKEN_SECRET = '.bb-token-secret.yml'
@@ -46,8 +46,8 @@ class BitbucketService {
 
     private final ILogger logger
 
-    BitbucketService(def script, String bitbucketUrl, String project,
-                     String passwordCredentialsId, ILogger logger) {
+    ScmBitbucketService(def script, String bitbucketUrl, String project,
+                        String passwordCredentialsId, ILogger logger) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl
         this.project = project
@@ -57,14 +57,14 @@ class BitbucketService {
         this.logger = logger
     }
 
-    static BitbucketService newFromEnv(
+    static ScmBitbucketService newFromEnv(
         def script,
         def env,
         String project,
         String passwordCredentialsId,
         ILogger logger) {
         def c = readConfigFromEnv(env)
-        new BitbucketService(script, c.bitbucketUrl, project, passwordCredentialsId, logger)
+        new ScmBitbucketService(script, c.bitbucketUrl, project, passwordCredentialsId, logger)
     }
 
     static Map readConfigFromEnv(def env) {
@@ -228,7 +228,11 @@ class BitbucketService {
         res
     }
 
-    Map findPullRequest(String repo, String branch, String state = 'OPEN') {
+    Map findPullRequest(String repo, String branch) {
+        return findPullRequest(repo, branch, 'OPEN')
+    }
+
+    Map findPullRequest(String repo, String branch, String state) {
         def apiResponse = getPullRequests(repo, state)
         def prCandidates = []
         try {

@@ -1,8 +1,9 @@
 import org.ods.component.ScanWithTrivyStage
 import org.ods.component.IContext
-
+import org.ods.services.IScmService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.TrivyService
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
@@ -30,16 +31,16 @@ def call(IContext context, Map config = [:]) {
         trivyService = new TrivyService(steps, logger)
         registry.add(TrivyService, trivyService)
     }
-    BitbucketService bitbucketService = registry.get(BitbucketService)
+    IScmService bitbucketService = registry.get(IScmService)
     if (!bitbucketService) {
-        bitbucketService = new BitbucketService(
+        bitbucketService = ScmServiceFactory.newFromEnv(
             this,
-            context.bitbucketUrl,
+            steps.env,
             context.projectId,
             context.credentialsId,
             logger
         )
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
     }
     NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {

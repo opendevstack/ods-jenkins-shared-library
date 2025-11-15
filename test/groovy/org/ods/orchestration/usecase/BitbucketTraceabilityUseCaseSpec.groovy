@@ -9,7 +9,7 @@ import org.ods.core.test.LoggerStub
 import org.ods.core.test.wiremock.BitbucketServiceMock
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import spock.lang.Specification
@@ -33,7 +33,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
     IPipelineSteps steps
     Project project
     ILogger logger
-    BitbucketService bitbucketService
+    ScmBitbucketService bitbucketService
 
     def setup() {
         log.info "Using temporal folder:${tempFolder.getRoot()}"
@@ -44,7 +44,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         project = buildProject(logger)
         bitbucketServiceMock = new BitbucketServiceMock().setUp("csv").startServer(RECORD_WIREMOCK, BB_URL_TO_RECORD)
         bitbucketService = Spy(
-                new BitbucketService(
+                new ScmBitbucketService(
                         null,
                         bitbucketServiceMock.getWireMockServer().baseUrl(),
                         PROJECT_KEY,

@@ -2,7 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
@@ -15,7 +15,7 @@ class ScanWithSonarStage extends Stage {
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "ods.sonarqube"
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
     static final String SONAR_CONFIG_MAP_NAME = "sonarqube-scan"
-    private final BitbucketService bitbucket
+    private final IScmService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
     private final ScanWithSonarOptions options
@@ -30,7 +30,7 @@ class ScanWithSonarStage extends Stage {
         def script,
         IContext context,
         Map<String, Object> config,
-        BitbucketService bitbucket,
+        IScmService bitbucket,
         SonarQubeService sonarQube,
         NexusService nexus,
         ILogger logger,

@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 @Grab('org.yaml:snakeyaml:1.24')
 
 import groovy.transform.InheritConstructors
+import org.ods.services.IScmService
 
 import java.nio.file.Paths
 
@@ -10,7 +11,6 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.services.BitbucketService
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.ods.orchestration.phases.FinalizeNonOdsComponent
@@ -298,7 +298,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     private Map checkOutNotReleaseManagerRepoInNotPromotionMode(Map repo, boolean isWorkInProgress) {
         Map scmResult = [ : ]
-        def bbs = ServiceRegistry.instance.get(BitbucketService)
+        def bbs = ServiceRegistry.instance.get(IScmService)
         String gitReleaseBranch = this.project.gitReleaseBranch
         repo.defaultBranch = bbs.getDefaultBranch(repo.id)
         if ("master" == gitReleaseBranch) {

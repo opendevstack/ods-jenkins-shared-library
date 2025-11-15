@@ -2,9 +2,11 @@ import org.ods.component.ScanWithAquaStage
 import org.ods.component.IContext
 import org.ods.services.AquaRemoteCriticalVulnerabilityWithSolutionException
 import org.ods.services.AquaService
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -30,16 +32,16 @@ def call(IContext context, Map config = [:]) {
         aquaService = new AquaService(steps, logger)
         registry.add(AquaService, aquaService)
     }
-    BitbucketService bitbucketService = registry.get(BitbucketService)
+    IScmService bitbucketService = registry.get(IScmService)
     if (!bitbucketService) {
-        bitbucketService = new BitbucketService(
+        bitbucketService = ScmServiceFactory.newFromEnv(
             this,
-            context.bitbucketUrl,
+            steps.env,
             context.projectId,
             context.credentialsId,
             logger
         )
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
     }
     OpenShiftService openShiftService = registry.get(OpenShiftService)
     if (!openShiftService) {

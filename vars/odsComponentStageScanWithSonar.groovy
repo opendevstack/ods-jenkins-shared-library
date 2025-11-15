@@ -1,7 +1,9 @@
 import org.ods.component.ScanWithSonarStage
 import org.ods.component.IContext
-import org.ods.services.BitbucketService
+import org.ods.services.IScmService
 import org.ods.services.NexusService
+import org.ods.services.ScmBitbucketService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.SonarQubeService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
@@ -52,16 +54,16 @@ private List initializeServices(IContext context) {
         steps = new PipelineSteps(this)
         registry.add(IPipelineSteps, steps)
     }
-    BitbucketService bitbucketService = registry.get(BitbucketService)
+    IScmService bitbucketService = registry.get(ScmBitbucketService)
     if (!bitbucketService) {
-        bitbucketService = new BitbucketService(
+        bitbucketService = ScmServiceFactory.newFromEnv(
             this,
-            context.bitbucketUrl,
+            steps.env,
             context.projectId,
             context.credentialsId,
             logger
         )
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
     }
     SonarQubeService sonarQubeService = registry.get(SonarQubeService)
     if (!sonarQubeService) {

@@ -1,8 +1,9 @@
 import org.ods.component.InfrastructureStage
 import org.ods.component.IContext
-
+import org.ods.services.IScmService
 import org.ods.services.InfrastructureService
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
+import org.ods.services.ScmServiceFactory
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -29,16 +30,16 @@ def call(IContext context, Map config = [:]) {
         infrastructureService = new InfrastructureService(steps, logger)
         registry.add(InfrastructureService, infrastructureService)
     }
-    BitbucketService bitbucketService = registry.get(BitbucketService)
+    IScmService bitbucketService = registry.get(IScmService)
     if (!bitbucketService) {
-        bitbucketService = new BitbucketService(
+        bitbucketService = ScmServiceFactory.newFromEnv(
             this,
-            context.bitbucketUrl,
+            steps.env,
             context.projectId,
             context.credentialsId,
             logger
         )
-        registry.add(BitbucketService, bitbucketService)
+        registry.add(IScmService, bitbucketService)
     }
 
     bitbucketService.withTokenCredentials { String username, String pw ->

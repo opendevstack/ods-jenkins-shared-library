@@ -1,7 +1,7 @@
 package org.ods.component
 
 import org.ods.services.AquaService
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
@@ -33,7 +33,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         IContext context = new Context(script, contextConfig, logger)
         def config = [:]
         def aqua = Spy(new AquaService(script, logger))
-        def bitbucket = Spy(new BitbucketService (script,
+        def bitbucket = Spy(new ScmBitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',

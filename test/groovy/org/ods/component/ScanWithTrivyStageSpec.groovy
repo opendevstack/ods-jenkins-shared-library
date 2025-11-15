@@ -1,10 +1,10 @@
 package org.ods.component
 
+
 import org.ods.services.TrivyService
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 import util.PipelineSteps
@@ -25,7 +25,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
              credentialsId: "cd-user"], logger)
         def trivy = Spy(new TrivyService(script, logger))
         def config = [:]
-        def bitbucket = Spy(new BitbucketService (script,
+        def bitbucket = Spy(new ScmBitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',

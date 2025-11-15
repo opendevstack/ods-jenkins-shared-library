@@ -1,8 +1,9 @@
 package org.ods.quickstarter
 
-import org.ods.services.BitbucketService
+
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ScmBitbucketService
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 
@@ -75,7 +76,7 @@ class Pipeline implements Serializable {
             config.buildUrl = script.env.BUILD_URL
             config.buildTime = new Date()
             config.dockerRegistry = script.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
-            config << BitbucketService.readConfigFromEnv(script.env)
+            config << ScmBitbucketService.readConfigFromEnv(script.env)
             config << NexusService.readConfigFromEnv(script.env)
         }
 

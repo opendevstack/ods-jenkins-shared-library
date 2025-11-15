@@ -3,13 +3,11 @@ package org.ods.component
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import util.PipelineSteps
-import org.ods.services.BitbucketService
+import org.ods.services.ScmBitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.Logger
-import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
-import java.nio.file.Paths
 
 class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
@@ -41,7 +39,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 ]
              ], logger)
         def config = [:]
-        def bitbucket = Spy(new BitbucketService (script,
+        def bitbucket = Spy(new ScmBitbucketService (script,
             'https://bitbucket.example.com',
             'FOO',
             'foo-cd-cd-user-with-password',
@@ -70,13 +68,13 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         def tempFolderPath = tempFolder.getRoot().absolutePath
         def stage = createStage(tempFolderPath)
         def targetReport = "sonarqube-report-prj1-component1.pdf"
-        
+
         // Create a mock PDF file in artifacts directory
         def artifactsDir = new File(tempFolderPath, "artifacts")
         artifactsDir.mkdirs()
         def reportFile = new File(artifactsDir, targetReport)
         reportFile.text = "mock pdf content"
-        
+
         stage.script.readFile(_) >> "mock pdf content"
 
         when:
@@ -177,7 +175,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 branchToEnvironmentMapping: ['*': 'dev']
             ], logger),
             config,
-            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new ScmBitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
             Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
             Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
             logger,
@@ -216,7 +214,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 branchToEnvironmentMapping: ['*': 'dev']
             ], logger),
             config,
-            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new ScmBitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
             Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
             Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
             logger,
@@ -250,7 +248,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 branchToEnvironmentMapping: ['*': 'dev']
             ], logger),
             config,
-            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new ScmBitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
             Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
             Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
             logger,
@@ -284,7 +282,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 branchToEnvironmentMapping: ['*': 'dev']
             ], logger),
             config,
-            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new ScmBitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
             Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
             Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
             logger,
