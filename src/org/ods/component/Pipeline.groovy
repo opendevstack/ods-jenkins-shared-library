@@ -12,17 +12,20 @@ import org.ods.util.ILogger
 import org.ods.util.Logger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
+import org.ods.util.SonarStageChecker
 
 class Pipeline implements Serializable {
+
+    private static final Map ANSI_COLOR_BUILD_WRAPPER = [$class: 'AnsiColorBuildWrapper', colorMapName: 'XTerm']
 
     private GitService gitService
     private OpenShiftService openShiftService
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
 
-    private ILogger logger
-    private def script
-    private IPipelineSteps steps
+    private final ILogger logger
+    private final def script
+    private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled = true
@@ -82,7 +85,8 @@ class Pipeline implements Serializable {
         boolean skipCi = false
         def bootstrap = {
             try {
-                script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                // Use the shared wrapper constant
+                script.wrap(ANSI_COLOR_BUILD_WRAPPER) {
                     if (this.localCheckoutEnabled) {
                         script.checkout script.scm
                     }
@@ -174,8 +178,8 @@ class Pipeline implements Serializable {
                                 ' in the commit message ...'
                             updateBuildStatus('NOT_BUILT')
                             setBitbucketBuildStatus('SUCCESSFUL')
-                            return this
                         }
+                        return // Return from bootstrap closure, not execute method
                     }
                 }
             } catch (err) {
@@ -228,9 +232,10 @@ class Pipeline implements Serializable {
             ) {
                 script.node(config.podLabel) {
                     try {
-                        logger.debugClocked("${config.podLabel}")
+                        logger.debugClocked("${config.podLabel}", "Starting execution in pod")
                         setBitbucketBuildStatus('INPROGRESS')
-                        script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                        // Use the shared wrapper constant
+                        script.wrap(ANSI_COLOR_BUILD_WRAPPER) {
                             gitService.checkout(
                                 context.gitCommit,
                                 [],
@@ -256,6 +261,39 @@ class Pipeline implements Serializable {
                                         script.env.BITBUCKET_PW as String)
                                 }
                                 gitService.switchToRemoteBranch(context.gitBranch)
+                            }
+
+                            // Check if odsComponentStageScanWithSonar is already defined in the pipeline
+                            boolean hasSonarStageInPipeline = SonarStageChecker.hasSonarStage(
+                                script, logger, context, this.localCheckoutEnabled
+                            )
+                            logger.info("SonarQube stage found in pipeline: ${hasSonarStageInPipeline}")
+
+                            if (hasSonarStageInPipeline) {
+                                logger.info(
+                                    "Skipping automatic SonarQube scan as odsComponentStageScanWithSonar stage " +
+                                    "is defined in pipeline"
+                                )
+                            } else {
+                                logger.info(
+                                    "SonarQube not configured and no explicit stage found, using default conf"
+                                )
+
+                                try {
+                                    // Delegate automatic SonarQube scan logic to a separate class
+                                    new AutomaticSonarScanner(
+                                        script,
+                                        context,
+                                        config,
+                                        this.bitbucketService,
+                                        logger
+                                    ).execute()
+                                } catch (Exception e) {
+                                    logger.warn(
+                                        "Automatic SonarQube scan failed but pipeline will continue: ${e.message}"
+                                    )
+                                    logger.debug("Full SonarQube scan error: ${e}")
+                                }
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
@@ -304,6 +342,8 @@ class Pipeline implements Serializable {
                     }
                 }
             }
+        } else {
+            return this
         }
     }
 
