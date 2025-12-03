@@ -310,4 +310,41 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         assertJobStatusSuccess()
     }
 
+    def "forwards branches config into ScanWithAquaStage"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData('ods', ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: true, alertEmails: "mail1@mail.com", url: "http://aqua", registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [enabled: true]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        and: "spy the stage constructor to capture the inherited config"
+        Map capturedCfg = null
+        GroovySpy(ScanWithAquaStage, global: true)
+        _ * new ScanWithAquaStage(_, _, _) >> { Object[] args ->
+            capturedCfg = (Map) args[2]
+            return Stub(ScanWithAquaStage) {
+                execute() >> null
+                run() >> null
+            }
+        }
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.call(
+            context,
+            [resourceName: 'my-image', branches: ['master', 'release/']]
+        )
+
+        then:
+        capturedCfg != null
+        capturedCfg.resourceName == 'my-image'
+        capturedCfg.branches == ['master', 'release/']
+        assertJobStatusSuccess()
+    }
+
 }
