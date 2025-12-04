@@ -349,7 +349,7 @@ class MROPipelineUtil extends PipelineUtil {
                     scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
                 } catch (ex) {
                     if (repo.'preview-branch') {
-                        def errorMessage = "The preview branch configured for repository " +
+                        def errorMessage = "The preview branch configured for component " +
                             "\"${repo.name ? repo.name : GitUtil.buildFullRepoName(project.getKey(), repo.id)} (preview-branch: ${repo.'preview-branch'})\" could not be found. " +
                             "You can get in touch with our Support team here: https://confluence.biscrum.com/pages/viewpage.action?spaceKey=EDPON&title=Support."
                         throw new RuntimeException(errorMessage)
