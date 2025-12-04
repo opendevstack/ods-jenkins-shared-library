@@ -27,14 +27,16 @@ class DeployStageSpec extends SpecHelper {
     BitbucketService bitbucketService
 
     def setup() {
-        script = new PipelineSteps()
+        script = Spy(new PipelineSteps() {
+            def EXTERNAL_OCP_API_TOKEN = "test"
+        })
         levaDocScheduler = Mock(LeVADocumentScheduler)
         openshiftService = Mock(OpenShiftService)
-        util = Mock(MROPipelineUtil)
         logger = new Logger(script, true)
         project = Spy(createProject())
         gitService = Mock(GitService)
         bitbucketService = Mock(BitbucketService)
+        util = Spy(new MROPipelineUtil(project, script, gitService, logger))
 
         createService()
 
@@ -60,14 +62,17 @@ class DeployStageSpec extends SpecHelper {
         project.buildParams.targetEnvironment = 'qa'
         project.buildParams.targetEnvironmentToken = 'Q'
         project.targetProject = "net-test"
+        openshiftService.envExists(*_) >> true
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.setOpenShiftData("test.api.url")
 
         when:
         deployStage.run()
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        1 * project.targetClusterIsExternal >> false
-        1 * openshiftService.envExists(project.targetProject) >> true
+        1 * util.getInstallableRepos()
+        1 * util.verifyEnvLoginAndExistence(*_)
     }
 
     def "deploy in Q with 3 installable repos (none included)"() {
@@ -78,13 +83,16 @@ class DeployStageSpec extends SpecHelper {
         for (repo in project.data.metadata.repositories) {
             repo.include = false
         }
+        openshiftService.envExists(*_) >> true
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.setOpenShiftData("test.api.url")
 
         when:
         deployStage.run()
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        0 * project.targetClusterIsExternal >> false
+        0 * project.targetClusterExternal >> false
         0 * openshiftService.envExists(project.targetProject) >> true
     }
 
@@ -100,13 +108,81 @@ class DeployStageSpec extends SpecHelper {
                 repo.include = false
             }
         }
+        openshiftService.envExists(*_) >> true
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.setOpenShiftData("test.api.url")
 
         when:
         deployStage.run()
 
         then:
         1 * bitbucketService.getUrl() >> "https://bitbucket"
-        0 * project.targetClusterIsExternal >> false
+        0 * project.targetClusterExternal >> false
         0 * openshiftService.envExists(project.targetProject) >> true
+    }
+
+    def "deploy in Q with 3 installable repos (all included) and empty prod config"() {
+        given:
+        project.buildParams.targetEnvironment = 'prod'
+        project.buildParams.targetEnvironmentToken = 'P'
+        project.targetProject = "net-test"
+        openshiftService.envExists(project.targetProject) >> true
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.data.metadata.environments.prod = [
+            'apiUrl': '',
+            'credentialsId': ''
+        ]
+        project.setOpenShiftData("test.api.url")
+
+        when:
+        deployStage.run()
+
+        then:
+        1 * bitbucketService.getUrl() >> "https://bitbucket"
+        1 * util.getInstallableRepos()
+        1 * util.verifyEnvLoginAndExistence(*_)
+        0 * script.usernamePassword(['credentialsId':'',
+                                     'usernameVariable':'EXTERNAL_OCP_API_SA',
+                                     'passwordVariable':'EXTERNAL_OCP_API_TOKEN'])
+    }
+
+    def "deploy in Q with 3 installable repos (all included), no env config and non existant env project"() {
+        given:
+        project.buildParams.targetEnvironment = 'prod'
+        project.buildParams.targetEnvironmentToken = 'P'
+        project.targetProject = "net-test"
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.setOpenShiftData("test.api.url")
+
+        when:
+        deployStage.run()
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "deploy in Q with 3 installable repos (all included) and existing wrong prod config"() {
+        given:
+        project.buildParams.targetEnvironment = 'prod'
+        project.buildParams.targetEnvironmentToken = 'P'
+        project.targetProject = "net-test"
+        openshiftService.envExists(project.targetProject) >> true
+        util.prepareExecutePhaseForReposNamedJob(*_) >> []
+        project.data.metadata.environments.prod = [
+            'openshiftClusterApiUrl': 'external.api.com',
+            'openshiftClusterCredentialsId': 'testCredentials'
+        ]
+        project.setOpenShiftData("test.api.url")
+
+        when:
+        deployStage.run()
+
+        then:
+        1 * bitbucketService.getUrl() >> "https://bitbucket"
+        1 * util.getInstallableRepos()
+        1 * util.verifyEnvLoginAndExistence(*_)
+        1 * script.usernamePassword(['credentialsId':'testCredentials',
+                                     'usernameVariable':'EXTERNAL_OCP_API_SA',
+                                     'passwordVariable':'EXTERNAL_OCP_API_TOKEN'])
     }
 }

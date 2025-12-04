@@ -1058,7 +1058,7 @@ class OpenShiftService {
         }
         // if we have a resourceName only return the items matching that
         if (resourceName != null) {
-            def filteredPods= pods.findAll { it.podName.startsWith(resourceName) }
+            def filteredPods = pods.findAll { it.podName.startsWith(resourceName) }
             return filteredPods
         }
         return pods
@@ -1226,24 +1226,6 @@ class OpenShiftService {
             script: "oc -n ${project} rollout status ${kind}/${name} --watch=true",
             label: "Watch rollout of latest version of ${kind}/${name}"
         )
-    }
-
-    private void reloginToCurrentClusterIfNeeded() {
-        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-        def success = steps.sh(
-            script: """
-               ${logger.shellScriptDebugFlag}
-                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
-                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
-            """,
-            returnStatus: true,
-            label: 'Check if OCP session exists'
-        ) == 0
-        if (!success) {
-            throw new RuntimeException(
-                'Could not (re)login to cluster, this is a systemic failure'
-            )
-        }
     }
 
     private void importImageFromProject(
@@ -1468,5 +1450,23 @@ class OpenShiftService {
             label: scriptLabel,
             returnStdout: true
         ).toString().trim()
+    }
+
+    void reloginToCurrentClusterIfNeeded() {
+        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
+        def success = steps.sh(
+            script: """
+               ${logger.shellScriptDebugFlag}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
+        if (!success) {
+            throw new RuntimeException(
+                'Could not (re)login to cluster, this is a systemic failure'
+            )
+        }
     }
 }

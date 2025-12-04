@@ -14,7 +14,6 @@ import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
-import org.ods.orchestration.usecase.SonarQubeUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
@@ -101,7 +100,6 @@ class LevaDocUseCaseFactory {
                 nexusService,
                 os,
                 new PDFUtil(),
-                new SonarQubeUseCase(project, steps, nexusService),
                 bbt,
                 new LoggerStub(log)
             )

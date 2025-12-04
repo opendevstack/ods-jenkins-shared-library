@@ -46,10 +46,21 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    class PipelineEnvs {
-        static final String DEV = "dev"
-        static final String QA = "qa"
-        static final String PROD = "prod"
+    enum PipelineEnv {
+
+        DEV("dev"),
+        QA("qa"),
+        PROD("prod")
+
+        private String value
+
+        String getValue() {
+            return value
+        }
+
+        private PipelineEnv(String value) {
+            this.value = value
+        }
     }
 
     class PipelinePhases {

@@ -580,11 +580,11 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
     }
 
     String getToken() {
-        withTokenCredentials { username, token -> return token}
+        withTokenCredentials { username, token -> return token }
     }
 
     @NonCPS
-    Map getMergedPullRequestsForIntegrationBranch(String token, Map repo, int limit, int nextPageStart){
+    Map getMergedPullRequestsForIntegrationBranch(String token, Map repo, int limit, int nextPageStart) {
         String qParams = "state=MERGED&order=OLDEST&at=refs/heads/${repo.defaultBranch}"
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo.repo}/pull-requests?${qParams}"
         return queryRepo(token, request, limit, nextPageStart)
@@ -601,10 +601,10 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
     private Map queryRepo(String token, String request, int limit, int nextPageStart) {
         Map<String, String> headers = buildHeaders(token)
         def httpRequest = Unirest.get(request).headers(headers)
-        if (limit>0) {
+        if (limit > 0) {
             httpRequest.queryString("limit", limit)
         }
-        if (nextPageStart>0) {
+        if (nextPageStart > 0) {
             httpRequest.queryString("start", nextPageStart)
         }
         def response = httpRequest.asString()
