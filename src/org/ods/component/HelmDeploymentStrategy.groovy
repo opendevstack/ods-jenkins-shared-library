@@ -18,6 +18,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
+
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
 
@@ -28,8 +30,13 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
+            // TODO
+       // DeploymentConfig deploymentConfig = new DeploymentConfig()
+        // deploymentConfig.updateCommonConfig(context, config)
+        // deploymentConfig.updateHelmConfig(context, config)
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -42,7 +49,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.deployTimeoutRetries) {
             config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
         }
-        // Helm options
         if (!config.chartDir) {
             config.chartDir = 'chart'
         }
@@ -53,7 +59,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             config.helmValues = [:]
         }
         if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = ['values.yaml']
+            config.helmValuesFiles = [ 'values.yaml' ]
         }
         if (!config.containsKey('helmEnvBasedValuesFiles')) {
             config.helmEnvBasedValuesFiles = []
@@ -70,6 +76,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
+        
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -77,21 +84,23 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
-    Map<String, List<PodData>> deploy() {
-        if (!context.environment) {
-            logger.warn 'Skipping because of empty (target) environment ...'
-            return [:]
+    Map<String, List<PodData>> deploy() {      
+        // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
+        def targetProject = context.targetProject
+        if (options.helmValues['namespaceOverride']) {
+            targetProject = options.helmValues['namespaceOverride']
+            logger.info("Override namespace deployment to ${targetProject} ") 
         }
-
-        // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+        logger.info("Retagging images for ${targetProject} ")
+        imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
-        helmUpgrade(context.targetProject)
-        HelmStatus helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
+        helmUpgrade(targetProject)
+        HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
         if (logger.debugMode) {
             def helmStatusMap = helmStatus.toMap()
             logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
@@ -101,17 +110,16 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(helmStatus)
+        def rolloutData = getRolloutData(helmStatus, targetProject)
         return rolloutData
     }
 
-    private void helmUpgrade(String targetProject) {
+    private void helmUpgrade(String targetProject) {        
         steps.dir(options.chartDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->
                 if (pkeyFile) {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
-                }
-
+                }              
                 // we add two things persistent - as these NEVER change (and are env independent)
                 options.helmValues['registry'] = context.clusterRegistryAddress
                 options.helmValues['componentId'] = context.componentId
@@ -162,7 +170,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
-        HelmStatus helmStatus
+        HelmStatus helmStatus, String targetProject
     ) {
         Map<String, List<PodData>> rolloutData = [:]
 
@@ -175,7 +183,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     [
                         type: 'helm',
                         selector: options.selector,
-                        namespace: context.targetProject,
+                        namespace: targetProject,
                         chartDir: options.chartDir,
                         helmReleaseName: options.helmReleaseName,
                         helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
@@ -187,14 +195,14 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                     ]
                 )
                 def podDataContext = [
-                    "targetProject=${context.targetProject}",
+                    "targetProject=${targetProject}",
                     "selector=${options.selector}",
                     "name=${name}",
                 ]
                 def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
                 List<PodData> podData = null
                 for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
+                    podData = openShift.checkForPodData(targetProject, options.selector, name)
                     if (podData) {
                         break
                     }
