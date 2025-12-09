@@ -99,7 +99,6 @@ def call(Map config) {
         } catch (Exception e) {
             logger.error("Exception catched in the pipeline execution: ${e.message}")
             uploadResourcesToNexus(steps, project, logger)
-            throw e
         }
     }
 
