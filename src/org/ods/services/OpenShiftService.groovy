@@ -1054,6 +1054,7 @@ class OpenShiftService {
         logger.debug("parsePodJson ${podJson}")
         List<PodData> pods = []
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+            logger.debug("la bola entró")
             // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
         }
@@ -1303,6 +1304,7 @@ class OpenShiftService {
             // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core.
             podOCData.spec?.containers?.each { container ->
                 podOCData.status?.containerStatuses?.each { containerStatus ->
+                    logger.debug("bola #${containerStatus.name} is ${container.name}")
                     if (containerStatus.name == container.name) {
                         pod.containers[container.name] = containerStatus.imageID - ~/^docker-pullable:\/\//
                     }
