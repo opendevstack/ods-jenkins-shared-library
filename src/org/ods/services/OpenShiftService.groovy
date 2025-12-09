@@ -1052,11 +1052,11 @@ class OpenShiftService {
     @TypeChecked(TypeCheckingMode.SKIP)
     List<PodData> parsePodJson(podJson, String resourceName = null) {
         List<PodData> pods = []
-        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' || it == 'succeeded' }) {
             // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
         } else {
-            logger.debug("Not all pods are in 'running' state.")
+            logger.debug("Not all pods are in 'running' state or succeeded")
             def phases = podJson.items.collect { pod -> 
                 [name: pod.metadata?.name, phase: pod.status?.phase?.toLowerCase()] 
                 if (pod.status?.phase?.toLowerCase() != 'running') {
