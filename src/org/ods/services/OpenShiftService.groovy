@@ -1051,8 +1051,9 @@ class OpenShiftService {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     List<PodData> parsePodJson(podJson, String resourceName = null) {
+        logger.debug("parsePodJson ${podJson}")
         List<PodData> pods = []
-        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' || it == 'Running' }) {
+        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
             // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
         }
