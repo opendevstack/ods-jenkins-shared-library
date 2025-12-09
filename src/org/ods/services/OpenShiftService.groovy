@@ -1310,7 +1310,6 @@ class OpenShiftService {
             // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core.
             podOCData.spec?.containers?.each { container ->
                 podOCData.status?.containerStatuses?.each { containerStatus ->
-                    logger.debug("bola #${containerStatus.name} is ${container.name}")
                     if (containerStatus.name == container.name) {
                         pod.containers[container.name] = containerStatus.imageID - ~/^docker-pullable:\/\//
                     }
