@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+* Fail the pipeline when no version specified for a deploy to Q, P ([#1248](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1248))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.11.0] - 2025-12-03
