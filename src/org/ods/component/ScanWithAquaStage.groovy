@@ -423,7 +423,7 @@ class ScanWithAquaStage extends Stage {
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
                 Map vulnerability = vul as Map
-                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
+                if ((vulnerability?.exploit_type as String)?.split(',')*.trim().any { it.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE) }
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
                     if (Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {
