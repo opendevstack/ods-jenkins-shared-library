@@ -18,15 +18,15 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         this.util = util
     }
 
-    void applyXunitTestResultsAsTestExecutionStatii(List testIssues, Map testResults) {
+    void applyXunitTestResultsAsTestExecutionStatii(List stories, Map testResults) {
         if (!this.usecase.jira) return
         if (!this.zephyr) return
 
         def testCycleId = '-1'
-        if (!testIssues?.isEmpty()) {
+        if (!stories?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def versionId = this.project.version?.id ?: project.loadVersionDataFromJira(buildParams.changeId)?.id
+            def versionId = this.project.version?.id ?: project.getVersionData(buildParams.changeId)?.id
             def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
 
             // Zephyr test cycle properties
@@ -41,34 +41,34 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
             }
         }
 
-        testIssues.each { testIssue ->
-            // Create a new execution with status UNEXECUTED
-            def testExecutionId = this.zephyr.createTestExecutionForIssue(
-                testIssue.id, this.project.id, testCycleId).keySet().first()
-
-            testResults.testsuites.each { testSuite ->
-                testSuite.testcases.each { testCase ->
-                    if (this.usecase.checkTestsIssueMatchesTestCase(testIssue, testCase)) {
-                        def failed = testCase.error || testCase.failure
-                        def skipped = testCase.skipped
-                        def succeeded = !(testCase.error || testCase.failure || testCase.skipped)
-
-                        if (succeeded) {
-                            this.zephyr.updateTestExecutionForIssuePass(testExecutionId)
-                        } else if (failed) {
-                            this.zephyr.updateTestExecutionForIssueFail(testExecutionId)
-                        } else if (skipped) {
-                            this.zephyr.updateTestExecutionForIssueBlocked(testExecutionId)
-                        }
-                    }
-                }
-            }
-        }
+//        stories.each { story ->
+//            // Create a new execution with status UNEXECUTED
+//            def testExecutionId = this.zephyr.createTestExecutionForIssue(
+//                story.id, this.project.id, testCycleId).keySet().first() //TODO story id
+//
+//            testResults.testsuites.each { testSuite ->
+//                testSuite.testcases.each { testCase ->
+//                    if (this.usecase.checkStoryIssueMatchesTestCase(story, testCase)) {
+//                        def failed = testCase.error || testCase.failure
+//                        def skipped = testCase.skipped
+//                        def succeeded = !(testCase.error || testCase.failure || testCase.skipped)
+//
+//                        if (succeeded) {
+//                            this.zephyr.updateTestExecutionForIssuePass(testExecutionId)
+//                        } else if (failed) {
+//                            this.zephyr.updateTestExecutionForIssueFail(testExecutionId)
+//                        } else if (skipped) {
+//                            this.zephyr.updateTestExecutionForIssueBlocked(testExecutionId)
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
-    void applyXunitTestResults(List testIssues, Map testResults) {
-        this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
-        this.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
+    void applyXunitTestResults(List stories, Map testResults) {
+        this.usecase.applyXunitTestResultsAsTestIssueLabels(stories, testResults)
+        this.applyXunitTestResultsAsTestExecutionStatii(stories, testResults)
     }
 
 }

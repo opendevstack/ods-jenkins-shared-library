@@ -1,23 +1,22 @@
 package org.ods.orchestration.usecase
 
-import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.core.test.LoggerStub
+import org.ods.core.test.wiremock.BitbucketServiceMock
+import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
+import org.ods.services.ConfluenceService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import spock.lang.Specification
 import util.FixtureHelper
-import org.ods.core.test.LoggerStub
 import util.PipelineSteps
-import org.ods.core.test.wiremock.BitbucketServiceMock
-
-import static org.assertj.core.api.Assertions.*
 
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
@@ -37,6 +36,8 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
     Project project
     ILogger logger
     BitbucketService bitbucketService
+    JiraService jiraService
+    ConfluenceService confluenceService
 
     def setup() {
         log.info "Using temporal folder:${tempFolder.getRoot()}"
@@ -54,6 +55,8 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
                         "passwordCredentialsId",
                         logger))
         bitbucketService.getToken() >> BB_TOKEN
+        jiraService = Mock()
+        confluenceService = Mock()
     }
 
     def buildProject(logger) {
@@ -80,10 +83,10 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
 
     def "Generate the csv source code review file"() {
         given: "There are two Bitbucket repositories"
-        def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
+        def useCase = new BitbucketTraceabilityUseCase(bitbucketService, jiraService, steps, project)
 
         when: "the source code review file is generated"
-        def actualData = useCase.getPRMergeInfo()
+        def actualData = useCase.getPullRequestInfo()
 
         then: "the generated file is as the expected csv file"
         def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_JSON)

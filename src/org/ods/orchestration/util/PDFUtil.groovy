@@ -6,28 +6,70 @@ package org.ods.orchestration.util
 @Grab('org.apache.poi:poi:4.0.1')
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
-
-import java.nio.file.Files
-
 import org.apache.commons.io.IOUtils
+import org.apache.pdfbox.cos.COSDictionary
+import org.apache.pdfbox.cos.COSName
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType1Font
 import org.apache.pdfbox.pdmodel.graphics.blend.BlendMode
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment
+import org.apache.pdfbox.rendering.ImageType
+import org.apache.pdfbox.rendering.PDFRenderer
 import org.apache.pdfbox.util.Matrix
 import org.apache.poi.xwpf.usermodel.XWPFDocument
+import org.ods.util.ILogger
 
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.ZoneOffset
 
 @SuppressWarnings(['JavaIoPackageAccess', 'LineLength', 'UnnecessaryObjectReferences'])
 class PDFUtil {
+
+    static List<String> extracImagesFromPdf(String pdfPath, ILogger logger) {
+        File sourceFile = new File(pdfPath);
+        List<String> extractedImages = new ArrayList<>()
+        if (sourceFile.exists()) {
+            logger.debug("Extracting images from pdf file ${pdfPath}")
+            PDDocument document = PDDocument.load(sourceFile);
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+            int numberOfPages = document.getNumberOfPages();
+
+            String fileName = sourceFile.getName().replace(".pdf", "");
+            String fileExtension = "png";
+            /*
+         * 600 dpi give good image clarity but size of each image is 2x times of 300 dpi.
+         * Ex:  1. For 300dpi 04-Request-Headers_2.png expected size is 797 KB
+         *      2. For 600dpi 04-Request-Headers_2.png expected size is 2.42 MB
+         */
+            logger.debug("Pdf file contains ${numberOfPages} pages")
+            int dpi = 300;
+            for (int i = 0; i < numberOfPages; ++i) {
+                final ByteArrayOutputStream os = new ByteArrayOutputStream()
+                BufferedImage bImage = pdfRenderer.renderImageWithDPI(i, dpi, ImageType.RGB)
+                ImageIO.write(bImage, fileExtension, os)
+                extractedImages.add(Base64.getEncoder().encodeToString(os.toByteArray()))
+            }
+            document.close();
+        } else {
+            throw new RuntimeException(sourceFile.getName() + " file does not exist")
+        }
+        return extractedImages
+    }
 
     @NonCPS
     byte[] addWatermarkText(byte[] file, String text) {
@@ -167,6 +209,76 @@ class PDFUtil {
             cs.endText()
         } finally {
             cs.close()
+        }
+    }
+
+    @NonCPS
+    static byte[] addAttachments(byte[] file, List<Map<String, Object>> attachments, String tmpDir) {
+        def tmpPath = Path.of(tmpDir)
+        PDDocument.load(file).withCloseable { doc ->
+            try {
+                def pageNum = doc.getNumberOfPages() - 1
+                def page = doc.getPage(pageNum) // Attachments will be added to the last page
+                def annotations = page.annotations
+                def namesMap = attachments.collectEntries { attachment ->
+                    def filename = attachment.filename as String
+                    def content = attachment.content as byte[]
+                    def contentType = attachment.contentType as String
+
+                    // Create a temporary file to hold the attachment content
+                    def tempFile = Files.createTempFile(tmpPath, 'attach-', '.pdf')
+                    try {
+                        tempFile.bytes = content
+
+                        Files.newInputStream(tempFile).withCloseable { inputStream ->
+                            // Create embedded file from the input stream
+                            def embeddedFile = new PDEmbeddedFile(doc, inputStream,
+                                (attachment.compress ? COSName.FLATE_DECODE : null) as COSName).with {
+                                subtype = contentType
+                                size = (int) Files.size(tempFile) // No overflow, because the content came in a byte[]
+                                creationDate = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC), Locale.UK)
+                                return it
+                            }
+
+                            // Create file specification for the embedded file
+                            def fileSpec = new PDComplexFileSpecification().with {
+                                setFile(filename)
+                                setEmbeddedFile(embeddedFile)
+                                return it
+                            }
+
+                            // Create and add annotation to the first page
+                            def annotation = new PDAnnotationFileAttachment().with {
+                                setFile(fileSpec)
+                                setContents("Attached file: $filename")
+                                return it
+                            }
+                            annotations << annotation
+
+                            // Add file specification to the name tree
+                            return [(filename): fileSpec]
+                        }
+                    } finally {
+                        // Delete the temporary file after use
+                        Files.deleteIfExists(tempFile)
+                    }
+                } as Map
+
+                // Create and attach the embedded files name tree to the document catalog
+                def efTree = new PDEmbeddedFilesNameTreeNode()
+                efTree.setNames(namesMap)
+
+                def namesDict = new COSDictionary()
+                namesDict.setItem('EmbeddedFiles', efTree.getCOSObject())
+
+                doc.getDocumentCatalog().getCOSObject().setItem('Names', namesDict)
+
+                def os = new ByteArrayOutputStream() // close() is a no-op.
+                doc.save(os)
+                return os.toByteArray()
+            } catch (e) {
+                throw new RuntimeException("Error: unable to add attachments to PDF document: ${e}", e)
+            }
         }
     }
 

@@ -11,6 +11,8 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 
+import java.nio.charset.StandardCharsets
+
 @TypeChecked
 class ScanWithAquaStage extends Stage {
 
@@ -112,7 +114,8 @@ class ScanWithAquaStage extends Stage {
         // If report exists
         if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             try {
-                def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
+                def resultInfo = steps.readJSON(file: jsonFile) as Map
+                context.addArtifactURI('aquaReport', resultInfo)
 
                 Set whitelistedRECVs = []
                 actionableVulnerabilities = filterRemoteCriticalWithSolutionVulnerabilities(resultInfo,
@@ -129,9 +132,11 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware ?: 0]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                nexusReportLink = nexusRepository ? reportUriNexus.toString() : null
-                createBitbucketCodeInsightReport(url, nexusReportLink,
-                    registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
+                if (reportUriNexus) {
+                    nexusReportLink = reportUriNexus.toString()
+                    createBitbucketCodeInsightReport(url, nexusReportLink,
+                        registry, imageRef, errorCodes.sum() as int, errorMessages, actionableVulnerabilities)
+                }
                 archiveReportInJenkins(reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
@@ -364,14 +369,17 @@ class ScanWithAquaStage extends Stage {
     }
 
     @SuppressWarnings('ReturnNullFromCatchBlock')
-    private URI archiveReportInNexus(String reportFile, nexusRepository) {
+    private URI archiveReportInNexus(String reportFile, nexusRepository, String contentType = 'text/html', String text = null) {
+        if (text == null) {
+            text = steps.readFile(file:reportFile) as String
+        }
         try {
             URI report = nexus.storeArtifact(
                 "${nexusRepository}",
                 "${context.projectId}/${this.options.resourceName}/" +
                     "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
                 reportFile,
-                (steps.readFile(file: reportFile) as String).bytes, "text/html")
+                text.getBytes(StandardCharsets.UTF_8), contentType)
 
             logger.info "Report stored in: ${report}"
             return report

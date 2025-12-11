@@ -61,7 +61,7 @@ class FakeProject extends Project {
 
         this.data.git = [ commit: git.getCommitSha(), url: git.getOriginUrl() ]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
-        this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
+        this.data.jira.project.version = this.getCurrentVersionData()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira.securityVulnerabilities = this.loadJiraDataSecurityVulnerabilities()
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
@@ -98,7 +98,7 @@ class FakeProject extends Project {
         return FixtureHelper.createProjectJiraData()
     }
 
-    protected Map loadCurrentVersionDataFromJira() {
+    protected Map getCurrentVersionData() {
         return [
             "id"  : "11100",
             "name": "0.3"

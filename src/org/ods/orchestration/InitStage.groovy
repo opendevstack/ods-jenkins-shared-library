@@ -7,12 +7,14 @@ import org.ods.orchestration.service.JiraZephyrService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
 import org.ods.orchestration.usecase.ComponentMismatchException
+import org.ods.orchestration.usecase.ConfluenceUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JiraUseCaseSupport
 import org.ods.orchestration.usecase.JiraUseCaseZephyrSupport
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
+import org.ods.orchestration.usecase.RequirementUseCase
 import org.ods.orchestration.usecase.SonarQubeUseCase
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
@@ -20,6 +22,7 @@ import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
+import org.ods.services.ConfluenceService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -82,7 +85,7 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
         project.initGitDataAndJiraUsecase(registry.get(GitService), registry.get(JiraUseCase))
         logger.debugClocked('Project#load')
-        project.load(registry.get(GitService), registry.get(JiraUseCase))
+        project.load(registry.get(GitService), registry.get(JiraUseCase), registry.get(RequirementUseCase))
         logger.debugClocked('Project#load')
 
         // Check for init errors now that we also have Jira service instantiated for notifying release status
@@ -135,12 +138,8 @@ class InitStage extends Stage {
         String stageToStartAgent = findBestPlaceToStartAgent(repos, logger)
 
         // Compute target project. For now, the existance of DEV on the same cluster is verified.
-        def concreteEnv = Project.getConcreteEnvironment(
-            project.buildParams.targetEnvironment,
-            project.buildParams.version.toString(),
-            project.versionedDevEnvsEnabled
-        )
-        def targetProject = "${project.key}-${concreteEnv}"
+        def targetProject = Project.getTargetProjectForEnv(project, project.buildParams.targetEnvironment)
+
         def os = registry.get(OpenShiftService)
         if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
             throw new RuntimeException(
@@ -150,11 +149,76 @@ class InitStage extends Stage {
         }
         project.setTargetProject(targetProject)
 
+        if (util.getInstalledInOpenShiftRepos()?.size() > 0) {
+            validateEnvConfig(logger, registry, util)
+        } else {
+            logger.debug("No installable repos found, skipping env existence check.")
+        }
+
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
         registry.get(LeVADocumentScheduler).run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
+    }
+
+    protected void validateEnvConfig(Logger logger, ServiceRegistry registry, MROPipelineUtil util) {
+        logger.debug("Validate environment metadata.yml config started")
+        def os = registry.get(OpenShiftService)
+        Map envs = project.getEnvironments()
+        def wronglyConfiguredEnvs = []
+        boolean reloginRequired = false
+        try {
+            for (MROPipelineUtil.PipelineEnv env : MROPipelineUtil.PipelineEnv.values()) {
+                def targetProjectForEnv = Project.getTargetProjectForEnv(project, env.value)
+                logger.debug("Check cluster config for env ${env.value} and project ${targetProjectForEnv}")
+                try {
+                    String openshiftClusterApiUrl = envs."$env.value"?.apiUrl
+                        ?: envs."$env.value"?.openshiftClusterApiUrl
+                    String openshiftClusterCredentialsId = envs."$env.value"?.credentialsId
+                        ?: envs."$env.value"?.openshiftClusterCredentialsId
+                    if (!openshiftClusterApiUrl && !openshiftClusterCredentialsId) {
+                        if (!os.envExists(targetProjectForEnv)) {
+                            wronglyConfiguredEnvs.add(env.value)
+                        }
+                    } else {
+                        reloginRequired = true
+                        util.verifyEnvLoginAndExistence(script,
+                            os,
+                            targetProjectForEnv,
+                            project.data.openshift.sessionApiUrl,
+                            openshiftClusterApiUrl,
+                            openshiftClusterCredentialsId
+                        )
+                    }
+                } catch (Exception e) {
+                    wronglyConfiguredEnvs.add(env.value)
+                }
+            }
+            if (wronglyConfiguredEnvs.size() > 0) {
+                String message = "The Release Manager configuration for environment(s) " +
+                    "${wronglyConfiguredEnvs.join(', ')} is incorrect in the metadata.yml. " +
+                    "Please verify the openshift cluster api url and credentials for " +
+                    "each environment mentioned."
+                if (project.isWorkInProgress) { // Warn build pipeline in this case
+                    project.addCommentInReleaseStatus(message)
+                    util.warnBuild(message)
+                } else {                        // Error
+                    util.failBuild(message)
+                    throw new RuntimeException(message) // This also add a comment in the release status issue
+                }
+            }
+        } finally {
+            if (reloginRequired) {
+                logger.debug("Try to relogin to current cluster")
+                try {
+                    os.reloginToCurrentClusterIfNeeded()
+                } catch (ex) {
+                    logger.error("Error logging back to current cluster ${ex.getMessage()}")
+                }
+                logger.debug("Success relogging in to current cluster.")
+            }
+        }
     }
 
     private String findBestPlaceToStartAgent(List<Map> repos, ILogger logger) {
@@ -264,6 +328,8 @@ class InitStage extends Stage {
             addJiraToRegistry(registry)
         }
 
+        addConfluenceToRegistry(registry, logger)
+
         registry.add(NexusService, NexusService.newFromEnv(script.env, steps,
             project.services.bitbucket.credentials.id))
         registry.add(OpenShiftService,
@@ -288,6 +354,13 @@ class InitStage extends Stage {
         )
         addBitBucketToRegistry(steps, logger, registry)
         addLeVADocumentUseCaseToRegistry(registry, logger)
+        registry.add(RequirementUseCase,
+            new RequirementUseCase(
+                steps,
+                registry.get(ConfluenceUseCase),
+                logger,
+            )
+        )
         registry.add(LeVADocumentScheduler,
             new LeVADocumentScheduler(
                 registry.get(Project),
@@ -389,6 +462,7 @@ class InitStage extends Stage {
                 registry.get(PDFUtil),
                 registry.get(SonarQubeUseCase),
                 registry.get(BitbucketTraceabilityUseCase),
+                registry.get(ConfluenceUseCase),
                 logger
             )
         )
@@ -407,6 +481,7 @@ class InitStage extends Stage {
         registry.add(BitbucketTraceabilityUseCase,
             new BitbucketTraceabilityUseCase(
                 registry.get(BitbucketService),
+                registry.get(JiraService),
                 registry.get(IPipelineSteps),
                 registry.get(Project)
             )
@@ -468,6 +543,35 @@ class InitStage extends Stage {
                 )
             }
         }
+    }
+
+    private void addConfluenceToRegistry(ServiceRegistry registry, ILogger logger) {
+        script.withCredentials(
+            [script.usernamePassword(
+                credentialsId: project.services.jira.credentials.id, // Same credentials as Jira
+                usernameVariable: 'CONFLUENCE_USERNAME',
+                passwordVariable: 'CONFLUENCE_PASSWORD'
+            )]
+        ) {
+            String url = script.env.CONFLUENCE_URL
+            URI baseURI = url ? new URI(url) : null
+            registry.add(ConfluenceService,
+                new ConfluenceService(
+                    baseURI,
+                    script.env.CONFLUENCE_USERNAME,
+                    script.env.CONFLUENCE_PASSWORD,
+                    logger
+                )
+            )
+        }
+
+        registry.add(ConfluenceUseCase,
+            new ConfluenceUseCase(
+                registry.get(Project),
+                registry.get(ConfluenceService),
+                logger
+            )
+        )
     }
 
     private void checkOutReleaseManagerRepository(def buildParams, def git,

@@ -1,202 +1,212 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.StringCleanup
+import org.ods.orchestration.util.MROPipelineUtil.PipelineConfig
 import org.ods.services.BitbucketService
 import org.ods.util.IPipelineSteps
-
-import java.text.SimpleDateFormat
+import org.yaml.snakeyaml.Yaml
 
 class BitbucketTraceabilityUseCase {
 
-    private static final int PAGE_LIMIT = 10
-    protected static Map CHARACTER_REMOVEABLE = [
-        '/': '/\u200B',
-        '@': '@\u200B',
-    ]
-
     private final BitbucketService bitbucketService
+    private final JiraService jiraService
     private final IPipelineSteps steps
     private final Project project
 
-    BitbucketTraceabilityUseCase(BitbucketService bitbucketService, IPipelineSteps steps, Project project) {
+    BitbucketTraceabilityUseCase(BitbucketService bitbucketService,
+                                 JiraService jiraService,
+                                 IPipelineSteps steps,
+                                 Project project) {
         this.steps = steps
         this.project = project
         this.bitbucketService = bitbucketService
+        this.jiraService = jiraService
     }
 
-    /**
-     * Obtain the information of all the merged pull requests for all the project repositories.
-     * @return a Map with the pull request information for each entry found.
-     */
-    List<Map> getPRMergeInfo() {
+    @NonCPS
+    String getBaseURL() {
+        return bitbucketService.url
+    }
+
+    @NonCPS
+    List<Map> getIncludedRepos() {
+        return project.repositories?.findAll { repo -> repo.include }?.collect { repo ->
+            repo + [name: "${project.key.toLowerCase()}-${repo.id}"]
+        }?.sort { it.id }
+    }
+
+    Map<String, List<Map>> getPullRequestInfo(List<Map> repos, String previousReleaseTagRef = null) {
         String token = bitbucketService.getToken()
-        return obtainMergeInfo(token)
+        return addPRInfo(repos, token, previousReleaseTagRef)
     }
 
     @NonCPS
-    private List<Map> obtainMergeInfo(String token) {
-        List<Record> records = processRepositories(token)
-        int numRecords = records.size()
-        def mergeInfo = new ArrayList(numRecords)
-        for (int i = 0; i < numRecords; i++) {
-            def record = records[i]
-            def entry = [
-                date: record.commitDate,
-                authorName: sanitize(record.author.name),
-                authorEmail: sanitize(record.author.mail),
-                reviewers: obtainReviewers(record),
-                url: sanitize(record.mergeRequestURL),
-                commit: record.mergeCommitSHA,
-                component: record.componentName,
+    private Map<String, List> addPRInfo(List<Map> repos, String token, String previousReleaseTagRef) {
+        return repos.collectEntries { repo ->
+            def name = repo.name as String
+            def pullRequests = getPullRequests(token, name, null, previousReleaseTagRef)
+            return pullRequests ? [ (name): pullRequests ] : [:]
+        } as Map<String, List>
+    }
+
+    @NonCPS
+    private List<Map> getPullRequests(String token, String repo, String branch, String previousReleaseTagRef) {
+        long closedAfter = getPreviousReleaseTimestamp(token, repo, previousReleaseTagRef)
+        def pullRequests = bitbucketService.getAllPullRequestsForRepo(token, repo, branch,
+            'MERGED', closedAfter)
+        return pullRequests.collect { pullRequest ->
+            def prInfo = getPRInfo(pullRequest, token, repo)
+            if (!prInfo.issues) {
+                return null
+            }
+            prInfo << getApprovers(pullRequest)
+            prInfo << getCommitInfo(pullRequest, token, repo)
+            return prInfo
+        }.findAll()
+    }
+
+    @NonCPS
+    private static Map<String, Object> getApprovers(Map<String, Object> pullRequest) {
+        def approvers = pullRequest.reviewers
+            ?.findAll { Map reviewer -> reviewer.approved }
+            ?.collectEntries { approver ->
+                [
+                    name: approver.user?.name,
+                    email: approver.user?.emailAddress,
+                ]
+            }
+        return approvers ? [ approvers: approvers ] : [:]
+    }
+
+    @NonCPS
+    private Map<String, Object> getCommitInfo(Map<String, Object> pullRequest, String token, String repo) {
+        def commits = bitbucketService.getAllCommitsForPullRequest(token, repo, pullRequest.id as String)
+            .sort { commit -> commit.committerTimestamp }
+        if (!commits) {
+            return null
+        }
+        def commitInfo = [:] as Map
+        commitInfo.commits = commits.collect { commit -> [ hash: commit.displayId ] }
+        def authors =  commits*.author.findAll().collectEntries { author ->
+            [(author.name): author.emailAddress]
+        }.collect { name, email ->
+            [
+                name:  name,
+                email: email,
             ]
-            mergeInfo << entry
         }
-        return mergeInfo
+        commitInfo.commitAuthors = authors
+        return commitInfo
     }
 
     @NonCPS
-    private List<Map> obtainReviewers(Record record) {
-        List<Developer> reviewers = record.reviewers
-        int numReviewers = reviewers.size()
-        def reviewerInfo = new ArrayList(numReviewers)
-        for (int i = 0; i < numReviewers; i++) {
-            def reviewer = reviewers[i]
-            def entry = [
-                reviewerName: sanitize(reviewer.name),
-                reviewerEmail: sanitize(reviewer.mail),
+    private long getPreviousReleaseTimestamp(String token, String repo, String tagRef) {
+        if (tagRef) {
+            def tag = bitbucketService.getTag(token, repo, tagRef)
+            if (tag.type != 'TAG') {
+                throw new IllegalArgumentException("${tagRef} is a ${tag.type}, not a TAG")
+            }
+            def commit = bitbucketService.getCommit(token, repo, tag.latestCommit as String)
+            return commit.committerTimestamp as long
+        }
+        return 0
+    }
+
+    @NonCPS
+    private Map<String, Object> getPullRequestForCommit(String token, String repo, String hash, String branch) {
+        def pullRequest = bitbucketService.getPullRequestForCommit(token, repo, hash, branch)
+        return pullRequest ? getPRInfo(pullRequest, token, repo) : null
+    }
+
+    @NonCPS
+    private Map<String, Object> getPRInfo(Map<String, Object> pullRequest, String token, String repo) {
+        def issues = [:] as Map<String, Map>
+        def requirements = [:] as Map<String, Map>
+        def issueLinks = bitbucketService.getIssueLinksForPullRequest(token, repo, pullRequest.id as String)
+        issueLinks.each { key, url ->
+            def issue = project.issues[key] // Will be null, if the issue isn't in Done state.
+            if (!issue || !belongsToChange(issue, project.buildParams.changeId as String)) {
+                return
+            }
+            issues[issue.key as String] = [ summary: issue.fields?.summary ?: issue.key ]
+            issue.remoteLinks?.each { Map link ->
+                def linkURL = link.url
+                def requirement = project.requirementsByURL[linkURL]
+                if (requirement) {
+                    requirements[linkURL.toString()] = [
+                        title:
+                            requirement.metadata.pageTitle ?: "Requirement: ${requirement.metadata.requirementNumber}"
+                    ]
+                }
+            }
+        }
+        def prInfo = [
+            id: pullRequest.id,
+            url: pullRequest.links?.self?.first()?.href,
+        ]
+        def author = pullRequest.author?.user as Map
+        if (author) {
+            prInfo.author = [
+                name: author.name,
+                email: author.emailAddress,
             ]
-            reviewerInfo << entry
         }
-        return reviewerInfo
+        if (issues) {
+            prInfo.issues = issues
+            if (requirements) {
+                if (requirements.size() == 1) {
+                    prInfo.requirement = requirements.values().first()
+                } else {
+                    prInfo.requirements = requirements.values()
+                }
+            }
+        }
+        return prInfo
     }
 
     @NonCPS
-    private String sanitize(String s) {
-        return s ? StringCleanup.removeCharacters(s, CHARACTER_REMOVEABLE) : 'N/A'
+    private static boolean belongsToChange(Map<String, Object> issue, String changeId) {
+        def fixVersions = issue?.fields?.fixVersions as List<Map>
+        return fixVersions?.find { fixVersion -> fixVersion.name == changeId }
     }
 
-    @NonCPS
-    private List<Record> processRepositories(String token) {
-        def records = []
-        List<Map> repos = getRepositories()
-        int reposSize = repos.size()
-        for (def i = 0; i < reposSize; i++) {
-            def repo = repos[i]
-            records += processRepo(token, repo)
-        }
-        return records
-    }
+    Map<String, Map> getODSComponentMetadata(String gitRevision) {
+        Map<String, Map> result = [:]
 
-    @NonCPS
-    private List<Map> getRepositories() {
-        List<Map> result = []
-        List<Map> repos = this.project.getRepositories()
-        int reposSize = repos.size()
-        for (def i = 0; i < reposSize; i++) {
-            def repository = repos[i]
-            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}",
-                       defaultBranch: repository.defaultBranch]
+        def token = bitbucketService.getToken()
+        def filePath = "metadata.yml"
+
+        bitbucketService.getFileContentsForProjectRepos(token, filePath, gitRevision).each { repoName, data ->
+            // FIXME: potential code duplication from MROPipelineUtil::loadPipelineConfig()
+            Map metadata = new Yaml().load(data.fileContents as String) ?: [:]
+            if (metadata.description?.trim() && metadata.supplier?.trim()) {
+                metadata.repo = data.repo
+                def type = metadata.type
+                def installable = type ? PipelineConfig.INSTALLABLE_REPO_TYPES.contains(type) : true
+                metadata.installable = installable
+                result[repoName] = metadata
+            }
         }
+
         return result
     }
 
-    @NonCPS
-    private List<Record> processRepo(String token, Map repo) {
-        def records = []
-        boolean nextPage = true
-        int nextPageStart = 0
-        while (nextPage) {
-            Map commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
-            if (commits.isLastPage) {
-                nextPage = false
-            } else {
-                nextPageStart = commits.nextPageStart
-            }
-            records += processCommits(token, repo, commits)
-        }
-        return records
-    }
+    Map<String, Map> getODSComponentDependencies(String gitRevision) {
+        Map<String, Map> result = [:]
 
-    @NonCPS
-    private List<Record> processCommits(String token, Map repo, Map commits) {
-        return commits.values.collect { commit ->
-            Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
-            // Only changes in PR and destiny integration branch
-            if (mergedPR.values
-                && mergedPR.values[0].toRef.displayId == repo.defaultBranch) {
-                def record = new Record(getDateWithFormat(commit.committerTimestamp),
-                    getAuthor(commit.author),
-                    getReviewers(mergedPR.values[0].reviewers),
-                    mergedPR.values[0].links.self[(0)].href,
-                    commit.id,
-                    repo.repo)
-                return record
-            }
-            return null
-        }.findAll { it != null }
-    }
+        def token = bitbucketService.getToken()
+        def filePath = "release-manager.yml"
 
-    @NonCPS
-    private Developer getAuthor(Map author) {
-        return new Developer(
-            author.name,
-            author.emailAddress)
-    }
-
-    @NonCPS
-    private List getReviewers(List reviewers) {
-        List<Developer> approvals = []
-        reviewers.each {
-            if (it.approved) {
-                approvals << new Developer(
-                    it.user.name,
-                    it.user.emailAddress)
+        bitbucketService.getFileContentsForProjectRepos(token, filePath, gitRevision).each { repoName, data ->
+            Map metadata = new Yaml().load(data.fileContents as String) ?: [:]
+            if (metadata.dependencies) {
+                result[repoName] = metadata.dependencies
             }
         }
 
-        return approvals
-    }
-
-    @NonCPS
-    private String getDateWithFormat(Long timestamp) {
-        Date dateObj =  new Date(timestamp)
-        return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
-    }
-
-    private class Record {
-
-        String commitDate
-        Developer author
-        List<Developer> reviewers
-        String mergeRequestURL
-        String mergeCommitSHA
-        String componentName
-
-        @SuppressWarnings(['ParameterCount'])
-        Record(String date, Developer author, List<Developer> reviewers, String mergeRequestURL,
-               String mergeCommitSHA, String componentName) {
-            this.commitDate = date
-            this.author = author
-            this.reviewers = reviewers
-            this.mergeRequestURL = mergeRequestURL
-            this.mergeCommitSHA = mergeCommitSHA
-            this.componentName = componentName
-        }
-
-    }
-
-    private class Developer {
-
-        String name
-        String mail
-
-        Developer(String name, String mail) {
-            this.name = name
-            this.mail = mail
-        }
-
+        return result
     }
 
 }

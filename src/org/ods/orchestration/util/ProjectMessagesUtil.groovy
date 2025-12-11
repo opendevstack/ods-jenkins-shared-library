@@ -5,6 +5,7 @@ import org.ods.orchestration.usecase.LeVADocumentUseCase
 
 class ProjectMessagesUtil {
 
+    /*
     @SuppressWarnings('Instanceof')
     static String generateWIPIssuesMessage(Project project) {
         def message = project.isWorkInProgress ? 'Pipeline-generated documents are watermarked ' +
@@ -43,5 +44,6 @@ class ProjectMessagesUtil {
 
         return output.toString()
     }
+    */
 
 }

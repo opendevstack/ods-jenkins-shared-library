@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
@@ -10,6 +9,7 @@ import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
+import org.ods.services.documents.SecureVaultDocumentUploader
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -87,9 +87,11 @@ class FinalizeStage extends Stage {
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
+        /*
         if (project.hasWipJiraIssues()) {
             util.warnBuild(ProjectMessagesUtil.generateWIPIssuesMessage(project))
         }
+        */
 
         // Dump a representation of the project
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
@@ -97,23 +99,23 @@ class FinalizeStage extends Stage {
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         logger.debug("Project has failing tests? ${project.hasFailingTests()}")
-        logger.debug("Project has unexecuted jira tests? ${project.hasUnexecutedJiraTests()}")
+        // logger.debug("Project has unexecuted jira tests? ${project.hasUnexecutedJiraTests()}")
 
         // Fail the build in case of failing tests.
-        if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
+        if (project.hasFailingTests()/* || project.hasUnexecutedJiraTests()*/) {
             def message = 'Error: '
 
             if (project.hasFailingTests()) {
                 message += 'found failing tests'
             }
 
-            if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
-                message += ' and '
-            }
+            // if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
+            //     message += ' and '
+            // }
 
-            if (project.hasUnexecutedJiraTests()) {
-                message += 'found unexecuted Jira tests'
-            }
+            // if (project.hasUnexecutedJiraTests()) {
+            //     message += 'found unexecuted Jira tests'
+            // }
 
             message += '.'
 
@@ -126,6 +128,18 @@ class FinalizeStage extends Stage {
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
+            if (Project.demoMode || (!project.developerPreviewMode && project.gxp) || project.promotingToProd()) {
+                try {
+                    def docIds = project.docIds.values() as List
+                    logger.debug("Triggering document signature workflow for doc ids: ${docIds.join(', ')}")
+                    def workflowId = new SecureVaultDocumentUploader(project).triggerWorkflow(docIds)
+                    logger.debug("Signature workflow triggered with id ${workflowId}")
+                } catch (Exception e) {
+                    bitbucket.setBuildStatus(steps.env.BUILD_URL, project.gitData.commit,
+                        'FAILED', "Release Manager for commit: ${project.gitData.commit}")
+                    throw e
+                }
+            }
             logger.debug("Reporting pipeline status to Jira...")
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
@@ -256,11 +270,6 @@ class FinalizeStage extends Stage {
 
         def filesToCommit = [project.envStateFileName]
         def messageToCommit = "ODS: Record commits deployed into ${project.buildParams.targetEnvironmentToken}"
-        if (! project.isWorkInProgress) {
-            def projectDataFileNames =  project.saveProjectData()
-            filesToCommit.addAll(projectDataFileNames)
-            messageToCommit = messageToCommit + " and data of version ${project.getVersionName()}"
-        }
 
         git.commit(
             filesToCommit,

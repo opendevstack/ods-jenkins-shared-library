@@ -16,193 +16,82 @@ class LeVADocumentScheduler extends DocGenScheduler {
     // Document types per GAMP category
     private final static Map GAMP_CATEGORIES = [
         "1": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.TIP as String,
-            DocumentType.TIR as String,
-            DocumentType.OVERALL_TIR as String,
-            DocumentType.IVP as String,
-            DocumentType.IVR as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.DIL as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ],
         "3": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.TIP as String,
-            DocumentType.TIR as String,
-            DocumentType.OVERALL_TIR as String,
-            DocumentType.IVP as String,
-            DocumentType.IVR as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.DIL as String,
-            DocumentType.TRC as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ],
         "4": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.TIP as String,
-            DocumentType.TIR as String,
-            DocumentType.OVERALL_TIR as String,
-            DocumentType.IVP as String,
-            DocumentType.IVR as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.DIL as String,
-            DocumentType.TRC as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ],
         "5": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.DTP as String,
-            DocumentType.DTR as String,
-            DocumentType.OVERALL_DTR as String,
-            DocumentType.TIP as String,
-            DocumentType.TIR as String,
-            DocumentType.OVERALL_TIR as String,
-            DocumentType.IVP as String,
-            DocumentType.IVR as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.DIL as String,
-            DocumentType.TRC as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ]
     ]
 
     // Document types per GAMP category - for a saas only project
     private static Map GAMP_CATEGORIES_SAAS_ONLY = [
         "3": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.DIL as String,
-            DocumentType.TRC as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ],
         "4": [
-            DocumentType.CSD as String,
-            DocumentType.RA as String,
-            DocumentType.SSDS as String,
-            DocumentType.TCP as String,
-            DocumentType.TCR as String,
-            DocumentType.CFTP as String,
-            DocumentType.CFTR as String,
-            DocumentType.DIL as String,
-            DocumentType.TRC as String,
+            DocumentType.REQ as String,
+            DocumentType.DES as String,
+            DocumentType.EVD as String,
         ]
     ]
 
     // Document types per pipeline phase with an optional lifecycle constraint
     private final static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
-            (DocumentType.CSD as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.REQ as String): PipelinePhaseLifecycleStage.PRE_END,
+            (DocumentType.DES as String): PipelinePhaseLifecycleStage.PRE_END,
         ],
-        (MROPipelineUtil.PipelinePhases.BUILD): [
-            (DocumentType.DTP as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.TIP as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.RA as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.IVP as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.CFTP as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.TCP as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.DTR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-            (DocumentType.TRC as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.SSDS as String): PipelinePhaseLifecycleStage.POST_START,
-            (DocumentType.OVERALL_DTR as String): PipelinePhaseLifecycleStage.PRE_END
-        ],
-        (MROPipelineUtil.PipelinePhases.DEPLOY): [
-            (DocumentType.TIR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
-        ],
+        (MROPipelineUtil.PipelinePhases.BUILD): [:],
+        (MROPipelineUtil.PipelinePhases.DEPLOY): [:],
         (MROPipelineUtil.PipelinePhases.TEST): [
-            (DocumentType.IVR as String): PipelinePhaseLifecycleStage.PRE_END,
-            (DocumentType.CFTR as String): PipelinePhaseLifecycleStage.PRE_END,
-            (DocumentType.DIL as String): PipelinePhaseLifecycleStage.PRE_END,
-            (DocumentType.TCR as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.EVD as String): PipelinePhaseLifecycleStage.PRE_END,
         ],
-        (MROPipelineUtil.PipelinePhases.RELEASE): [
-        ],
-        (MROPipelineUtil.PipelinePhases.FINALIZE): [
-            (DocumentType.OVERALL_TIR as String): PipelinePhaseLifecycleStage.PRE_END
-        ],
+        (MROPipelineUtil.PipelinePhases.RELEASE): [:],
+        (MROPipelineUtil.PipelinePhases.FINALIZE): [:],
     ]
 
     // Document types per repository type with an optional phase constraint
-    private static Map REPSITORY_TYPES = [
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
-            (DocumentType.DTR as String): null,
-            (DocumentType.TIR as String): null
-        ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [
-            (DocumentType.TIR as String): null
-        ],
+    private static Map REPOSITORY_TYPES = [
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [:],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE): [:],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
-            (DocumentType.TIR as String): null
-        ],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB): [:],
     ]
 
     // Document types at the project level which require repositories
-    private static List REQUIRING_REPOSITORIES = [
-        DocumentType.OVERALL_DTR as String,
-        DocumentType.OVERALL_TIR as String,
-        DocumentType.CFTR as String,
-        DocumentType.IVR as String,
-        DocumentType.TCP as String,
-        DocumentType.TCR as String
-    ]
+    private static List REQUIRING_REPOSITORIES = []
 
     // Document types per environment token and label to track with Jira
     @SuppressWarnings('NonFinalPublicField')
     public static Map ENVIRONMENT_TYPE = [
         "D": [
-            (DocumentType.CSD as String)    : ["${DocumentType.CSD}"],
-            (DocumentType.SSDS as String)   : ["${DocumentType.SSDS}"],
-            (DocumentType.RA as String)     : ["${DocumentType.RA}"],
-            (DocumentType.TIP as String)    : ["${DocumentType.TIP}_Q",
-                                                                    "${DocumentType.TIP}_P"],
-            (DocumentType.TIR as String)    : ["${DocumentType.TIR}"],
-            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}"],
-            (DocumentType.IVP as String)    : ["${DocumentType.IVP}_Q",
-                                                                    "${DocumentType.IVP}_P"],
-            (DocumentType.CFTP as String)   : ["${DocumentType.CFTP}"],
-            (DocumentType.TCP as String)    : ["${DocumentType.TCP}"],
-            (DocumentType.DTP as String)    : ["${DocumentType.DTP}"],
-            (DocumentType.DTR as String)    : ["${DocumentType.DTR}"],
-            (DocumentType.OVERALL_DTR as String)    : ["${DocumentType.DTR}"],
-            (DocumentType.TRC as String)    : ["${DocumentType.TRC}"]
+            (DocumentType.REQ as String): ["${DocumentType.REQ}"],
+            (DocumentType.DES as String): ["${DocumentType.DES}"],
+            (DocumentType.EVD as String): ["${DocumentType.EVD}"],
         ],
         "Q": [
-            (DocumentType.TIR as String)    : ["${DocumentType.TIR}_Q"],
-            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_Q"],
-            (DocumentType.IVR as String)    : ["${DocumentType.IVR}_Q"],
-            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_Q"],
-            (DocumentType.CFTR as String)   : ["${DocumentType.CFTR}"],
-            (DocumentType.TCR as String)    : ["${DocumentType.TCR}"],
-            (DocumentType.DIL as String)    : ["${DocumentType.DIL}_Q"]
+            (DocumentType.EVD as String): ["${DocumentType.EVD}_Q"],
         ],
         "P": [
-            (DocumentType.TIR as String)    : ["${DocumentType.TIR}_P"],
-            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_P"],
-            (DocumentType.IVR as String)    : ["${DocumentType.IVR}_P"],
-            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"]
+            (DocumentType.EVD as String): ["${DocumentType.EVD}_P"],
         ]
     ]
 
@@ -307,7 +196,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
-        if ([DocumentType.CSD, DocumentType.SSDS, DocumentType.CFTP, DocumentType.CFTR, DocumentType.IVP, DocumentType.IVR, DocumentType.DIL, DocumentType.TCP, DocumentType.TCR, DocumentType.RA, DocumentType.TRC].contains(documentType as DocumentType)) {
+        if ([DocumentType.REQ].contains(documentType as DocumentType)) {
             result = result && this.project.services?.jira != null
         }
 
@@ -323,7 +212,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     private boolean isDocumentApplicableForRepoTypeAndPhase(String documentType, String phase, Map repo) {
-        def documentTypesForRepoType = this.REPSITORY_TYPES[(repo.type.toLowerCase())]
+        def documentTypesForRepoType = this.REPOSITORY_TYPES[(repo.type.toLowerCase())]
         if (!documentTypesForRepoType) {
             return false
         }
@@ -349,7 +238,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     @SuppressWarnings('UseCollectMany')
     private boolean isRepositoryLevelDocument(String documentType) {
-        return this.REPSITORY_TYPES.values().collect { it.keySet() }.flatten().contains(documentType)
+        return this.REPOSITORY_TYPES.values().collect { it.keySet() }.flatten().contains(documentType)
     }
 
     protected boolean isDocumentApplicable(String documentType, String phase, PipelinePhaseLifecycleStage stage, Map repo = null) {
@@ -403,7 +292,12 @@ class LeVADocumentScheduler extends DocGenScheduler {
                         }
                     }
                     logger.debugClocked("${debugKey}")
+                } else {
+                    logger.debug("Document of type '${documentType}' not applicable for phase '${phase}', " +
+                        "stage '${stage}', repo '${repo?.id}'")
                 }
+            } else {
+                logger.debug("Document of type '${documentType}' not applicable for environment '${environment}'")
             }
         }
     }

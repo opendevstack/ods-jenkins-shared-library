@@ -1,0 +1,28 @@
+{
+  "id" : "137f7cab-35ab-478b-ab68-06d0fa95dbba",
+  "name" : "rest_api_10_projects_edpt3_repos_edpt3-demo-app-backend_pull-requests_2_commits",
+  "request" : {
+    "url" : "/rest/api/1.0/projects/EDPT3/repos/edpt3-demo-app-backend/pull-requests/2/commits?limit=50",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"values\":[{\"id\":\"64989dcb760d21f2c2ab872c3847fb7fe3b26ce5\",\"displayId\":\"64989dcb760\",\"author\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"authorTimestamp\":1711449323000,\"committer\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\"},\"committerTimestamp\":1711449323000,\"message\":\"Pull request #1: first commit\\n\\nMerge in EDPT3/backend from feature/one to shape/one\\n\\n* commit '7b65593b2fccd997c5d2633265aa07cfa3cf6e9f':\\n  first commit\",\"parents\":[{\"id\":\"632aefa9f25377a5b4efef34d464162daf34dded\",\"displayId\":\"632aefa9f25\"},{\"id\":\"7b65593b2fccd997c5d2633265aa07cfa3cf6e9f\",\"displayId\":\"7b65593b2fc\"}]},{\"id\":\"7b65593b2fccd997c5d2633265aa07cfa3cf6e9f\",\"displayId\":\"7b65593b2fc\",\"author\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"authorTimestamp\":1711449253000,\"committer\":{\"name\":\"User One\",\"emailAddress\":\"user-one@edpinabox.com\"},\"committerTimestamp\":1711449253000,\"message\":\"first commit\",\"parents\":[{\"id\":\"632aefa9f25377a5b4efef34d464162daf34dded\",\"displayId\":\"632aefa9f25\"}]}],\"size\":2,\"isLastPage\":true,\"start\":0,\"limit\":50,\"nextPageStart\":null}",
+    "headers" : {
+      "x-arequestid" : "@HQR5YOx682x6757x0",
+      "set-cookie" : [ "BITBUCKETSESSIONID=6F334BF05D80B415EEC8AE05E6AA4A49; Max-Age=1209600; Expires=Tue, 09 Apr 2024 11:22:17 GMT; Path=/; Secure; HttpOnly", "19d0370914135915316d464d8a926ddb=16504e94a33263d578ae4e2084cf74d2; path=/; HttpOnly; Secure; SameSite=None" ],
+      "x-auserid" : "2",
+      "x-ausername" : "x2odsedpipam%40boehringer-ingelheim.com",
+      "x-asessionid" : "pdlbtm",
+      "cache-control" : [ "private, no-cache", "no-cache, no-transform" ],
+      "pragma" : "no-cache",
+      "vary" : "x-ausername,x-auserid,cookie,accept-encoding",
+      "x-content-type-options" : "nosniff",
+      "content-type" : "application/json;charset=UTF-8",
+      "date" : "Tue, 26 Mar 2024 11:22:16 GMT"
+    }
+  },
+  "uuid" : "137f7cab-35ab-478b-ab68-06d0fa95dbba",
+  "persistent" : true,
+  "insertionIndex" : 8
+}

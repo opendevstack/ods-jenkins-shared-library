@@ -8,6 +8,8 @@ import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
+import java.nio.charset.StandardCharsets
+
 @SuppressWarnings('ParameterCount')
 @TypeChecked
 class ScanWithSonarStage extends Stage {
@@ -92,7 +94,8 @@ class ScanWithSonarStage extends Stage {
             context.buildTag,
             sonarProperties['sonar.branch.name'].toString(),
             context.sonarQubeEdition,
-            !context.triggeredByOrchestrationPipeline
+            true,
+            context.triggeredByOrchestrationPipeline
         )
 
         // We need always the QG to put in insight report in Bitbucket
@@ -167,28 +170,32 @@ class ScanWithSonarStage extends Stage {
         String author,
         String sonarBranch,
         String sonarQubeEdition,
-        boolean archive) {
+        boolean archive,
+        boolean uploadToNexus) {
         def targetReport = "SCRR-${projectKey}.docx"
         def targetReportMd = "SCRR-${projectKey}.md"
+        def targetReportCsv = "SCRR-${projectKey}.csv"
         sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition)
         steps.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts'
         )
         steps.sh(
-            label: 'Move report to artifacts dir',
-            script: 'mv *-analysis-report.docx* artifacts/; mv *-analysis-report.md* artifacts/'
-        )
-        steps.sh(
-            label: 'Rename report to SCRR',
+            label: 'Copy reports for archival',
             script: """
-            mv artifacts/*-analysis-report.docx* artifacts/${targetReport};
-            mv artifacts/*-analysis-report.md* artifacts/${targetReportMd}
+            cp *-analysis-report.docx* artifacts/${targetReport};
+            cp *-analysis-report.md* artifacts/${targetReportMd};
+            cp *-issues-report.csv* artifacts/${targetReportCsv};
             """
         )
+
         if (archive) {
             steps.archiveArtifacts(artifacts: 'artifacts/SCRR*')
         }
+        /*if (uploadToNexus) {
+            def reportContents = steps.readFile("artifacts/${targetReportCsv}", 'UTF-8') as String
+            nexus.storeArtifact('repo', 'dir', targetReportCsv, reportContents.getBytes(StandardCharsets.UTF_8), 'text/csv')
+        }*/
 
         def sonarqubeStashPath = "scrr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
@@ -201,6 +208,7 @@ class ScanWithSonarStage extends Stage {
 
         context.addArtifactURI('SCRR', targetReport)
         context.addArtifactURI('SCRR-MD', targetReportMd)
+        context.addArtifactURI('SCRR-CSV', targetReportCsv)
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)

@@ -1,4 +1,3 @@
-
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
@@ -301,6 +300,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         given:
         def steps = Spy(util.PipelineSteps)
         def service = new OpenShiftService(steps, new Logger(steps, false))
+        steps.sh({ it.script == 'oc whoami --show-console' }) >> 'https://console-openshift-console.apps.openshift.com'
 
         when:
         service.helmUpgrade(
@@ -315,11 +315,11 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh(
-            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color --three-way-merge --normalize-manifests bar ./',
+            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com --no-color --three-way-merge --normalize-manifests bar ./',
             label: 'Show diff explaining what helm upgrade would change for release bar in foo'
         )
         1 * steps.sh(
-            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb bar ./',
+            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com bar ./',
             label: 'Upgrade Helm release bar in foo',
             returnStatus: true
         )

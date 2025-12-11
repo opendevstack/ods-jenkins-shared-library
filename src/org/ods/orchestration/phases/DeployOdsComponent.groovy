@@ -33,116 +33,126 @@ class DeployOdsComponent {
     @TypeChecked(TypeCheckingMode.SKIP)
     @SuppressWarnings(['AbcMetric'])
     void run(Map repo, String baseDir) {
-        this.os = ServiceRegistry.instance.get(OpenShiftService)
+        def registry = ServiceRegistry.instance
+        this.os = registry.get(OpenShiftService)
+        def jenkins = registry.get(JenkinsService)
+        long previousLogLength = jenkins.getCurrentLogLength()
+        try {
+            steps.dir(baseDir) {
+                def openShiftDir = computeStartDir()
 
-        steps.dir(baseDir) {
-            def openShiftDir = computeStartDir()
-
-            DeploymentDescriptor deploymentDescriptor
-            steps.dir(openShiftDir) {
-                deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
-                logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
-            }
-            if (!repo.data.openshift.deployments) {
-                repo.data.openshift.deployments = [:]
-            }
-
-            if (!openShiftDir.startsWith('openshift')) {
-                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    importImages(deployment, deploymentName, project.sourceProject)
+                DeploymentDescriptor deploymentDescriptor
+                steps.dir(openShiftDir) {
+                    deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
+                    logger.debug("DeploymentDescriptor '${openShiftDir}': ${deploymentDescriptor.deployments}")
                 }
-                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    // read from deploymentdescriptor
-                    Map deploymentMean = deployment.deploymentMean
-                    logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
-                    deploymentMean['repoId'] = repo.id
-                    deploymentMean['namespace'] = project.targetProject
+                if (!repo.data.openshift.deployments) {
+                    repo.data.openshift.deployments = [:]
+                }
+
+                if (!openShiftDir.startsWith('openshift')) {
+                    deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                        importImages(deployment, deploymentName, project.sourceProject)
+                    }
+                    deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                        // read from deploymentdescriptor
+                        Map deploymentMean = deployment.deploymentMean
+                        logger.debug("Helm Config for ${deploymentName} -> ${deploymentMean}")
+                        deploymentMean['repoId'] = repo.id
+                        deploymentMean['namespace'] = project.targetProject
+
+                        applyTemplates(openShiftDir, deploymentMean)
+
+                        def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                        def podDataContext = [
+                            "targetProject=${project.targetProject}",
+                            "selector=${deploymentMean.selector}",
+                            "name=${deploymentName}",
+                        ]
+                        def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
+                        List<PodData> podData = null
+                        for (def i = 0; i < retries; i++) {
+                            podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
+                            if (podData) {
+                                break
+                            }
+                            steps.echo("${msgPodsNotFound} - waiting")
+                            steps.sleep(12)
+                        }
+
+                        if (!podData) {
+                            throw new RuntimeException(msgPodsNotFound)
+                        }
+                        logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
+
+                        // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                        // update this to deal with multiple pods.
+                        def pod = podData[0].toMap()
+
+                        // TODO verifyImageShas doesn't work properly
+                        //verifyImageShas(deployment, pod.containers)
+                        repo.data.openshift.deployments << [(deploymentName): pod]
+                        def deploymentMeanKey = deploymentName + '-deploymentMean'
+                        repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
+                    }
+                } else {
+                    def originalDeploymentVersions =
+                        gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
+
+                    Map deploymentMean = [:]
+
+                    deploymentDescriptor.deployments.each { key, value ->
+                        if (value.deploymentMean) {
+                            deploymentMean = value.deploymentMean
+                        }
+                    }
+
+                    logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
 
                     applyTemplates(openShiftDir, deploymentMean)
+                    deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+                        Map deploymentMean4Deployment = deployment.deploymentMean
+                        logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean4Deployment}")
 
-                    def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    def podDataContext = [
-                        "targetProject=${project.targetProject}",
-                        "selector=${deploymentMean.selector}",
-                        "name=${deploymentName}",
-                    ]
-                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-                    List<PodData> podData = null
-                    for (def i = 0; i < retries; i++) {
-                        podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
-                        if (podData) {
-                            break
-                        }
-                        steps.echo("${msgPodsNotFound} - waiting")
-                        steps.sleep(12)
-                    }
+                        importImages(deployment, deploymentName, project.sourceProject)
 
-                    if (!podData) {
-                        throw new RuntimeException(msgPodsNotFound)
-                    }
-                    logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
+                        def replicationController = os.rollout(
+                            project.targetProject,
+                            OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                            deploymentName,
+                            originalDeploymentVersions[deploymentName],
+                            project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 20
+                        )
 
-                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                    // update this to deal with multiple pods.
-                    def pod = podData[0].toMap()
+                        def podData = os.getPodDataForDeployment(
+                            project.targetProject,
+                            OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                            replicationController,
+                            project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                        )
+                        // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                        // update this to deal with multiple pods.
+                        def pod = podData[0].toMap()
 
-                    // TODO verifyImageShas doesn't work properly
-                    //verifyImageShas(deployment, pod.containers)
-                    repo.data.openshift.deployments << [(deploymentName): pod]
-                    def deploymentMeanKey = deploymentName + '-deploymentMean'
-                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
-                }
-            } else {
-                def originalDeploymentVersions =
-                    gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
+                        verifyImageShas(deployment, pod.containers)
 
-                Map deploymentMean = [:]
-
-                deploymentDescriptor.deployments.each { key, value ->
-                    if (value.deploymentMean) {
-                        deploymentMean = value.deploymentMean
+                        repo.data.openshift.deployments << [(deploymentName): pod]
+                        def deploymentMeanKey = deploymentName + '-deploymentMean'
+                        repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean4Deployment]
                     }
                 }
-
-                logger.debug("Found Deploymentmean(s) for ${repo.id}: \n${deploymentMean}")
-
-                applyTemplates(openShiftDir, deploymentMean)
-                deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
-                    Map deploymentMean4Deployment = deployment.deploymentMean
-                    logger.debug("Tailor Config for ${deploymentName} -> ${deploymentMean4Deployment}")
-
-                    importImages(deployment, deploymentName, project.sourceProject)
-
-                    def replicationController = os.rollout(
-                        project.targetProject,
-                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                        deploymentName,
-                        originalDeploymentVersions[deploymentName],
-                        project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 20
-                    )
-
-                    def podData = os.getPodDataForDeployment(
-                        project.targetProject,
-                        OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                        replicationController,
-                        project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    )
-                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                    // update this to deal with multiple pods.
-                    def pod = podData[0].toMap()
-
-                    verifyImageShas(deployment, pod.containers)
-
-                    repo.data.openshift.deployments << [(deploymentName): pod]
-                    def deploymentMeanKey = deploymentName + '-deploymentMean'
-                    repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean4Deployment]
+                if (deploymentDescriptor.createdByBuild) {
+                    def createdByBuildKey = DeploymentDescriptor.CREATED_BY_BUILD_STR
+                    repo.data.openshift[createdByBuildKey] = deploymentDescriptor.createdByBuild
                 }
             }
-            if (deploymentDescriptor.createdByBuild) {
-                def createdByBuildKey = DeploymentDescriptor.CREATED_BY_BUILD_STR
-                repo.data.openshift[createdByBuildKey] = deploymentDescriptor.createdByBuild
+        } finally {
+            def log = jenkins.getCurrentBuildLogAsText(previousLogLength)?.stripTrailing()
+            if (log) {
+                project.addComponentLog(repo.id as String, log)
             }
         }
+
     }
 
     // FIXME: This method does not support multiple deployment descriptors.
@@ -271,7 +281,7 @@ class DeployOdsComponent {
             def imageInfo = imageParts.last().split('@')
             def imageName = imageInfo.first()
             def imageSha = imageInfo.last()
-            if (project.targetClusterIsExternal) {
+            if (project.targetClusterExternal) {
                 os.importImageShaFromSourceRegistry(
                     project.targetProject,
                     imageName,

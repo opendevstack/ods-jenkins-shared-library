@@ -16,6 +16,6 @@ abstract class AbstractJiraUseCaseSupport {
         this.usecase = usecase
     }
 
-    abstract void applyXunitTestResults(List testIssues, Map testResults)
+    abstract void applyXunitTestResults(List stories, Map testResults)
 
 }

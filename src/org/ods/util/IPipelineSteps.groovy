@@ -45,11 +45,17 @@ interface IPipelineSteps {
 
     def readFile(Map args)
 
+    String pwd(boolean tmp)
+
+    String pwd(Map args)
+
     def writeFile(String file, String text, String encoding)
 
     def writeFile(Map args)
 
     def readJSON(Map args)
+
+    def readCSV(Map args)
 
     def writeJSON(Map args)
 

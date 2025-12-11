@@ -1,5 +1,6 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
@@ -7,6 +8,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.TailorDeploymentException
 import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.Logger
@@ -76,6 +78,8 @@ class Pipeline implements Serializable {
         }
 
         prepareAgentPodConfig(config)
+
+        long previousLogLength = initJenkinsService().getCurrentLogLength()
         logger.infoClocked("${config.componentId}", "***** Starting ODS Component Pipeline *****")
         context = new Context(script, config, logger, this.localCheckoutEnabled)
 
@@ -143,11 +147,7 @@ class Pipeline implements Serializable {
                         }
                         this.openShiftService = registry.get(OpenShiftService)
 
-                        if (!registry.get(JenkinsService)) {
-                            logger.debug 'Registering JenkinsService'
-                            registry.add(JenkinsService, new JenkinsService(script, logger))
-                        }
-                        this.jenkinsService = registry.get(JenkinsService)
+                        initJenkinsService()
 
                         if (!registry.get(NexusService)) {
                             logger.debug 'Registering NexusService'
@@ -276,6 +276,9 @@ class Pipeline implements Serializable {
                             logger.error "${err}"
                             updateBuildStatus('FAILURE')
                             setBitbucketBuildStatus('FAILED')
+                            if (err instanceof TailorDeploymentException) {
+                                context.addArtifactURI('tailorFailure', 'true')
+                            }
                             if (notifyNotGreen) {
                                 doNotifyNotGreen(context.emailextRecipients)
                             }
@@ -301,6 +304,10 @@ class Pipeline implements Serializable {
                                 "ODS Build Artifacts '${context.componentId}': " +
                                 "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
+                        def log = jenkinsService.getCurrentBuildLogAsText(previousLogLength)?.stripTrailing()
+                        if (log) {
+                            context.addArtifactURI('log', log)
+                        }
                     }
                 }
             }
@@ -455,6 +462,18 @@ class Pipeline implements Serializable {
         } else {
             block()
         }
+    }
+
+    @NonCPS
+    private JenkinsService initJenkinsService() {
+        def registry = ServiceRegistry.instance
+        def jenkins = registry.get(JenkinsService)
+        if (!jenkins) {
+            logger.debug 'Registering JenkinsService'
+            jenkins = new JenkinsService(script, logger)
+            registry.add(JenkinsService, jenkins)
+        }
+        return jenkinsService = jenkins
     }
 
 }

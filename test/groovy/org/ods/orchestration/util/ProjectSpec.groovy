@@ -331,7 +331,7 @@ class ProjectSpec extends SpecHelper {
         project.setOpenShiftData('https://api.example.openshift.com:443')
 
         expect:
-        project.getTargetClusterIsExternal() == false
+        project.isTargetClusterExternal() == false
     }
 
     def "target cluster can be external when an API URL is configured"() {
@@ -356,7 +356,7 @@ class ProjectSpec extends SpecHelper {
         project.setOpenShiftData('https://api.example.openshift.com:443')
 
         then:
-        project.getTargetClusterIsExternal() == result
+        project.isTargetClusterExternal() == result
 
         where:
         environment | configuredProdApiUrl || result
@@ -2881,7 +2881,7 @@ class ProjectSpec extends SpecHelper {
 
         Project spied =  Spy(projectObj)
         spied.getJiraProjectKey() >> projectKey
-        spied.loadVersionDataFromJira(_) >> {String versionName -> [id: 1, name: versionName] }
+        spied.getVersionData(_) >> { String versionName -> [id: 1, name: versionName] }
         spied.getCapability('LeVADocs') >> [templatesVersion: '1.1']
         return spied
     }

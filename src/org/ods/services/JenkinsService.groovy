@@ -1,11 +1,13 @@
 package org.ods.services
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.ILogger
 import hudson.scm.ChangeLogSet
 
 class JenkinsService {
 
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
+    private static final int DEFAULT_MAX_LOG_LENGTH = 2_000_000_000
 
     private final def script
     private final ILogger logger
@@ -73,16 +75,80 @@ class JenkinsService {
         return contextresultMap
     }
 
-    String getCurrentBuildLogAsHtml () {
-        StringWriter writer = new StringWriter()
-        this.script.currentBuild.getRawBuild().getLogText().writeHtmlTo(0, writer)
-        return writer.getBuffer().toString()
+    /**
+     * It returns the length in bytes of the current log.
+     * This value can be used as an offset to read the log from that position.
+     *
+     * @return the length of the current log in bytes.
+     */
+    long getCurrentLogLength() {
+        return script.currentBuild.rawBuild.logText.length()
     }
 
-    String getCurrentBuildLogAsText () {
+    String getCurrentBuildLogAsHtml() {
+        return getLogAsHtml(script.currentBuild.rawBuild)
+    }
+
+    @NonCPS
+    static String getLogAsHtml(rawBuild) {
+        return getLog({ start, writer -> rawBuild.logText.writeHtmlTo(start, writer) })
+    }
+
+    /**
+     * Returns the current log as text. if {@code maxLength} is specified,
+     * the returned log may be truncated.
+     * Note that the maximum length is just a hint.
+     * If the current log is longer, at least {@code maxLength} bytes will be returned
+     * and no more bytes will be requested. However, the underlying API may return
+     * a longer log, perhaps all of it.
+     * If you need it truncated exactly to that size, you can always truncate the returned
+     * value with substring.
+     *
+     * @param maxLength the maximum desired log length in bytes.
+     * @return the log, possibly truncated.
+     */
+    String getCurrentBuildLogAsText (long offset = 0L, int maxLength = DEFAULT_MAX_LOG_LENGTH) {
+        return getLogAsText(script.currentBuild.rawBuild, offset, maxLength)
+    }
+
+    @NonCPS
+    static String getLogAsText(rawBuild, long offset = 0L, int maxLength = DEFAULT_MAX_LOG_LENGTH) {
+        return getLog({ start, writer -> rawBuild.logText.writeLogTo(start, writer) }, offset, maxLength)
+    }
+
+    @NonCPS
+    private static String getLog(Closure<Long> writeLogTo, long offset = 0L, int maxLength = DEFAULT_MAX_LOG_LENGTH) {
+        if (offset < 0L) {
+            throw new IllegalArgumentException("offset == ${offset}")
+        }
+        if (maxLength < 0) {
+            throw new IllegalArgumentException("maxLength == ${maxLength}")
+        }
+        long limit = offset + maxLength
+        if (limit < 0) {
+            throw new IllegalArgumentException("offset + maxLength == ${limit}")
+        }
         StringWriter writer = new StringWriter()
-        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
-        return writer.getBuffer().toString()
+        while (offset < limit) {
+            long newPos = writeLogTo(offset, writer)
+            if (newPos > limit || newPos == offset) {
+                break
+            }
+            offset = newPos
+        }
+        def log = writer.toString()
+        int length = log.length()
+        if (length > maxLength) {
+            def newLine = System.lineSeparator()
+            def newLinePos = log.indexOf(newLine, Math.max(maxLength - newLine.length(), 0))
+            if (newLinePos >= 0) {
+                maxLength = newLinePos
+            }
+            if (maxLength < length) {
+                log = log.substring(0, maxLength)
+            }
+        }
+        return log
     }
 
     boolean unstashFilesIntoPath(String name, String path, String type) {

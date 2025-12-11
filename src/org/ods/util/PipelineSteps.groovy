@@ -1,5 +1,7 @@
 package org.ods.util
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -37,6 +39,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.error(message)
     }
 
+    @NonCPS
     void echo(String message) {
         def dateTimeString = OffsetDateTime
             .now(ZoneOffset.UTC)
@@ -116,6 +119,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.readJSON(args)
     }
 
+    def readCSV(Map args) {
+        this.context.readCSV(args)
+    }
+
     def writeJSON(Map args) {
         this.context.writeJSON(args)
     }
@@ -170,6 +177,14 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     def emailext(Map args) {
         this.context.emailext(args)
+    }
+
+    String pwd(boolean tmp)  {
+        pwd(tmp: tmp)
+    }
+
+    String pwd(Map args) {
+        this.context.pwd(args)
     }
 
 }

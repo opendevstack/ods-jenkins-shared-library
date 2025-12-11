@@ -34,9 +34,12 @@ def call(Map config) {
     def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
-    if (!odsImageTag) {
-        error "You must set 'odsImageTag' in the config map"
+    // FIXME: imageStreamTag is only needed temporarily
+    def imageStreamTag = config.imageStreamTag
+    if (!odsImageTag && !imageStreamTag) {
+        error "You must set 'odsImageTag' or 'imageStreamTag' in the pipeline config map"
     }
+
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
     boolean startAgentEarly = config.get('startOrchestrationAgentOnInit', true)
@@ -59,7 +62,7 @@ def call(Map config) {
 
             logger.startClocked('pod-template')
             def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-            withPodTemplate(odsImageTag, steps, alwaysPullImage, resourceLimitMemory) {
+            withPodTemplate(odsImageTag, imageStreamTag, steps, alwaysPullImage, resourceLimitMemory) {
                 logger.debugClocked('pod-template')
                 withEnv(envs) {
                     def result
@@ -148,7 +151,7 @@ private void checkOutLocalBranch(GitService git, scm, ILogger logger) {
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
-private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage,
+private withPodTemplate(String odsImageTag, String imageStreamTag, IPipelineSteps steps, boolean alwaysPullImage,
     String mroAgentLimit, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'image-registry.openshift-image-registry.svc:5000'
@@ -165,7 +168,8 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         containers: [
             containerTemplate(
                 name: 'jnlp',
-                image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-base:${odsImageTag}",
+                // FIXME: imageStreamTag is only needed temporarily
+                image: imageStreamTag ? "${dockerRegistry}/${imageStreamTag}" : "${dockerRegistry}/${odsNamespace}/jenkins-agent-base:${odsImageTag}",
                 workingDir: '/tmp',
                 resourceRequestMemory: '512Mi',
                 resourceLimitMemory: "${mroAgentLimit}",

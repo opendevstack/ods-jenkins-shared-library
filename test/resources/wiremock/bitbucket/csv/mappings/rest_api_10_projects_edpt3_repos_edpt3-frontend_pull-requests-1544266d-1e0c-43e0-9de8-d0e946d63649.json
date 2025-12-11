@@ -1,0 +1,28 @@
+{
+  "id" : "1544266d-1e0c-43e0-9de8-d0e946d63649",
+  "name" : "rest_api_10_projects_edpt3_repos_edpt3-demo-app-front-end_pull-requests",
+  "request" : {
+    "url" : "/rest/api/1.0/projects/EDPT3/repos/edpt3-demo-app-front-end/pull-requests?state=MERGED&order=OLDEST&at=refs/heads/master&limit=50",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"size\":1,\"limit\":50,\"isLastPage\":true,\"values\":[{\"id\":3,\"version\":2,\"title\":\"Shape/one\",\"description\":\"* updated readme\\r\\n* created jenkinsfile\",\"state\":\"MERGED\",\"open\":false,\"closed\":true,\"createdDate\":1711449103632,\"updatedDate\":1711449126163,\"closedDate\":1711449126163,\"fromRef\":{\"id\":\"refs/heads/shape/one\",\"displayId\":\"shape/one\",\"latestCommit\":\"f9e7ce8fe819dac98980e7a8949f1ae7fa3c1682\",\"type\":\"BRANCH\",\"repository\":{\"slug\":\"edpt3-demo-app-front-end\",\"id\":31,\"name\":\"edpt3-demo-app-front-end\",\"hierarchyId\":\"06efc73c4bf7f4b36d6e\",\"scmId\":\"git\",\"state\":\"AVAILABLE\",\"statusMessage\":\"Available\",\"forkable\":true,\"project\":{\"key\":\"EDPT3\",\"id\":1,\"name\":\"EDPT3\",\"public\":false,\"type\":\"NORMAL\",\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/projects/EDPT3\"}]}},\"public\":false,\"links\":{\"clone\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/scm/edpt3/edpt3-demo-app-front-end.git\",\"name\":\"http\"},{\"href\":\"ssh://git@bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com:7999/edpt3/edpt3-demo-app-front-end.git\",\"name\":\"ssh\"}],\"self\":[{\"href\":\"https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/browse\"}]}}},\"toRef\":{\"id\":\"refs/heads/master\",\"displayId\":\"master\",\"latestCommit\":\"3e92d34df96f9ce8cbef3cc56cf43e8ed9b695b2\",\"type\":\"BRANCH\",\"repository\":{\"slug\":\"edpt3-demo-app-front-end\",\"id\":31,\"name\":\"edpt3-demo-app-front-end\",\"hierarchyId\":\"06efc73c4bf7f4b36d6e\",\"scmId\":\"git\",\"state\":\"AVAILABLE\",\"statusMessage\":\"Available\",\"forkable\":true,\"project\":{\"key\":\"EDPT3\",\"id\":1,\"name\":\"EDPT3\",\"public\":false,\"type\":\"NORMAL\",\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/projects/EDPT3\"}]}},\"public\":false,\"links\":{\"clone\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/scm/edpt3/edpt3-demo-app-front-end.git\",\"name\":\"http\"},{\"href\":\"ssh://git@bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com:7999/edpt3/edpt3-demo-app-front-end.git\",\"name\":\"ssh\"}],\"self\":[{\"href\":\"https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/browse\"}]}}},\"locked\":false,\"author\":{\"user\":{\"name\":\"admin\",\"emailAddress\":\"admin@edpinabox.com\",\"id\":3,\"displayName\":\"Administrator EDP in a Box\",\"active\":true,\"slug\":\"admin\",\"type\":\"NORMAL\",\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/users/admin\"}]}},\"role\":\"AUTHOR\",\"approved\":false,\"status\":\"UNAPPROVED\"},\"reviewers\":[{\"user\":{\"name\":\"user-two@edpinabox.com\",\"emailAddress\":\"user-two@edpinabox.com\",\"id\":2,\"displayName\":\"Administrator\",\"active\":true,\"slug\":\"x2odsedpipam_boehringer-ingelheim.com\",\"type\":\"NORMAL\",\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/users/x2odsedpipam_boehringer-ingelheim.com\"}]}},\"lastReviewedCommit\":\"f9e7ce8fe819dac98980e7a8949f1ae7fa3c1682\",\"role\":\"REVIEWER\",\"approved\":true,\"status\":\"APPROVED\"},{\"user\":{\"name\":\"project-team-member\",\"emailAddress\":\"project-team-member@edpinabox.com\",\"id\":5,\"displayName\":\"Project Team Member EDP in a Box\",\"active\":true,\"slug\":\"project-team-member\",\"type\":\"NORMAL\",\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpt3-cd.apps.us-test.ocp.aws.boehringer.com/users/project-team-member\"}]}},\"role\":\"REVIEWER\",\"approved\":false,\"status\":\"UNAPPROVED\"}],\"participants\":[],\"properties\":{\"resolvedTaskCount\":0,\"openTaskCount\":0},\"links\":{\"self\":[{\"href\":\"https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3\"}]}}],\"start\":0}",
+    "headers" : {
+      "x-arequestid" : "@HQR5YOx682x6758x0",
+      "set-cookie" : [ "BITBUCKETSESSIONID=13F5181F43346CB8A7312000FF232B55; Max-Age=1209600; Expires=Tue, 09 Apr 2024 11:22:18 GMT; Path=/; Secure; HttpOnly", "19d0370914135915316d464d8a926ddb=16504e94a33263d578ae4e2084cf74d2; path=/; HttpOnly; Secure; SameSite=None" ],
+      "x-auserid" : "2",
+      "x-ausername" : "x2odsedpipam%40boehringer-ingelheim.com",
+      "x-asessionid" : "bhf4z",
+      "cache-control" : [ "private, no-cache", "no-cache, no-transform" ],
+      "pragma" : "no-cache",
+      "vary" : "x-ausername,x-auserid,cookie,accept-encoding",
+      "x-content-type-options" : "nosniff",
+      "content-type" : "application/json;charset=UTF-8",
+      "date" : "Tue, 26 Mar 2024 11:22:18 GMT"
+    }
+  },
+  "uuid" : "1544266d-1e0c-43e0-9de8-d0e946d63649",
+  "persistent" : true,
+  "insertionIndex" : 9
+}

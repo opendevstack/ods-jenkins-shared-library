@@ -8,7 +8,6 @@ import org.ods.util.ILogger
 import org.ods.util.Logger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import spock.lang.Ignore
 import util.SpecHelper
 
 import static util.FixtureHelper.*
@@ -80,42 +79,42 @@ class JiraUseCaseSpec extends SpecHelper {
         def testcase = [name: "JIRA123 test"]
 
         then:
-        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        usecase.checkStoryIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
         testcase.name = "JIRA123-test"
 
         then:
-        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        usecase.checkStoryIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
         testcase.name = "JIRA123_test"
 
         then:
-        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        usecase.checkStoryIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
         testcase.name = "JIRA123test"
 
         then:
-        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        !usecase.checkStoryIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
         testcase.name = "JIRA-123_test"
 
         then:
-        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        !usecase.checkStoryIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
         testcase.name = "123_test"
 
         then:
-        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+        !usecase.checkStoryIssueMatchesTestCase(issue, testcase)
     }
 
     def "create bugs and block impacted test cases"() {
@@ -533,7 +532,7 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         when:
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
 
         then:
         def expectedMatched = [
@@ -571,7 +570,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         testIssues[4].testType = Project.TestType.INSTALLATION
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
         def expectedMatched = [
             "JIRA-1": "JIRA1_my-testcase-1",
             "JIRA-2": "JIRA2_my-testcase-2",
@@ -589,7 +588,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         testIssues[4].testType = Project.TestType.INTEGRATION
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
         expectedMatched = [
             "JIRA-1": "JIRA1_my-testcase-1",
             "JIRA-2": "JIRA2_my-testcase-2",
@@ -605,7 +604,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         testIssues[4].testType = Project.TestType.ACCEPTANCE
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
         expectedMatched = [
             "JIRA-1": "JIRA1_my-testcase-1",
             "JIRA-2": "JIRA2_my-testcase-2",
@@ -621,7 +620,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         testIssues[4].testType = Project.TestType.UNIT
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
         expectedMatched = [
             "JIRA-1": "JIRA1_my-testcase-1",
             "JIRA-2": "JIRA2_my-testcase-2",
@@ -654,7 +653,7 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         when:
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
 
         then:
         def e = thrown(IllegalStateException)
@@ -679,7 +678,7 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         when:
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler, false)
+        usecase.matchIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler, false)
 
         then:
         def expectedMatched = [

@@ -46,10 +46,21 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    class PipelineEnvs {
-        static final String DEV = "dev"
-        static final String QA = "qa"
-        static final String PROD = "prod"
+    enum PipelineEnv {
+
+        DEV("dev"),
+        QA("qa"),
+        PROD("prod")
+
+        private String value
+
+        String getValue() {
+            return value
+        }
+
+        private PipelineEnv(String value) {
+            this.value = value
+        }
     }
 
     class PipelinePhases {
@@ -73,7 +84,7 @@ class MROPipelineUtil extends PipelineUtil {
         def nodes = repos.collect { new Node(it) }
 
         nodes.each { node ->
-            node.data.pipelineConfig.dependencies.each { dependency ->
+            node.data.pipelineConfig?.dependencies?.each { dependency ->
                 // Find all nodes that the current node depends on (by repo id)
                 nodes.findAll { it.data.id == dependency }.each {
                     // Add a relation between dependent nodes
@@ -111,7 +122,7 @@ class MROPipelineUtil extends PipelineUtil {
             // We get a map with at least two keys ("build" and "deployments").
             def buildArtifacts = job.getBuildArtifactURIs()
             buildArtifacts.each { k, v ->
-                if (k != 'failedStage') {
+                if (!(k in ['failedStage', 'log', 'sonarqubeScanStashPath', 'aquaScanStashPath'])) {
                     repo.data.openshift[k] = v
                 }
             }
@@ -126,6 +137,25 @@ class MROPipelineUtil extends PipelineUtil {
                 } else {
                     this.logger.warn("Got errors in repo '${repo.id}', will fail delayed.")
                 }
+            }
+            def repoId = repo.id as String
+            if (repo.doInstall) {
+                def log = buildArtifacts.log as String
+                if (log) {
+                    project.addComponentLog(repoId, log)
+                }
+            }
+            def aqua = buildArtifacts.aquaReport as Map
+            if (aqua) {
+                project.addAquaReport(repoId, aqua)
+            }
+            def stashSonarqube = buildArtifacts.sonarqubeScanStashPath as String
+            if (stashSonarqube) {
+                project.addSonarStash(repoId, stashSonarqube)
+            }
+            def stashAqua = buildArtifacts.aquaScanStashPath as String
+            if (stashAqua) {
+                project.addAquaStash(repoId, stashAqua)
             }
         }
     }
@@ -388,8 +418,9 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
+                    repo.installable = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     if (repo.include) {
-                        repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
+                        repo.doInstall = repo.installable
                         if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                             if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir, false)
@@ -493,11 +524,13 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    /*
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
         this.project.setHasUnexecutedJiraTests(true)
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
-        this.warnBuild("Found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
+        this.warnBuild("Found Jira reqirements uncovered by tests: ${unexecutedJiraTestKeys}.")
     }
+    */
 
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {

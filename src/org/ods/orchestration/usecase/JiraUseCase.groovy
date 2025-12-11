@@ -2,7 +2,6 @@ package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
 import hudson.model.Cause
-import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.util.ConcurrentCache
 import org.ods.orchestration.util.GitUtil
@@ -11,7 +10,6 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.Project.JiraDataItem
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
@@ -85,6 +83,7 @@ class JiraUseCase {
         this.docVersions = new ConcurrentCache<String, Long>(computeIfAbsent)
     }
 
+    @NonCPS
     void setSupport(AbstractJiraUseCaseSupport support) {
         this.support = support
     }
@@ -99,51 +98,99 @@ class JiraUseCase {
         return jira
     }
 
-    void applyXunitTestResultsAsTestIssueLabels(List testIssues, Map testResults) {
+    @NonCPS
+    Map<String, Map> getVersionData() {
+        return jira.getVersionsForProject(project.key).collectEntries { version ->
+            if (!version.description) {
+                version.description = ''
+            }
+            return [ (version.name): version ]
+        }
+    }
+
+    @NonCPS
+    Map<String, Map> getIssues(List<String> versions = null) {
+        def jql = 'status = DONE AND fixVersion '
+        if (versions) {
+            jql += "in (${versions.join(',')})"
+        } else {
+            jql += 'is not EMPTY'
+        }
+        def issues = jira.search(jql)
+        return issues.collectEntries { issue ->
+            def links = jira.getRemoteLinks(issue.id as String)
+            def remoteLinks = links.collect { link ->
+                def url = link.object?.url as String
+                try {
+                    def normalizedURL = url ? new URI(url).toURL().toURI().normalize() : null // Making sure it's a valid URL
+                    return [
+                        url: normalizedURL,
+                        relationship: link.relationship,
+                    ]
+                } catch (URISyntaxException | MalformedURLException e) {
+                    logger.debug("Invalid requirement URL: ${e.message}")
+                    return null
+                }
+            }.findAll { it.url }.unique { it.url }
+            if (remoteLinks) {
+                issue.remoteLinks = remoteLinks
+            }
+            return [(issue.key): issue]
+        }
+    }
+
+    /*
+    void applyXunitTestResultsAsTestIssueLabels(List stories, Map testResults) {
         if (!this.jira) return
 
         // Handle Jira test issues for which a corresponding test exists in testResults
-        def matchedHandler = { result ->
-            result.each { testIssue, testCase ->
-                // Remove all the results from preceding executions
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
-
-                def issueLabels = [TestIssueLabels.Succeeded as String]
-                if (testCase.error) {
-                    issueLabels = [TestIssueLabels.Error as String]
-                }
-
-                if (testCase.failure) {
-                    issueLabels = [TestIssueLabels.Failed as String]
-                }
-
-                if (testCase.skipped) {
-                    issueLabels = [TestIssueLabels.Skipped as String]
-                }
-
-                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
-            }
-        }
+        def matchedHandler = null
+//            { result ->
+//            result.each { testIssue, testCase ->
+//                // Remove all the results from preceding executions
+//                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
+//
+//                def issueLabels = [TestIssueLabels.Succeeded as String]
+//                if (testCase.error) {
+//                    issueLabels = [TestIssueLabels.Error as String]
+//                }
+//
+//                if (testCase.failure) {
+//                    issueLabels = [TestIssueLabels.Failed as String]
+//                }
+//
+//                if (testCase.skipped) {
+//                    issueLabels = [TestIssueLabels.Skipped as String]
+//                }
+//
+//                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
+//            }
+//        }
 
         // Handle Jira test issues for which no corresponding test exists in testResults
-        def unmatchedHandler = { result ->
-            result.each { testIssue ->
-                // Remove all the results from preceding executions
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
-                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
-            }
-        }
+        def unmatchedHandler = null
+//            { result ->
+//            result.each { testIssue ->
+//                // Remove all the results from preceding executions
+//                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect() { it.name() })
+//                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
+//            }
+//        }
 
-        this.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, unmatchedHandler)
+        this.matchIssuesAgainstTestResults(stories, testResults, matchedHandler, unmatchedHandler)
     }
+    */
 
-    boolean checkTestsIssueMatchesTestCase(Map testIssue, Map testCase) {
-        def issueKeyClean = testIssue.key.replaceAll('-', '')
+    /*
+    boolean checkStoryIssueMatchesTestCase(Map story, Map testCase) {
+        def issueKeyClean = story.key.replaceAll('-', '')
         return testCase.name.startsWith("${issueKeyClean} ") ||
             testCase.name.startsWith("${issueKeyClean}-") ||
             testCase.name.startsWith("${issueKeyClean}_")
     }
+    */
 
+    /*
     @NonCPS
     String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
@@ -157,7 +204,9 @@ class JiraUseCase {
 
         return result
     }
+    */
 
+    /*
     void createBugsForFailedTestIssues(List testIssues, Set testFailures, String comment) {
         if (!this.jira) return
 
@@ -168,7 +217,7 @@ class JiraUseCase {
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
-            this.walkTestIssuesAndTestResults(testIssues, failure) { testIssue, testCase, isMatch ->
+            this.walkStoriesAndTestResults(testIssues, failure) { testIssue, testCase, isMatch ->
                 // Find the testcases within the current failure that corresponds to a Jira test issue
                 if (isMatch) {
                     // Add a reference to the current bug to the Jira test issue
@@ -205,12 +254,14 @@ class JiraUseCase {
             this.jira.appendCommentToIssue(bug.key, comment)
         }
     }
+    */
 
     /**
      * Obtains all document chapter data attached attached to a given version
      * @param versionName the version name from jira
      * @return Map (key: issue) with all the document chapter issues and its relevant content
      */
+    /*
     @SuppressWarnings(['AbcMetric'])
     Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
         if (!this.jira) return [:]
@@ -280,10 +331,12 @@ class JiraUseCase {
             ]
         }
     }
+    */
 
-    def matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
-                                           Closure matchedHandler, Closure unmatchedHandler = null,
-                                           boolean checkDuplicateTestResults = true) {
+    /*
+    def matchIssuesAgainstTestResults(List stories, Map testResults,
+                                      Closure matchedHandler = null, Closure unmatchedHandler = null,
+                                      boolean checkDuplicateTestResults = true) {
         def duplicateKeysErrorMessage = "Error: the following test cases are implemented multiple times each: "
         def duplicatesKeys = []
 
@@ -292,90 +345,108 @@ class JiraUseCase {
             unmatched: []
         ]
 
-        this.walkTestIssuesAndTestResults(testIssues, testResults) { testIssue, testCase, isMatch ->
+        logger.debug("matchStoriesAgainstTestResults stories: ${stories}")
+        logger.debug("matchStoriesAgainstTestResults testResults: ${testResults}")
+
+        this.walkStoriesAndTestResults(stories, testResults) { story, testCase, isMatch ->
             if (isMatch) {
-                if (result.matched.get(testIssue) != null) {
-                    duplicatesKeys.add(testIssue.key)
+//                if (result.matched.get(story) != null) {
+//                    duplicatesKeys.add(story.key)
+//                }
+                // We don't care about duplicates
+                story.matched = true
+                if (!story.matchedTests) {
+                    story.matchedTests = [] as Set
                 }
-
-                result.matched << [
-                    (testIssue): testCase
-                ]
+                story.matchedTests << testCase.name
+//                result.matched << [
+//                    (story): testCase
+//                ]
             }
         }
 
-        testIssues.each { testIssue ->
-            if (!result.matched.keySet().contains(testIssue) && mustRun(testIssue)) {
-                result.unmatched << testIssue
-            }
-        }
+//        stories.each { story ->
+//            if (!result.matched.keySet().contains(story)) {
+//                result.unmatched << story
+//            }
+//        }
 
-        if (matchedHandler) {
-            matchedHandler(result.matched)
-        }
-
-        if (unmatchedHandler) {
-            unmatchedHandler(result.unmatched)
-        }
+//        if (matchedHandler) {
+//            matchedHandler(result.matched)
+//        }
+//
+//        if (unmatchedHandler) {
+//            unmatchedHandler(result.unmatched)
+//        }
 
         if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.")
         }
     }
+    */
 
+    /*
     private boolean mustRun(testIssue) {
         return !project.promotingToProd() ||
             testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
     }
+    */
 
+    /*
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
         def testComponent = "${componentName ?: 'project'}"
         def testMessage = componentName ? " for component '${componentName}'" : ''
-        if (logger.debugMode) {
+//        if (logger.debugMode) {
             logger.debug('Reporting unit test results to corresponding test cases in Jira' +
                 "${testMessage}. Test type: '${testTypes}'.\nTest results: ${testResults}")
-        }
+//        }
 
         logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+        def requirements = this.project.getSystemRequirements(componentName)
 
         logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
             "Found automated tests$testMessage. Test type: ${testTypes}: " +
                 "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
-        this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
+        this.matchIssuesAgainstTestResults(requirements, testResults, null) { unexecutedJiraTests ->
             if (!unexecutedJiraTests.isEmpty()) {
-                this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
+                logger.debug("--unexecutedJiraTests: ${unexecutedJiraTests}")
+//                this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
             }
         }
 
         logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
-        this.support.applyXunitTestResults(testIssues, testResults)
+        this.support.applyXunitTestResults(requirements, testResults)
 
         project.storeAggregatedTestResults(testResults)
+        project.storeUnitTestResultsByComponent(testComponent, testResults)
 
         logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
-        if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
-            logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")
-            // Create bugs for erroneous test issues
-            def errors = JUnitParser.Helper.getErrors(testResults)
-            this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
-
-            // Create bugs for failed test issues
-            def failures = JUnitParser.Helper.getFailures(testResults)
-            this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
-            logger.debugClocked("${testComponent}-jira-report-bugs-${testTypes}")
-        }
+//        if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
+//            logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")
+//            // Create bugs for erroneous test issues
+//            def errors = JUnitParser.Helper.getErrors(testResults)
+//            this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
+//
+//            // Create bugs for failed test issues
+//            def failures = JUnitParser.Helper.getFailures(testResults)
+//            this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+//            logger.debugClocked("${testComponent}-jira-report-bugs-${testTypes}")
+//        }
     }
+    */
 
+    /*
     void reportTestResultsForProject(List<String> testTypes, Map testResults) {
         // No componentName passed to method to get all automated issues from project
         this.reportTestResultsForComponent(
             null, testTypes, testResults)
     }
+    */
 
     void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
@@ -427,6 +498,10 @@ class JiraUseCase {
     }
 
     void addCommentInReleaseStatus(String message) {
+        if (!this.jira) {
+            logger.debug("Jira not connected, cannot append comment: ${message}")
+            return
+        }
         def changeId = this.project.buildParams.changeId
         if (message) {
             def projectKey = this.project.jiraProjectKey
@@ -439,6 +514,7 @@ class JiraUseCase {
         }
     }
 
+    /*
     Long getLatestDocVersionId(List<Map> trackingIssues) {
         logger.debug("Cache of versions from doc tracking issues: ${docVersions}")
         def versionList = trackingIssues.collect { issue ->
@@ -452,20 +528,24 @@ class JiraUseCase {
 
         return result
     }
+    */
 
-    private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
+    /*
+    private void walkStoriesAndTestResults(List stories, Map testResults, Closure visitor) {
         testResults.testsuites.each { testSuite ->
             testSuite.testcases.each { testCase ->
-                def testIssue = testIssues.find { testIssue ->
-                    this.checkTestsIssueMatchesTestCase(testIssue, testCase)
+                def story = stories.find { story ->
+                    this.checkStoryIssueMatchesTestCase(story, testCase)
                 }
-
-                def isMatch = testIssue != null
-                visitor(testIssue, testCase, isMatch)
+                logger.debug("Found story: ${story?.key}")
+                def isMatch = story != null
+                visitor(story, testCase, isMatch)
             }
         }
     }
+    */
 
+    /*
     @NonCPS
     def thumbnailImageReplacement(content) {
         def matcher = content =~ /<a.*id="(.*)_thumb".*href="(.*?)"/
@@ -475,6 +555,7 @@ class JiraUseCase {
         }
         return content
     }
+    */
 
     Map getComponents(String projectKey, String version, boolean isWorkInProgress) {
         if (!this.jira) {
@@ -537,6 +618,7 @@ class JiraUseCase {
         return securityVulnerabilityIssueKeys
     }
 
+    /*
     void checkIssueConstainsSolutionAndUpdateIfNeeeded(Map issue, String solution) {
         String issueDescription = issue.fields.description as String
         if (!issueDescription.contains(solution)) {
@@ -546,6 +628,7 @@ class JiraUseCase {
             logger.debug("Updated description for issue ${issue.key} to ${updatedDescription}")
         }
     }
+    */
 
     String createOrUpdateSecurityVulnerabilityIssue(String vulnerabilityName, String solution, String jiraComponentId,
                                                     String description) {

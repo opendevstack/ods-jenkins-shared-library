@@ -5,6 +5,7 @@ import groovy.json.JsonOutput
 import org.ods.orchestration.service.DocGenService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
+import org.ods.services.documents.SecureVaultDocumentUploader
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
@@ -26,6 +27,7 @@ abstract class DocGenUseCase {
     protected NexusService nexus
     protected PDFUtil pdf
     protected JenkinsService jenkins
+    protected SecureVaultDocumentUploader veeva
 
     DocGenUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
         this.project = project
@@ -35,9 +37,11 @@ abstract class DocGenUseCase {
         this.nexus = nexus
         this.pdf = pdf
         this.jenkins = jenkins
+        veeva = new SecureVaultDocumentUploader(project)
     }
 
-    String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
+    String createDocument(DocumentType docType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
+        def documentType = docType as String
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 
@@ -93,9 +97,15 @@ abstract class DocGenUseCase {
         }
         message += " uploaded @ ${uri}"
         this.steps.echo message
+
+        def docId = veeva.upload(pdfName, document as byte[])
+        project.addDocId(docType, docId)
+        this.steps.echo "Document ${pdfName} uploaded to Veeva Vault with id ${docId}"
+
         return uri.toString()
     }
 
+    /*
     @SuppressWarnings(['JavaIoPackageAccess'])
     String createOverallDocument(String templateName, String documentType, Map metadata, Closure visitor = null, String watermarkText = null) {
         def documents = []
@@ -143,6 +153,7 @@ abstract class DocGenUseCase {
 
         return result
     }
+    */
 
     String getDocumentBasename(String documentType, String version, String build = null, Map repo = null) {
         getDocumentBasenameWithDocVersion(documentType, getDocumentVersion(version, build), repo)
@@ -165,6 +176,7 @@ abstract class DocGenUseCase {
         }
     }
 
+    /*
     @SuppressWarnings(['AbcMetric'])
     Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
         if (!repo.data.openshift.deployments) {
@@ -237,6 +249,7 @@ abstract class DocGenUseCase {
             contentType
         )
     }
+    */
 
     abstract String getDocumentTemplatesVersion()
 

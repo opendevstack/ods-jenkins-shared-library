@@ -9,8 +9,8 @@ class JiraUseCaseSupport extends AbstractJiraUseCaseSupport {
         super(project, steps, usecase)
     }
 
-    void applyXunitTestResults(List testIssues, Map testResults) {
-        this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
+    void applyXunitTestResults(List stories, Map testResults) {
+        this.usecase.applyXunitTestResultsAsTestIssueLabels(stories, testResults)
     }
 
 }

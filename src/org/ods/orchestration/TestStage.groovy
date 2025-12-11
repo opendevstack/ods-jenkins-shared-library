@@ -46,10 +46,13 @@ class TestStage extends Stage {
                 levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
                 // Add the test results of component to global data to maintain several e2e
-                globalData.tests.each {
-                    it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles as List)
-                    it.value.testResults.testsuites.addAll(
-                        data.tests[it.key].testResults.testsuites as List)
+                globalData.tests.each { key, value ->
+                    value.testReportFiles += data.tests[key].testReportFiles as List
+                    def suites = data.tests[key].testResults.testsuites as List<Map>
+                    def suitesWithComponent = suites.collect { suite ->
+                        return suite + [component: repo.id]
+                    }
+                    value.testResults.testsuites += suitesWithComponent
                 }
             }
         }
@@ -68,15 +71,16 @@ class TestStage extends Stage {
         }
         executeInParallel(executeRepos, generateDocuments)
 
-        globalData.tests.each {
+        /*globalData.tests.each {
             // Update Jira issues with global data test results for every type of test
-            jira.reportTestResultsForProject(
-                [it.key.capitalize()],
-                it.value.testResults as Map
-            )
+            // jira.reportTestResultsForProject(
+            //     [it.key.capitalize()],
+            //     it.value.testResults as Map
+            // )
             // Parse again all test report files into a single data structure for one type of test
             it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
-        }
+        }*/
+
 
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }

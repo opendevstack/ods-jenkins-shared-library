@@ -18,7 +18,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         ])
 
         def res = readResource(jsonFixture);
-        service.getPullRequests(*_) >> res
+        service.getPullRequestsForRepo(*_) >> res
 
         when:
         def result = service.findPullRequest('foo-bar', branch)

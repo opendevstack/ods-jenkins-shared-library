@@ -131,6 +131,7 @@ class OpenShiftService {
         def upgradeFlags = defaultFlags.collect { it }
         additionalFlags.collect { upgradeFlags << it }
         valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
+        values.put('ODS_OPENSHIFT_APP_DOMAIN', getApplicationDomain())
         values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
         if (withDiff) {
             def diffFlags = upgradeFlags.findAll { it  }
@@ -148,7 +149,7 @@ class OpenShiftService {
             label: "Upgrade Helm release ${release} in ${project}",
             returnStatus: true
         )
-        if (failed){
+        if (failed) {
             throw new RuntimeException(
                 'Rollout Failed!. ' +
                     "Helm could not install the ${release} in ${project}"
@@ -1057,7 +1058,7 @@ class OpenShiftService {
         }
         // if we have a resourceName only return the items matching that
         if (resourceName != null) {
-            def filteredPods= pods.findAll { it.podName.startsWith(resourceName) }
+            def filteredPods = pods.findAll { it.podName.startsWith(resourceName) }
             return filteredPods
         }
         return pods
@@ -1227,24 +1228,6 @@ class OpenShiftService {
         )
     }
 
-    private void reloginToCurrentClusterIfNeeded() {
-        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-        def success = steps.sh(
-            script: """
-               ${logger.shellScriptDebugFlag}
-                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
-                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
-            """,
-            returnStatus: true,
-            label: 'Check if OCP session exists'
-        ) == 0
-        if (!success) {
-            throw new RuntimeException(
-                'Could not (re)login to cluster, this is a systemic failure'
-            )
-        }
-    }
-
     private void importImageFromProject(
         String project,
         String sourceProject,
@@ -1316,14 +1299,19 @@ class OpenShiftService {
     }
 
     private void doTailorApply(String project, String tailorParams) {
-        steps.sh(
-            script: """tailor \
-          ${tailorVerboseFlag()} \
-          --non-interactive \
-          -n ${project} \
-          apply ${tailorParams}""",
-            label: "tailor apply for ${project} (${tailorParams})"
-        )
+        try {
+            steps.sh(
+                script: """tailor \
+              ${tailorVerboseFlag()} \
+              --non-interactive \
+              -n ${project} \
+              apply ${tailorParams}""",
+                returnStdout: true,
+                label: "tailor apply for ${project} (${tailorParams})"
+            )
+        } catch (ex) {
+            throw new TailorDeploymentException(ex)
+        }
     }
 
     private void doTailorExport(
@@ -1462,5 +1450,23 @@ class OpenShiftService {
             label: scriptLabel,
             returnStdout: true
         ).toString().trim()
+    }
+
+    void reloginToCurrentClusterIfNeeded() {
+        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
+        def success = steps.sh(
+            script: """
+               ${logger.shellScriptDebugFlag}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
+        if (!success) {
+            throw new RuntimeException(
+                'Could not (re)login to cluster, this is a systemic failure'
+            )
+        }
     }
 }

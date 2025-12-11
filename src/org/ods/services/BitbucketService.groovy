@@ -95,12 +95,51 @@ class BitbucketService {
         """.stripIndent()
     }
 
+    @NonCPS
     String getUrl() {
         bitbucketUrl
     }
 
+    @NonCPS
     String getPasswordCredentialsId() {
         passwordCredentialsId
+    }
+
+    @NonCPS
+    Map<String, Map> getFileContentsForProjectRepos(String token, String filePath, String gitRevision) {
+        def result = [:]
+
+        def rqRepos = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos"
+        def repos = queryMap(token, rqRepos, 0, 0)
+        for (int i = 0; i < repos.values.size(); i++) {
+            def repo = repos.values[i]
+
+            if (repo.archived == "true") {
+                continue
+            }
+
+            def rqFile = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo.name}/browse/${filePath}?at=${gitRevision}"
+            def file
+            try {
+                file = queryMap(token, rqFile, 0, 0)
+
+                if (file.lines) {
+                    result[repo.name] = [
+                        repo: [
+                            name: repo.name,
+                            url: repo.links.self.href.first()
+                        ],
+                        fileContents: file.lines.collect { it.text }.join("\n")
+                    ]
+                }
+
+            } catch (RuntimeException e) {
+                // if $filePath could not be found in $repo
+                continue
+            }
+        }
+
+        return result
     }
 
     String getDefaultReviewerConditions(String repo) {
@@ -584,20 +623,217 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
     }
 
     @NonCPS
-    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
-        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
-        return queryRepo(token, request, limit, nextPageStart)
+    Map getMergedPullRequestsForIntegrationBranch(String token, Map repo, int limit, int nextPageStart) {
+        String qParams = "state=MERGED&order=OLDEST&at=refs/heads/${repo.defaultBranch}"
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo.repo}/pull-requests?${qParams}"
+        return queryMap(token, request, limit, nextPageStart)
     }
 
     @NonCPS
-    Map getPRforMergedCommit(String token, String repo, String commit) {
+    List<Map> getAllCommitsForPullRequest(String token, String repo, String pullRequest) {
+        def commits = []
+        Integer start = Integer.valueOf(0)
+        while (start != null) {
+            def res = getCommitsForPullRequest(token, repo, pullRequest, 100, start)
+            def values = res['values']
+            commits += values as List<Map>
+            start = res.nextPageStart as Integer
+        }
+        return commits
+    }
+
+    @NonCPS
+    Map getCommitsForPullRequest(String token, String repo, String pullRequest, int limit, int nextPageStart) {
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}" +
-            "/repos/${repo}/commits/${commit}/pull-requests"
-        return queryRepo(token, request, 0, 0)
+            "/repos/${repo}/pull-requests/${pullRequest}/commits"
+        return queryMap(token, request, limit, nextPageStart)
     }
 
     @NonCPS
-    private Map queryRepo(String token, String request, int limit, int nextPageStart) {
+    List<Map> getCommitsForRepo(String token, String repo, String since = null, String until = null,
+                                                String merges = null) {
+        def commits = getCommitsForRepo(token, repo, since, until, merges,0)
+        def commitList = commits['values'] as List<Map>
+        while (!commits.isLastPage) {
+            commits = getCommitsForRepo(token, repo, since, until, merges, commits.nextPageStart as int)
+            commitList += commits['values']
+        }
+        return commitList
+    }
+
+    @NonCPS
+    Map<String, Object> getCommitsForRepo(String token, String repo, String since, String until, String merges,
+                                          int nextPageStart, int limit = 1000) {
+        def path = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
+        def headers = buildHeaders(token)
+        def req = Unirest.get(path)
+            .headers(headers)
+            .queryString('ignoreMissing', 'false')
+        if (merges) {
+            req.queryString('merges', 'include')
+        }
+        if (since) {
+            req.queryString('since', since)
+        }
+        if (until) {
+            req.queryString('until', until)
+        }
+        if (limit) {
+            req.queryString('limit', limit)
+        }
+        if (nextPageStart) {
+            req.queryString('start', nextPageStart)
+        }
+        def res = req.asString()
+        res.ifFailure {
+            def message = 'Error: unable to get data from Bitbucket responded with code: ' +
+                "'${res.getStatus()}' and message: '${res.getBody()}'."
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(res.getBody()) as Map<String, Object>
+    }
+
+    @NonCPS
+    Map<String, Object> getTag(String token, String repo, String name) {
+        def url = "${bitbucketUrl}/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/tags/{name}"
+        def rq = Unirest.get(url)
+            .headers(buildHeaders(token))
+            .routeParam('projectKey', project)
+            .routeParam('repositorySlug', repo)
+            .routeParam('name', name)
+        def rs = rq.asString().ifFailure { res ->
+            def msg
+            switch (res.status) {
+                case 404:
+                    msg = "Tag ${name} not found for repo ${repo} in project ${project}.\n" +
+                        "Or Bitbucket not found at ${bitbucketUrl}.\nDetail: ${res.body}"
+                    break;
+                case 401:
+                    msg = "Unautorized to get tag ${name} from repo ${repo} in project ${project}.\nDetail: ${res.body}"
+                    break;
+                default:
+                    msg = "GET ${rq.url}\n${res.status} ${res.statusText}\n\n${res.body}"
+            }
+            throw new RuntimeException(msg)
+        }
+        return new JsonSlurperClassic().parseText(rs.body) as Map<String, Object>
+    }
+
+    @NonCPS
+    Map<String, Object> getCommit(String token, String repo, String hash) {
+        def url = "${bitbucketUrl}/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/commits/{commitId}"
+        def rq = Unirest.get(url)
+            .headers(buildHeaders(token))
+            .routeParam('projectKey', project)
+            .routeParam('repositorySlug', repo)
+            .routeParam('commitId', hash)
+        def rs = rq.asString().ifFailure { res ->
+            def msg
+            switch (res.status) {
+                case 404:
+                    msg = "Commit ${hash} not found for repo ${repo} in project ${project}.\n" +
+                        "Or Bitbucket not found at ${bitbucketUrl}\nDetail: ${res.body}"
+                    break;
+                case 400:
+                    msg = "Bad Request: GET ${rq.url}.\nDetail: ${res.body}"
+                    break;
+                default:
+                    msg = "GET ${rq.url}\n${res.status} ${res.statusText}\n\n${res.body}"
+            }
+            throw new RuntimeException(msg)
+        }
+        return new JsonSlurperClassic().parseText(rs.body) as Map<String, Object>
+    }
+
+    @NonCPS
+    List<Map> getAllPullRequestsForRepo(String token,
+                                        String repo,
+                                        String branch = null,
+                                        String state = 'MERGED',
+                                        long closedAfter = 0) {
+        def pullRequests = []
+        Integer start = Integer.valueOf(0)
+        while (start != null) {
+            def res = getPullRequestsForRepo(token, repo, branch, state, start)
+            def values = res['values']
+            if (closedAfter > 0) {
+                values = values.findAll { Map pr -> pr.closedDate >= closedAfter }
+            }
+            pullRequests += values as List<Map>
+            start = res.nextPageStart as Integer
+        }
+        return pullRequests
+    }
+
+    @NonCPS
+    Map<String, Object> getPullRequestsForRepo(String token,
+                                               String repo,
+                                               String branch = null,
+                                               String state = 'MERGED',
+                                               int start = 0,
+                                               int limit = 1000) {
+        def url = "${bitbucketUrl}/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/pull-requests"
+        def rq = Unirest.get(url)
+            .headers(buildHeaders(token))
+            .routeParam('projectKey', project)
+            .routeParam('repositorySlug', repo)
+            .queryString('direction', 'INCOMING')
+            .queryString('order', 'NEWEST')
+        if (branch) {
+            rq.queryString('at', branch)
+        }
+        if (state) {
+            rq.queryString('state', state)
+        }
+        if (start > 0) {
+            rq.queryString('start', start)
+        }
+        if (limit > 0) {
+            rq.queryString('limit', limit)
+        }
+        def rs = rq.asString()
+            .ifFailure { response ->
+                def msg = "Error retrieving pull requests for branch '${branch ?: 'HEAD'}' of repository ${repo} in project ${project}.\n"
+                if (response.status == 404) {
+                    msg += '404 Not Found\n\n'
+                } else {
+                    msg += "${response.status} ${response.statusText}\n\n"
+                }
+                msg += response.body
+                throw new RuntimeException(msg)
+            }
+        return new JsonSlurperClassic().parseText(rs.body) as Map
+    }
+
+    @NonCPS
+    Map<String, Object> getPullRequestForCommit(String token, String repo, String commitId, String toRef = null) {
+        def rq = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits/${commitId}/pull-requests"
+        def pullRequests = queryMap(token, rq, 1000, 0)
+        def prList = pullRequests['values'] as List<Map>
+        return prList.findAll { it.state == 'MERGED' && (!toRef || toRef in [it.toRef.displayId, it.toRef.id]) }
+            .min { it.closedDate as long }
+    }
+
+    @NonCPS
+    Map<String, URI> getIssueLinksForPullRequest(String token, String repo, String pullRequestId) {
+        def rq = "${bitbucketUrl}/rest/jira/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/issues"
+        def issues = queryList(token, rq)
+        return issues.collectEntries { Map<String, Object> i -> [(i.key): new URI(i.url as String)] }
+    }
+
+    @NonCPS
+    private List<Map<String, Object>> queryList(String token, String request, int limit = 1000, int nextPageStart = 0) {
+        return (List<Map<String, String>>) doQuery(token, request, limit, nextPageStart)
+    }
+
+    @NonCPS
+    private Map queryMap(String token, String request, int limit, int nextPageStart) {
+        return (Map) doQuery(token, request, limit, nextPageStart)
+    }
+
+    @NonCPS
+    private doQuery(String token, String request, int limit, int nextPageStart) {
         Map<String, String> headers = buildHeaders(token)
         def httpRequest = Unirest.get(request).headers(headers)
         if (limit>0) {
@@ -620,7 +856,7 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
     @NonCPS
     private Map<String, String> buildHeaders(String token) {
         Map<String, String> headers = [:]
-        headers.put("accept", "application/json")
+        headers.put("Accept", "application/json")
         headers.put("Authorization", "Bearer ".concat(token))
         return headers
     }

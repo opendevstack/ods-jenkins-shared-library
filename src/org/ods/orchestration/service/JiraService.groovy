@@ -11,6 +11,7 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.util.ILogger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -19,10 +20,10 @@ class JiraService {
         '\u00A0': ' ',
     ]
 
-    URI baseURL
+    protected URI baseURL
 
-    String username
-    String password
+    protected String username
+    protected String password
 
     JiraService(String baseURL, String username, String password) {
         if (!baseURL?.trim()) {
@@ -398,6 +399,53 @@ class JiraService {
     }
 
     @NonCPS
+    List<Map> search(String jql, String fields = null) {
+        def issues = []
+        int maxResults = 1000
+        int total = Integer.MAX_VALUE
+        for (int startAt = 0; startAt < total; startAt += maxResults) {
+            def res = search(jql, fields, startAt, maxResults)
+            total = res.total as int
+            maxResults = res.maxResults as int
+            issues += res.issues as List<Map>
+        }
+        return issues
+    }
+
+    @NonCPS
+    Map<String, Object> search(String jql, String fields, int startAt, int maxResults = 1000) {
+        def req = Unirest.get("${baseURL}/rest/api/2/search")
+        req.basicAuth(username, password)
+        if (jql) {
+            req.queryString('jql', jql)
+        }
+        if (fields) {
+            req.queryString('fields', fields)
+        }
+        if (startAt) {
+            req.queryString('startAt', startAt)
+        }
+        if (maxResults) {
+            req.queryString('maxResults', maxResults)
+        }
+        def res = req.asString().ifFailure { rs ->
+            def msg = 'Couldn\'t perform the search. '
+            switch (rs.status) {
+                case 404:
+                    msg += "Endpoint not found: ${req.url}"
+                    break;
+                case 400:
+                    msg += "Invalid request: ${req.url}"
+                    break;
+                default:
+                    msg = "GET ${req.url}\n${rs.status} ${rs.statusText}\n\n${rs.body}"
+            }
+            throw new RuntimeException(msg)
+        }
+        return new JsonSlurperClassic().parseText(res.body) as Map
+    }
+
+    @NonCPS
     List getIssuesForJQLQuery(Map query) {
         return searchByJQLQuery(query).issues
     }
@@ -479,9 +527,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody()).collect { jiraVersion ->
-            [id: jiraVersion.id, name: jiraVersion.name]
-        }
+        return new JsonSlurperClassic().parseText(response.getBody())
     }
 
     @NonCPS
@@ -900,31 +946,55 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.body)
     }
 
-    def getIssue(String issueId, String expand = null) {
+    @NonCPS
+    Map getIssue(String issueId, String expand = null, String fields = null) {
         if (!issueId?.trim()) {
-            throw new IllegalArgumentException("ERROR: unable to get issue transitions from Jira. 'issueId' is undefined.")
+            throw new IllegalArgumentException("ERROR: unable to get issue from Jira. 'issueId' is undefined.")
         }
         def url = "${this.baseURL}/rest/api/2/issue/${issueId}"
+        def request = Unirest.get(url)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
         if (expand) {
-            url += "?expand=${expand}"
+            request.queryString('expand', expand)
         }
-        def response =
-            Unirest.get(url)
-                .basicAuth(this.username, this.password)
-                .header("Accept", "application/json")
-                .asString()
+        if (fields) {
+            request.queryString('fields', fields)
+        }
+        def response = request.asString()
         response.ifFailure {
-            def message = "ERROR: unable to get issue with transitions from Jira. " +
+            def message = "ERROR: unable to get issue from Jira. " +
                 "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "ERROR: unable to get issue with transitions from Jira. " +
-                    "Jira could not be found at: ${this.getBaseURL()}"
+                message = "ERROR: unable to get issue from Jira. Issue not found at: ${request.url}"
             }
 
             throw new RuntimeException(message)
         }
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(response.getBody()) as Map
+    }
+
+    @NonCPS
+    List<Map> getRemoteLinks(String issueId) {
+        if (issueId.blank) {
+            throw new IllegalArgumentException("ERROR: unable to get remote links for Jira issue. 'issueId' is undefined.")
+        }
+        def url = "${this.baseURL}/rest/api/2/issue/${issueId}/remotelink"
+        def res =
+            Unirest.get(url)
+                .basicAuth(this.username, this.password)
+                .header("Accept", "application/json")
+                .asString()
+        res.ifFailure {
+            def message = 'ERROR: unable to get remote links for Jira issue. '
+            message += res.status == 404 ?
+                "The issue could not be found at: ${this.baseURL}" :
+                "Jira responded with status: '${res.status} ${res.statusText}' and body: '${res.body}'."
+
+            throw new RuntimeException(message)
+        }
+        return new JsonSlurperClassic().parseText(res.body) as List<Map>
     }
 
     def doTransition(issueId, transition) {
@@ -949,7 +1019,7 @@ class JiraService {
                 "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.getBaseURL()}"
+                message = "ERROR: unable to issue transitions from Jira. Jira could not be found at: ${this.baseURL}"
             }
 
             throw new RuntimeException(message)

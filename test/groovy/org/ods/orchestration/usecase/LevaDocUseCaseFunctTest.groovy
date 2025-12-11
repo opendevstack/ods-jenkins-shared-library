@@ -178,7 +178,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         jenkins.unstashFilesIntoPath(_, _, _) >> true
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
-        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null))
+        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null, null))
         def expectedFile = new FixtureHelper()
             .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_JSON)
         def jsonSlurper = new JsonSlurper()
@@ -199,7 +199,7 @@ class LevaDocUseCaseFunctTest extends Specification {
                 component: pr.component,
             ]
         }
-        bbT.getPRMergeInfo() >> sanitizedData
+        bbT.getPullRequestInfo() >> sanitizedData
 
         return new LevaDocUseCaseFactory(
             jiraServer,
