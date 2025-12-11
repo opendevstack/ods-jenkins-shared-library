@@ -10,12 +10,6 @@ class SNowCmdbClient {
         this.project = project
     }
 
-    private static final List<String> DEMO_SIGNERS = [
-        'martin.etmajer@boehringer-ingelheim.com',
-        'juan.farre@boehringer-ingelheim.com',
-        'clemens.utschig-utschig@boehringer-ingelheim.com',
-    ].asImmutable()
-
     private static final Set<String> SIGNER_ROLES_GXP = [
         "System Owner",
         //"System Owner Delegate(s)",
@@ -37,9 +31,6 @@ class SNowCmdbClient {
 
     @NonCPS
     List<String> getDocumentSigners() {
-        if (Project.demoMode) {
-            return DEMO_SIGNERS
-        }
         def signerRoles = project.gxp ? SIGNER_ROLES_GXP : SIGNER_ROLES_NON_GXP
         def token = client.getAccessToken()
         def businessApplicationRoles = client.getBusinessApplicationRoles(token)
