@@ -1,0 +1,1798 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.83.47/21\"],\"mac_address\":\"0a:58:0a:fb:53:2f\",\"gateway_ips\":[\"10.251.80.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.80.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.80.1\"},{\"dest\":\"169.254.169.5/32\",\"nextHop\":\"10.251.80.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.80.1\"}],\"ip_address\":\"10.251.83.47/21\",\"gateway_ip\":\"10.251.80.1\",\"role\":\"primary\"}}",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.83.47\"\n    ],\n    \"mac\": \"0a:58:0a:fb:53:2f\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: ephemeral-storage request for container pod; ephemeral-storage limit for container pod",
+                    "openshift.io/scc": "restricted-v2",
+                    "openshift.openshift.io/restartedAt": "2025-12-09T13:37:53.391Z",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default",
+                    "status": "{\"conn_url\":\"postgres://10.251.83.47:5432/postgres\",\"api_url\":\"http://10.251.83.47:8008/patroni\",\"state\":\"running\",\"role\":\"primary\",\"version\":\"4.1.0.0\",\"xlog_location\":587202560,\"timeline\":8}"
+                },
+                "creationTimestamp": "2025-12-09T14:09:26Z",
+                "generateName": "ownership-test-pod-1-556f55cd8c-",
+                "labels": {
+                    "app": "ownership-test",
+                    "name": "ownership-test-pod-1",
+                    "pod-template-hash": "556f55cd8c",
+                    "release": "ownership-test",
+                    "spilo-role": "master"
+                },
+                "name": "ownership-test-pod-1-556f55cd8c-cz8wg",
+                "namespace": "pgtrain-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "ownership-test-pod-1-556f55cd8c",
+                        "uid": "fdd82158-f0b5-44aa-b498-232fdf721c10"
+                    }
+                ],
+                "resourceVersion": "6987666975",
+                "uid": "7fba107b-438f-4970-955a-5a858a624aee"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchLabels": {
+                                            "app": "ownership-test",
+                                            "release": "ownership-test"
+                                        }
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "TZ",
+                                "value": "Europe/Berlin"
+                            },
+                            {
+                                "name": "USE_PGBACKREST",
+                                "value": "true"
+                            },
+                            {
+                                "name": "SCOPE",
+                                "value": "ownership-test"
+                            },
+                            {
+                                "name": "BACKUP_DATA",
+                                "value": "/home/postgres/pgbackrest"
+                            },
+                            {
+                                "name": "HUMAN_ROLE",
+                                "value": "boehringer"
+                            },
+                            {
+                                "name": "SSL_CA_FILE",
+                                "value": "/run/root.crt"
+                            },
+                            {
+                                "name": "SSL_CERTIFICATE_FILE",
+                                "value": "/home/postgres/pgdata/cert/tls.crt"
+                            },
+                            {
+                                "name": "SSL_PRIVATE_KEY_FILE",
+                                "value": "/home/postgres/pgdata/cert/tls.key"
+                            },
+                            {
+                                "name": "PGVERSION",
+                                "value": "18"
+                            },
+                            {
+                                "name": "PGPASSWORD_SUPERUSER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-superuser",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "PGPASSWORD_ADMIN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-admin",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "PGPASSWORD_STANDBY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-standby",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DCS_ENABLE_KUBERNETES_API",
+                                "value": "true"
+                            },
+                            {
+                                "name": "KUBERNETES_LABELS",
+                                "value": "{ \"app\": \"ownership-test\", \"release\": \"ownership-test\" }"
+                            },
+                            {
+                                "name": "KUBERNETES_SCOPE_LABEL",
+                                "value": "app"
+                            },
+                            {
+                                "name": "KUBERNETES_USE_CONFIGMAPS",
+                                "value": "true"
+                            },
+                            {
+                                "name": "PGROOT",
+                                "value": "/home/postgres/pgdata/pgroot"
+                            },
+                            {
+                                "name": "POD_NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test:c96287a4",
+                        "imagePullPolicy": "Always",
+                        "name": "pod",
+                        "ports": [
+                            {
+                                "containerPort": 8008,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5432,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "500m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/home/postgres/pgbackrest",
+                                "name": "pgbackrest-data"
+                            },
+                            {
+                                "mountPath": "/etc/pgbackrest/conf.d/pgbackrest_instance.conf",
+                                "name": "pgbackrest-config",
+                                "subPath": "pgbackrest_instance.conf"
+                            },
+                            {
+                                "mountPath": "/run/root.crt",
+                                "name": "cacert",
+                                "subPath": "service-ca.crt"
+                            },
+                            {
+                                "mountPath": "/home/postgres/pgdata/cert",
+                                "name": "ownership-test-pod-ssl-certs"
+                            },
+                            {
+                                "mountPath": "/home/postgres/pgdata",
+                                "name": "storage-volume"
+                            },
+                            {
+                                "mountPath": "/etc/bipgcluster",
+                                "name": "bipgcluster-config",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-vtkhz",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "ownership-test-pod-dockercfg-zztt4"
+                    }
+                ],
+                "nodeName": "ip-10-32-10-223.aws.boehringer.com",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "ownership-test-pod",
+                "serviceAccountName": "ownership-test-pod",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "ownership-test-pod-ca"
+                        },
+                        "name": "cacert"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "ownership-test-pod-pgbackrest"
+                        },
+                        "name": "pgbackrest-config"
+                    },
+                    {
+                        "name": "pgbackrest-data",
+                        "persistentVolumeClaim": {
+                            "claimName": "ownership-test-pod-pgbackrest-data"
+                        }
+                    },
+                    {
+                        "name": "bipgcluster-config",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "ownership-test-pod"
+                        }
+                    },
+                    {
+                        "name": "storage-volume",
+                        "persistentVolumeClaim": {
+                            "claimName": "ownership-test-pod-vol-data1"
+                        }
+                    },
+                    {
+                        "name": "ownership-test-pod-ssl-certs",
+                        "secret": {
+                            "defaultMode": 384,
+                            "secretName": "ownership-test-pod-ssl"
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-vtkhz",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T14:09:56Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T14:09:27Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T14:09:56Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T14:09:56Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T14:09:26Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://89e30edf58e52d42b43f43b513769a252b3c46d587fdc2eb3644b73110a5f10b",
+                        "image": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test:c96287a4",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test@sha256:d11223ba5cd1a914f5acf5981f37ade85b4b0dd3d26dc2a6dd42707d2357dbc8",
+                        "lastState": {},
+                        "name": "pod",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-12-09T14:09:55Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.32.10.223",
+                "hostIPs": [
+                    {
+                        "ip": "10.32.10.223"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.251.83.47",
+                "podIPs": [
+                    {
+                        "ip": "10.251.83.47"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-12-09T14:09:27Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.21.22/21\"],\"mac_address\":\"0a:58:0a:fb:15:16\",\"gateway_ips\":[\"10.251.16.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.16.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.16.1\"},{\"dest\":\"169.254.169.5/32\",\"nextHop\":\"10.251.16.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.16.1\"}],\"ip_address\":\"10.251.21.22/21\",\"gateway_ip\":\"10.251.16.1\",\"role\":\"primary\"}}",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.21.22\"\n    ],\n    \"mac\": \"0a:58:0a:fb:15:16\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: ephemeral-storage request for container pod; ephemeral-storage limit for container pod",
+                    "openshift.io/scc": "restricted-v2",
+                    "openshift.openshift.io/restartedAt": "2025-12-09T13:37:56.175Z",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default",
+                    "status": "{\"conn_url\":\"postgres://10.251.21.22:5432/postgres\",\"api_url\":\"http://10.251.21.22:8008/patroni\",\"state\":\"running\",\"role\":\"replica\",\"version\":\"4.1.0.0\",\"xlog_location\":587202560,\"replay_lsn\":587202560,\"receive_lsn\":587202560,\"replication_state\":\"streaming\",\"timeline\":8}"
+                },
+                "creationTimestamp": "2025-12-09T13:56:03Z",
+                "generateName": "ownership-test-pod-2-7c57f69c74-",
+                "labels": {
+                    "app": "ownership-test",
+                    "name": "ownership-test-pod-2",
+                    "pod-template-hash": "7c57f69c74",
+                    "release": "ownership-test",
+                    "spilo-role": "replica"
+                },
+                "name": "ownership-test-pod-2-7c57f69c74-jzlcw",
+                "namespace": "pgtrain-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "ownership-test-pod-2-7c57f69c74",
+                        "uid": "14f94d41-9136-4289-9dc9-0dfe32a1f46b"
+                    }
+                ],
+                "resourceVersion": "6987666976",
+                "uid": "ec26e162-874e-4eb7-9867-711eacbef54e"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchLabels": {
+                                            "app": "ownership-test",
+                                            "release": "ownership-test"
+                                        }
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "TZ",
+                                "value": "Europe/Berlin"
+                            },
+                            {
+                                "name": "USE_PGBACKREST",
+                                "value": "true"
+                            },
+                            {
+                                "name": "SCOPE",
+                                "value": "ownership-test"
+                            },
+                            {
+                                "name": "BACKUP_DATA",
+                                "value": "/home/postgres/pgbackrest"
+                            },
+                            {
+                                "name": "HUMAN_ROLE",
+                                "value": "boehringer"
+                            },
+                            {
+                                "name": "SSL_CA_FILE",
+                                "value": "/run/root.crt"
+                            },
+                            {
+                                "name": "SSL_CERTIFICATE_FILE",
+                                "value": "/home/postgres/pgdata/cert/tls.crt"
+                            },
+                            {
+                                "name": "SSL_PRIVATE_KEY_FILE",
+                                "value": "/home/postgres/pgdata/cert/tls.key"
+                            },
+                            {
+                                "name": "PGVERSION",
+                                "value": "18"
+                            },
+                            {
+                                "name": "PGPASSWORD_SUPERUSER",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-superuser",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "PGPASSWORD_ADMIN",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-admin",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "PGPASSWORD_STANDBY",
+                                "valueFrom": {
+                                    "secretKeyRef": {
+                                        "key": "password-standby",
+                                        "name": "ownership-test-pod"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DCS_ENABLE_KUBERNETES_API",
+                                "value": "true"
+                            },
+                            {
+                                "name": "KUBERNETES_LABELS",
+                                "value": "{ \"app\": \"ownership-test\", \"release\": \"ownership-test\" }"
+                            },
+                            {
+                                "name": "KUBERNETES_SCOPE_LABEL",
+                                "value": "app"
+                            },
+                            {
+                                "name": "KUBERNETES_USE_CONFIGMAPS",
+                                "value": "true"
+                            },
+                            {
+                                "name": "PGROOT",
+                                "value": "/home/postgres/pgdata/pgroot"
+                            },
+                            {
+                                "name": "POD_NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test:c96287a4",
+                        "imagePullPolicy": "Always",
+                        "name": "pod",
+                        "ports": [
+                            {
+                                "containerPort": 8008,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5432,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "500m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/home/postgres/pgbackrest",
+                                "name": "pgbackrest-data"
+                            },
+                            {
+                                "mountPath": "/etc/pgbackrest/conf.d/pgbackrest_instance.conf",
+                                "name": "pgbackrest-config",
+                                "subPath": "pgbackrest_instance.conf"
+                            },
+                            {
+                                "mountPath": "/run/root.crt",
+                                "name": "cacert",
+                                "subPath": "service-ca.crt"
+                            },
+                            {
+                                "mountPath": "/home/postgres/pgdata/cert",
+                                "name": "ownership-test-pod-ssl-certs"
+                            },
+                            {
+                                "mountPath": "/home/postgres/pgdata",
+                                "name": "storage-volume"
+                            },
+                            {
+                                "mountPath": "/etc/bipgcluster",
+                                "name": "bipgcluster-config",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-cvwth",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "ownership-test-pod-dockercfg-zztt4"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-197.aws.boehringer.com",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "ownership-test-pod",
+                "serviceAccountName": "ownership-test-pod",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "ownership-test-pod-ca"
+                        },
+                        "name": "cacert"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "ownership-test-pod-pgbackrest"
+                        },
+                        "name": "pgbackrest-config"
+                    },
+                    {
+                        "name": "pgbackrest-data",
+                        "persistentVolumeClaim": {
+                            "claimName": "ownership-test-pod-pgbackrest-data"
+                        }
+                    },
+                    {
+                        "name": "bipgcluster-config",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "ownership-test-pod"
+                        }
+                    },
+                    {
+                        "name": "storage-volume",
+                        "persistentVolumeClaim": {
+                            "claimName": "ownership-test-pod-vol-data2"
+                        }
+                    },
+                    {
+                        "name": "ownership-test-pod-ssl-certs",
+                        "secret": {
+                            "defaultMode": 384,
+                            "secretName": "ownership-test-pod-ssl"
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-cvwth",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T13:56:14Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T13:56:03Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T13:56:14Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T13:56:14Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-09T13:56:03Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://15b4710bda3ee7498fee4fb17852f53a19fe1c93e2bf9998484fdc99bdb0b92b",
+                        "image": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test:c96287a4",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/pgtrain-dev/ownership-test@sha256:d11223ba5cd1a914f5acf5981f37ade85b4b0dd3d26dc2a6dd42707d2357dbc8",
+                        "lastState": {},
+                        "name": "pod",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-12-09T13:56:13Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.32.9.197",
+                "hostIPs": [
+                    {
+                        "ip": "10.32.9.197"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.251.21.22",
+                "podIPs": [
+                    {
+                        "ip": "10.251.21.22"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-12-09T13:56:03Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: ephemeral-storage request for container httpd; ephemeral-storage limit for container httpd",
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2025-12-11T09:31:21Z",
+                "generateName": "ownership-test-pod-3-",
+                "labels": {
+                    "app": "ownership-test",
+                    "apps.kubernetes.io/pod-index": "0",
+                    "controller-revision-hash": "ownership-test-pod-3-9cdf5fb9d",
+                    "statefulset.kubernetes.io/pod-name": "ownership-test-pod-3-0"
+                },
+                "name": "ownership-test-pod-3-0",
+                "namespace": "pgtrain-dev",
+                "resourceVersion": "6988853791",
+                "uid": "e8c6ab71-167d-4b21-af45-e3f31f8424a7"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "image-registry.openshift-image-registry.svc:5000/openshift/httpd:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "httpd",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "web",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "250m",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "150m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "256Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/www/html",
+                                "name": "www"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-gfkwx",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "ownership-test-pod-3-0",
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-gn794"
+                    }
+                ],
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "httpd",
+                "terminationGracePeriodSeconds": 10,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "www",
+                        "persistentVolumeClaim": {
+                            "claimName": "www-ownership-test-pod-3-0"
+                        }
+                    },
+                    {
+                        "name": "kube-api-access-gfkwx",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:21Z",
+                        "message": "0/20 nodes are available: pod has unbound immediate PersistentVolumeClaims. preemption: 0/20 nodes are available: 20 Preemption is not helpful for scheduling.",
+                        "reason": "Unschedulable",
+                        "status": "False",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "phase": "Running",
+                "qosClass": "Burstable"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.230.64/21\"],\"mac_address\":\"0a:58:0a:fb:e6:40\",\"gateway_ips\":[\"10.251.224.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"169.254.169.5/32\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.224.1\"}],\"ip_address\":\"10.251.230.64/21\",\"gateway_ip\":\"10.251.224.1\",\"role\":\"primary\"}}",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.230.64\"\n    ],\n    \"mac\": \"0a:58:0a:fb:e6:40\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu, ephemeral-storage, memory request for container container; cpu, ephemeral-storage, memory limit for container container",
+                    "openshift.io/deployment-config.latest-version": "2",
+                    "openshift.io/deployment-config.name": "ownership-test-pod-4",
+                    "openshift.io/deployment.name": "ownership-test-pod-4-2",
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2025-12-11T09:31:12Z",
+                "generateName": "ownership-test-pod-4-2-",
+                "labels": {
+                    "app": "ownership-test",
+                    "deployment": "ownership-test-pod-4-2",
+                    "deploymentconfig": "ownership-test-pod-4"
+                },
+                "name": "ownership-test-pod-4-2-nx4nc",
+                "namespace": "pgtrain-dev",
+                "resourceVersion": "6988864787",
+                "uid": "24de113e-5824-443a-b70d-e9d8d54565ff"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "image-registry.openshift-image-registry.svc:5000/openshift/httpd:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "container",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "10m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "10Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-mm6j5",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-gn794"
+                    }
+                ],
+                "nodeName": "ip-10-32-8-252.aws.boehringer.com",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-mm6j5",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:14Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:12Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:14Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:14Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:31:12Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://871de01f5eaf19e3cd41205d09feaf9b8c767505ce9b73ac67f039f2536ac31c",
+                        "image": "image-registry.openshift-image-registry.svc:5000/openshift/httpd:latest",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/openshift/httpd@sha256:95c922088ef9dec82db2ddd81b439c7f1df8d630af471f72c0e8d2606077ea7b",
+                        "lastState": {},
+                        "name": "container",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-12-11T09:31:14Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.32.8.252",
+                "hostIPs": [
+                    {
+                        "ip": "10.32.8.252"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.251.230.64",
+                "podIPs": [
+                    {
+                        "ip": "10.251.230.64"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-12-11T09:31:12Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.212.38/21\"],\"mac_address\":\"0a:58:0a:fb:d4:26\",\"gateway_ips\":[\"10.251.208.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.208.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.208.1\"},{\"dest\":\"169.254.169.5/32\",\"nextHop\":\"10.251.208.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.208.1\"}],\"ip_address\":\"10.251.212.38/21\",\"gateway_ip\":\"10.251.208.1\",\"role\":\"primary\"}}",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.212.38\"\n    ],\n    \"mac\": \"0a:58:0a:fb:d4:26\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu, ephemeral-storage, memory request for container container; cpu, ephemeral-storage, memory limit for container container",
+                    "openshift.io/deployment-config.latest-version": "4",
+                    "openshift.io/deployment-config.name": "ownership-test-pod-4",
+                    "openshift.io/deployment.name": "ownership-test-pod-4-4",
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2025-12-11T09:41:00Z",
+                "generateName": "ownership-test-pod-4-4-",
+                "labels": {
+                    "app": "ownership-test",
+                    "deployment": "ownership-test-pod-4-4",
+                    "deploymentconfig": "ownership-test-pod-4"
+                },
+                "name": "ownership-test-pod-4-4-bhv8c",
+                "namespace": "pgtrain-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicationController",
+                        "name": "ownership-test-pod-4-4",
+                        "uid": "e93d0bff-b62c-4d37-a69f-503d2d64056f"
+                    }
+                ],
+                "resourceVersion": "6988871072",
+                "uid": "6aa95b18-df6e-4e2c-ac5f-fe6453f3a2fd"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "image-registry.openshift-image-registry.svc:5000/openshift/httpd:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "container",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "10m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "10Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-gwhbr",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-gn794"
+                    }
+                ],
+                "nodeName": "ip-10-32-9-179.aws.boehringer.com",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-gwhbr",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:41:02Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:41:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:41:02Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:41:02Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T09:41:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://9c390b80c064ba6b98cb355321c6465af1c2e1894a42a7fb237574f01bb85a65",
+                        "image": "image-registry.openshift-image-registry.svc:5000/openshift/httpd:latest",
+                        "imageID": "image-registry.openshift-image-registry.svc:5000/openshift/httpd@sha256:95c922088ef9dec82db2ddd81b439c7f1df8d630af471f72c0e8d2606077ea7b",
+                        "lastState": {},
+                        "name": "container",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-12-11T09:41:01Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.32.9.179",
+                "hostIPs": [
+                    {
+                        "ip": "10.32.9.179"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.251.212.38",
+                "podIPs": [
+                    {
+                        "ip": "10.251.212.38"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-12-11T09:41:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "k8s.ovn.org/pod-networks": "{\"default\":{\"ip_addresses\":[\"10.251.226.184/21\"],\"mac_address\":\"0a:58:0a:fb:e2:b8\",\"gateway_ips\":[\"10.251.224.1\"],\"routes\":[{\"dest\":\"10.251.0.0/16\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"172.30.0.0/16\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"169.254.169.5/32\",\"nextHop\":\"10.251.224.1\"},{\"dest\":\"100.64.0.0/16\",\"nextHop\":\"10.251.224.1\"}],\"ip_address\":\"10.251.226.184/21\",\"gateway_ip\":\"10.251.224.1\",\"role\":\"primary\"}}",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"ovn-kubernetes\",\n    \"interface\": \"eth0\",\n    \"ips\": [\n        \"10.251.226.184\"\n    ],\n    \"mac\": \"0a:58:0a:fb:e2:b8\",\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu, ephemeral-storage, memory request for container pgbackrest-backup; cpu, ephemeral-storage, memory limit for container pgbackrest-backup",
+                    "openshift.io/scc": "restricted-v2",
+                    "seccomp.security.alpha.kubernetes.io/pod": "runtime/default"
+                },
+                "creationTimestamp": "2025-12-11T03:00:00Z",
+                "generateName": "ownership-test-pod-incr-backup-29423700-",
+                "labels": {
+                    "app": "ownership-test",
+                    "batch.kubernetes.io/controller-uid": "34c9a62b-66d4-4679-b17d-0bb1d43a1052",
+                    "batch.kubernetes.io/job-name": "ownership-test-pod-incr-backup-29423700",
+                    "chart": "pod-2.3",
+                    "controller-uid": "34c9a62b-66d4-4679-b17d-0bb1d43a1052",
+                    "heritage": "Helm",
+                    "job-name": "ownership-test-pod-incr-backup-29423700",
+                    "name": "ownership-test-pod-incr-backup",
+                    "release": "ownership-test",
+                    "type": "backup-job"
+                },
+                "name": "ownership-test-pod-incr-backup-29423700-t4ksx",
+                "namespace": "pgtrain-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "ownership-test-pod-incr-backup-29423700",
+                        "uid": "34c9a62b-66d4-4679-b17d-0bb1d43a1052"
+                    }
+                ],
+                "resourceVersion": "6987570563",
+                "uid": "3c1c4f75-a424-47f5-ad1c-69763ac6c958"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "USE_PGBACKREST",
+                                "value": "true"
+                            },
+                            {
+                                "name": "MODE",
+                                "value": "backup"
+                            },
+                            {
+                                "name": "COMMAND_OPTS",
+                                "value": "--stanza=db --repo=1 --type=incr"
+                            },
+                            {
+                                "name": "CONTAINER",
+                                "value": "pod"
+                            },
+                            {
+                                "name": "SELECTOR",
+                                "value": "app=ownership-test,spilo-role=master"
+                            }
+                        ],
+                        "image": "postgres-pod-docker-ods.apps.us-test.ocp.aws.boehringer.com/pgbackrest-pod:2.57.0",
+                        "imagePullPolicy": "Always",
+                        "name": "pgbackrest-backup",
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "ephemeral-storage": "500Mi",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "10m",
+                                "ephemeral-storage": "1Mi",
+                                "memory": "10Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            },
+                            "runAsNonRoot": true,
+                            "runAsUser": 1005900000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-b4kr7",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {
+                        "name": "ownership-test-pod-dockercfg-zztt4"
+                    }
+                ],
+                "nodeName": "ip-10-32-8-252.aws.boehringer.com",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1005900000,
+                    "seLinuxOptions": {
+                        "level": "s0:c77,c24"
+                    },
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "ownership-test-pod",
+                "serviceAccountName": "ownership-test-pod",
+                "terminationGracePeriodSeconds": 300,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-b4kr7",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "service-ca.crt",
+                                                "path": "service-ca.crt"
+                                            }
+                                        ],
+                                        "name": "openshift-service-ca.crt"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T03:00:29Z",
+                        "status": "False",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T03:00:00Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T03:00:27Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T03:00:27Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-12-11T03:00:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://9dacfff0637ed8942eca6a552edd59debf0653fb944062c513d7ff87b01e935d",
+                        "image": "postgres-pod-docker-ods.apps.us-test.ocp.aws.boehringer.com/pgbackrest-pod:2.57.0",
+                        "imageID": "postgres-pod-docker-ods.apps.us-test.ocp.aws.boehringer.com/pgbackrest-pod@sha256:b04aac9c18476372d71bf44c7319dc8dd76ca2ee59de504ab7f0883c08cd3409",
+                        "lastState": {},
+                        "name": "pgbackrest-backup",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "cri-o://9dacfff0637ed8942eca6a552edd59debf0653fb944062c513d7ff87b01e935d",
+                                "exitCode": 0,
+                                "finishedAt": "2025-12-11T03:00:26Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-12-11T03:00:05Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "10.32.8.252",
+                "hostIPs": [
+                    {
+                        "ip": "10.32.8.252"
+                    }
+                ],
+                "phase": "Succeeded",
+                "podIP": "10.251.226.184",
+                "podIPs": [
+                    {
+                        "ip": "10.251.226.184"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-12-11T03:00:00Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}
