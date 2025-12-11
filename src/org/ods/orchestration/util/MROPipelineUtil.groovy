@@ -350,7 +350,8 @@ class MROPipelineUtil extends PipelineUtil {
                 } catch (ex) {
                     if (repo.'preview-branch') {
                         def errorMessage = "The preview branch configured for repository " +
-                            "\"${repo.name ? repo.name : GitUtil.buildFullRepoName(project.getKey(), repo.id)} (preview-branch: ${repo.'preview-branch'})\" could not be found."
+                            "\"${repo.name ? repo.name : GitUtil.buildFullRepoName(project.getKey(), repo.id)} " +
+                            "(preview-branch: ${repo.'preview-branch'})\" could not be found."
                         throw new RuntimeException(errorMessage, ex)
                     }
                     throw ex
