@@ -27,7 +27,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
-    private static final boolean DEMO_MODE = false
+    private static final boolean DEMO_MODE = true
 
     static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
