@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+* Manage 'remote' value of exploit_type in Aqua in case of several values ([#1247](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1247))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
