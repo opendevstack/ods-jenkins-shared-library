@@ -1114,7 +1114,7 @@
                     "aqua_severity_classification": "NVD CVSS V3 Score: 10.0",
                     "aqua_score_classification": "NVD CVSS V3 Score: 10.0",
                     "exploitability": "http://www.exploit-db.com/exploits/50592",
-                    "exploit_type": "remote",
+                    "exploit_type": "remote,CISA",
                     "cwe_info": [
                         {
                             "Id": "CWE-20",
