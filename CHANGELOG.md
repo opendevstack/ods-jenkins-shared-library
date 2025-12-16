@@ -5,7 +5,7 @@
 ### Added
 
 ### Changed
-* Manage 'remote' value of exploit_type in Aqua in case of several values ([#1247](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1247))
+* Manage 'remote' value of exploit_type in Aqua in case of several values ([#1251](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1251))
 
 ### Fixed
 * Log correct error message for wrong preview-branch value ([#1249](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1249))

@@ -1,5 +1,6 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
@@ -418,6 +419,7 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
+    @NonCPS
     private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, Set whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
