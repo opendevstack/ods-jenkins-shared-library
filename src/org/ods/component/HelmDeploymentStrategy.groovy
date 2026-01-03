@@ -67,6 +67,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
+        if (!config.containsKey('helmReleasesHistoryLimit')) {
+            config.helmReleasesHistoryLimit = 5
+        }
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -139,13 +142,17 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 mergedHelmValuesFiles.addAll(options.helmValuesFiles)
                 mergedHelmValuesFiles.addAll(envConfigFiles)
 
+                // Add history-max flag to limit stored release revisions
+                def mergedAdditionalFlags = options.helmAdditionalFlags.collect { it }
+                mergedAdditionalFlags << "--history-max ${options.helmReleasesHistoryLimit}".toString()
+
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
                     mergedHelmValuesFiles,
                     mergedHelmValues,
                     options.helmDefaultFlags,
-                    options.helmAdditionalFlags,
+                    mergedAdditionalFlags,
                     options.helmDiff
                 )
             }
