@@ -218,9 +218,26 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         context.addDeploymentToArtifactURIs("${options.helmReleaseName}-deploymentMean", deploymentMean)
 
         // Store consolidated deployment data with containers organized by resource
+        // Ensure all container images are plain strings (handle deserialization artifacts)
+        def consolidatedContainers = [:]
+        containersByResource.each { resourceName, containerMap ->
+            def stringifiedContainers = [:]
+            containerMap.each { containerName, image ->
+                // Extract string value - image might be String, or wrapped in Map/List after deserialization
+                def imageStr = image
+                while (imageStr instanceof Map && imageStr.size() > 0) {
+                    imageStr = imageStr.values()[0]
+                }
+                while (imageStr instanceof List && imageStr.size() > 0) {
+                    imageStr = imageStr[0]
+                }
+                stringifiedContainers[containerName] = imageStr.toString()
+            }
+            consolidatedContainers[resourceName] = stringifiedContainers
+        }
         def consolidatedDeploymentData = [
             deploymentId: options.helmReleaseName,
-            containers: containersByResource,
+            containers: consolidatedContainers,
         ]
         context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedDeploymentData)
 

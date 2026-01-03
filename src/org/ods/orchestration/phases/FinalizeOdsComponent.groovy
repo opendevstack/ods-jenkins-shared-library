@@ -229,10 +229,8 @@ class FinalizeOdsComponent {
             
             // Iterate through all container maps
             containersMaps.each { Map containerMap ->
-                containerMap?.each { String containerName, containerImage ->
-                    // Extract image URL if it's a Map, otherwise use as-is
-                    def imageUrl = containerImage instanceof Map ? containerImage.values()[0] : containerImage
-                    def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl as String).repository
+                containerMap?.each { String containerName, String containerImage ->
+                    def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
                     if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
                         def msg = "Deployment: ${odsBuiltDeploymentName} / " +
                             "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
