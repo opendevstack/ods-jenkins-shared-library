@@ -3,16 +3,16 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
-import org.ods.util.PodData
 
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
 
     protected final List<String> DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+        OpenShiftService.STATEFULSET_KIND, OpenShiftService.JOB_KIND, OpenShiftService.CRONJOB_KIND,
     ]
 
     @Override
-    abstract Map<String, List<PodData>> deploy()
+    abstract Map<String, ?> deploy()
 
     // Fetches original kubernetes revisions of deployment resources.
     //
