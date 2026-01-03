@@ -140,8 +140,8 @@ class FinalizeOdsComponent {
         }
 
         deploymentMeans.values().each{deploymentMean->
-            String componentSelector = deploymentMean.selector
-
+            String componentSelector = deploymentMean.selector?.toString()
+            
             // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
             // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
             // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
@@ -230,16 +230,8 @@ class FinalizeOdsComponent {
             // Iterate through all container maps
             containersMaps.each { Map containerMap ->
                 containerMap?.each { String containerName, containerImage ->
-                    // Unwrap image if it's still wrapped in Map/List after deserialization
-                    logger.debug("Container ${containerName} image before unwrap: ${containerImage} (type: ${containerImage.getClass().simpleName})")
-                    def imageUrl = containerImage
-                    while (imageUrl instanceof Map && imageUrl.size() > 0) {
-                        imageUrl = imageUrl.values()[0]
-                    }
-                    while (imageUrl instanceof List && imageUrl.size() > 0) {
-                        imageUrl = imageUrl[0]
-                    }
-                    def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl as String).repository
+                    def imageUrl = containerImage.toString()
+                    def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl).repository
                     if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
                         def msg = "Deployment: ${odsBuiltDeploymentName} / " +
                             "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
