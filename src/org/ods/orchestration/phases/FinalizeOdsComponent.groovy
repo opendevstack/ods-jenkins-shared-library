@@ -208,13 +208,37 @@ class FinalizeOdsComponent {
         // if the underlying image points to *-cd, we can continue.
         def excludedProjects = MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT + ["${project.key}-cd".toString()]
         odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
-            odsBuiltDeployment.containers?.each { String containerName, String containerImage ->
-                def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
-                if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
-                    def msg = "Deployment: ${odsBuiltDeploymentName} / " +
-                        "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
-                    logger.warn "! Image out of scope! ${msg}"
-                    imagesFromOtherProjectsFail << msg
+            def containersData = odsBuiltDeployment.containers
+            
+            // Normalize containers to handle different deployment strategies:
+            // 1. Tailor: {containerName: image}
+            // 2. Helm: {resourceName: {containerName: image}}
+            def containersMaps = []
+            
+            if (containersData instanceof Map) {
+                // Check if this is Helm structure (values are all Maps) or Tailor (values are Strings/Images)
+                def isHelmStructure = containersData.values().every { it instanceof Map }
+                if (isHelmStructure) {
+                    // Helm: flatten the nested structure
+                    containersMaps = containersData.values() as List
+                } else {
+                    // Tailor: simple structure
+                    containersMaps = [containersData]
+                }
+            }
+            
+            // Iterate through all container maps
+            containersMaps.each { Map containerMap ->
+                containerMap?.each { String containerName, containerImage ->
+                    // Extract image URL if it's a Map, otherwise use as-is
+                    def imageUrl = containerImage instanceof Map ? containerImage.values()[0] : containerImage
+                    def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl as String).repository
+                    if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
+                        def msg = "Deployment: ${odsBuiltDeploymentName} / " +
+                            "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
+                        logger.warn "! Image out of scope! ${msg}"
+                        imagesFromOtherProjectsFail << msg
+                    }
                 }
             }
         }
