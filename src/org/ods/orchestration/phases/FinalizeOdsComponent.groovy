@@ -156,8 +156,27 @@ class FinalizeOdsComponent {
                 "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
             )
 
-            odsBuiltDeployments.each { odsBuiltDeploymentName ->
-                allComponentDeployments.remove(odsBuiltDeploymentName)
+            // For helm deployments, use the resources field to determine tracked resources
+            // This contains resources organized by kind (e.g., Deployment, StatefulSet, etc.)
+            if (deploymentMean.type == 'helm' && deploymentMean.resources) {
+                def helmTrackedDeployments = []
+                deploymentMean.resources.each { kind, names ->
+                    if (kind == OpenShiftService.DEPLOYMENT_KIND ||
+                        kind == OpenShiftService.DEPLOYMENTCONFIG_KIND ||
+                        kind == OpenShiftService.STATEFULSET_KIND ||
+                        kind == OpenShiftService.JOB_KIND ||
+                        kind == OpenShiftService.CRONJOB_KIND) {
+                        helmTrackedDeployments.addAll(names)
+                    }
+                }
+                helmTrackedDeployments.each { trackedName ->
+                    allComponentDeployments.remove(trackedName)
+                }
+            } else {
+                // For non-helm deployments, use the legacy approach
+                odsBuiltDeployments.each { odsBuiltDeploymentName ->
+                    allComponentDeployments.remove(odsBuiltDeploymentName)
+                }
             }
 
 

@@ -166,41 +166,57 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
                 .findAll { kind, res -> kind in DEPLOYMENT_KINDS }
 
-        deploymentKinds.each { kind, names ->
-            names.each { name ->
-                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
-                    [
-                        type: 'helm',
-                        selector: options.selector,
-                        namespace: context.targetProject,
-                        chartDir: options.chartDir,
-                        helmReleaseName: options.helmReleaseName,
-                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
-                        helmValuesFiles: options.helmValuesFiles,
-                        helmValues: options.helmValues,
-                        helmDefaultFlags: options.helmDefaultFlags,
-                        helmAdditionalFlags: options.helmAdditionalFlags,
-                        helmStatus: helmStatus.toMap(),
-                    ]
-                )
+        // Collect containers organized by resource (kind/name) to preserve all images
+        Map<String, Map<String, String>> containersByResource = [:]
+        Map<String, List<String>> resourcesByKind = [:]
 
+        deploymentKinds.each { kind, names ->
+            resourcesByKind[kind] = names
+            names.each { name ->
                 // Get container images directly from the resource spec (deployment/statefulset/job/cronjob)
                 def containers = openShift.getContainerImagesWithNameFromPodSpec(
                     context.targetProject, kind, name
                 )
                 logger.debug("Helm container images for ${kind}/${name}: ${containers}")
 
+                // Store containers using the name (which includes the kind suffix for consistency)
+                // e.g., "rust-three-deployment", "rust-three-statefulset", "rust-three-cronjob"
+                containersByResource[name] = containers
+
                 def resourceData = [
                     deploymentId: name,
                     containers: containers,
                 ]
-
-                rolloutData["${kind}/${name}"] = resourceData
-
-                // Add deployment info to artifact URIs
-                context.addDeploymentToArtifactURIs(name, resourceData)
+                rolloutData[name] = resourceData
             }
         }
+
+        // Create a single deploymentMean entry for the entire helm release
+        def deploymentMean = [
+            type: 'helm',
+            selector: options.selector,
+            namespace: context.targetProject,
+            chartDir: options.chartDir,
+            helmReleaseName: options.helmReleaseName,
+            helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+            helmValuesFiles: options.helmValuesFiles,
+            helmValues: options.helmValues,
+            helmDefaultFlags: options.helmDefaultFlags,
+            helmAdditionalFlags: options.helmAdditionalFlags,
+            helmStatus: helmStatus.toMap(),
+            resources: resourcesByKind,
+        ]
+
+        // Store deployment mean once per helm release (not per resource)
+        context.addDeploymentToArtifactURIs("${options.helmReleaseName}-deploymentMean", deploymentMean)
+
+        // Store consolidated deployment data with containers organized by resource
+        def consolidatedDeploymentData = [
+            deploymentId: options.helmReleaseName,
+            containers: containersByResource,
+        ]
+        context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedDeploymentData)
+
         return rolloutData
     }
 
