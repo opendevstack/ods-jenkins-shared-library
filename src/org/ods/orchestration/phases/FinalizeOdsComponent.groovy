@@ -210,34 +210,20 @@ class FinalizeOdsComponent {
         odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
             def containersData = odsBuiltDeployment.containers
             
-            // Normalize containers to handle different deployment strategies:
-            // 1. Tailor: {containerName: image}
-            // 2. Helm: {resourceName: {containerName: image}}
-            def containersMaps = []
-            
-            if (containersData instanceof Map) {
-                // Check if this is Helm structure (values are all Maps) or Tailor (values are Strings/Images)
-                def isHelmStructure = containersData.values().every { it instanceof Map }
-                if (isHelmStructure) {
-                    // Helm: flatten the nested structure
-                    containersMaps = containersData.values() as List
-                } else {
-                    // Tailor: simple structure
-                    containersMaps = [containersData]
-                }
+            if (!containersData || !(containersData instanceof Map)) {
+                return
             }
             
-            // Iterate through all container maps
-            containersMaps.each { Map containerMap ->
-                containerMap?.each { String containerName, containerImage ->
-                    def imageUrl = containerImage.toString()
-                    def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl).repository
-                    if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
-                        def msg = "Deployment: ${odsBuiltDeploymentName} / " +
-                            "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
-                        logger.warn "! Image out of scope! ${msg}"
-                        imagesFromOtherProjectsFail << msg
-                    }
+            // Both Tailor and Helm use flat structure: {containerName: image-string}
+            // Process and validate images across both deployment strategies
+            containersData.each { String containerName, containerImage ->
+                def imageUrl = containerImage.toString()
+                def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl).repository
+                if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
+                    def msg = "Deployment: ${odsBuiltDeploymentName} / " +
+                        "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
+                    logger.warn "! Image out of scope! ${msg}"
+                    imagesFromOtherProjectsFail << msg
                 }
             }
         }
