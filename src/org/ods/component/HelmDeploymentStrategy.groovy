@@ -173,7 +173,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         deploymentKinds.each { kind, names ->
             resourcesByKind[kind] = names
             names.each { name ->
-                // Get container images directly from the resource spec (deployment/statefulset/job/cronjob)
+                // Get container images directly from the resource spec (deployment/statefulset/cronjob)
                 def containers = openShift.getContainerImagesWithNameFromPodSpec(
                     context.targetProject, kind, name
                 )

@@ -20,7 +20,6 @@ class OpenShiftService {
     static final String DEPLOYMENTCONFIG_KIND = 'DeploymentConfig'
     static final String DEPLOYMENT_KIND = 'Deployment'
     static final String STATEFULSET_KIND = 'StatefulSet'
-    static final String JOB_KIND = 'Job'
     static final String CRONJOB_KIND = 'CronJob'
 
     private final IPipelineSteps steps
@@ -575,9 +574,9 @@ class OpenShiftService {
     }
 
     // getContainerImagesWithNameFromPodSpec returns a map of container name -> image (with SHA)
-    // for resources that have a pod template spec (Deployment, DeploymentConfig, StatefulSet, Job, CronJob).
+    // for resources that have a pod template spec (Deployment, DeploymentConfig, StatefulSet, CronJob).
     // For CronJob, the pod template is at .spec.jobTemplate.spec.template.spec.containers
-    // For Job/Deployment/DeploymentConfig/StatefulSet, it's at .spec.template.spec.containers
+    // For Deployment/DeploymentConfig/StatefulSet, it's at .spec.template.spec.containers
     @TypeChecked(TypeCheckingMode.SKIP)
     Map<String, String> getContainerImagesWithNameFromPodSpec(String project, String kind, String name) {
         def jsonPath = kind == 'CronJob' ?

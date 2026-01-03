@@ -8,7 +8,7 @@ abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
 
     protected final List<String> DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
-        OpenShiftService.STATEFULSET_KIND, OpenShiftService.JOB_KIND, OpenShiftService.CRONJOB_KIND,
+        OpenShiftService.STATEFULSET_KIND, OpenShiftService.CRONJOB_KIND,
     ]
 
     @Override

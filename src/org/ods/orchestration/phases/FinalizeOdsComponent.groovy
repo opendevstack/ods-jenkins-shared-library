@@ -142,14 +142,13 @@ class FinalizeOdsComponent {
         deploymentMeans.values().each{deploymentMean->
             String componentSelector = deploymentMean.selector
 
-            // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, Job, CronJob)
+            // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
             // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
             // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
             def allWorkloadKinds = [
                 OpenShiftService.DEPLOYMENT_KIND,
                 OpenShiftService.DEPLOYMENTCONFIG_KIND,
                 OpenShiftService.STATEFULSET_KIND,
-                OpenShiftService.JOB_KIND,
                 OpenShiftService.CRONJOB_KIND
             ]
             def allComponentDeploymentsByKind = os.getResourcesForComponent(
@@ -174,7 +173,7 @@ class FinalizeOdsComponent {
             if (deploymentMean.type == 'helm' && deploymentMean.resources) {
                 def helmTrackedDeployments = []
                 // Work with all resource kinds from Helm chart deployment, not just hardcoded ones
-                // This supports all workload kinds: Deployment, StatefulSet, DaemonSet, Job, CronJob,
+                // This supports all workload kinds: Deployment, StatefulSet, DaemonSet, CronJob,
                 // DeploymentConfig, Rollout, and any future workload types
                 deploymentMean.resources.each { kind, names ->
                     // Include any workload kind that typically manages pods (has apiVersion and metadata)
