@@ -231,7 +231,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 while (imageStr instanceof List && imageStr.size() > 0) {
                     imageStr = imageStr[0]
                 }
-                stringifiedContainers[containerName] = imageStr.toString()
+                def stringValue = imageStr.toString()
+                // Ensure no trailing bracket or other artifacts remain from serialization
+                stringValue = stringValue.replaceAll(/\]\s*$/, '')
+                stringifiedContainers[containerName] = stringValue
             }
             consolidatedContainers[resourceName] = stringifiedContainers
         }
