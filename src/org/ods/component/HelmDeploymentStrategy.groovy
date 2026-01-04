@@ -233,7 +233,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 }
                 def stringValue = imageStr.toString()
                 // Ensure no trailing bracket or other artifacts remain from serialization
-                stringValue = stringValue.replaceAll(/\]\s*$/, '')
+                // Use double-escaped bracket to ensure proper regex matching in Groovy
+                stringValue = stringValue.replaceAll('\\]\\s*$', '')
                 stringifiedContainers[containerName] = stringValue
             }
             consolidatedContainers[resourceName] = stringifiedContainers
