@@ -217,11 +217,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // Store deployment mean once per helm release (not per resource)
         context.addDeploymentToArtifactURIs("${options.helmReleaseName}-deploymentMean", deploymentMean)
 
-        // Store consolidated deployment data with containers organized by resource
+        // Store consolidated deployment data with all unique containers flattened
         // Ensure all container images are plain strings (handle deserialization artifacts)
-        def consolidatedContainers = [:]
+        // Flatten containers from all resources into a single map to support multiple containers per resource
+        def flattenedContainers = [:]
         containersByResource.each { resourceName, containerMap ->
-            def stringifiedContainers = [:]
             containerMap.each { containerName, image ->
                 // Extract string value - image might be String, or wrapped in Map/List after deserialization
                 def imageStr = image
@@ -235,13 +235,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 // Ensure no trailing bracket or other artifacts remain from serialization
                 // Use double-escaped bracket to ensure proper regex matching in Groovy
                 stringValue = stringValue.replaceAll('\\]\\s*$', '')
-                stringifiedContainers[containerName] = stringValue
+                
+                // Create a unique key for each container
+                // If resource has only one container, use resource name; otherwise use resource::container format
+                def containerKey = containerMap.size() == 1 ? resourceName : "${resourceName}::${containerName}"
+                // Only add if this image isn't already present (avoid duplicates of same image)
+                if (!flattenedContainers.values().contains(stringValue)) {
+                    flattenedContainers[containerKey] = stringValue
+                }
             }
-            consolidatedContainers[resourceName] = stringifiedContainers
         }
         def consolidatedDeploymentData = [
             deploymentId: options.helmReleaseName,
-            containers: consolidatedContainers,
+            containers: flattenedContainers,
         ]
         context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedDeploymentData)
 
