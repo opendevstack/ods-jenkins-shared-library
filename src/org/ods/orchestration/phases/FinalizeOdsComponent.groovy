@@ -140,8 +140,7 @@ class FinalizeOdsComponent {
         }
 
         deploymentMeans.values().each{deploymentMean->
-            String componentSelector = deploymentMean.selector?.toString()
-            
+            String componentSelector = deploymentMean.selector
             // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
             // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
             // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
@@ -204,11 +203,9 @@ class FinalizeOdsComponent {
         def excludedProjects = MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT + ["${project.key}-cd".toString()]
         odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
             def containersData = odsBuiltDeployment.containers
-            
-            if (!containersData || !(containersData instanceof Map)) {
+            if (!containersData || !Map.isInstance(containersData)) {
                 return
             }
-            
             // Both Tailor and Helm use flat structure: {containerName: image-string}
             // Process and validate images across both deployment strategies
             containersData.each { String containerName, containerImage ->

@@ -223,17 +223,16 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             containerMap.each { containerName, image ->
                 // Extract string value - image might be String, or wrapped in Map/List after deserialization
                 def imageStr = image
-                while (imageStr instanceof Map && imageStr.size() > 0) {
+                while (Map.isInstance(imageStr) && imageStr.size() > 0) {
                     imageStr = imageStr.values()[0]
                 }
-                while (imageStr instanceof List && imageStr.size() > 0) {
+                while (List.isInstance(imageStr) && imageStr.size() > 0) {
                     imageStr = imageStr[0]
                 }
                 def stringValue = imageStr.toString()
                 // Ensure no trailing bracket or other artifacts remain from serialization
                 // Use double-escaped bracket to ensure proper regex matching in Groovy
                 stringValue = stringValue.replaceAll('\\]\\s*$', '')
-                
                 // Create a unique key for each container
                 // If resource has only one container, use resource name; otherwise use resource::container format
                 def containerKey = containerMap.size() == 1 ? resourceName : "${resourceName}::${containerName}"
