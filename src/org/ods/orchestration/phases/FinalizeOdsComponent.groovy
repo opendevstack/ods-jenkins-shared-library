@@ -172,12 +172,7 @@ class FinalizeOdsComponent {
             // This contains resources organized by kind (e.g., Deployment, StatefulSet, etc.)
             if (deploymentMean.type == 'helm' && deploymentMean.resources) {
                 def helmTrackedDeployments = []
-                // Work with all resource kinds from Helm chart deployment, not just hardcoded ones
-                // This supports all workload kinds: Deployment, StatefulSet, DaemonSet, CronJob,
-                // DeploymentConfig, Rollout, and any future workload types
                 deploymentMean.resources.each { kind, names ->
-                    // Include any workload kind that typically manages pods (has apiVersion and metadata)
-                    // The resources field from Helm already contains validated Kubernetes kinds
                     helmTrackedDeployments.addAll(names ?: [])
                 }
                 helmTrackedDeployments.each { trackedName ->

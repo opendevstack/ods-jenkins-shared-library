@@ -186,8 +186,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 )
                 logger.debug("Helm container images for ${kind}/${name}: ${containers}")
 
-                // Store containers using the name (which includes the kind suffix for consistency)
-                // e.g., "rust-three-deployment", "rust-three-statefulset", "rust-three-cronjob"
                 containersByResource[name] = containers
 
                 def resourceData = [
