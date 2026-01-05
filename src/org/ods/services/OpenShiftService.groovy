@@ -1052,9 +1052,21 @@ class OpenShiftService {
     @TypeChecked(TypeCheckingMode.SKIP)
     List<PodData> parsePodJson(podJson, String resourceName = null) {
         List<PodData> pods = []
-        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
-            // If we got passed a resourceName we need to collect all the pod data from each pod
-            pods = extractPodData(podJson)
+        /*  Only Pods that are meant to run should be considered, 
+            i.e. with OwnerReference ReplicaSet, ReplicationController, StatefulSet, etc.
+            Job pods are out of scope since they are meant to remain in the namespace after completion.
+            To no interfere with the check and cause false negatives, they are ignored.
+        */
+        if (podJson && podJson.items) {
+            // Filter out pods owned by Jobs
+            def nonJobPods = podJson.items.findAll { pod ->
+                !pod.metadata?.ownerReferences?.any { ref -> ref.kind?.toLowerCase() == 'job' }
+            }
+            // Check if all non-Job pods are running
+            if (nonJobPods && nonJobPods.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+                // If we got passed a resourceName we need to collect all the pod data from each pod
+                pods = extractPodData([items: nonJobPods])
+            }
         }
         // if we have a resourceName only return the items matching that
         if (resourceName != null) {
