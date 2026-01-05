@@ -87,6 +87,13 @@ class RolloutOpenShiftDeploymentOptions extends Options {
     String helmPrivateKeyCredentialsId
 
     /**
+     * Number of historical Helm release secrets to keep (defaults to 5).
+     * Helm stores release state in secrets. This limit controls how many
+     * previous releases are retained before old ones are deleted. Only relevant
+     * if the directory referenced by `chartDir` exists. */
+    Integer helmReleasesHistoryLimit
+
+    /**
      * Directory with OpenShift templates (defaults to `openshift`). */
     String openshiftDir
 

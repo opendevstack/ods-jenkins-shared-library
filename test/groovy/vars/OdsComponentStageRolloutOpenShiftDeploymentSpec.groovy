@@ -42,7 +42,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
+    openShiftService.getResourcesForComponent('foo-dev', _, 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision('foo-dev', 'DeploymentConfig', 'bar') >> 123
     openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 15) >> "bar-124"
     // test the handover of the poddata retries
@@ -77,7 +77,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [Deployment: ['bar']]
+    openShiftService.getResourcesForComponent('foo-dev', _, 'app=foo-bar') >> [Deployment: ['bar']]
     openShiftService.getRevision('foo-dev', 'Deployment', 'bar') >> 123
     openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 15) >> "bar-6f8db5fb69"
     // test the handover of the poddata retries
@@ -112,7 +112,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
+    openShiftService.getResourcesForComponent('foo-dev', _, 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
     openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
@@ -164,10 +164,13 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.helmStatus('myproject-dev', 'backend-helm-monorepo') >> HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
-    // todo: verify that we did not want to ensure that build images are tagged here.
-    // - the org.ods.component.Context.artifactUriStore is not initialized with c when created above!
-    // - as a consequence the build artifacts are empty so no retagging happens here.
-    openShiftService.checkForPodData(*_) >> [new PodData([deploymentId: "${c.componentId}-124"])]
+    // Now uses getContainerImagesWithNameFromPodSpec instead of checkForPodData
+    openShiftService.getContainerImagesWithNameFromPodSpec('myproject-dev', 'Deployment', 'core') >> [
+        'core-container': 'myproject-dev/core@sha256:12345abcdef'
+    ]
+    openShiftService.getContainerImagesWithNameFromPodSpec('myproject-dev', 'Deployment', 'standalone-gateway') >> [
+        'gateway-container': 'myproject-dev/standalone-gateway@sha256:98765fedcba'
+    ]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
     jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
@@ -209,14 +212,15 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['Deployment/core'][0].deploymentId == "core-124"
+    // New format: deploymentInfo keys are just the resource name without kind prefix
+    deploymentInfo['core'].deploymentId == "core"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    buildArtifacts.deployments['core-deploymentMean']['type'] == 'helm'
+    buildArtifacts.deployments['backend-helm-monorepo-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], [], true)
+    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], ['--history-max 5'], true)
   }
 
   @Unroll
@@ -225,7 +229,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     def cfg = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, cfg, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.getResourcesForComponent(_, { it == ['Deployment', 'DeploymentConfig'] }, _) >> [DeploymentConfig: ['bar']]
+    openShiftService.getResourcesForComponent(_, { it instanceof List && it.contains('Deployment') && it.contains('DeploymentConfig') }, _) >> [DeploymentConfig: ['bar']]
     openShiftService.resourceExists(_, { it == 'ImageStream' }, _) >> isExists
     openShiftService.getImagesOfDeployment(*_) >> images
     openShiftService.getRevision(*_) >> latestVersion
