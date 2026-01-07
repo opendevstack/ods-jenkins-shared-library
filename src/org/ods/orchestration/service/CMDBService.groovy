@@ -129,35 +129,6 @@ class CMDBService {
     }
 
     @NonCPS
-    private void loadExtraCiProperties(Map node) {
-        logger.debug "Node (before): $node"
-        if (node?.managed_by?.email) {
-          node.managed_by = node.managed_by.email
-        }
-        
-        if (node?.owned_by?.email) {
-          node.owned_by = node.owned_by.email
-        }
-        logger.debug "Node (after): $node"
-
-      /*
-        if (node.managed_by) {
-            logger.debug "Node has managed_by: $node"
-            // Resolve managed_by email CI param
-            def response = this.httpUtil.get("${node.managed_by.link}?sysparm_fields=email")
-            node.managed_by = response.result.email
-        }
-
-        if (node.owned_by) {
-            logger.debug "Node has owned_by: $node"
-            // Resolve owned_by email CI param
-            def response = this.httpUtil.get("${node.owned_by.link}?sysparm_fields=email")
-            node.owned_by = response.result.email
-        }
-        */
-    }
-
-    @NonCPS
     public Map loadParentCiData(String ciName) {
         def response = this.httpUtil.get(
             this.composeParentCiDataUrl(ciName)
@@ -167,7 +138,6 @@ class CMDBService {
         if (response.result) {
             node = response.result.first()
             this.sanitizeCiProperties(node)
-            this.loadExtraCiProperties(node)
         }
 
         return node
