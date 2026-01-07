@@ -194,7 +194,7 @@ class CMDBService {
                     if (childSysClass.sys_class_name ==~ /(?i)u_cmdb_ci_interface|cmdb_ci_db_catalog|cmdb_ci_database/) {
                         loadRelationalCisData(childNode, ciRelationsLookupStrategy, relationSanitizerStrategy, parentNodeIds, depth + 1, maxDepth)
                     } else {
-                        println "No further relationships looked up for this class of CI\n"
+                        logger.debug "No further relationships looked up for class ${childSysClass.sys_class_name}\n"
                     }
                 }
             // }
