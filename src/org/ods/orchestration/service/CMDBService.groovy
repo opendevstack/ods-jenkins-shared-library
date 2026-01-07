@@ -52,7 +52,7 @@ class CMDBService {
         }
     }
 
-    private static final int MAX_DEPTH = 5
+    private static final int MAX_DEPTH = 2
     private static final List SYSPARM_CI_FIELDS = ["sys_id", "sys_class_name", "name", "u_name_business_friendly", "application_type", "install_type", "short_description", "owned_by.email", "managed_by.email", "u_gxp_relevant", "u_gxp_criticality", "u_slc_documents_location_items_and_con", "u_system_design_specification_link", "u_validation_determination_reference", "u_gamp_category", "service_classification"]
     private static final int SYSPARM_CI_RELATIONS_LIMIT = 1000
     private static final List SYSPARM_CMDB_CI_FIELDS = ["sys_class_name"]
@@ -186,9 +186,10 @@ class CMDBService {
                     def childNode = this.loadRelationalCiData(childSysId, childSysClass.sys_class_name)
                     childNode.relation = relationType
                     this.sanitizeCiProperties(childNode, parentNode, relationSanitizerStrategy)
-                    this.loadExtraCiProperties(childNode)
                     parentNode.children << childNode
 
+                    logger.debug "!!! Depth: ${depth}, RelationName: ${relationType.name}, SysClassName: ${childSysClass.sys_class_name}, ChildCIName: ${childNode.name}"
+                  
                     if (!(childSysClass.sys_class_name ==~ /(?i)exception|software|branch|leaf|server|database|business_app|service/)) {
                         loadRelationalCisData(childNode, ciRelationsLookupStrategy, relationSanitizerStrategy, parentNodeIds, depth + 1, maxDepth)
                     } else {
