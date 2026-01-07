@@ -130,15 +130,16 @@ class CMDBService {
 
     @NonCPS
     private void loadExtraCiProperties(Map node) {
+        logger.debug "Node: $node"
         if (node.managed_by) {
-            println "Node has managed_by: $node"
+            logger.debug "Node has managed_by: $node"
             // Resolve managed_by email CI param
             def response = this.httpUtil.get("${node.managed_by.link}?sysparm_fields=email")
             node.managed_by = response.result.email
         }
 
         if (node.owned_by) {
-            println "Node has owned_by: $node"
+            logger.debug "Node has owned_by: $node"
             // Resolve owned_by email CI param
             def response = this.httpUtil.get("${node.owned_by.link}?sysparm_fields=email")
             node.owned_by = response.result.email
