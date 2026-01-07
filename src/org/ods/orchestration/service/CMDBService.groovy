@@ -12,7 +12,7 @@ class CMDBService {
     private static final String CLIENT_SECRET = "sj)P.AIN.|"
     private static final String INSTANCE = "boehringereval.service-now.com"
     private static final String USERNAME = "x2sysdesign"
-    private static final String PASSWORD = "Drop_34500x!2User"
+    private static final String PASSWORD = "O}]%M0TTspC+IbHw0*wX@{=jjSi!UC6TfEjLBo##"
 
     class HTTPUtil {
         private String accessToken
