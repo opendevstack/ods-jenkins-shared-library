@@ -340,7 +340,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiModules = combineParentWithChildren(parentCi, modules)
         def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
 
-      	/*
         // compute Mermaid diagram for parent Ci modules
         def parentCiModulesPngImage = generateMermaidDiagram(parentCiModules)
 
@@ -352,7 +351,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
-        */
 
         def data_ = [
             metadata: metadata,
@@ -361,10 +359,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCi: parentCi,
                 parentCiModules: modules,
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
-                //parentCiModulesPngImage: parentCiModulesPngImage,
-                //parentCiRelationsPngImage: parentCiRelationsPngImage,
-                //fullDiagramPngImage: fullDiagramPngImage,
-                //componentsDiagramPngImage: componentsDiagramPngImage,
+                parentCiModulesPngImage: parentCiModulesPngImage,
+                parentCiRelationsPngImage: parentCiRelationsPngImage,
+                fullDiagramPngImage: fullDiagramPngImage,
+                componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
             ]
