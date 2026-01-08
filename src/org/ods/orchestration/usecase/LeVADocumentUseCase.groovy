@@ -222,6 +222,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def links = issue.remoteLinks as List<Map>
             def fields = issue.fields as Map<String, Object>
             def timestamp = fields.resolutiondate as String
+            logger.debug "!!! $key, $issue, $timestamp"
             def dateTime = JIRA_DATE_TIME_FORMATTER.parse(timestamp)
             def date = DATE_FORMATTER.format(dateTime)
             def logEntry = [
