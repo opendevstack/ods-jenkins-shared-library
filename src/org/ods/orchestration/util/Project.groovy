@@ -2396,7 +2396,7 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
         }
-
+      logger.debug("---> repo: ${repo}")
         repo.include = repo.include ?: true
 
         repo.data = [
@@ -2435,6 +2435,8 @@ class Project {
                 "Bitbucket repositories' default branches as needed." +
                 "The alternative, to be used ONLY in Dev Previews, is to change the 'branch' parameter to 'preview-branch'"))
         }
+            logger.debug("---> repo2: ${repo}")
+
     }
 
     void addDefaults(String component) {
