@@ -2396,9 +2396,8 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
         }
-        logger.debug("---> repo: ${repo}")
-        repo.include = !!repo.include
-        logger.debug("---> repo included: ${repo}")
+        
+        repo.include = repo.containsKey('include') ? repo.include : true
 
         repo.data = [
             openshift: [:],
