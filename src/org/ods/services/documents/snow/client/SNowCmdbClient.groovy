@@ -6,10 +6,6 @@ import org.ods.orchestration.util.Project
 class SNowCmdbClient {
     private final Project project
 
-    SNowCmdbClient(Project project) {
-        this.project = project
-    }
-
     private static final Set<String> SIGNER_ROLES_GXP = [
         "System Owner",
         //"System Owner Delegate(s)",
@@ -27,6 +23,11 @@ class SNowCmdbClient {
     SNowCmdbClient() {
         def config = new ServiceNowConfig()
         client = new ServiceNowClient(config)
+    }
+
+    SNowCmdbClient(Project project) {
+        this()
+        this.project = project
     }
 
     @NonCPS
