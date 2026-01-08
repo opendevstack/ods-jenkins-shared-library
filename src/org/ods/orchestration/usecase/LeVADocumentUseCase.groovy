@@ -218,12 +218,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private SortedMap<String, Map> generateChangeLog() {
         def changeLog = newReversedMap() as SortedMap
         def requirementIndex = this.project.requirementsByURL
-        logger.debug "!!! requirementIndex: ${requirementIndex}"
+        logger.debug "LeVADocUseCase::generateChangeLog: requirementIndex: ${requirementIndex}"
         project.issues.each { key, issue ->
             def links = issue.remoteLinks as List<Map>
             def fields = issue.fields as Map<String, Object>
             def timestamp = fields.resolutiondate as String
-            logger.debug "!!! $key, $timestamp"
+            logger.debug "LeVADocUseCase::generateChangeLog: $key, $timestamp"
             def dateTime = timestamp ? JIRA_DATE_TIME_FORMATTER.parse(timestamp) : null
             def date = dateTime ? DATE_FORMATTER.format(dateTime) : ""
             def logEntry = [
