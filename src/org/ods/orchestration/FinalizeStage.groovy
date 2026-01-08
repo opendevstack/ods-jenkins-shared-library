@@ -132,8 +132,10 @@ class FinalizeStage extends Stage {
                 try {
                     def docIds = project.docIds.values() as List
                     logger.debug("Triggering document signature workflow for doc ids: ${docIds.join(', ')}")
+                    /* FIXME: disable temporarily as it causes errors
                     def workflowId = new SecureVaultDocumentUploader(project).triggerWorkflow(docIds)
                     logger.debug("Signature workflow triggered with id ${workflowId}")
+                    */
                 } catch (Exception e) {
                     bitbucket.setBuildStatus(steps.env.BUILD_URL, project.gitData.commit,
                         'FAILED', "Release Manager for commit: ${project.gitData.commit}")
