@@ -2397,7 +2397,7 @@ class Project {
                 "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
         }
         logger.debug("---> repo: ${repo}")
-        repo.include = repo.include ?: true
+        repo.include = !!repo.include
         logger.debug("---> repo included: ${repo}")
 
         repo.data = [
