@@ -199,7 +199,7 @@ class FinalizeStage extends Stage {
                 gatherCommitTasks << [(repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
-                        steps.echo "repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}"
+                        logger.debug("fetched execution commit 4 repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}")
                     }
                 }
                 ]
@@ -299,5 +299,4 @@ class FinalizeStage extends Stage {
             git.pushForceBranchWithTags(project.gitReleaseBranch)
         }
     }
-
 }

@@ -563,6 +563,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 id: repo.id,
                 name: name,
                 installed: repo.include,
+                git: repo.data?.git,
             ]
             if (repo.failedStage) {
                 component.failedStage = repo.failedStage
