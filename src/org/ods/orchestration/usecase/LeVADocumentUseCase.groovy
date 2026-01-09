@@ -585,7 +585,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 id: repo.id,
                 name: name,
                 git: repo.data?.git,
-                metadata: '',
+                metadata: repo.data?.metadata,
             ]
             return component
         }
