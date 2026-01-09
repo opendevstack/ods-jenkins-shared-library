@@ -576,6 +576,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
+    private List<Map> getTestcomponents() {
+        return project.repositories.findAll { repo -> repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_TEST }.collect { repo ->
+            def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
+            def component = [
+                id: repo.id,
+                name: name,
+                git: repo.data?.git,
+                metadata: repo.data?.metadata,
+            ]
+            return component
+        }
+    }
+
     @NonCPS
     private List<Map> getTestResults(Map data) {
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
