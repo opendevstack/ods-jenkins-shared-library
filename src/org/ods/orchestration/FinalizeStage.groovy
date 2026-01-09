@@ -199,7 +199,7 @@ class FinalizeStage extends Stage {
                 gatherCommitTasks << [(repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
-                        logger.debug("fetched execution commit 4 repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}")
+                        steps.echo("fetched execution commit 4 repo.id: ${repo.id}: ${repo.data.git.createdExecutionCommit}")
                     }
                 }
                 ]
