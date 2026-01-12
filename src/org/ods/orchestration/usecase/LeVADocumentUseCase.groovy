@@ -354,11 +354,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
+        def debugCi = parentCi.clone()
+        debugCi.children = []
+        logger.debug "LeVADocUseCase::createDES: parentCi: ${debugCi}"
+        logger.debug "LeVADocUseCase::createDES: sanitized parentCi: ${cmdb.defaultNodeSanitizerStrategy(debugCi)}"
+      
         def data_ = [
             metadata: metadata,
             data : [
                 components: components,
-                parentCi: cmdb.defaultNodeSanitizerStrategy(parentCi),
+                parentCi: parentCi,
                 parentCiModules: modules,
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
