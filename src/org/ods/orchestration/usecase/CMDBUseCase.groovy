@@ -294,11 +294,11 @@ class CMDBUseCase {
         }
 
         def sanitizeNodeId = { String id ->
-            return id.replaceAll("[()]", "-")
+            return id.replaceAll("[()]", "-").replaceAll("--", "-")
         }
 
         def sanitizeNodeText = { String text ->
-            return text.replaceAll("[(]", "#40;").replaceAll("[)]", "#41;")
+            return text.replaceAll("[(]", "#40;").replaceAll("[)]", "#41;").replaceAll("--", "-")
         }
 
         def toEdgeCode = { Map node ->
