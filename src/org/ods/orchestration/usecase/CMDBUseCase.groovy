@@ -83,7 +83,7 @@ class CMDBUseCase {
     }
 
     @NonCPS
-    public static List<Map> findInterfaces(Map rootNode) {
+    public static List<Map> findInterfaces(Map rootNode, ILogger logger) {
         def result = []
 
         def findInterfaces_ = { node ->
@@ -100,7 +100,7 @@ class CMDBUseCase {
       
         def findInterfaceInstalledTechnologies = { node ->
             node.children.findAll { child ->
-                return isInterfaceInstalledTechnology(child)
+                return isInterfaceInstalledTechnology(child, logger)
             }
         }
 
@@ -190,7 +190,7 @@ class CMDBUseCase {
     }
 
     @NonCPS
-    public static boolean isInterfaceInstalledTechnology(Map node) {
+    public static boolean isInterfaceInstalledTechnology(Map node, ILogger logger) {
         logger.debug "CMDBUseCase::isInterfaceInstalledTechnology: node: ${node}"
         return node.parent_name.contains("-IF-") \
             && node.relation.name.toLowerCase().startsWith("installed on")
