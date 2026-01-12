@@ -354,7 +354,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
-        logger.debug "LeVADocUseCase::createDES: parentCi: ${parentCi}"
+      	def debugCi = parentCi.clone()
+        debugCi.children = []
+        logger.debug "LeVADocUseCase::createDES: parentCi: ${debugCi}"
       
         def data_ = [
             metadata: metadata,
