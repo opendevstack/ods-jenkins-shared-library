@@ -97,11 +97,23 @@ class CMDBUseCase {
                 return isAPI(child)
             }
         }
+      
+        def findInterfaceInstalledTechnologies = { node ->
+            node.children.findAll { child ->
+                return isInterfaceInstalledTechnology(child)
+            }
+        }
 
         findInterfaces_(rootNode).each { interface_ ->
             def interfaceClone = interface_.clone()
             interfaceClone.children = []
             result << interfaceClone
+
+            findInterfaceInstalledTechnologies(interface_).each { tech ->
+                def techClone = tech.clone()
+                techClone.children = []
+                interfaceClone.children << techClone
+            }
 
             findAPIs(interface_).each { api ->
                 def apiClone = api.clone()
@@ -175,6 +187,13 @@ class CMDBUseCase {
     @NonCPS
     public static boolean isInterface(Map node) {
         return node.name.contains("-IF-")
+    }
+
+    @NonCPS
+    public static boolean isInterfaceInstalledTechnology(Map node) {
+        logger.debug ("CMDBUseCase::isInterfaceInstalledTechnology: node: ${node}"
+        return node.parent_name.contains("-IF-") \
+            && node.relation.name.toLowerCase().startsWith("installed on")
     }
 
     @NonCPS
