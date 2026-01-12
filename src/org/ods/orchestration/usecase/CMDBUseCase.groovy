@@ -292,14 +292,14 @@ class CMDBUseCase {
     */
 
     @NonCPS
-    public String toMermaidGraphCode(Map rootNode) {
+    public String toMermaidGraphCode(Map rootNode, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
         if (!rootNode) return ""
 
         def entities = [] as Set
         def relations = [] as Set
 
-        def nodeSanitizerStrategy = { Map node ->
-            defaultNodeSanitizerStrategy(node)
+        def nodeSanitizerStrategy_ = { Map node ->
+            nodeSanitizerStrategy(node)
 
             if (node.relation) {
                 if (this.isAPI(node) || this.isEnvironment(node) || this.isInterface(node) || this.isModule(node)) {
@@ -350,7 +350,7 @@ class CMDBUseCase {
             return "    ${id}(${text})"
         }
 
-        def flatData = this.toFlatData(rootNode, nodeSanitizerStrategy)
+        def flatData = this.toFlatData(rootNode, nodeSanitizerStrategy_)
         flatData.each { node ->
             entities << toNodeCode(node)
             if (node.relation && node.parent_name) relations << toEdgeCode(node)
@@ -364,7 +364,7 @@ class CMDBUseCase {
     }
 
     @NonCPS
-    private static void defaultNodeSanitizerStrategy(Map node) {
+    public static void defaultNodeSanitizerStrategy(Map node) {
         def sanitizeValue = { String value ->
             value = value ?: ""
             value = value.replaceAll(/^true$/, "Yes")
