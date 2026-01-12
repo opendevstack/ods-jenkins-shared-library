@@ -191,7 +191,7 @@ class CMDBUseCase {
 
     @NonCPS
     public static boolean isInterfaceInstalledTechnology(Map node) {
-        logger.debug ("CMDBUseCase::isInterfaceInstalledTechnology: node: ${node}"
+        logger.debug "CMDBUseCase::isInterfaceInstalledTechnology: node: ${node}"
         return node.parent_name.contains("-IF-") \
             && node.relation.name.toLowerCase().startsWith("installed on")
     }
