@@ -333,7 +333,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
         def modules = cmdb.findModules(parentCi)
-        def interfaces = cmdb.findInterfaces(parentCi)
+        def interfaces = cmdb.findInterfaces(parentCi, logger)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { env ->
             return cmdb.isDevelopmentEnvironment(env)
         }
@@ -354,6 +354,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
+        logger.debug "LeVADocUseCase::createDES: parentCi: ${parentCi}"
+      
         def data_ = [
             metadata: metadata,
             data : [
