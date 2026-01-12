@@ -333,7 +333,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
         def modules = cmdb.findModules(parentCi)
-        def interfaces = cmdb.findInterfaces(parentCi, logger)
+        def interfaces = cmdb.findInterfaces(parentCi)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { env ->
             return cmdb.isDevelopmentEnvironment(env)
         }
