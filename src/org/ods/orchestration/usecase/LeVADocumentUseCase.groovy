@@ -417,10 +417,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     }
                 '''
         )
+      
+     	def mermaidRenderConfig = ".${UUID.randomUUID().toString()}-mermaidRenderConfig.json"
+        steps.writeFile(
+            file: mermaidRenderConfig,
+            text: '''
+                    {
+                      "maxTextSize": 99999999
+                    }
+                '''
+        )
 
         def status = steps.sh(
             script: """
-                    npx @mermaid-js/mermaid-cli -i ${fileMermaidCode} -o ${fileDiagram} --puppeteerConfigFile ${puppeteerConfig}
+                    npx @mermaid-js/mermaid-cli -i ${fileMermaidCode} -o ${fileDiagram} --puppeteerConfigFile ${puppeteerConfig} --configFile ${mermaidRenderConfig}
                 """,
             returnStatus: true,
             label: "Render System Relations Diagram using Mermaid"
@@ -434,7 +444,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def fileDiagramContents = steps.readFile(file: fileDiagram, encoding: 'Base64')
 
         steps.sh """
-                rm ${fileMermaidCode} ${fileDiagram} ${puppeteerConfig}
+                rm ${fileMermaidCode} ${fileDiagram} ${puppeteerConfig} ${mermaidRenderConfig}
             """
 
         return fileDiagramContents?.strip()
