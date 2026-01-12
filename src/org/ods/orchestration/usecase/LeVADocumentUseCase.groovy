@@ -332,6 +332,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
+        cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { env ->
@@ -357,7 +358,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def debugCi = parentCi.clone()
         debugCi.children = []
         logger.debug "LeVADocUseCase::createDES: parentCi: ${debugCi}"
-        logger.debug "LeVADocUseCase::createDES: sanitized parentCi: ${cmdb.defaultNodeSanitizerStrategy(debugCi)}"
+        cmdb.defaultNodeSanitizerStrategy(debugCi)
+        logger.debug "LeVADocUseCase::createDES: sanitized parentCi: ${debugCi}"
       
         def data_ = [
             metadata: metadata,
