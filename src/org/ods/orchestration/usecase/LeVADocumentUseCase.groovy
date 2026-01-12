@@ -358,7 +358,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: metadata,
             data : [
                 components: components,
-                parentCi: parentCi,
+                parentCi: cmdb.defaultNodeSanitizerStrategy(parentCi),
                 parentCiModules: modules,
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
