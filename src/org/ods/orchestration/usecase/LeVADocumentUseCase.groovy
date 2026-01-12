@@ -423,7 +423,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             file: mermaidRenderConfig,
             text: '''
                     {
-                      "maxTextSize": 99999999
+                      "maxTextSize": 99999999,
+                      "maxEdges": 2000
                     }
                 '''
         )
