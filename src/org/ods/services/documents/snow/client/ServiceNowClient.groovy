@@ -87,10 +87,8 @@ class ServiceNowClient {
 
     @NonCPS
     String getUserEmail(String token, List<Map> businessApplicationRoles, String role) {
-        return businessApplicationRoles.stream()
-            .filter { roleInformation -> (roleInformation.role == role) }
-            .map {getUserEmailByRoleInformation(token, it) }
-            .findAny().orElse('')
+        return businessApplicationRoles.findAll { it.role == role }
+            .collect { getUserEmailByRoleInformation(token, it)}.find() ?: ''
     }
 
     @NonCPS
@@ -107,11 +105,7 @@ class ServiceNowClient {
         def sysId = roleInformation.user.value
         def userDetails = getUserDetails(token, sysId)
 
-        if (userDetails == null) {
-            return Optional.empty()
-        } else {
-            return userDetails.email
-        }
+        return userDetails?.email
     }
 }
 
