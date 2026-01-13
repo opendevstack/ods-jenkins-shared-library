@@ -89,8 +89,8 @@ class ServiceNowClient {
     String getUserEmail(String token, List<Map> businessApplicationRoles, String role) {
         return businessApplicationRoles.stream()
             .filter { roleInformation -> (roleInformation.role == role) }
-            .map {this.&getUserEmailByRoleInformation }
-            .findAny().orElse("" as Closure<String>)
+            .map {getUserEmailByRoleInformation(token, it) }
+            .findAny().orElse('')
     }
 
     @NonCPS
