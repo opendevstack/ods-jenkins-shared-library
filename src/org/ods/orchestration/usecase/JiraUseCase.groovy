@@ -110,7 +110,7 @@ class JiraUseCase {
 
     @NonCPS
     Map<String, Map> getIssues(List<String> versions = null) {
-        def jql = 'status = DONE AND fixVersion '
+        def jql = "project = ${project.key} AND status = DONE AND fixVersion "
         if (versions) {
             jql += "in (${versions.join(',')})"
         } else {
