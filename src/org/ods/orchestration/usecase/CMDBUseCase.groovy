@@ -398,6 +398,8 @@ class CMDBUseCase {
         if (node.u_gxp_relevant) node.gxp_relevant = sanitizeValue(node.u_gxp_relevant)
         if (node.u_gxp_criticality) node.gxp_criticality = node.u_gxp_criticality
         if (node.u_gamp_category) node.gamp_category = node.u_gamp_category
+        if (node['owned_by.email']) node.owned_by = [ email: node['owned_by.email'] ]
+        if (node['managed_by.email']) node.managed_by = [ email: node['managed_by.email'] ]
         if (node.u_validation_determination_reference) node.validation_determination_reference = node.u_validation_determination_reference
         if (node.u_slc_documents_location_items_and_con) node.slc_documents_location = node.u_slc_documents_location_items_and_con
     }
