@@ -457,7 +457,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
-        def testComponents = getTestComponents()
+        def testComponents = getExecutedTestComponents()
         def tests = getTestResults(data)
 
         def pullRequests = null
@@ -588,8 +588,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private List<Map> getTestComponents() {
-        return project.repositories.findAll { repo -> repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }.collect { repo ->
+    private List<Map> getExecutedTestComponents() {
+        return project.repositories.findAll { repo -> 
+            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST && repo.include }.collect { repo ->
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
