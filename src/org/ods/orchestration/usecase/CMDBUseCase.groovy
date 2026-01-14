@@ -4,7 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.service.CMDBService
 import org.ods.util.ILogger
 
-@SuppressWarnings(['LineLength', 'ParameterName'])
+@SuppressWarnings(['LineLength', 'ParameterName', 'IfStatementBraces'])
 class CMDBUseCase {
     private final CMDBService cmdb
     private final ILogger logger
@@ -97,7 +97,7 @@ class CMDBUseCase {
                 return isAPI(child)
             }
         }
-      
+
         def findInformationObjects = { node ->
             node.children.findAll { child ->
                 return isInformationObject(child)
@@ -232,7 +232,7 @@ class CMDBUseCase {
         def item = node.clone()
         item.remove('children')
         if (nodeSanitizerStrategy) {
-           nodeSanitizerStrategy(item)
+            nodeSanitizerStrategy(item)
         }
         result << item
 
