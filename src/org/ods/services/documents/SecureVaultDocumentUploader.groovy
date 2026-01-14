@@ -48,9 +48,14 @@ class SecureVaultDocumentUploader {
 
     @NonCPS
     def triggerWorkflow(String sessionId, List<Integer> documentIds, List<String> emails) {
-        def reviewerIds = emails.stream()
-            .map ({ email -> vaultQueryClient.queryUserIdByEmail(email, sessionId) })
-            .collect(Collectors.toList())
+        def reviewerIds = [] as List<String>
+        for (String email: emails) {
+            def reviewerId = vaultQueryClient.queryUserIdByEmail(email, sessionId)
+            if (!reviewerId) {
+                throw new RuntimeException("The user with email ${email} isn't allowed to sign the documents. Please contact support.")
+            }
+            reviewerIds << reviewerId
+        }
         return workflowClient.triggerWorkflow("Bearer $sessionId", documentIds, reviewerIds)
     }
 

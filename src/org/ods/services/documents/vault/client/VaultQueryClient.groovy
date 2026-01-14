@@ -33,10 +33,6 @@ class VaultQueryClient {
 
         def clientId = json?.data?.getAt(0)?.id
 
-        if (!clientId) {
-            throw new RuntimeException("No user found with email: ${email}")
-        }
-
         return clientId
     }
 }
