@@ -3,12 +3,12 @@ package org.ods.services
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
-import kong.unirest.GetRequest
 import kong.unirest.Unirest
 import org.ods.util.ILogger
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class ConfluenceService {
+
     private final ILogger logger
 
     private final URI baseURL
