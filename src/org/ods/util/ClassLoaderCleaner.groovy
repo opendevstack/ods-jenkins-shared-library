@@ -18,19 +18,30 @@ class ClassLoaderCleaner {
         logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
 
         logger.debug("Rename classloader name to this run ...")
-        renameClassLoader(classloader, processId)
+        try {
+            renameClassLoader(classloader, processId)
+        } catch (Exception e) {logger.debug("cleanupHeap err: ${e}")}
 
         logger.debug("force grape unload")
-        unloadGrapes(classloader)
+
+        try {
+            unloadGrapes(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap grape err: ${e}"}
 
         logger.debug("unloadCache")
-        unloadCache(classloader)
+        try {
+            unloadCache(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap cache err: ${e}")}
 
         logger.debug("starting type-resolver (full) cleanup")
-        typeResolverCleanup(classloader)
+        try {
+            typeResolverCleanup(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap types err: ${e}")}
 
         logger.debug("starting ThreadGroupContext cleanup")
-        threadGroupContextCleanUp(classloader)
+        try {
+            threadGroupContextCleanUp(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap thread err: ${e}")}
 
         logger.debug("Removing logger ...")
         removeLogger()
@@ -144,4 +155,3 @@ class ClassLoaderCleaner {
     }
 
 }
-

@@ -470,6 +470,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
         def testComponents = getExecutedTestComponents()
+        // @ TODO --- must include unit tests
         def tests = getTestResults(data)
         def testEvidence = getTestEvidences(data)
 
@@ -632,6 +633,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }
                 testedRequirements << test.reqId
             }
+            // @ TODO add test type! - right now it's a merge, and we loose that information
             return test
         }
         if (!project.developerPreviewMode) {
