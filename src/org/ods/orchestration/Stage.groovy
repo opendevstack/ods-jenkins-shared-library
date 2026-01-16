@@ -131,6 +131,35 @@ class Stage {
         ]
     }
 
+    String getTestEvidences(steps, Map repo) {
+        def jenkins = ServiceRegistry.instance.get(JenkinsService)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+
+        def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}"
+
+        logger.debug("Collecting test evidences for ${repo.id}")
+
+        def testReportsStashName = "test-reports-junit-pdf-${repo.id}-${steps.env.BUILD_ID}"
+
+        def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
+        def hasStashedTestReports = jenkins.unstashFilesIntoPath(
+            testReportsStashName,
+            testReportsUnstashPath,
+            'JUnit XML Report'
+        )
+
+        def evidencesFiles = []
+        if (!hasStashedTestReports) {
+            logger.warn(
+                "Unable to unstash test evidences for repo '${repo.id}' from stash '${testReportsStashName}'."
+            )
+        } else {
+            evidencesFiles = steps.findFiles(glob: '**/*.pdf')
+        }
+
+        return evidencesFiles.find().path
+    }
+
     Map getLogReports(def steps, Map repo, String type) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         ILogger logger = ServiceRegistry.instance.get(Logger)

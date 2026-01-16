@@ -68,6 +68,16 @@ class JenkinsService {
                 includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
                 allowEmpty: true
             )
+
+            if (script.findFiles(glob: '**/**.pdf')) {
+                testStashPath = "test-reports-junit-pdf-${stashNamePostFix}"
+                contextresultMap.evidencesStashPath = testStashPath
+                script.stash(
+                    name: "${testStashPath}",
+                    includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.pdf",
+                    allowEmpty: true
+                )
+            }
         } else {
             logger.info 'No xUnit results for stashing'
         }

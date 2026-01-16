@@ -418,7 +418,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     }
                 '''
         )
-      
+
      	def mermaidRenderConfig = ".${UUID.randomUUID().toString()}-mermaidRenderConfig.json"
         steps.writeFile(
             file: mermaidRenderConfig,
@@ -459,6 +459,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def executedComponents = getComponentExecutionResults()
         def testComponents = getTestComponents()
         def tests = getTestResults(data)
+        def testEvidence = getTestEvidences(data)
 
         def pullRequests = null
         def sonarReports = null
@@ -470,6 +471,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def rmLog = jenkins.currentBuildLogAsText
         def attachments = getReportsAsAttachments(rmLog, executedComponents)
+        attachments += testEvidence
         executedComponents.each { component ->
             component.remove('logText')
         }
@@ -628,6 +630,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return tests
     }
 
+    @NonCPS
+    private List<Map> getTestEvidences(Map data) {
+        return data.evidences.collect { component, file ->
+            [
+                filename: "test-evidence-${component}.pdf",
+                contentType: 'application/pdf',
+                compress: false,
+                content: steps.readFile(file: file, encoding: 'Base64'),
+            ]
+        }
+    }
+
     private Map<String, String> getSonarReports() {
         def stashes = project.sonarStashes.entrySet() as ArrayList<Map.Entry>
         def reports = [:]
@@ -781,11 +795,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!suites) {
             return []
         }
-        def evidences = [
-            (1): '../img/testevidence_Requirement%2B1_Test%2Bfunctionality%2BA.png',
-            (2): '../img/testevidence_Requirement%2B2_Test%2Bfunctionality%2BF.png',
-            (3): '../img/testevidence_Requirement%2B3_Test%2Bfunctionality%2BT.png',
-        ]
         def testCases = []
         suites.each { suite ->
             def component = suite.component
@@ -812,7 +821,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     requirementName: requirement?.metadata?.pageTitle,
                     result: testCase.failure ? 'Failure' : testCase.error ? 'Error' :
                         testCase.skipped ? 'Skipped' : 'Success',
-                    evidence: evidences[reqId],
                 ]
             }
         }

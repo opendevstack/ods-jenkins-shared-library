@@ -27,6 +27,7 @@ class TestStage extends Stage {
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def phase = MROPipelineUtil.PipelinePhases.TEST
         def globalData = getTestDataStructure()
+        globalData.evidences = [:]
 
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
@@ -42,6 +43,7 @@ class TestStage extends Stage {
                     it.value.testReportFiles = testResult.testReportFiles
                     it.value.testResults = testResult.testResults
                 }
+                data.evidences = getTestEvidences(steps, repo)
 
                 levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
@@ -54,6 +56,7 @@ class TestStage extends Stage {
                     }
                     value.testResults.testsuites += suitesWithComponent
                 }
+                globalData.evidences[repo.id as String] << data.evidences
             }
         }
 
