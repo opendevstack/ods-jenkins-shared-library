@@ -1368,6 +1368,12 @@ class Project {
             rePromote = false
         }
 
+        //doc only run - default, false
+        def docRun = false
+        if (steps.env.docRun && 'true'.equalsIgnoreCase(steps.env.docRun.trim())) {
+            docRun = true
+        }
+
         return [
             changeDescription: changeDescription,
             changeId: changeId,
@@ -1376,7 +1382,7 @@ class Project {
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
             rePromote: rePromote,
-            docRun : !!steps.env.docRun?.trim()
+            docRun : docRun
         ]
     }
 
