@@ -27,7 +27,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
-    private static final boolean DEMO_MODE = true
+    private static final boolean DEMO_MODE = false
 
     static final String IS_GXP_PROJECT_PROPERTY = 'PROJECT.IS_GXP'
     static final String DEFAULT_TEMPLATE_VERSION = '1.2'
@@ -2397,7 +2397,7 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to parse project meta data. Required attribute 'repos.id' is undefined.")
         }
-        
+
         repo.include = repo.containsKey('include') ? repo.include : true
 
         repo.data = [
