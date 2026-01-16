@@ -56,7 +56,9 @@ class TestStage extends Stage {
                     }
                     value.testResults.testsuites += suitesWithComponent
                 }
-                globalData.evidences[repo.id as String] << data.evidences
+                if (data?.evidences) {
+                    globalData.evidences[repo.id as String] << data.evidences
+                }
             }
         }
 

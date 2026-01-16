@@ -417,6 +417,7 @@ class Project {
         logger.debugClocked("confluenceRequirementsLoading")
         def requirements =
             requirementUseCase.getRequirementsForJiraIssues(issues, this.buildParams.changeId as String)
+        logger.debugClocked("confluenceRequirementsLoading", "Loaded ${requirements.size()} requirement pages from Confluence.")
         this.data.confluence.requirementsByURL = requirements
         this.data.confluence.requirementsByURL.each { key, value ->
             logger.debug("??? Loaded Confluence Page from URI ${key}:\n")
@@ -430,7 +431,6 @@ class Project {
             logger.debug("${value}")
             logger.debug("\n----------\n")
         }
-        logger.debugClocked("confluenceRequirementsLoading")
 
         // FIXME: contrary to the comment below, the bug data from this method is still relevant
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
