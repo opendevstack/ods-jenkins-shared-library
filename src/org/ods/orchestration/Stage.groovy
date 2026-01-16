@@ -157,7 +157,7 @@ class Stage {
             evidencesFiles = steps.findFiles(glob: '**/*.pdf')
         }
 
-        return evidencesFiles.find().path
+        return evidencesFiles.find()?.path
     }
 
     Map getLogReports(def steps, Map repo, String type) {
