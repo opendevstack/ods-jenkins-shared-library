@@ -26,7 +26,7 @@ class ConfluenceUseCase {
         logger.debugClocked("confluencePageFetch-" + pageURI.query)
         def htmlPageContent = this.confluence.getPage(pageURI)
         logger.debugClocked("confluencePageFetch-" + pageURI.query)
-        return new ConfluenceRequirementPage(htmlPageContent, this.logger)
+        return new ConfluenceRequirementPage(htmlPageContent, pageURI.query, this.logger)
     }
 
     @NonCPS
