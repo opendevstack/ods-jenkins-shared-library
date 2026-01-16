@@ -224,9 +224,11 @@ class PDFUtil {
                     def filename = attachment.filename as String
                     def content = attachment.content as byte[]
                     def contentType = attachment.contentType as String
+                    def extensionIndex = filename.lastIndexOf('.')
+                    def extension = extensionIndex >= 0 ? filename.substring(extensionIndex) : null
 
                     // Create a temporary file to hold the attachment content
-                    def tempFile = Files.createTempFile(tmpPath, 'attach-', '.pdf')
+                    def tempFile = Files.createTempFile(tmpPath, 'attach-', extension)
                     try {
                         tempFile.bytes = content
 
