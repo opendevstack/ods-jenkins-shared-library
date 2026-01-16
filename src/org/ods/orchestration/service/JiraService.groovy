@@ -11,7 +11,6 @@ import org.ods.orchestration.util.StringCleanup
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.util.ILogger
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
