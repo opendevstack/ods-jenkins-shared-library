@@ -351,6 +351,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // compute Mermaid diagram for all relevant entities
         def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
+        def attachedDiagram = [
+            filename: 'system-diagram.png',
+            contentType: 'image/png',
+            compress: false,
+            content: fullDiagramPngImage.decodeBase64(),
+        ]
 
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
@@ -364,14 +370,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
                 parentCiRelationsPngImage: parentCiRelationsPngImage,
-                fullDiagramPngImage: fullDiagramPngImage,
+                // fullDiagramPngImage: fullDiagramPngImage,
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
             ]
         ]
 
-        def uri = this.createDocument(DocumentType.DES, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        def tmpDir = steps.pwd(tmp: true)
+        def modifier = { byte[] document ->
+            return PDFUtil.addAttachments(document, [ attachedDiagram ], tmpDir)
+        }
+        steps.dir(tmpDir) {
+            steps.deleteDir()
+        }
+
+        def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         return uri
     }
 
@@ -500,6 +514,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modifier = { byte[] document ->
             return PDFUtil.addAttachments(document, attachments, tmpDir)
         }
+        steps.dir(tmpDir) {
+            steps.deleteDir()
+        }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         return uri
@@ -591,7 +608,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private List<Map> getExecutedTestComponents() {
-        return project.repositories.findAll { repo -> 
+        return project.repositories.findAll { repo ->
             repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST && repo.include }.collect { repo ->
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
