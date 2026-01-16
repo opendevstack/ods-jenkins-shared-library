@@ -555,7 +555,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def contentType = type == 'sonar'
                     ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     : 'text/html'
-                def compress = type != 'sonar'
+                def compress = true
 
                 attachments << [
                     filename: filename,
@@ -654,7 +654,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 filename: "test-evidence-${component}.pdf",
                 contentType: 'application/pdf',
-                compress: false,
+                compress: true,
                 content: steps.readFile(file: file, encoding: 'Base64')?.strip()?.decodeBase64(),
             ]
         }
