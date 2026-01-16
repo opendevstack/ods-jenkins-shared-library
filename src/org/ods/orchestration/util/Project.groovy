@@ -407,8 +407,10 @@ class Project {
 //            version = this.getVersionName()
 //        }
 
+        logger.debugClocked("jiraIssuesLoading")
         def versions = getVersions()
         def issues = jiraUseCase.getIssues(versions)
+        logger.debugClocked("jiraIssuesLoading", "Loaded ${issues.size()} issues from Jira for versions: ${versions}")
         this.data.jira.issues = issues
 
         this.data.confluence = [:]

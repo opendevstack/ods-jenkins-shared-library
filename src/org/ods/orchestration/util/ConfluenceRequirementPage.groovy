@@ -30,7 +30,9 @@ class ConfluenceRequirementPage {
         this.metadata = [:]
         this.properties = [:]
         this.content = ""
+        logger.debugClocked("confluencePageParse")
         this.parse(htmlPageContent)
+        logger.debugClocked("confluencePageParse")
     }
 
     ConfluenceRequirementPage(ConfluenceRequirementPage page) {

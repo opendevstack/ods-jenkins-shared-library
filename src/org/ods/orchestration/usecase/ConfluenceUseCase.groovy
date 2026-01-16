@@ -23,7 +23,9 @@ class ConfluenceUseCase {
 
     @NonCPS
     ConfluenceRequirementPage getRequirementPage(URI pageURI) {
+        logger.debugClocked("confluencePageFetch-" + pageURI.query)
         def htmlPageContent = this.confluence.getPage(pageURI)
+        logger.debugClocked("confluencePageFetch-" + pageURI.query)
         return new ConfluenceRequirementPage(htmlPageContent, this.logger)
     }
 
