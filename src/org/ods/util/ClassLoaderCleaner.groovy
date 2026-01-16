@@ -26,7 +26,7 @@ class ClassLoaderCleaner {
 
         try {
             unloadGrapes(classloader)
-        } catch (Exception e) {logger.debug("cleanupHeap grape err: ${e}"}
+        } catch (Exception e) {logger.debug("cleanupHeap grape err: ${e}")}
 
         logger.debug("unloadCache")
         try {
