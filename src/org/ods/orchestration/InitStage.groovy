@@ -406,10 +406,10 @@ class InitStage extends Stage {
                 bitbucket.setBuildStatus(steps.env.BUILD_URL, project.gitData.commit,
                     'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
             }
-            def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
+            def jobMode = 'Build ' + (project.isPromotionMode ? '(promote)' : '(assemble)')
 
             logger.debug 'Configure current build description'
-            script.currentBuild.description = "Build ${jobMode} #${script.env.BUILD_NUMBER} - " +
+            script.currentBuild.description = (buildParams.docRun ? 'DOC RUN' : jobMode) + " #${script.env.BUILD_NUMBER} - " +
                 "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
                 "Project: ${project.key}, " +
                 "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +

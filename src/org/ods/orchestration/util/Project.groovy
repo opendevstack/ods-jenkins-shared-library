@@ -407,11 +407,14 @@ class Project {
 //            version = this.getVersionName()
 //        }
 
+        logger.debugClocked("jiraIssuesLoading")
         def versions = getVersions()
         def issues = jiraUseCase.getIssues(versions)
+        logger.debugClocked("jiraIssuesLoading", "Loaded ${issues.size()} issues from Jira for versions: ${versions}")
         this.data.jira.issues = issues
 
         this.data.confluence = [:]
+        logger.debugClocked("confluenceRequirementsLoading")
         def requirements =
             requirementUseCase.getRequirementsForJiraIssues(issues, this.buildParams.changeId as String)
         this.data.confluence.requirementsByURL = requirements
@@ -427,6 +430,7 @@ class Project {
             logger.debug("${value}")
             logger.debug("\n----------\n")
         }
+        logger.debugClocked("confluenceRequirementsLoading")
 
         // FIXME: contrary to the comment below, the bug data from this method is still relevant
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
@@ -1368,6 +1372,12 @@ class Project {
             rePromote = false
         }
 
+        //doc only run - default, false
+        def docRun = false
+        if (steps.env.docRun && 'true'.equalsIgnoreCase(steps.env.docRun.trim())) {
+            docRun = true
+        }
+
         return [
             changeDescription: changeDescription,
             changeId: changeId,
@@ -1376,6 +1386,7 @@ class Project {
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
             rePromote: rePromote,
+            docRun : docRun
         ]
     }
 

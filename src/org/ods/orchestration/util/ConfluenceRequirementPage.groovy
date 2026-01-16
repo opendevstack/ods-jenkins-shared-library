@@ -24,13 +24,15 @@ class ConfluenceRequirementPage {
     private Map<String, String> properties
     private String content
 
-    ConfluenceRequirementPage(String htmlPageContent, ILogger logger) {
+    ConfluenceRequirementPage(String htmlPageContent, String pageQuery, ILogger logger) {
         this.logger = logger
 
         this.metadata = [:]
         this.properties = [:]
         this.content = ""
+        logger.debugClocked("confluencePageParse-" + pageQuery)
         this.parse(htmlPageContent)
+        logger.debugClocked("confluencePageParse-" + pageQuery)
     }
 
     ConfluenceRequirementPage(ConfluenceRequirementPage page) {

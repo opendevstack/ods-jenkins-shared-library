@@ -84,7 +84,10 @@ def call(Map config) {
                         logger.warn('Skip pipeline as no project/repos computed')
                         return
                     }
-
+                    if (Project.loadBuildParams(steps).docRun) {
+                        logger.warn('Design documents only - skipping build, deploy, test, release and finalize stages.')
+                        return
+                    }
                     new BuildStage(this, project, repos, startAgentStage).execute()
                     new DeployStage(this, project, repos, startAgentStage).execute()
                     new TestStage(this, project, repos, startAgentStage).execute()
