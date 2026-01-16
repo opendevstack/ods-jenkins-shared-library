@@ -35,6 +35,7 @@ class VaultDocumentUploader {
     private static final String PROCESS = 'V4Z000000001083'
     private static final String NATURE_OF_DOCUMENT = 'N/A-Covered By Type/Subtype/Classification'
     private static final String DOCUMENT_SCOPE = 'Global'
+    private static final String MANUFACTURING_INSTRUCTION_TYPE = 'gmp__c'
 
     /**
      * Uploads a document to Vault and returns the document ID.
@@ -67,7 +68,7 @@ class VaultDocumentUploader {
         // Write file field (no redeclaration of `file`)
         output.writeBytes("--$boundary\r\n")
         output.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"${filename}\"\r\n")
-        output.writeBytes("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n")
+        output.writeBytes("Content-Type: application/pdf\r\n\r\n")
         output.write(bytes)
         output.writeBytes("\r\n")
 
@@ -84,6 +85,7 @@ class VaultDocumentUploader {
         writeFormField('process__c', PROCESS)
         writeFormField('nature_of_document__c', NATURE_OF_DOCUMENT)
         writeFormField('document_scope__c', DOCUMENT_SCOPE)
+        writeFormField('manufacturing_instruction_type1__c', MANUFACTURING_INSTRUCTION_TYPE)
 
         output.writeBytes("--$boundary--\r\n")
         output.flush()
