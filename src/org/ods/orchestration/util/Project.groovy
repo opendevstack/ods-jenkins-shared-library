@@ -1376,7 +1376,7 @@ class Project {
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
             rePromote: rePromote,
-            docRun : steps.env.docRun?.trim() ?: 'false'
+            docRun : !!steps.env.docRun?.trim()
         ]
     }
 
