@@ -384,10 +384,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
 
-        steps.dir(tmpDir) {
-            steps.deleteDir()
-        }
-
         return uri
     }
 
@@ -518,10 +514,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
-
-        steps.dir(tmpDir) {
-            steps.deleteDir()
-        }
 
         return uri
     }
