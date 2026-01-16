@@ -381,11 +381,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modifier = { byte[] document ->
             return PDFUtil.addAttachments(document, [ attachedDiagram ], tmpDir)
         }
+
+        def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+
         steps.dir(tmpDir) {
             steps.deleteDir()
         }
 
-        def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         return uri
     }
 
@@ -514,11 +516,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modifier = { byte[] document ->
             return PDFUtil.addAttachments(document, attachments, tmpDir)
         }
+
+        def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+
         steps.dir(tmpDir) {
             steps.deleteDir()
         }
 
-        def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         return uri
     }
 
