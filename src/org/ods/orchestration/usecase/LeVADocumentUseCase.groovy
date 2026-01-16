@@ -637,7 +637,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 filename: "test-evidence-${component}.pdf",
                 contentType: 'application/pdf',
                 compress: false,
-                content: steps.readFile(file: file, encoding: 'Base64'),
+                content: steps.readFile(file: file, encoding: 'Base64')?.strip()?.decodeBase64(),
             ]
         }
     }
