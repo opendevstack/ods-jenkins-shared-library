@@ -606,7 +606,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private List<Map> getExecutedTestComponents() {
         return project.repositories.findAll { repo ->
-            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST && repo.include }.collect { repo ->
+            repo.include && 
+                (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
+                 repo.installable == true && repo.data?.tests)
+            }.collect { repo ->
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
