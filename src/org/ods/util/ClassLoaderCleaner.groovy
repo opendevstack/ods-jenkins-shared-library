@@ -14,24 +14,42 @@ class ClassLoaderCleaner {
         logger.debug('-- Clean classloader --')
 
         GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
-        logger.debug("${classloader} - parent ${classloader.getParent()}")
+        logger.debug("${classloader}:${classloader.getName()} - parent ${classloader.getParent()}")
         logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
 
+        /* thank you openjdk: 
+           https://stackoverflow.com/questions/74798341/nosuchfieldexception-on-executing-classloader-class-getdeclaredfieldlibraries
         logger.debug("Rename classloader name to this run ...")
-        renameClassLoader(classloader, processId)
+        try {
+            renameClassLoader(classloader, processId)
+        } catch (Exception e) {logger.debug("cleanupHeap err: ${e}")}
+        */
 
         logger.debug("force grape unload")
-        unloadGrapes(classloader)
 
+        try {
+            unloadGrapes(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap grape err: ${e}")}
+
+        /* thank you openjdk: 
+           https://stackoverflow.com/questions/74798341/nosuchfieldexception-on-executing-classloader-class-getdeclaredfieldlibraries
         logger.debug("unloadCache")
-        unloadCache(classloader)
+        try {
+            unloadCache(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap cache err: ${e}")}
+        */
 
         logger.debug("starting type-resolver (full) cleanup")
-        typeResolverCleanup(classloader)
+        try {
+            typeResolverCleanup(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap types err: ${e}")}
 
         logger.debug("starting ThreadGroupContext cleanup")
-        threadGroupContextCleanUp(classloader)
+        try {
+            threadGroupContextCleanUp(classloader)
+        } catch (Exception e) {logger.debug("cleanupHeap thread err: ${e}")}
 
+        logger.debug("PostCleanup: loaded classes ${classloader.getLoadedClasses().size()}")
         logger.debug("Removing logger ...")
         removeLogger()
 
@@ -115,12 +133,12 @@ class ClassLoaderCleaner {
             return
         }
 
-        Field modifiersField2 = Field.class.getDeclaredField("modifiers")
-        modifiersField2.setAccessible(true)
+        // Field modifiersField2 = Field.class.getDeclaredField("modifiers")
+        // modifiersField2.setAccessible(true)
 
         Field localCaches = typeResolverClass.getDeclaredField("CACHE")
         localCaches.setAccessible(true)
-        modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
+        // modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
 
         WeakCache wCache = localCaches.get(null)
         wCache.clear()
@@ -132,9 +150,6 @@ class ClassLoaderCleaner {
             java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
         java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
         java.util.logging.Handler thisH = lhandlers.find { handler ->
-            System.out.println("-> handler: " + handler.getFormatter() +
-                " -cl: " + handler.getFormatter().class.getClassLoader() +
-                " -this cl: " + this.class.getClassLoader())
             handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
         }
         if (thisH) {
@@ -144,4 +159,3 @@ class ClassLoaderCleaner {
     }
 
 }
-

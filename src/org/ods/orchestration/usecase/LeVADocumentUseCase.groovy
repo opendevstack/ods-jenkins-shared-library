@@ -494,6 +494,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
         def testComponents = getExecutedTestComponents()
+        // @ TODO --- must include unit / installation tests (attached in Build / Teststage)
         def tests = getTestResults(data)
         def testEvidence = getTestEvidences(data)
 
@@ -605,7 +606,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private List<Map> getComponentExecutionResults() {
         def logs = project.componentLogs
-        return project.repositories.findAll { repo -> repo.doInstall }.collect { repo ->
+        return project.repositories.findAll { repo -> repo.doInstall && repo.include }.collect { repo ->
             if (!project.developerPreviewMode && repo.data.failedStage) {
                 throw new RuntimeException("Component ${repo.name} failed")
             }
@@ -629,7 +630,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private List<Map> getExecutedTestComponents() {
         return project.repositories.findAll { repo ->
-            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST && repo.include }.collect { repo ->
+            repo.include && 
+                (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
+                 (repo.installable == true && repo.data?.tests))
+            }.collect { repo ->
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
@@ -646,7 +650,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
         def acceptanceTestResults = extractTestResults(data.tests?.acceptance, 'Acceptance')
         def installationTestResults = extractTestResults(data.tests?.installation, 'Installation')
-        def testResults = installationTestResults + integrationTestResults + acceptanceTestResults
+        def unitTestResults = extractTestResults(data.tests?.unit, 'Unit')
+        def testResults = unitTestResults + installationTestResults + integrationTestResults + acceptanceTestResults
         Set<Integer> testedRequirements = [] as Set
         def tests = testResults.findAll { test -> test.result != 'Skipped' }.collect { test ->
             if (!project.developerPreviewMode) {

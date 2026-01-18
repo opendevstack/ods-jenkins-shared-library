@@ -62,7 +62,15 @@ class BuildStage extends Stage {
                     // this  will set failedTests if any xunit tests have failed
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                     */
-                    data << [tests: [unit: getTestResults(steps, repo) ]]
+                    // data << [tests: [unit: getTestResults(steps, repo) ]]
+
+                    // collect test results
+                    if (repo.data.tests == null) {
+                        repo.data.tests = [:]
+                    }
+                    repo.data.tests << [unit: getTestResults(steps, repo) ]
+
+                    getTestResults(steps, repo, true)
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                 }
 
