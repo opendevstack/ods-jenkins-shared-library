@@ -138,7 +138,7 @@ class ClassLoaderCleaner {
 
         Field localCaches = typeResolverClass.getDeclaredField("CACHE")
         localCaches.setAccessible(true)
-        modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
+        // modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
 
         WeakCache wCache = localCaches.get(null)
         wCache.clear()
@@ -150,9 +150,6 @@ class ClassLoaderCleaner {
             java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
         java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
         java.util.logging.Handler thisH = lhandlers.find { handler ->
-            System.out.println("-> handler: " + handler.getFormatter() +
-                " -cl: " + handler.getFormatter().class.getClassLoader() +
-                " -this cl: " + this.class.getClassLoader())
             handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
         }
         if (thisH) {
