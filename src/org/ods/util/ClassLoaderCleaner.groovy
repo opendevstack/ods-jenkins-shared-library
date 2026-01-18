@@ -51,11 +51,11 @@ class ClassLoaderCleaner {
 
     @NonCPS
     private void renameClassLoader(GroovyClassLoader classloader, String processId) {
-        Field modifiersField = Field.class.getDeclaredField("modifiers")
-        modifiersField.setAccessible(true)
+//        Field modifiersField = Field.class.getDeclaredField("modifiers")
+//        modifiersField.setAccessible(true)
         Field loaderName = ClassLoader.class.getDeclaredField("name")
         loaderName.setAccessible(true)
-        modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL)
+//        modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL)
         loaderName.set(classloader, processId)
     }
 
@@ -126,12 +126,12 @@ class ClassLoaderCleaner {
             return
         }
 
-        Field modifiersField2 = Field.class.getDeclaredField("modifiers")
-        modifiersField2.setAccessible(true)
+//        Field modifiersField2 = Field.class.getDeclaredField("modifiers")
+//        modifiersField2.setAccessible(true)
 
         Field localCaches = typeResolverClass.getDeclaredField("CACHE")
         localCaches.setAccessible(true)
-        modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
+//        modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL)
 
         WeakCache wCache = localCaches.get(null)
         wCache.clear()

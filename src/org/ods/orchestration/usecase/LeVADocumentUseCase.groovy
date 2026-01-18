@@ -582,7 +582,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private List<Map> getComponentExecutionResults() {
         def logs = project.componentLogs
-        return project.repositories.findAll { repo -> repo.doInstall }.collect { repo ->
+        return project.repositories.findAll { repo -> repo.doInstall && repo.include }.collect { repo ->
             if (!project.developerPreviewMode && repo.data.failedStage) {
                 throw new RuntimeException("Component ${repo.name} failed")
             }
