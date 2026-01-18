@@ -131,7 +131,7 @@ class Stage {
         ]
     }
 
-    String getTestEvidences(steps, Map repo) {
+    String getTestEvidences(IPipelineSteps steps, Map repo) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
@@ -154,10 +154,12 @@ class Stage {
                 "Unable to unstash test evidences for repo '${repo.id}' from stash '${testReportsStashName}'."
             )
         } else {
-            evidencesFiles = steps.findFiles(glob: '**/*.pdf')
+            steps.dir(testReportsUnstashPath) {
+                evidencesFiles = steps.findFiles(glob: '**/*.pdf')
+            }
         }
 
-        return evidencesFiles.find()?.path
+        return evidencesFiles?.size() ? evidencesFiles[0].path : null
     }
 
     Map getLogReports(def steps, Map repo, String type) {

@@ -30,6 +30,9 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
 import java.util.regex.Pattern
+import java.util.zip.CRC32
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @SuppressWarnings([
     'ClassSize',
@@ -351,12 +354,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // compute Mermaid diagram for all relevant entities
         def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
-        def attachedDiagram = [
-            filename: 'system-diagram.png',
-            contentType: 'image/png',
-            compress: false,
-            content: fullDiagramPngImage.decodeBase64(),
-        ]
 
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
@@ -378,6 +375,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def tmpDir = steps.pwd(tmp: true)
+        def zippedDiagram = zipImage(fullDiagramPngImage, 'system-diagram.png')
+        def attachedDiagram = [
+            filename: 'system-diagram.zip',
+            contentType: 'application/zip',
+            compress: false,
+            content: zippedDiagram,
+        ]
         def modifier = { byte[] document ->
             return PDFUtil.addAttachments(document, [ attachedDiagram ], tmpDir)
         }
@@ -385,6 +389,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
 
         return uri
+    }
+
+    @NonCPS
+    private byte[] zipImage(String contents, String fileName) {
+        def os = new ByteArrayOutputStream()
+        def bytes = contents.decodeBase64()
+        new ZipOutputStream(os, StandardCharsets.UTF_8).withCloseable { zos ->
+            int len = bytes.length
+            def entry = new ZipEntry(fileName)
+            entry.method = ZipEntry.STORED
+            entry.compressedSize = len
+            entry.size = len
+            def crc = new CRC32()
+            crc.update(bytes, 0, len)
+            entry.crc = crc.value
+            zos.putNextEntry(entry)
+            zos.write(bytes, 0, len)
+            zos.closeEntry()
+        }
+        return os.toByteArray()
     }
 
     private String generateComponentDiagram(Map<String, Map> repos, Map dependenciesMap) {
