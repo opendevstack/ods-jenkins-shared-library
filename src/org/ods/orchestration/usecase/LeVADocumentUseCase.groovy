@@ -30,9 +30,6 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
 import java.util.regex.Pattern
-import java.util.zip.CRC32
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 @SuppressWarnings([
     'ClassSize',
@@ -110,6 +107,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         .parseLenient()
         .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+        .appendOffset('+HHMM', '+0000')
+        .parseStrict()
+        .toFormatter(Locale.ENGLISH)
+    private static final TIMESTAMP_FORMATTER = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        .parseLenient()
+        .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
         .appendOffset('+HHMM', '+0000')
         .parseStrict()
         .toFormatter(Locale.ENGLISH)
@@ -473,8 +478,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
         def testComponents = getExecutedTestComponents()
-        // @ TODO --- must include unit / installation tests (attached in Build / Teststage)
         def tests = getTestResults(data)
+        def xunit = getXUnitFiles(data)
         def testEvidence = getTestEvidences(data)
 
         def pullRequests = null
@@ -487,6 +492,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def rmLog = jenkins.currentBuildLogAsText
         def attachments = getReportsAsAttachments(rmLog, executedComponents)
+        attachments += xunit
         attachments += testEvidence
         executedComponents.each { component ->
             component.remove('logText')
@@ -650,6 +656,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
         return tests
+    }
+
+    private List<Map> getXUnitFiles(Map data) {
+        return data.tests?.testReportFiles?.collect { file ->
+            [
+                filename: file.name,
+                contentType: 'application/xml',
+                compress: true,
+                content: file.bytes,
+            ]
+        }
+
     }
 
     private List<Map> getTestEvidences(Map data) {
@@ -820,7 +838,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def testCases = []
         suites.each { suite ->
             def component = suite.component
-            logger.debug("JUAN: Found test suite for component ${component}")
             suite.testcases?.each { testCase ->
                 def requirement = null
                 def reqId = null
@@ -836,9 +853,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         }
                     }
                 }
-                logger.debug("JUAN: Found test case with name ${name} and requirement id ${reqId}")
+                def timestamp = testCase.timestamp ? Instant.from(TIMESTAMP_FORMATTER.parse(testCase.timestamp)) : null
                 testCases << [
                     name: name,
+                    timestamp: timestamp,
                     type: type,
                     component: component,
                     reqId: reqId,

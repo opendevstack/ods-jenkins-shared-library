@@ -120,11 +120,11 @@ class Stage {
                 "from stash '${testReportsStashName}'."
             )
         } else {
+            // Load JUnit test report files from path
             testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
         }
 
         return [
-            // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
             testResults: junit.parseTestReportFiles(testReportFiles),
