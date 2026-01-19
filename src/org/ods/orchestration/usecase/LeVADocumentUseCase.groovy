@@ -668,8 +668,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    }
-
     private List<Map> getTestEvidences(Map data) {
         return data.evidences.collect { component, file ->
             [
