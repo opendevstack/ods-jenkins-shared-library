@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.chrono.IsoChronology
@@ -107,14 +108,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         .parseLenient()
         .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-        .appendOffset('+HHMM', '+0000')
-        .parseStrict()
-        .toFormatter(Locale.ENGLISH)
-    private static final TIMESTAMP_FORMATTER = new DateTimeFormatterBuilder()
-        .parseCaseInsensitive()
-        .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        .parseLenient()
-        .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
         .appendOffset('+HHMM', '+0000')
         .parseStrict()
         .toFormatter(Locale.ENGLISH)
@@ -853,7 +846,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         }
                     }
                 }
-                def timestamp = testCase.timestamp ? Instant.from(TIMESTAMP_FORMATTER.parse(testCase.timestamp)) : null
+                def timestamp = testCase.timestamp ? LocalDateTime.parse(testCase.timestamp) : null
                 testCases << [
                     name: name,
                     timestamp: timestamp,
