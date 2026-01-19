@@ -830,7 +830,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<Map<String, Object>> extractTestResults(Map<String, Object> tests, String type) {
         def suites = tests?.testResults?.testsuites
         if (!suites) {
-            logger.debug('JUAN: No test suites found.')
             return []
         }
         def testCases = []

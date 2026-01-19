@@ -63,13 +63,11 @@ class JenkinsService {
 
             def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
             contextresultMap.xunitTestResultsStashPath = testStashPath
-            script.dir(XUNIT_SYSTEM_RESULT_DIR) {
-                script.stash(
-                    name: "${testStashPath}",
-                    includes: '**/*.xml',
-                    allowEmpty: true
-                )
-            }
+            script.stash(
+                name: "${testStashPath}",
+                includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
+                allowEmpty: true
+            )
             script.dir (XUNIT_SYSTEM_RESULT_DIR) {
                 foundTests = script.findFiles(glob: '**/*.pdf').size()
             }
