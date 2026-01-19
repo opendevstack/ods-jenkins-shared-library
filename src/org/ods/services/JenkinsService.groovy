@@ -47,7 +47,7 @@ class JenkinsService {
 
         def foundTests = 0
         script.dir (XUNIT_SYSTEM_RESULT_DIR) {
-            foundTests = script.findFiles(glob: '**/**.xml').size()
+            foundTests = script.findFiles(glob: '**/*.xml').size()
         }
 
         logger.debug "Found ${foundTests} test files in '${XUNIT_SYSTEM_RESULT_DIR}'"
@@ -68,8 +68,11 @@ class JenkinsService {
                 includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
                 allowEmpty: true
             )
-
-            if (script.findFiles(glob: '**/**.pdf')) {
+            script.dir (XUNIT_SYSTEM_RESULT_DIR) {
+                foundTests = script.findFiles(glob: '**/*.pdf').size()
+            }
+            logger.debug "Found ${foundTests} test PDF reports in '${XUNIT_SYSTEM_RESULT_DIR}'"
+            if (foundTests.toInteger() > 0) {
                 testStashPath = "test-reports-junit-pdf-${stashNamePostFix}"
                 contextresultMap.evidencesStashPath = testStashPath
                 script.stash(
