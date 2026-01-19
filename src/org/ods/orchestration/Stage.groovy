@@ -154,9 +154,7 @@ class Stage {
                 "Unable to unstash test evidences for repo '${repo.id}' from stash '${testReportsStashName}'."
             )
         } else {
-            steps.dir(testReportsUnstashPath) {
-                evidencesFiles = steps.findFiles(glob: '**/*.pdf')
-            }
+            evidencesFiles = steps.findFiles(glob: "${testReportsPath}/**/*.pdf")
         }
 
         return evidencesFiles?.size() ? evidencesFiles[0].path : null
