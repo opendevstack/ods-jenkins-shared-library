@@ -653,7 +653,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private List<Map> getXUnitFiles(Map data) {
-        return data.tests?.testReportFiles?.collect { file ->
+        return data.tests?.values()*.testReportFiles?.collect { file ->
             [
                 filename: file.name,
                 contentType: 'application/xml',
