@@ -222,7 +222,7 @@ class PDFUtil {
                 def annotations = page.annotations
                 def namesMap = attachments.collectEntries { attachment ->
                     def filename = attachment.filename as String
-                    def content = attachment.content as byte[]
+                    def content = (byte[]) attachment.content
                     def contentType = attachment.contentType as String
                     def extensionIndex = filename.lastIndexOf('.')
                     def extension = extensionIndex >= 0 ? filename.substring(extensionIndex) : null

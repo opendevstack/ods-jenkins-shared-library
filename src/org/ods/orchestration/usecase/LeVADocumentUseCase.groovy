@@ -652,15 +652,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return tests
     }
 
+    @NonCPS
     private List<Map> getXUnitFiles(Map data) {
-        return data.tests?.values()*.testReportFiles?.collect { file ->
-            [
-                filename: file.name,
-                contentType: 'application/xml',
-                compress: true,
-                content: file.bytes,
-            ]
+        def result = []
+        data.tests?.values()?.each { Map test ->
+            test.testReportFiles?.each { File file ->
+                result << [
+                    filename   : file.name,
+                    contentType: 'application/xml',
+                    compress   : true,
+                    content    : file.bytes,
+                ]
+            }
         }
+        return result
+    }
 
     }
 
