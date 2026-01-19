@@ -24,6 +24,7 @@ import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.chrono.IsoChronology
 import java.time.format.DateTimeFormatter
@@ -365,7 +366,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
                 parentCiRelationsPngImage: parentCiRelationsPngImage,
-                fullDiagramPngImage: fullDiagramPngImage,
+                //fullDiagramPngImage: fullDiagramPngImage,
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
@@ -846,7 +847,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         }
                     }
                 }
-                def timestamp = testCase.timestamp ? LocalDateTime.parse(testCase.timestamp) : null
+                def timestamp = testCase.timestamp ?
+                    LocalDateTime.parse(testCase.timestamp).toInstant(ZoneOffset.UTC).toEpochMilli()
+                    : null
                 testCases << [
                     name: name,
                     timestamp: timestamp,
