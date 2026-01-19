@@ -357,8 +357,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
+        def environment = getTargetEnvironment()
+
         def data_ = [
             metadata: metadata,
+            environment: environment,
             data : [
                 components: components,
                 parentCi: parentCi,
