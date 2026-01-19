@@ -47,7 +47,7 @@ class JenkinsService {
 
         def foundTests = 0
         script.dir (XUNIT_SYSTEM_RESULT_DIR) {
-            foundTests = script.findFiles(glob: '**/*.xml').size()
+            foundTests = script.findFiles(glob: '**/**.xml').size()
         }
 
         logger.debug "Found ${foundTests} test files in '${XUNIT_SYSTEM_RESULT_DIR}'"
@@ -57,7 +57,7 @@ class JenkinsService {
 
         if (foundTests.toInteger() > 0) {
             script.junit(
-                testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
+                testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/**.xml",
                 allowEmptyResults: true
             )
 
