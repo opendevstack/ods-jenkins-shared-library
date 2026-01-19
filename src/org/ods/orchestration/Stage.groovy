@@ -145,7 +145,7 @@ class Stage {
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
             testReportsUnstashPath,
-            'JUnit XML Report'
+            'Test Evidences PDF Report'
         )
 
         def evidencesFiles = []
