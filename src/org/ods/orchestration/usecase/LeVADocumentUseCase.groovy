@@ -652,7 +652,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return tests
     }
 
-    @NonCPS
     private List<Map> getTestEvidences(Map data) {
         return data.evidences.collect { component, file ->
             [
