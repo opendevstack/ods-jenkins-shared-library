@@ -84,7 +84,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
 
-    private static final Pattern TEST_NAME_PATTERN = ~/(?i)^Requirement\s*+(?<requirement>\d++)\s*+_\s*+(?<name>.*+)$/
+    private static final Pattern TEST_NAME_PATTERN = ~/(?i)^\s*+Requirement\s*+(?<requirement>\d++)\s*+_\s*+(?<name>.*?)\s*+$/
 
     private static final ZoneId UTC = ZoneId.of('UTC')
     private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
@@ -367,7 +367,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
                 parentCiRelationsPngImage: parentCiRelationsPngImage,
-                // fullDiagramPngImage: fullDiagramPngImage,
+                fullDiagramPngImage: fullDiagramPngImage,
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
@@ -375,12 +375,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def tmpDir = steps.pwd(tmp: true)
-        def zippedDiagram = zipImage(fullDiagramPngImage, 'system-diagram.png')
         def attachedDiagram = [
-            filename: 'system-diagram.zip',
-            contentType: 'application/zip',
+            filename: 'system-diagram.png',
+            contentType: 'image/png',
             compress: false,
-            content: zippedDiagram,
+            content: fullDiagramPngImage.decodeBase64(),
         ]
         def modifier = { byte[] document ->
             return PDFUtil.addAttachments(document, [ attachedDiagram ], tmpDir)
@@ -389,26 +388,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
 
         return uri
-    }
-
-    @NonCPS
-    private byte[] zipImage(String contents, String fileName) {
-        def os = new ByteArrayOutputStream()
-        def bytes = contents.decodeBase64()
-        new ZipOutputStream(os, StandardCharsets.UTF_8).withCloseable { zos ->
-            int len = bytes.length
-            def entry = new ZipEntry(fileName)
-            entry.method = ZipEntry.STORED
-            entry.compressedSize = len
-            entry.size = len
-            def crc = new CRC32()
-            crc.update(bytes, 0, len)
-            entry.crc = crc.value
-            zos.putNextEntry(entry)
-            zos.write(bytes, 0, len)
-            zos.closeEntry()
-        }
-        return os.toByteArray()
     }
 
     private String generateComponentDiagram(Map<String, Map> repos, Map dependenciesMap) {
@@ -630,7 +609,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private List<Map> getExecutedTestComponents() {
         return project.repositories.findAll { repo ->
-            repo.include && 
+            repo.include &&
                 (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
                  (repo.installable == true && repo.data?.tests))
             }.collect { repo ->
@@ -836,11 +815,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<Map<String, Object>> extractTestResults(Map<String, Object> tests, String type) {
         def suites = tests?.testResults?.testsuites
         if (!suites) {
+            logger.debug('JUAN: No test suites found.')
             return []
         }
         def testCases = []
         suites.each { suite ->
             def component = suite.component
+            logger.debug("JUAN: Found test suite for component ${component}")
             suite.testcases?.each { testCase ->
                 def requirement = null
                 def reqId = null
@@ -856,6 +837,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         }
                     }
                 }
+                logger.debug("JUAN: Found test case with name ${name} and requirement id ${reqId}")
                 testCases << [
                     name: name,
                     type: type,
