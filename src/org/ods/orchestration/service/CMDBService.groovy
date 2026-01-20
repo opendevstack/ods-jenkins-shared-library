@@ -186,7 +186,8 @@ class CMDBService {
                 childNode.relation = relationType
                 this.sanitizeCiProperties(childNode, parentNode, relationSanitizerStrategy)
                 parentNode.children << childNode
-                logger.debug "CMDB: Depth: ${depth}, SysClassName: ${childSysClass.sys_class_name}, ChildCIName: ${childNode.name}"
+                logger.debug ("CMDB: Depth: ${depth}, SysClassName: ${childSysClass.sys_class_name}, ChildCIName: ${childNode.name}" + 
+                    " relationship: ${childNode.relation.name}")
                 // only dive down for the following cmdb system classes
                 if (childSysClass.sys_class_name =~ /(?i)ci_interface|ci_db_catalog|ci_database|ci_service/) {
                     loadRelationalCisData(childNode, ciRelationsLookupStrategy, relationSanitizerStrategy, parentNodeIds, depth + 1, maxDepth)

@@ -110,6 +110,12 @@ class CMDBUseCase {
             }
         }
 
+        def findInterfaceConnectedSystems = { node ->
+            node.children.findAll { child ->
+                return isInterfaceConnectedToSystem(child)
+            }
+        }
+
         findInterfaces_(rootNode).each { interface_ ->
             def interfaceClone = interface_.clone()
             interfaceClone.children = []
@@ -131,6 +137,12 @@ class CMDBUseCase {
                 def apiClone = api.clone()
                 apiClone.children = []
                 interfaceClone.children << apiClone
+            }
+
+            findInterfaceConnectedSystems(interface_).each { system ->
+                def systemClone = system.clone()
+                systemClone.children = []
+                interfaceClone.children << systemClone
             }
         }
 
@@ -210,6 +222,12 @@ class CMDBUseCase {
     public static boolean isInterfaceInstalledSystem(Map node) {
         return node.parent_name.contains("-IF-") \
             && node.relation.name.toLowerCase().startsWith("installed on")
+    }
+
+    @NonCPS
+    public static boolean isInterfaceConnectedToSystem(Map node) {
+        return node.parent_name.contains("-IF-") \
+            && node.relation.name.toLowerCase().startsWith("connected to")
     }
 
     @NonCPS
@@ -402,5 +420,8 @@ class CMDBUseCase {
         if (node['managed_by.email']) node.managed_by = [ email: node['managed_by.email'] ]
         if (node.u_validation_determination_reference) node.validation_determination_reference = node.u_validation_determination_reference
         if (node.u_slc_documents_location_items_and_con) node.slc_documents_location = node.u_slc_documents_location_items_and_con
+        // cut BCN 3rd ws
+        if (node.u_gxp_type) node.gxp_type = node.u_gxp_type
+        if (node.u_version_number) node.version_number = node.u_version_number
     }
 }
