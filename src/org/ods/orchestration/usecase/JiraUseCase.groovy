@@ -409,7 +409,8 @@ class JiraUseCase {
 
         logger.debug("Project: ${this.project}")
         def repositories = []
-        this.project.metadata.repositories.each { repo ->
+
+        this.project.data.metadata.repositories.each { repo ->
             repositories.add([
                 id: repo.id,
                 commit: repo.data.git.commit,
