@@ -600,6 +600,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
+                type: repo.type,
                 name: name,
                 installed: repo.doInstall,
                 git: repo.data?.git,
