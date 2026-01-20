@@ -508,7 +508,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             assembled: project.isAssembleMode,
             data: [
                 components: executedComponents,
-                testcomponents: testComponents,
+                testComponents: testComponents,
                 tests: tests,
                 sonar: sonarReports,
                 aqua: aquaReports,
