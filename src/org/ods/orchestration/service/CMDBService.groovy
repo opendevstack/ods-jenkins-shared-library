@@ -4,6 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.ILogger
 
 import groovy.json.JsonSlurper
+import java.nio.charset.StandardCharsets
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class CMDBService {
@@ -38,6 +39,15 @@ class CMDBService {
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "application/json")
             return new JsonSlurper().parse(connection.inputStream)
+        }
+
+        @NonCPS
+        def byte[]getStreamAsBytes(String url) {
+            def connection = new URL(url).openConnection()
+            connection.setAllowUserInteraction(false)
+            connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
+            connection.setRequestProperty("Accept", "application/octet-stream")
+            return connection.inputStream.bytes
         }
 
         @NonCPS
@@ -254,7 +264,7 @@ class CMDBService {
         )
 
         if (response.result?.size > 0) {
-            def attachment = this.httpUtil.get(response.result.first()?.download_link)
+            def attachment = this.httpUtil.getStreamAsBytes(response.result.first()?.download_link)
             logger.debug("Attachment for system ${sysId} found: ${attachment}")
             return attachment
         } else {
