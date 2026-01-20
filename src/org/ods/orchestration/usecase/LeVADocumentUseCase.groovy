@@ -334,49 +334,65 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
-
-        // data.cmdbDiagramPngImage -> CMDB parent CI attachment
-
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
+        def databaseProjects = []//cmdb.findDatabaseProjects(parentCi)
+        def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
         def interfaces = cmdb.findInterfaces(parentCi)
-        def devEnvironment = cmdb.findEnvironments(parentCi).find { env ->
-            return cmdb.isDevelopmentEnvironment(env)
-        }
+        def software = cmdb.findSoftware(parentCi)
+        def other = []
 
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
         def parentCiModules = combineParentWithChildren(parentCi, modules)
-        def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
+        //def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
+        def parentCiRelations = [
+            'environments': [devEnvironment],
+            'databaseProjects': databaseProjects,
+            'interfaces': interfaces,
+            'software': software,
+            'other': other
+        ]
+
+        // compute Mermaid diagram for all relevant entities
+        def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
+
+        // cnmpute Mermaid diagram for parent Ci system components
+        def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
         // compute Mermaid diagram for parent Ci modules
         def parentCiModulesPngImage = generateMermaidDiagram(parentCiModules)
 
         // compute Mermaid diagram for parent Ci relations
-        def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
-
-        // compute Mermaid diagram for all relevant entities
-        def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
-
-        // Mermaid for components
-        def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
-
-        def environment = getTargetEnvironment()
+        //def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
+        def parentCiInterfacesPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, interfaces))
+        def parentCiDatabaseProjectsPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, databaseProjects))
+        def parentCiSoftwarePngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, software))
+        def parentCiOtherPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, other))
 
         def data_ = [
             metadata: metadata,
-            environment: environment,
+            environment: getTargetEnvironment(),
             data : [
+                componentsDiagramPngImage: componentsDiagramPngImage,
                 components: components,
                 parentCi: parentCi,
-                parentCiModules: modules,
-                parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
-                parentCiRelationsPngImage: parentCiRelationsPngImage,
+                parentCiModules: modules,
+                //parentCiRelationsPngImage: parentCiRelationsPngImage,
+                //parentCiRelations: cmdb.toFlatData(parentCiRelations),
+                environments: parentCiRelations.environments,
+                parentCiDatabaseProjectsPngImage: parentCiDatabaseProjectsPngImage,
+                databaseProjects: parentCiRelations.databaseProjects,
+                parentCiInterfacesPngImage: parentCiInterfacesPngImage,
+                interfaces: parentCiRelations.interfaces,
+                parentCiSoftwarePngImage: parentCiSoftwarePngImage,
+                software: parentCiRelations.software,
+                parentCiOtherPngImage: parentCiOtherPngImage,
+                other: parentCiRelations.other,
                 //fullDiagramPngImage: fullDiagramPngImage,
-                componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
-                cmdbUrl : cmdb.getCMDBUrl(),
+                cmdbUrl : cmdb.getCMDBUrl()
             ]
         ]
 

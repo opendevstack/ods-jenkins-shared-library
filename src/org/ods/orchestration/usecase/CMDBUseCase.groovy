@@ -169,6 +169,25 @@ class CMDBUseCase {
     }
 
     @NonCPS
+    public static List<Map> findSoftware(Map rootNode) {
+        def result = []
+
+        def findSoftware = { node ->
+            node.children.findAll { child ->
+                return isSoftware(child)
+            }
+        }
+
+        findSoftware(rootNode).each { software ->
+            def softwareClone = software.clone()
+            softwareClone.children = []
+            result << softwareClone
+        }
+
+        return result
+    }
+
+    @NonCPS
     public static boolean isAPI(Map node) {
         return node.application_type == "Application Programming Interface"
     }
@@ -239,6 +258,11 @@ class CMDBUseCase {
     @NonCPS
     public static boolean isServerNode(Map node) {
         return node.sys_class_name == "cmdb_ci_server"
+    }
+
+    @NonCPS
+    public static boolean isSoftware(Map node) {
+        return node.sys_class_name == "u_cmdb_ci_software"
     }
 
     @NonCPS
