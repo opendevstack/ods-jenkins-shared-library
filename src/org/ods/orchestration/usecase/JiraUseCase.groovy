@@ -407,17 +407,18 @@ class JiraUseCase {
 
         logger.debug("Aggregated test results: ${testResults.toString()}")
 
-        logger.debug("Project: ${this.project}")
         def repositories = []
-
         this.project.data.metadata.repositories.each { repo ->
-            repositories.add([
-                id: repo.id,
-                commit: repo.data.git.commit,
-                failed: repo.data.failedStage ? true : false,
-            ])
+            if (repo.data.doInstall == true) {
+                repositories.add([
+                    id: repo.id,
+                    commit: repo.data.git.commit,
+                    failed: repo.data.failedStage ? true : false,
+                ])
+            }
         }
         logger.debug("Repositories: ${repositories}")
+        logger.debug("Project: ${this.project}")
 
         def fields = [
             userEmail: userEmail,
