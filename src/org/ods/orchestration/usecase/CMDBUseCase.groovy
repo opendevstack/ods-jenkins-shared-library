@@ -267,20 +267,28 @@ class CMDBUseCase {
 
     @NonCPS
     public Map loadData(String ciName) {
-        return this.cmdb.loadData(ciName)
+        def data = this.cmdb.loadData(ciName)
+        sanitizeData(data)
+        return data
     }
 
     @NonCPS
-    public List toFlatData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy, List result = [], Map parentNode = null) {
+    public Map sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+        nodeSanitizerStrategy(item)
+
+        node.children?.each { Map childNode ->
+            sanitizeData(childNode, nodeSanitizerStrategy)
+        }
+    }
+
+    @NonCPS
+    public List toFlatData(Map node, List result = [], Map parentNode = null) {
         def item = node.clone()
         item.remove('children')
-        if (nodeSanitizerStrategy) {
-            nodeSanitizerStrategy(item)
-        }
         result << item
 
         node.children?.each { Map childNode ->
-            toFlatData(childNode, nodeSanitizerStrategy, result, item)
+            toFlatData(childNode, result, item)
         }
 
         return result
@@ -335,7 +343,7 @@ class CMDBUseCase {
     */
 
     @NonCPS
-    public String toMermaidGraphCode(Map rootNode, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+    public String toMermaidGraphCode(Map rootNode) {
         if (!rootNode) return ""
 
         def entities = [] as Set
@@ -393,7 +401,7 @@ class CMDBUseCase {
             return "    ${id}(${text})"
         }
 
-        def flatData = this.toFlatData(rootNode, nodeSanitizerStrategy_)
+        def flatData = this.toFlatData(rootNode)
         flatData.each { node ->
             entities << toNodeCode(node)
             if (node.relation && node.parent_name) relations << toEdgeCode(node)
