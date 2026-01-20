@@ -409,7 +409,7 @@ class JiraUseCase {
 
         def repositories = []
         this.project.data.metadata.repositories.each { repo ->
-            if (repo.data.doInstall == true) {
+            if (repo.include == true) {
                 repositories.add([
                     id: repo.id,
                     commit: repo.data.git.commit,
