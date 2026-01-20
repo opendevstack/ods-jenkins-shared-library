@@ -10,7 +10,7 @@ class CMDBService {
     // FIXME
     private static final String CLIENT_ID = "656b77d30d694a57a5dfe800d5dc6298"
     private static final String CLIENT_SECRET = "sj)P.AIN.|"
-    private static final String INSTANCE = "boehringereval.service-now.com"
+    static final String INSTANCE = "boehringereval.service-now.com"
     private static final String USERNAME = "x2sysdesign"
     private static final String PASSWORD = "Drop_34500x!2User"
 

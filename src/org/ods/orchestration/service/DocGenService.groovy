@@ -33,6 +33,10 @@ class DocGenService {
 
     @NonCPS
     byte[] createDocument(String type, String version, Map data) {
+        // cut audit trail on templates
+        data.template_version = version
+        data.template_type = type
+
         def response = Unirest.post("${this.baseURL}/document")
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
