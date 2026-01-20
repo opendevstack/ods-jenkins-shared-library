@@ -4,6 +4,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.service.CMDBService
 import org.ods.util.ILogger
 
+import groovy.json.JsonOutput
+
 @SuppressWarnings(['LineLength', 'ParameterName', 'IfStatementBraces'])
 class CMDBUseCase {
     private final CMDBService cmdb
@@ -274,6 +276,8 @@ class CMDBUseCase {
 
     @NonCPS
     public Map sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+        logger.debug "!!!: ${JsonOutput.prettyPrint(JsonOutput.toJson(node))}\n"
+
         nodeSanitizerStrategy(node)
 
         node.children?.each { Map childNode ->
