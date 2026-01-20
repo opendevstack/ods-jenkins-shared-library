@@ -473,7 +473,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def executedComponents = getComponentExecutionResults()
         def testComponents = getExecutedTestComponents()
         def tests = getTestResults(data)
-        def xunit = getXUnitFiles(data)
+        def xunit = getXunitFiles(data)
         def testEvidence = getTestEvidences(data)
 
         def pullRequests = null
@@ -653,15 +653,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<Map> getXUnitFiles(Map data) {
+    private List<Map> getXunitFiles(Map data) {
         def result = []
-        data.tests?.values()?.each { Map test ->
-            test.testReportFiles?.each { File file ->
+        data.tests?.each { String type, Map test ->
+            test.testReportFiles?.each { Map report ->
                 result << [
-                    filename   : file.name,
+                    filename   : "${type}-test-report-${report.component}.xml",
                     contentType: 'application/xml',
                     compress   : true,
-                    content    : file.bytes,
+                    content    : report.file.bytes,
                 ]
             }
         }
