@@ -92,6 +92,12 @@ class CMDBService {
     }
 
     @NonCPS
+    private String composeAttachmentUrl(String attachmentId) {
+        def sysparm_query = "parent=${sysId}"
+        return "https://${this.INSTANCE}/api/now/attachment/${attachmentId}/file"
+    }
+
+    @NonCPS
     private String composeParentCiDataUrl(String ciName) {
         def sysparm_query = "name=${ciName}"
         return "https://${this.INSTANCE}/api/now/table/cmdb_ci_business_app?sysparm_query=${sysparm_query}&sysparm_fields=${this.SYSPARM_CI_FIELDS.join(',')}&sysparm_limit=1"
@@ -119,6 +125,12 @@ class CMDBService {
     private String composeUpstreamCiRelationsIdsUrl(String sysId) {
         def sysparm_query = "child=${sysId}"
         return "https://${this.INSTANCE}/api/now/table/cmdb_rel_ci?sysparm_query=${sysparm_query}&sysparm_fields=${this.SYSPARM_CMDB_REL_CI_FIELDS.join(',')}&sysparm_limit=${this.SYSPARM_CI_RELATIONS_LIMIT}"
+    }
+
+    @NonCPS
+    private String composeAttachmentsIdRetrieveUrl(String sysId) {
+        def sysparm_query = "ysparm_query%3Dtable_name%3Dcmdb_ci_business_app%5Etable_sys_id%3D${sysId}"
+        return "https://${this.INSTANCE}/api/now/attachment?sysparm_query=${sysparm_query}&sysparm_limit=${this.SYSPARM_CI_RELATIONS_LIMIT}"
     }
 
     @NonCPS
@@ -233,6 +245,25 @@ class CMDBService {
 
         return response.result ? response.result.first() : [:]
     }
+
+
+    @NonCPS
+    public def loadAttachmentForSystem(String sysId) {
+        def response = this.httpUtil.get(
+            this.composeAttachmentsIdRetrieveUrl(sysId)
+        )
+
+        if (response.result?.size > 0) {
+            def attachment = this.httpUtil.get(response.result.first()?.download_link)
+            logger.debug("Attachment for system ${sysId} found: ${attachment}")
+            return attachment
+        } else {
+            logger.debug("No attachment for system ${sysId} found")
+        }
+
+        return null
+    }
+
 
     @NonCPS
     public Map loadData(String ciName) {

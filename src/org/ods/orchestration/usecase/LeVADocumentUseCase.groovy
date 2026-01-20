@@ -377,6 +377,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
                 cmdbUrl : cmdb.getCMDBUrl(),
+                cmdbAttachmentOveriew : cmdb.getDocumentAttachmentForSystem(parentCi.sysId),
             ]
         ]
 
