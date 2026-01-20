@@ -227,7 +227,8 @@ class CMDBUseCase {
     @NonCPS
     public static boolean isInterfaceConnectedToSystem(Map node) {
         return node.parent_name.contains("-IF-") \
-            && node.relation.name.toLowerCase().startsWith("connected to")
+            && node.relation.name.toLowerCase().startsWith("connected to") \
+            && node.sys_class_name == 'cmdb_ci_business_app'
     }
 
     @NonCPS
