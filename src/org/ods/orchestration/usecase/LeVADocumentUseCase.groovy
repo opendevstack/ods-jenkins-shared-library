@@ -478,7 +478,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
-        def testComponents = getExecutedTestComponents()
+        def testComponents = executedComponents.findAll { it.testsExecuted == true }
         def tests = getTestResults(data)
         def xunit = getXunitFiles(data)
         def testEvidence = getTestEvidences(data)
@@ -592,17 +592,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private List<Map> getComponentExecutionResults() {
         def logs = project.componentLogs
-        return project.repositories.findAll { repo -> repo.doInstall && repo.include }.collect { repo ->
+        return project.repositories.findAll { repo -> 
+            (repo.doInstall || repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) && repo.include }.collect { repo ->
             if (!project.developerPreviewMode && repo.data.failedStage) {
-                throw new RuntimeException("Component ${repo.name} failed")
+                throw new RuntimeException("Installation / testing of component ${repo.name} failed")
             }
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
                 name: name,
-                installed: repo.include,
+                installed: repo.doInstall,
                 git: repo.data?.git,
+                metadata: repo.data?.metadata,
             ]
+            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
+                 (repo.installable == true && repo.data?.tests)) {
+                component.testsExecuted = true
+            }
             if (repo.failedStage) {
                 component.failedStage = repo.failedStage
             }
@@ -610,23 +616,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (log) {
                 component.logText = log
             }
-            return component
-        }
-    }
-
-    private List<Map> getExecutedTestComponents() {
-        return project.repositories.findAll { repo ->
-            repo.include &&
-                (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
-                 (repo.installable == true && repo.data?.tests))
-            }.collect { repo ->
-            def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
-            def component = [
-                id: repo.id,
-                name: name,
-                git: repo.data?.git,
-                metadata: repo.data?.metadata,
-            ]
             return component
         }
     }
