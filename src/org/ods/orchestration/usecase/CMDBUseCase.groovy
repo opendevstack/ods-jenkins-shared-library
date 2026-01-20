@@ -274,7 +274,7 @@ class CMDBUseCase {
 
     @NonCPS
     public Map sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
-        nodeSanitizerStrategy(item)
+        nodeSanitizerStrategy(node)
 
         node.children?.each { Map childNode ->
             sanitizeData(childNode, nodeSanitizerStrategy)
