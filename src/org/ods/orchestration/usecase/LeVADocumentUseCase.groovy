@@ -335,8 +335,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
 
-        // data.cmdbDiagramPngImage -> CMDB parent CI attachemnt
-        
+        // data.cmdbDiagramPngImage -> CMDB parent CI attachment
+
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
@@ -376,6 +376,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
+                cmdbUrl : cmdb.getCMDBUrl(),
             ]
         ]
 

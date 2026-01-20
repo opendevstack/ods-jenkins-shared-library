@@ -425,4 +425,8 @@ class CMDBUseCase {
         if (node.u_gxp_type) node.gxp_type = node.u_gxp_type
         if (node.u_version_number) node.version_number = node.u_version_number
     }
+
+    def getCMDBUrl() {
+        return this.cmdb.INSTANCE
+    }
 }
