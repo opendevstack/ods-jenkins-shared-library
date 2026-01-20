@@ -10,7 +10,7 @@ class CMDBService {
     // FIXME
     private static final String CLIENT_ID = "656b77d30d694a57a5dfe800d5dc6298"
     private static final String CLIENT_SECRET = "sj)P.AIN.|"
-    private static final String INSTANCE = "boehringereval.service-now.com"
+    static final String INSTANCE = "boehringereval.service-now.com"
     private static final String USERNAME = "x2sysdesign"
     private static final String PASSWORD = "Drop_34500x!2User"
 
@@ -186,7 +186,8 @@ class CMDBService {
                 childNode.relation = relationType
                 this.sanitizeCiProperties(childNode, parentNode, relationSanitizerStrategy)
                 parentNode.children << childNode
-                logger.debug "CMDB: Depth: ${depth}, SysClassName: ${childSysClass.sys_class_name}, ChildCIName: ${childNode.name}"
+                logger.debug ("CMDB: Depth: ${depth}, SysClassName: ${childSysClass.sys_class_name}, ChildCIName: ${childNode.name}" + 
+                    " relationship: ${childNode.relation.name}")
                 // only dive down for the following cmdb system classes
                 if (childSysClass.sys_class_name =~ /(?i)ci_interface|ci_db_catalog|ci_database|ci_service/) {
                     loadRelationalCisData(childNode, ciRelationsLookupStrategy, relationSanitizerStrategy, parentNodeIds, depth + 1, maxDepth)

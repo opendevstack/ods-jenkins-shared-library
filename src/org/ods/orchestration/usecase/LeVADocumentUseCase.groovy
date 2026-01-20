@@ -334,6 +334,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
+
+        // data.cmdbDiagramPngImage -> CMDB parent CI attachment
+
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
@@ -357,8 +360,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Mermaid for components
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
+        def environment = getTargetEnvironment()
+
         def data_ = [
             metadata: metadata,
+            environment: environment,
             data : [
                 components: components,
                 parentCi: parentCi,
@@ -370,6 +376,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
+                cmdbUrl : cmdb.getCMDBUrl(),
             ]
         ]
 
