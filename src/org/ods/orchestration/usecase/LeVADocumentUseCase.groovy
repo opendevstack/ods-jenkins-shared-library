@@ -327,15 +327,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDES(Map repo = null, Map data = null) {
         def documentType = DocumentType.DES as String
 
-        def cmdbAttachmentOveriew =
-            cmdb.getDocumentAttachmentForSystem(this.project.buildParams.configItem)
-
-        if (cmdbAttachmentOveriew) {
-            cmdbAttachmentOveriew.htmlImage = 
-                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
-        }
-        return null
-
         def watermarkText = this.getWatermarkText(documentType)
 
         def metadata = this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
@@ -343,6 +334,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
+
+        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sysId)
+
+        if (cmdbAttachmentOveriew) {
+            cmdbAttachmentOveriew.htmlImage = 
+                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        }
+        return null
 
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
