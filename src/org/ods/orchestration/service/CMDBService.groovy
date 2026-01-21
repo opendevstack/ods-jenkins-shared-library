@@ -274,6 +274,9 @@ class CMDBService {
     @NonCPS
     private void sanitizeCiProperties(Map node, Map parentNode = null, Closure relationSanitizerStrategy = null) {
         if (parentNode) {
+            node.parentNode = parentNode.clone()
+            node.parentNode.children = null
+
             node.parent_sys_id = parentNode.sys_id
             node.parent_name = parentNode.name
         }

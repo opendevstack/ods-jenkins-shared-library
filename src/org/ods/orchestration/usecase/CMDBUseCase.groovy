@@ -275,8 +275,9 @@ class CMDBUseCase {
     }
 
     @NonCPS
-    public Map sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
-        logger.debug "!!!: ${JsonOutput.prettyPrint(JsonOutput.toJson(node))}\n"
+    public void sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+        logger.debug "!!!: sanitizeData: Node: \n"
+        logger.debug "${JsonOutput.prettyPrint(JsonOutput.toJson(node))}\n"
 
         nodeSanitizerStrategy(node)
 
