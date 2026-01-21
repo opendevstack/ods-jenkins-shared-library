@@ -271,6 +271,7 @@ class CMDBUseCase {
     public Map loadData(String ciName) {
         def data = this.cmdb.loadData(ciName)
         sanitizeData(data)
+        logger.debug "???: ${JsonOutput.prettyPrint(JsonOutput.toJson(data))}\n"
         return data
     }
 
