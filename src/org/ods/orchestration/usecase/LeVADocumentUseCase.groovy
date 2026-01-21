@@ -327,6 +327,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDES(Map repo = null, Map data = null) {
         def documentType = DocumentType.DES as String
 
+        def cmdbAttachmentOveriew =
+            cmdb.getDocumentAttachmentForSystem(this.project.buildParams.configItem)
+
+        if (cmdbAttachmentOveriew) {
+            cmdbAttachmentOveriew.htmlImage = 
+                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        }
+        return null
+
         def watermarkText = this.getWatermarkText(documentType)
 
         def metadata = this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
@@ -359,12 +368,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
         def environment = getTargetEnvironment()
-
-        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(this.project.buildParams.configItem)
-        if (cmdbAttachmentOveriew) {
-            cmdbAttachmentOveriew.htmlImage = 
-                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
-        }
 
         def data_ = [
             metadata: metadata,

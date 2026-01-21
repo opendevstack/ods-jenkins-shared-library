@@ -263,7 +263,7 @@ class CMDBService {
             this.composeAttachmentsIdRetrieveUrl(sysId)
         )
 
-        logger.debug("Attachments for system ${sysId} - size ${response.result?.size()} found")
+        logger.debug("Attachments for system ${sysId} - size ${response.result?.size()} found \n > response: ${response}")
 
         def attachment = response.find {
             it.result?.file_name == "Overview.png" || it.result?.file_name == "Overview.jpg" || it.result?.file_name == "Overview.jpeg"
