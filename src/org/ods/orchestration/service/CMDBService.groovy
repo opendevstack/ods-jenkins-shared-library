@@ -5,6 +5,7 @@ import org.ods.util.ILogger
 
 import groovy.json.JsonSlurper
 import java.util.zip.GZIPInputStream
+import java.nio.charset.StandardCharsets
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class CMDBService {
@@ -48,7 +49,8 @@ class CMDBService {
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            return new GZIPInputStream(connection.inputStream).bytes.encodeBase64()
+            return // new GZIPInputStream(connection.inputStream).bytes.encodeBase64()
+                 connection.inputStream.getText(StandardCharsets.UTF_8).bytes.encodeBase64()
         }
 
         @NonCPS
