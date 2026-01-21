@@ -263,8 +263,8 @@ class CMDBService {
             this.composeAttachmentsIdRetrieveUrl(sysId)
         )
 
-        def attachment = response.result?.find { att ->
-            att.file_name == "Overview.png" || att.file_name == "Overview.jpg" || att.file_name == "Overview.jpeg"
+        def attachment = response.find {
+            it.result?.file_name == "Overview.png" || it.result?.file_name == "Overview.jpg" || it.result?.file_name == "Overview.jpeg"
         }
         if (attachment) {
             def image = [:]
