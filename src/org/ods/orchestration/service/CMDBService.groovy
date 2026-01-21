@@ -4,7 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.ILogger
 
 import groovy.json.JsonSlurper
-import java.nio.charset.StandardCharsets
+import java.util.zip.GZIPInputStream
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class CMDBService {
@@ -46,8 +46,9 @@ class CMDBService {
             def connection = new URL(url).openConnection()
             connection.setAllowUserInteraction(false)
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
-            connection.setRequestProperty("Accept", "application/octet-stream")
-            return connection.inputStream.bytes.encodeBase64()
+            connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
+            connection.setRequestProperty("Accept-Encoding", "gzip");
+            return new GZIPInputStream(connection.inputStream).bytes.encodeBase64()
         }
 
         @NonCPS
