@@ -52,8 +52,7 @@ class CMDBService {
 
             // @ FIXME 
             String data = connection.inputStream.bytes.encodeBase64()
-            logger.debug("CMDB: Retrieving attachment from URL: ${url} " + 
-                "\n content-type: ${connection.getHeaderField('Content-Type')}, " + 
+            logger.debug("CMDB query ${connection.getHeaderField('Content-Type')}, " + 
                 "content-encoding: ${connection.getHeaderField('Content-Encoding')} \ncontent:" + data)
             return data
         }
