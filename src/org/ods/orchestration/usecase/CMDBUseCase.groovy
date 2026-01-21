@@ -280,6 +280,9 @@ class CMDBUseCase {
         logger.debug "!!!: in CMDBUseCase::sanitizeData\n"
         logger.debug "apply nodeSanitizerStrategy to ${node.hashCode()}: ${node.name}\n"
         nodeSanitizerStrategy(node)
+        if (node.parentNode) {
+            nodeSanitizerStrategy(node.parentNode)
+        }
 
         logger.debug "sanitized node to ${node.hashCode()}: ${JsonOutput.prettyPrint(JsonOutput.toJson(node))}\n"
 
