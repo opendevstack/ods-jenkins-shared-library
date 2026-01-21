@@ -52,8 +52,7 @@ class CMDBService {
 
             // @ FIXME 
             String data = connection.inputStream.bytes.encodeBase64()
-            logger.debug("CMDB query ${connection.getHeaderField('Content-Type')}, " + 
-                "content-encoding: ${connection.getHeaderField('Content-Encoding')} \ncontent:" + data)
+            logger.debug("data ${data}")
             return data
         }
 
@@ -279,6 +278,7 @@ class CMDBService {
             it.file_name == "Overview.png" || it.file_name == "Overview.jpg" || it.file_name == "Overview.jpeg"
         }
         if (attachment) {
+            logger.debug("Attachment for system ${sysId} with name Overview.jpg/png/jpeg found: ${attachment}")
             def image = [:]
             image.contentType = attachment.content_type
             image.createdDate = attachment.sys_created_on
