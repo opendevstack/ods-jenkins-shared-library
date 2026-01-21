@@ -49,11 +49,13 @@ class CMDBService {
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            String data = connection.inputStream.getText(StandardCharsets.UTF_8)
+
+            // @ FIXME 
+            String data = connection.inputStream.bytes.encodeBase64()
             logger.debug("CMDB: Retrieving attachment from URL: ${url} " + 
                 "\n content-type: ${connection.getHeaderField('Content-Type')}, " + 
                 "content-encoding: ${connection.getHeaderField('Content-Encoding')} \ncontent:" + data)
-            return data.bytes.encodeBase64()
+            return data
         }
 
         @NonCPS
