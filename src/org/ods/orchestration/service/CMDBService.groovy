@@ -42,12 +42,12 @@ class CMDBService {
         }
 
         @NonCPS
-        def byte[]getStreamAsBytes(String url) {
+        def getStreamAsEncodedBytes(String url) {
             def connection = new URL(url).openConnection()
             connection.setAllowUserInteraction(false)
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "application/octet-stream")
-            return connection.inputStream.bytes
+            return connection.inputStream.bytes.encodeBase64()
         }
 
         @NonCPS
@@ -258,17 +258,24 @@ class CMDBService {
 
 
     @NonCPS
-    public def loadAttachmentForSystem(String sysId) {
+    public def findAttachmentForSystem(String sysId) {
         def response = this.httpUtil.get(
             this.composeAttachmentsIdRetrieveUrl(sysId)
         )
 
-        if (response.result?.size > 0) {
-            def attachment = this.httpUtil.getStreamAsBytes(response.result.first()?.download_link)
-            logger.debug("Attachment for system ${sysId} found: ${attachment}")
-            return attachment
+        def attachment = response.result?.find { att ->
+            att.file_name == "Overview.png" || att.file_name == "Overview.jpg" || att.file_name == "Overview.jpeg"
+        }
+        if (attachment) {
+            def image = [:]
+            image.contentType = attachment.content_type
+            image.createdDate = attachment.sys_created_on
+            image.createdBy = attachment.sys_created_by
+            image.fileName = attachment.file_name
+            image.data = this.httpUtil.getStreamAsEncodedBytes(attachment.download_link)
+            return image
         } else {
-            logger.debug("No attachment for system ${sysId} found")
+            logger.debug("No attachment for system ${sysId} with name Overview.jpg/png/jpeg found")
         }
 
         return null

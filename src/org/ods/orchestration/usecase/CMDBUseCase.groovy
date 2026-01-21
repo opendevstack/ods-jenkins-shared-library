@@ -430,7 +430,7 @@ class CMDBUseCase {
         return this.cmdb.INSTANCE
     }
 
-    public byte[] getDocumentAttachmentForSystem(String sysId) {
-        return this.cmdb.loadAttachmentForSystem(sysId)
+    public def getDocumentAttachmentForSystem(String sysId) {
+        return this.cmdb.findAttachmentForSystem(sysId)
     }
 }

@@ -335,8 +335,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
 
-        // data.cmdbDiagramPngImage -> CMDB parent CI attachment
-
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
@@ -362,6 +360,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = getTargetEnvironment()
 
+        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(this.project.buildParams.configItem)
+        if (cmdbAttachmentOveriew) {
+            cmdbAttachmentOveriew.htmlImage = 
+                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        }
+
         def data_ = [
             metadata: metadata,
             environment: environment,
@@ -372,12 +376,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 parentCiModulesPngImage: parentCiModulesPngImage,
                 parentCiRelationsPngImage: parentCiRelationsPngImage,
-                //fullDiagramPngImage: fullDiagramPngImage,
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
                 cmdbUrl : cmdb.getCMDBUrl(),
-                cmdbAttachmentOveriew : cmdb.getDocumentAttachmentForSystem(parentCi.sysId),
+                cmdbAttachmentOveriew : cmdbAttachmentOveriew,
             ]
         ]
 
