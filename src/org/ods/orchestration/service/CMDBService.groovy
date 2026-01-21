@@ -263,10 +263,13 @@ class CMDBService {
             this.composeAttachmentsIdRetrieveUrl(sysId)
         )
 
-        logger.debug("Attachments for system ${sysId} - size ${response.result?.size()} found \n > response: ${response}")
+        logger.debug("Attachments for system with id: ${sysId} - size ${response.result?.size()} found \n > response: ${response}")
+        if (!response.result) {
+            return null
+        }
 
-        def attachment = response.find {
-            it.result?.file_name == "Overview.png" || it.result?.file_name == "Overview.jpg" || it.result?.file_name == "Overview.jpeg"
+        def attachment = response.result?.find {
+            it.file_name == "Overview.png" || it.file_name == "Overview.jpg" || it.file_name == "Overview.jpeg"
         }
         if (attachment) {
             def image = [:]

@@ -335,14 +335,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
 
-        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sysId)
-
-        if (cmdbAttachmentOveriew) {
-            cmdbAttachmentOveriew.htmlImage = 
-                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
-        }
-        return null
-
         cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
@@ -367,6 +359,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
         def environment = getTargetEnvironment()
+
+        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
+
+        if (cmdbAttachmentOveriew) {
+            cmdbAttachmentOveriew.htmlImage = 
+                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        }
 
         def data_ = [
             metadata: metadata,
