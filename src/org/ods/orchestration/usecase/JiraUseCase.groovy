@@ -387,14 +387,14 @@ class JiraUseCase {
         this.jira.updateBuildNumber(projectKey, changeId, buildNumber)
     }
 
-    Map buildComponentsDataForRelease() {
+    List buildComponentsDataForRelease() {
         def components = []
         this.project.data.metadata.repositories.each { repo ->
             if (repo.include == true) {
                 components.add([
                     id: repo.id,
-                    commit: repo.data.git.commit,
-                    failed: repo.data.failedStage ? true : false,
+                    commit: repo.data?.git?.commit,
+                    failed: repo.data?.failedStage ? true : false,
                 ])
             }
         }

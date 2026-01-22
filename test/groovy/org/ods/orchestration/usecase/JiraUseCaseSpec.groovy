@@ -891,6 +891,12 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Failed",
             env: 'D',
+            components: [
+                ['id':'demo-app-carts', 'commit':null, 'failed':false],
+                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
+                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
+                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+            ],
             startDateTimestamp: "1234567890",
         ])
 
@@ -923,6 +929,12 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Successful",
             env: 'D',
+            components: [
+                ['id':'demo-app-carts', 'commit':null, 'failed':false],
+                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
+                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
+                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+            ],
             startDateTimestamp: "1234567890",
         ])
     }
