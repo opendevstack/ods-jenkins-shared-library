@@ -49,11 +49,7 @@ class CMDBService {
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
             connection.setRequestProperty("Accept-Encoding", "gzip");
-
-            // @ FIXME 
-            String data = connection.inputStream.bytes.encodeBase64()
-            logger.debug("data ${data}")
-            return data
+            return connection.inputStream.bytes.encodeBase64()
         }
 
         @NonCPS
