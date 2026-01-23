@@ -24,14 +24,6 @@ class EKSService {
         this.logger = logger
     }
 
-
-    protected String getOCTOken() {
-        return steps.sh(
-            script: "oc whoami -t",
-            returnStdout: true
-        ).trim()
-    }
-
     protected setEKSCluster() {
         withCredentials((awsEnvironmentVars.credentials.key as String).toLowerCase(),
                         (awsEnvironmentVars.credentials.secret as String).toLowerCase()) {
@@ -42,21 +34,6 @@ class EKSService {
             executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name ${awsEnvironmentVars.eksCluster}")
             executeCommand("kubectl create namespace ${context.getProjectId()}-${context.getEnvironment()}", false)
         }
-    }
-
-    protected String getLoginPassword() {
-        return steps.sh(
-            script: "aws ecr get-login-password --region ${awsEnvironmentVars.region}",
-            returnStdout: true
-        ).trim()
-    }
-    
-    protected String getECRRegistry() {
-        return "${awsEnvironmentVars.account}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
-    }
-
-    protected void createRepository(String repositoryName) {
-        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${awsEnvironmentVars.region}", false)
     }
 
     private void executeCommand(String command, boolean showError = true) {

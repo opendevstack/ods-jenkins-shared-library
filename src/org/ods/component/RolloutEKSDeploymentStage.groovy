@@ -86,14 +86,10 @@ class RolloutEKSDeploymentStage extends Stage {
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
+        ImageRepositoryECR imageRepository = new ImageRepositoryECR(steps, context, awsEnvironmentVars)  
         EKSService eks = new EKSService(steps, context, awsEnvironmentVars,  logger)
-        String ocToken = eks.getOCTOken()
-        eks.setEKSCluster() // This should be set after getOCTOken!!!
-        String awsPassword = eks.getLoginPassword()
-        ImageRepositoryEKS imageRepository = new ImageRepositoryEKS(steps, context, eks, ocToken, awsPassword)
-        deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
-        
-        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
+        deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, eks, logger)    
+        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")          
         return deploymentStrategy.deploy()
     }
 
@@ -103,5 +99,4 @@ class RolloutEKSDeploymentStage extends Stage {
         }
         STAGE_NAME
     }
-
 }

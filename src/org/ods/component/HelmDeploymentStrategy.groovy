@@ -19,6 +19,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final ILogger logger
     private final IPipelineSteps steps
     private final IImageRepository imageRepository
+    private final EKSService eks
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
@@ -31,6 +32,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         OpenShiftService openShift,
         JenkinsService jenkins,
         IImageRepository imageRepository,
+        EKSService eks,
         ILogger logger
     ) {
             // TODO
@@ -85,6 +87,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.openShift = openShift
         this.jenkins = jenkins
         this.imageRepository = imageRepository
+        this.eks = eks
     }
 
     @Override
@@ -97,20 +100,21 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         logger.info("Retagging images for ${targetProject} ")
         imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
-
-        logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
-        helmUpgrade(targetProject)
-        HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
-        if (logger.debugMode) {
-            def helmStatusMap = helmStatus.toMap()
-            logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+        if (config.eks) {
+            eks.setEKSCluster()
+            logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
+            helmUpgrade(targetProject)
+            HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
+            if (logger.debugMode) {
+                def helmStatusMap = helmStatus.toMap()
+                logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+            }
+            def rolloutData = getRolloutData(helmStatus, targetProject)
+        } else {
+            logger.info("No EKS deployment configured, skipping...")
+            def rolloutData = [:] 
         }
-
-        // // FIXME: pauseRollouts is non trivial to determine!
-        // // we assume that Helm does "Deployment" that should work for most
-        // // cases since they don't have triggers.
-        // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(helmStatus, targetProject)
+        
         return rolloutData
     }
 
