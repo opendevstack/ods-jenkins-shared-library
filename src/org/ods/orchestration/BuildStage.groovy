@@ -65,10 +65,10 @@ class BuildStage extends Stage {
                     // data << [tests: [unit: getTestResults(steps, repo) ]]
 
                     // collect test results
-                    if (repo.data.tests == null) {
-                        repo.data.tests = [:]
+                    if (data.tests == null) {
+                        data.tests = [:]
                     }
-                    repo.data.tests << [unit: getTestResults(steps, repo) ]
+                    data.tests.unit = getTestResults(steps, repo)
 
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                 }
