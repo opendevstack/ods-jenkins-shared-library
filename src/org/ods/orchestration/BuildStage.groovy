@@ -70,7 +70,6 @@ class BuildStage extends Stage {
                     }
                     repo.data.tests << [unit: getTestResults(steps, repo) ]
 
-                    getTestResults(steps, repo, true)
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                 }
 
