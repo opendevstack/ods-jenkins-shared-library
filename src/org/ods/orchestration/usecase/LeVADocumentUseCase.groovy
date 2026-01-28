@@ -335,8 +335,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
         def modules = cmdb.findModules(parentCi)
-        def databaseProjects = []//cmdb.findDatabaseProjects(parentCi)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
+        def databaseProjects = cmdb.findDatabaseProjects(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
         def software = cmdb.findSoftware(parentCi)
         def other = []
@@ -344,13 +344,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
         def parentCiModules = combineParentWithChildren(parentCi, modules)
         //def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
-        def parentCiRelations = [
-            'environments': [devEnvironment],
-            'databaseProjects': databaseProjects,
-            'interfaces': interfaces,
-            'software': software,
-            'other': other
-        ]
+        def parentCiInterfaces = combineParentWithChildren(parentCi, interfaces)
+        def parentCiDatabaseProjects = combineParentWithChildren(parentCi, databaseProjects)
+        def parentCiSoftware = combineParentWithChildren(parentCi, software)
+        def parentCiOther = combineParentWithChildren(parentCi, other)
 
         // compute Mermaid diagram for all relevant entities
         def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
@@ -363,10 +360,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // compute Mermaid diagram for parent Ci relations
         //def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
-        def parentCiInterfacesPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, interfaces))
-        def parentCiDatabaseProjectsPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, databaseProjects))
-        def parentCiSoftwarePngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, software))
-        def parentCiOtherPngImage = generateMermaidDiagram(combineParentWithChildren(parentCi, other))
+        def parentCiInterfacesPngImage = generateMermaidDiagram(parentCiInterfaces)
+        def parentCiDatabaseProjectsPngImage = generateMermaidDiagram(parentCiDatabaseProjects)
+        def parentCiSoftwarePngImage = generateMermaidDiagram(parentCiSoftware)
+        def parentCiOtherPngImage = generateMermaidDiagram(parentCiOther)
 
         def data_ = [
             metadata: metadata,
@@ -379,15 +376,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiModules: modules,
                 //parentCiRelationsPngImage: parentCiRelationsPngImage,
                 //parentCiRelations: cmdb.toFlatData(parentCiRelations),
-                environments: parentCiRelations.environments,
+                environments: [devEnvironment],
                 parentCiDatabaseProjectsPngImage: parentCiDatabaseProjectsPngImage,
-                databaseProjects: parentCiRelations.databaseProjects,
+                databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects),
                 parentCiInterfacesPngImage: parentCiInterfacesPngImage,
-                interfaces: parentCiRelations.interfaces,
+                interfaces: cmdb.toFlatData(parentCiInterfaces),
                 parentCiSoftwarePngImage: parentCiSoftwarePngImage,
-                software: parentCiRelations.software,
+                software: cmdb.toFlatData(parentCiSoftware),
                 parentCiOtherPngImage: parentCiOtherPngImage,
-                other: parentCiRelations.other,
+                other: cmdb.toFlatData(parentCiOther),
                 //fullDiagramPngImage: fullDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),

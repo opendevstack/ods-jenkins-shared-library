@@ -33,6 +33,27 @@ class CMDBUseCase {
             }
         }
 
+        findDevEnv(rootNode).each { devEnv ->
+            def devEnvClone = devEnv.clone()
+            devEnvClone.children = []
+            result << devEnvClone
+
+            findAppServicesInDevEnv(devEnv).each { appService ->
+                def appServiceClone = appService.clone()
+                appServiceClone.children = []
+                devEnvClone.children << appServiceClone
+            }
+
+            //devEnvClone.children << findDatabaseProjects(devEnv)
+        }
+
+        return result
+    }
+
+    @NonCPS
+    public static List<Map> findDatabaseProjects(Map rootNode) {
+        def result = []
+
         def findDatabaseProjects = { node ->
             node.children.findAll { child ->
                 return this.isDatabaseCatalogNode(child)
@@ -51,32 +72,20 @@ class CMDBUseCase {
             }
         }
 
-        findDevEnv(rootNode).each { devEnv ->
-            def devEnvClone = devEnv.clone()
-            devEnvClone.children = []
-            result << devEnvClone
+        findDatabaseProjects(devEnv).each { dbProject ->
+            def dbProjectClone = dbProject.clone()
+            dbProjectClone.children = []
+            result << dbProjectClone
 
-            findAppServicesInDevEnv(devEnv).each { appService ->
-                def appServiceClone = appService.clone()
-                appServiceClone.children = []
-                devEnvClone.children << appServiceClone
-            }
+            findDatabases(dbProject).each { db ->
+                def dbClone = db.clone()
+                dbClone.children = []
+                dbProjectClone.children << dbClone
 
-            findDatabaseProjects(devEnv).each { dbProject ->
-                def dbProjectClone = dbProject.clone()
-                dbProjectClone.children = []
-                devEnvClone.children << dbProjectClone
-
-                findDatabases(dbProject).each { db ->
-                    def dbClone = db.clone()
-                    dbClone.children = []
-                    dbProjectClone.children << dbClone
-
-                    findServers(db).each { server ->
-                        def serverClone = server.clone()
-                        serverClone.children = []
-                        dbClone.children << serverClone
-                    }
+                findServers(db).each { server ->
+                    def serverClone = server.clone()
+                    serverClone.children = []
+                    dbClone.children << serverClone
                 }
             }
         }
