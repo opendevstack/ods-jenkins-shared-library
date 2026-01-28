@@ -72,7 +72,7 @@ class CMDBUseCase {
             }
         }
 
-        findDatabaseProjects(devEnv).each { dbProject ->
+        findDatabaseProjects(rootNode).each { dbProject ->
             def dbProjectClone = dbProject.clone()
             dbProjectClone.children = []
             result << dbProjectClone
