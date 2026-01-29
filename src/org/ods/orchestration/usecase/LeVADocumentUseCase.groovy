@@ -547,7 +547,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 assembled: project.isAssembleMode,
                 data: [
                     tests: tests.get(AUTOMATED_TESTS),
-                    manualTests: tests.get(NON_EXECUTED_TESTS),
+                    manualtests: tests.get(NON_EXECUTED_TESTS),
                     changeHistory: this.getChangeHistory(),
                     references: getDocReferences(),
                 ]
