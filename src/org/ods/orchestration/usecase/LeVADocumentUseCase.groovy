@@ -666,8 +666,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     def msg = "Test ${test.name} of type ${test.type} failed with result ${test.result}."
                     throw new RuntimeException(msg)
                 }
-                testedRequirements << test.reqId
             }
+            testedRequirements << test.reqId
             return test
         }
         testReturn[AUTOMATED_TESTS] = tests
@@ -680,8 +680,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             testReturn [NON_EXECUTED_TESTS] = untested.sort().collect { reqId ->
                 def req = project.requirementsByNumber[reqId]
                 return [
-                    id: reqId,
-                    name: req?.metadata?.pageTitle
+                    reqId: reqId,
+                    requirementName: req?.metadata?.pageTitle
                 ]
             }
         }
