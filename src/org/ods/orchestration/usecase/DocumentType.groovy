@@ -4,6 +4,7 @@ enum DocumentType {
 
     REQ,
     DES,
-    EVD
+    EVD,
+    TRM,
 
 }
