@@ -62,10 +62,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.REQ as String)        : 'Requirements Specification incl. Risk Assessment Document',
         (DocumentType.DES as String)        : 'System and Software Description Document',
         (DocumentType.EVD as String)        : 'Qualification Evidence Document',
+        (DocumentType.TRM as String)        : 'Manual Traceability Matrix Document',
     ]
 
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
     ]
+
+    static STRING AUTOMATED_TESTS = 'executedTests'
+    static STRING NON_EXECUTED_TESTS = 'manualTests'
+
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
@@ -514,7 +519,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 components: executedComponents,
                 testComponents: testComponents,
-                tests: tests,
+                tests: tests.get(AUTOMATED_TESTS),
                 sonar: sonarReports,
                 aqua: aquaReports,
                 repos: pullRequests,
@@ -530,6 +535,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+        logger.debug("non executed tests: ${tests.get(NON_EXECUTED_TESTS)}")
+        if (tests.get(NON_EXECUTED_TESTS)?.size() > 0) {
+            documentType = DocumentType.TRM as String
+            metadata = getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
+            metadata.orientation = 'Landscape'
+            def data_ = [
+                metadata: metadata,
+                environment: environment,
+                env: project.buildParams.targetEnvironment.toUpperCase(Locale.ENGLISH),
+                assembled: project.isAssembleMode,
+                data: [
+                    tests: tests.get(AUTOMATED_TESTS),
+                    manualTests: tests.get(NON_EXECUTED_TESTS),
+                    changeHistory: this.getChangeHistory(),
+                    references: getDocReferences(),
+                ]
+            ]
+            watermarkText = this.getWatermarkText(documentType)
+            this.createDocument(DocumentType.TRM, repo, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        }
 
         return uri
     }
@@ -627,7 +652,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<Map> getTestResults(Map data) {
+    private Map<String, List<Map>> getTestResults(Map data) {
+        def testReturn = [ : []]
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
         def acceptanceTestResults = extractTestResults(data.tests?.acceptance, 'Acceptance')
         def installationTestResults = extractTestResults(data.tests?.installation, 'Installation')
@@ -644,14 +670,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
             return test
         }
+        testReturn[AUTOMATED_TESTS] = tests
         if (!project.developerPreviewMode) {
             def untested = project.requirementsByNumber.keySet() - testedRequirements
             if (untested) {
                 def msg = "The following requirements were not tested: ${untested.sort()}"
-                throw new RuntimeException(msg)
+                //throw new RuntimeException(msg)
+                testReturn [NON_EXECUTED_TESTS] = untested.sort().collect { reqId ->
+                    def req = project.requirementsByNumber[reqId]
+                    return [
+                        id: reqId,
+                        name: req?.metadata?.pageTitle
+                    ]
+                }
             }
         }
-        return tests
+        return testReturn
     }
 
     @NonCPS
