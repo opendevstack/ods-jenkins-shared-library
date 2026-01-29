@@ -653,7 +653,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @NonCPS
     private Map<String, List<Map>> getTestResults(Map data) {
-        def testReturn = [ : []]
+        def testReturn = [ : ]
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
         def acceptanceTestResults = extractTestResults(data.tests?.acceptance, 'Acceptance')
         def installationTestResults = extractTestResults(data.tests?.installation, 'Installation')
