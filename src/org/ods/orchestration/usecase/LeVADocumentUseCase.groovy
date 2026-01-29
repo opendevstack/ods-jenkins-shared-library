@@ -68,8 +68,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
     ]
 
-    static STRING AUTOMATED_TESTS = 'executedTests'
-    static STRING NON_EXECUTED_TESTS = 'manualTests'
+    static String AUTOMATED_TESTS = 'executedTests'
+    static String NON_EXECUTED_TESTS = 'manualTests'
 
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
@@ -540,7 +540,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             documentType = DocumentType.TRM as String
             metadata = getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
             metadata.orientation = 'Landscape'
-            def data_ = [
+            data_ = [
                 metadata: metadata,
                 environment: environment,
                 env: project.buildParams.targetEnvironment.toUpperCase(Locale.ENGLISH),
