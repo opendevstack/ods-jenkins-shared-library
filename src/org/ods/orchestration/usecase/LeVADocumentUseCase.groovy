@@ -671,20 +671,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return test
         }
         testReturn[AUTOMATED_TESTS] = tests
-        if (!project.developerPreviewMode) {
-            def untested = project.requirementsByNumber.keySet() - testedRequirements
-            if (untested) {
-                def msg = "The following requirements were not tested: ${untested.sort()}"
-                //throw new RuntimeException(msg)
-                testReturn [NON_EXECUTED_TESTS] = untested.sort().collect { reqId ->
-                    def req = project.requirementsByNumber[reqId]
-                    return [
-                        id: reqId,
-                        name: req?.metadata?.pageTitle
-                    ]
-                }
+        // @TODO . this needs a super smart way to identify untested requirements
+        //if (!project.developerPreviewMode) {
+        def untested = project.requirementsByNumber.keySet() - testedRequirements
+        if (untested) {
+            def msg = "The following requirements were not tested: ${untested.sort()}"
+            //throw new RuntimeException(msg)
+            testReturn [NON_EXECUTED_TESTS] = untested.sort().collect { reqId ->
+                def req = project.requirementsByNumber[reqId]
+                return [
+                    id: reqId,
+                    name: req?.metadata?.pageTitle
+                ]
             }
         }
+        //}
         return testReturn
     }
 
