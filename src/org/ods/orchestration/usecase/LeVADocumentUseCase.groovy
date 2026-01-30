@@ -358,9 +358,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // compute Mermaid diagram for parent Ci relations
         //def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
-        def parentCiInterfacesPngImage = generateMermaidDiagram(parentCiInterfaces)
-        def parentCiDatabaseProjectsPngImage = generateMermaidDiagram(parentCiDatabaseProjects)
-        def parentCiSoftwarePngImage = generateMermaidDiagram(parentCiSoftware)
+        def parentCiInterfacesPngImage = interfaces.size() > 0 ? generateMermaidDiagram(parentCiInterfaces) : null
+        def parentCiDatabaseProjectsPngImage = databaseProjects.size() > 0 ? generateMermaidDiagram(parentCiDatabaseProjects) : null
+        def parentCiSoftwarePngImage = software.size() > 0 ? generateMermaidDiagram(parentCiSoftware) : null
 
         def data_ = [
             metadata: metadata,
@@ -375,11 +375,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 //parentCiRelations: cmdb.toFlatData(parentCiRelations),
                 environments: [devEnvironment],
                 parentCiDatabaseProjectsPngImage: parentCiDatabaseProjectsPngImage,
-                databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects),
+                databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects).drop(0),
                 parentCiInterfacesPngImage: parentCiInterfacesPngImage,
-                interfaces: cmdb.toFlatData(parentCiInterfaces),
+                interfaces: cmdb.toFlatData(parentCiInterfaces).drop(0),
                 parentCiSoftwarePngImage: parentCiSoftwarePngImage,
-                software: cmdb.toFlatData(parentCiSoftware),
+                software: cmdb.toFlatData(parentCiSoftware).drop(0),
                 //fullDiagramPngImage: fullDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
