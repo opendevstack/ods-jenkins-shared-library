@@ -343,6 +343,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
         def parentCiModules = combineParentWithChildren(parentCi, modules)
         //def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
+        def parentCiDevEnvironment = combineParentWithChildren(parentCi, [devEnvironment])
         def parentCiInterfaces = combineParentWithChildren(parentCi, interfaces)
         def parentCiDatabaseProjects = combineParentWithChildren(parentCi, databaseProjects)
         def parentCiSoftware = combineParentWithChildren(parentCi, software)
@@ -373,7 +374,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 parentCiModules: modules,
                 //parentCiRelationsPngImage: parentCiRelationsPngImage,
                 //parentCiRelations: cmdb.toFlatData(parentCiRelations),
-                environments: [devEnvironment],
+                environments: cmdb.toFlatData(parentCiDevEnvironment).drop(1),
                 parentCiDatabaseProjectsPngImage: parentCiDatabaseProjectsPngImage,
                 databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects).drop(1),
                 parentCiInterfacesPngImage: parentCiInterfacesPngImage,
