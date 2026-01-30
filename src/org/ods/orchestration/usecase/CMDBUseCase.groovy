@@ -66,12 +66,6 @@ class CMDBUseCase {
             }
         }
 
-        def findServers = { node ->
-            node.children.findAll { child ->
-                return this.isServerNode(child)
-            }
-        }
-
         findDatabaseProjects(rootNode).each { dbProject ->
             def dbProjectClone = dbProject.clone()
             dbProjectClone.children = []
@@ -82,11 +76,7 @@ class CMDBUseCase {
                 dbClone.children = []
                 dbProjectClone.children << dbClone
 
-                findServers(db).each { server ->
-                    def serverClone = server.clone()
-                    serverClone.children = []
-                    dbClone.children << serverClone
-                }
+                dbClone.children << findServers(db)
             }
         }
 
@@ -95,11 +85,7 @@ class CMDBUseCase {
             dbClone.children = []
             result.children << dbClone
 
-            findServers(db).each { server ->
-                def serverClone = server.clone()
-                serverClone.children = []
-                dbClone.children << serverClone
-            }
+            dbClone.children << findServers(db)
         }
 
         return result
@@ -186,6 +172,25 @@ class CMDBUseCase {
             def moduleClone = module.clone()
             moduleClone.children = []
             result << moduleClone
+        }
+
+        return result
+    }
+
+    @NonCPS
+    public static List<Map> findServers(Map rootNode) {
+        def result = []
+
+        def findServers = { node ->
+            node.children.findAll { child ->
+                return this.isServerNode(child)
+            }
+        }
+
+        findServers(rootNode).each { server ->
+            def serverClone = server.clone()
+            serverClone.children = []
+            result << serverClone
         }
 
         return result

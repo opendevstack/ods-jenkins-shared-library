@@ -338,6 +338,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
         def databaseProjects = cmdb.findDatabaseProjects(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
+        def servers = cmdb.findServers(parentCi)
         def software = cmdb.findSoftware(parentCi)
 
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
@@ -346,6 +347,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiDevEnvironment = combineParentWithChildren(parentCi, [devEnvironment])
         def parentCiInterfaces = combineParentWithChildren(parentCi, interfaces)
         def parentCiDatabaseProjects = combineParentWithChildren(parentCi, databaseProjects)
+        def parentCiServers = combineParentWithChildren(parentCi, servers)
         def parentCiSoftware = combineParentWithChildren(parentCi, software)
 
         // compute Mermaid diagram for all relevant entities
@@ -361,6 +363,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         //def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
         def parentCiInterfacesPngImage = interfaces.size() > 0 ? generateMermaidDiagram(parentCiInterfaces) : null
         def parentCiDatabaseProjectsPngImage = databaseProjects.size() > 0 ? generateMermaidDiagram(parentCiDatabaseProjects) : null
+        def parentCiServersPngImage = servers.size() > 0 ? generateMermaidDiagram(parentCiServers) : null
         def parentCiSoftwarePngImage = software.size() > 0 ? generateMermaidDiagram(parentCiSoftware) : null
 
         def data_ = [
@@ -379,6 +382,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects).drop(1),
                 parentCiInterfacesPngImage: parentCiInterfacesPngImage,
                 interfaces: cmdb.toFlatData(parentCiInterfaces).drop(1),
+                parentCiServersPngImage: parentCiServersPngImage,
+                servers: cmdb.toFlatData(parentCiServers).drop(1),
                 parentCiSoftwarePngImage: parentCiSoftwarePngImage,
                 software: cmdb.toFlatData(parentCiSoftware).drop(1),
                 //fullDiagramPngImage: fullDiagramPngImage,
