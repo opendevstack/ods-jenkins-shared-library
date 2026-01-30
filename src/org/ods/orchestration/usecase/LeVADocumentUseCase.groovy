@@ -365,12 +365,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = getTargetEnvironment()
 
-        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
+        def cmdbAttachmentOverview = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
 
-        if (cmdbAttachmentOveriew) {
-            logger.debug("image: ${cmdbAttachmentOveriew}")
-            cmdbAttachmentOveriew.htmlImage = 
-                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        if (cmdbAttachmentOverview) {
+            cmdbAttachmentOverview.htmlImage = 
+                "data:${cmdbAttachmentOverview.contentType};base64,${cmdbAttachmentOverview.data}"
         }
 
         def data_ = [
@@ -387,7 +386,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
                 cmdbUrl : cmdb.getCMDBUrl(),
-                cmdbAttachmentOveriew : cmdbAttachmentOveriew,
+                cmdbAttachmentOverview : cmdbAttachmentOverview,
             ]
         ]
 
