@@ -339,11 +339,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
-<<<<<<< HEAD
-=======
-
-        cmdb.defaultNodeSanitizerStrategy(parentCi)
->>>>>>> phoenix
         def modules = cmdb.findModules(parentCi)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
         def databaseProjects = cmdb.findDatabaseProjects(parentCi)
