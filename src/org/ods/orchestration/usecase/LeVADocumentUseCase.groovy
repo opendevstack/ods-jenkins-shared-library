@@ -339,7 +339,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def databaseProjects = cmdb.findDatabaseProjects(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
         def software = cmdb.findSoftware(parentCi)
-        def other = []
 
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
         def parentCiModules = combineParentWithChildren(parentCi, modules)
@@ -347,7 +346,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiInterfaces = combineParentWithChildren(parentCi, interfaces)
         def parentCiDatabaseProjects = combineParentWithChildren(parentCi, databaseProjects)
         def parentCiSoftware = combineParentWithChildren(parentCi, software)
-        def parentCiOther = combineParentWithChildren(parentCi, other)
 
         // compute Mermaid diagram for all relevant entities
         def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
@@ -363,7 +361,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiInterfacesPngImage = generateMermaidDiagram(parentCiInterfaces)
         def parentCiDatabaseProjectsPngImage = generateMermaidDiagram(parentCiDatabaseProjects)
         def parentCiSoftwarePngImage = generateMermaidDiagram(parentCiSoftware)
-        def parentCiOtherPngImage = generateMermaidDiagram(parentCiOther)
 
         def data_ = [
             metadata: metadata,
@@ -383,8 +380,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 interfaces: cmdb.toFlatData(parentCiInterfaces),
                 parentCiSoftwarePngImage: parentCiSoftwarePngImage,
                 software: cmdb.toFlatData(parentCiSoftware),
-                parentCiOtherPngImage: parentCiOtherPngImage,
-                other: cmdb.toFlatData(parentCiOther),
                 //fullDiagramPngImage: fullDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
