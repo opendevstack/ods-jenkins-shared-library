@@ -68,8 +68,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
     ]
 
-    static String AUTOMATED_TESTS = 'executedTests'
-    static String NON_EXECUTED_TESTS = 'manualTests'
+    static String TESTED_REQUIREMENTS = 'executedTests'
+    static String NON_TESTED_REQUIREMENTS = 'untestedRequirements'
 
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
@@ -519,7 +519,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 components: executedComponents,
                 testComponents: testComponents,
-                tests: tests.get(AUTOMATED_TESTS),
+                tests: tests.get(TESTED_REQUIREMENTS),
+                untestedRequirements: tests.get(NON_TESTED_REQUIREMENTS)?.size(),
                 sonar: sonarReports,
                 aqua: aquaReports,
                 repos: pullRequests,
@@ -535,8 +536,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
-        logger.debug("non executed tests: ${tests.get(NON_EXECUTED_TESTS)}")
-        if (tests.get(NON_EXECUTED_TESTS)?.size() > 0) {
+        logger.debug("non tested requirements: ${tests.get(NON_TESTED_REQUIREMENTS)}")
+        if (tests.get(NON_TESTED_REQUIREMENTS)?.size() > 0) {
             documentType = DocumentType.TRM as String
             metadata = getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
             metadata.orientation = 'Landscape'
@@ -546,8 +547,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 env: project.buildParams.targetEnvironment.toUpperCase(Locale.ENGLISH),
                 assembled: project.isAssembleMode,
                 data: [
-                    tests: tests.get(AUTOMATED_TESTS),
-                    manualtests: tests.get(NON_EXECUTED_TESTS),
+                    tests: tests.get(TESTED_REQUIREMENTS),
+                    manualtests: tests.get(NON_TESTED_REQUIREMENTS),
                     changeHistory: this.getChangeHistory(),
                     references: getDocReferences(),
                 ]
@@ -670,14 +671,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             testedRequirements << test.reqId
             return test
         }
-        testReturn[AUTOMATED_TESTS] = tests
+        testReturn[TESTED_REQUIREMENTS] = tests
         // @TODO . this needs a super smart way to identify untested requirements
         //if (!project.developerPreviewMode) {
         def untested = project.requirementsByNumber.keySet() - testedRequirements
         if (untested) {
-            def msg = "The following requirements were not tested: ${untested.sort()}"
-            //throw new RuntimeException(msg)
-            testReturn [NON_EXECUTED_TESTS] = untested.sort().collect { reqId ->
+            def msg = "The following requirements were not tested automatically: ${untested.sort()}"
+            testReturn[NON_TESTED_REQUIREMENTS] = untested.sort().collect { reqId ->
                 def req = project.requirementsByNumber[reqId]
                 return [
                     reqId: reqId,
