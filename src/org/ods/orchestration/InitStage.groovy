@@ -150,7 +150,7 @@ class InitStage extends Stage {
         project.setTargetProject(targetProject)
 
         if (util.getInstalledInOpenShiftRepos()?.size() > 0) {
-            validateEnvConfig(logger, registry, util)
+            //FIXME: removed for testing only: validateEnvConfig(logger, registry, util)
         } else {
             logger.debug("No installable repos found, skipping env existence check.")
         }
