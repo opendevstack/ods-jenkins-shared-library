@@ -40,7 +40,12 @@ class TestStage extends Stage {
                 // fill up with tests results for every type of test
                 data.tests.each {
                     Map testResult = getTestResults(steps, repo, it.key.capitalize())
-                    it.value.testReportFiles = testResult.testReportFiles
+                    it.value.testReportFiles = testResult.testReportFiles.collect { file ->
+                        [
+                            component: repo.id,
+                            file: file,
+                        ]
+                    }
                     it.value.testResults = testResult.testResults
                 }
                 data.evidences = getTestEvidences(steps, repo)
@@ -75,17 +80,6 @@ class TestStage extends Stage {
                 }
         }
         executeInParallel(executeRepos, generateDocuments)
-
-        /*globalData.tests.each {
-            // Update Jira issues with global data test results for every type of test
-            // jira.reportTestResultsForProject(
-            //     [it.key.capitalize()],
-            //     it.value.testResults as Map
-            // )
-            // Parse again all test report files into a single data structure for one type of test
-            it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
-        }*/
-
 
         levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }

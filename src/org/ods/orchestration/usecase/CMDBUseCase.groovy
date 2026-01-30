@@ -497,4 +497,8 @@ class CMDBUseCase {
     def getCMDBUrl() {
         return this.cmdb.INSTANCE
     }
+
+    public def getDocumentAttachmentForSystem(String sysId) {
+        return this.cmdb.findAttachmentForSystem(sysId)
+    }
 }

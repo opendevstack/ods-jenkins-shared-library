@@ -62,6 +62,14 @@ class OpenShiftService {
         return routeUrl.trim()
     }
 
+    static getRouteHost (IPipelineSteps steps, String name) {
+        steps.sh(
+            script: "oc get route ${name} -o jsonpath='{.spec.host}'",
+            label: "Get route URL for route '${name}'",
+            returnStdout: true
+        ).toString().trim()
+    }
+
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
         steps.sh(
             returnStdout: true,

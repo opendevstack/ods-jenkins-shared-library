@@ -62,10 +62,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.REQ as String)        : 'Requirements Specification incl. Risk Assessment Document',
         (DocumentType.DES as String)        : 'System and Software Description Document',
         (DocumentType.EVD as String)        : 'Qualification Evidence Document',
+        (DocumentType.TRM as String)        : 'Manual Traceability Matrix Document',
     ]
 
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
     ]
+
+    static String TESTED_REQUIREMENTS = 'executedTests'
+    static String NON_TESTED_REQUIREMENTS = 'untestedRequirements'
+
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
@@ -334,6 +339,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
+<<<<<<< HEAD
+=======
+
+        cmdb.defaultNodeSanitizerStrategy(parentCi)
+>>>>>>> phoenix
         def modules = cmdb.findModules(parentCi)
         def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
         def databaseProjects = cmdb.findDatabaseProjects(parentCi)
@@ -366,13 +376,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def parentCiServersPngImage = servers.size() > 0 ? generateMermaidDiagram(parentCiServers) : null
         def parentCiSoftwarePngImage = software.size() > 0 ? generateMermaidDiagram(parentCiSoftware) : null
 
+        def cmdbAttachmentOverview = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
+
+        if (cmdbAttachmentOverview) {
+            cmdbAttachmentOverview.htmlImage = 
+                "data:${cmdbAttachmentOverview.contentType};base64,${cmdbAttachmentOverview.data}"
+        }
+
         def data_ = [
             metadata: metadata,
             environment: getTargetEnvironment(),
             data : [
+                cmdbAttachmentOverview: cmdbAttachmentOverview,
+                //fullDiagramPngImage: fullDiagramPngImage,
+                parentCi: parentCi,
                 componentsDiagramPngImage: componentsDiagramPngImage,
                 components: components,
-                parentCi: parentCi,
                 parentCiModulesPngImage: parentCiModulesPngImage,
                 parentCiModules: modules,
                 //parentCiRelationsPngImage: parentCiRelationsPngImage,
@@ -386,10 +405,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 servers: cmdb.toFlatData(parentCiServers).drop(1),
                 parentCiSoftwarePngImage: parentCiSoftwarePngImage,
                 software: cmdb.toFlatData(parentCiSoftware).drop(1),
-                //fullDiagramPngImage: fullDiagramPngImage,
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
-                cmdbUrl : cmdb.getCMDBUrl()
+                cmdbUrl: cmdb.getCMDBUrl(),
             ]
         ]
 
@@ -405,7 +423,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
-
         return uri
     }
 
@@ -491,9 +508,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = getTargetEnvironment()
         def executedComponents = getComponentExecutionResults()
-        def testComponents = getExecutedTestComponents()
+        def testComponents = executedComponents.findAll { it.testsExecuted == true }
         def tests = getTestResults(data)
-        def xunit = getXUnitFiles(data)
+        def xunit = getXunitFiles(data)
         def testEvidence = getTestEvidences(data)
 
         def pullRequests = null
@@ -521,8 +538,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             assembled: project.isAssembleMode,
             data: [
                 components: executedComponents,
-                testcomponents: testComponents,
-                tests: tests,
+                testComponents: testComponents,
+                tests: tests.get(TESTED_REQUIREMENTS),
+                untestedRequirements: tests.get(NON_TESTED_REQUIREMENTS)?.size(),
                 sonar: sonarReports,
                 aqua: aquaReports,
                 repos: pullRequests,
@@ -538,6 +556,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+        logger.debug("non tested requirements: ${tests.get(NON_TESTED_REQUIREMENTS)}")
+        if (tests.get(NON_TESTED_REQUIREMENTS)?.size() > 0) {
+            documentType = DocumentType.TRM as String
+            metadata = getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
+            metadata.orientation = 'Landscape'
+            data_ = [
+                metadata: metadata,
+                environment: environment,
+                env: project.buildParams.targetEnvironment.toUpperCase(Locale.ENGLISH),
+                assembled: project.isAssembleMode,
+                data: [
+                    tests: tests.get(TESTED_REQUIREMENTS),
+                    manualtests: tests.get(NON_TESTED_REQUIREMENTS),
+                    changeHistory: this.getChangeHistory(),
+                    references: getDocReferences(),
+                ]
+            ]
+            watermarkText = this.getWatermarkText(documentType)
+            this.createDocument(DocumentType.TRM, repo, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        }
 
         return uri
     }
@@ -605,17 +643,24 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private List<Map> getComponentExecutionResults() {
         def logs = project.componentLogs
-        return project.repositories.findAll { repo -> repo.doInstall && repo.include }.collect { repo ->
+        return project.repositories.findAll { repo -> 
+            (repo.doInstall || repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) && repo.include }.collect { repo ->
             if (!project.developerPreviewMode && repo.data.failedStage) {
-                throw new RuntimeException("Component ${repo.name} failed")
+                throw new RuntimeException("Installation / testing of component ${repo.name} failed")
             }
             def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
             def component = [
                 id: repo.id,
+                type: repo.type,
                 name: name,
-                installed: repo.include,
+                installed: repo.doInstall,
                 git: repo.data?.git,
+                metadata: repo.data?.metadata,
             ]
+            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
+                 (repo.installable == true && repo.data?.tests)) {
+                component.testsExecuted = true
+            }
             if (repo.failedStage) {
                 component.failedStage = repo.failedStage
             }
@@ -627,25 +672,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private List<Map> getExecutedTestComponents() {
-        return project.repositories.findAll { repo ->
-            repo.include &&
-                (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST ||
-                 (repo.installable == true && repo.data?.tests))
-            }.collect { repo ->
-            def name = repo.name ?: "${project.key.toLowerCase(Locale.ENGLISH)}-${repo.id}"
-            def component = [
-                id: repo.id,
-                name: name,
-                git: repo.data?.git,
-                metadata: repo.data?.metadata,
-            ]
-            return component
-        }
-    }
-
     @NonCPS
-    private List<Map> getTestResults(Map data) {
+    private Map<String, List<Map>> getTestResults(Map data) {
+        def testReturn = [ : ]
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
         def acceptanceTestResults = extractTestResults(data.tests?.acceptance, 'Acceptance')
         def installationTestResults = extractTestResults(data.tests?.installation, 'Installation')
@@ -658,30 +687,38 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     def msg = "Test ${test.name} of type ${test.type} failed with result ${test.result}."
                     throw new RuntimeException(msg)
                 }
-                testedRequirements << test.reqId
             }
+            testedRequirements << test.reqId
             return test
         }
-        if (!project.developerPreviewMode) {
-            def untested = project.requirementsByNumber.keySet() - testedRequirements
-            if (untested) {
-                def msg = "The following requirements were not tested: ${untested.sort()}"
-                throw new RuntimeException(msg)
+        testReturn[TESTED_REQUIREMENTS] = tests
+        // @TODO . this needs a super smart way to identify untested requirements
+        //if (!project.developerPreviewMode) {
+        def untested = project.requirementsByNumber.keySet() - testedRequirements
+        if (untested) {
+            def msg = "The following requirements were not tested automatically: ${untested.sort()}"
+            testReturn[NON_TESTED_REQUIREMENTS] = untested.sort().collect { reqId ->
+                def req = project.requirementsByNumber[reqId]
+                return [
+                    reqId: reqId,
+                    requirementName: req?.metadata?.pageTitle
+                ]
             }
         }
-        return tests
+        //}
+        return testReturn
     }
 
     @NonCPS
-    private List<Map> getXUnitFiles(Map data) {
+    private List<Map> getXunitFiles(Map data) {
         def result = []
-        data.tests?.values()?.each { Map test ->
-            test.testReportFiles?.each { File file ->
+        data.tests?.each { String type, Map test ->
+            test.testReportFiles?.each { Map report ->
                 result << [
-                    filename   : file.name,
+                    filename   : "${type}-test-report-${report.component}.xml",
                     contentType: 'application/xml',
                     compress   : true,
-                    content    : file.bytes,
+                    content    : report.file.bytes,
                 ]
             }
         }

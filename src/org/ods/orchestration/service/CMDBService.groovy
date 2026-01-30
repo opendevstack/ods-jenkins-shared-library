@@ -4,6 +4,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.ILogger
 
 import groovy.json.JsonSlurper
+import java.util.zip.GZIPInputStream
+import java.nio.charset.StandardCharsets
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class CMDBService {
@@ -41,6 +43,16 @@ class CMDBService {
         }
 
         @NonCPS
+        def getStreamAsEncodedBytes(String url) {
+            def connection = new URL(url).openConnection()
+            connection.setAllowUserInteraction(false)
+            connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
+            connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
+            connection.setRequestProperty("Accept-Encoding", "gzip");
+            return connection.inputStream.bytes.encodeBase64() ?: connection.getResponseMessage()
+        }
+
+        @NonCPS
         def post(String url, String body, String contentType) {
             def connection = new URL(url).openConnection() as HttpURLConnection
             connection.setAllowUserInteraction(false)
@@ -53,7 +65,25 @@ class CMDBService {
     }
 
     private static final int MAX_DEPTH = 5
-    private static final List SYSPARM_CI_FIELDS = ["sys_id", "sys_class_name", "name", "u_name_business_friendly", "application_type", "install_type", "short_description", "owned_by.email", "managed_by.email", "u_gxp_relevant", "u_gxp_criticality", "u_slc_documents_location_items_and_con", "u_system_design_specification_link", "u_validation_determination_reference", "u_gamp_category", "service_classification"]
+    private static final List SYSPARM_CI_FIELDS = [
+        "sys_id", 
+        "sys_class_name", 
+        "name", 
+        "u_name_business_friendly", 
+        "application_type", 
+        "install_type", 
+        "short_description", 
+        "owned_by.email", 
+        "managed_by.email", 
+        "u_gxp_relevant", 
+        "u_gxp_criticality", 
+        "u_slc_documents_location_items_and_con", 
+        "u_system_design_specification_link", 
+        "u_validation_determination_reference", 
+        "u_gamp_category", 
+        "service_classification", 
+        "u_gxp_type", 
+        "u_version_number"]
     private static final int SYSPARM_CI_RELATIONS_LIMIT = 1000
     private static final List SYSPARM_CMDB_CI_FIELDS = ["sys_class_name"]
     private static final List SYSPARM_CMDB_REL_CI_FIELDS = ["parent,child,type"]
@@ -71,6 +101,12 @@ class CMDBService {
     private String composeDownstreamCiRelationsIdsUrl(String sysId) {
         def sysparm_query = "parent=${sysId}"
         return "https://${this.INSTANCE}/api/now/table/cmdb_rel_ci?sysparm_query=${sysparm_query}&sysparm_fields=${this.SYSPARM_CMDB_REL_CI_FIELDS.join(',')}&sysparm_limit=${this.SYSPARM_CI_RELATIONS_LIMIT}"
+    }
+
+    @NonCPS
+    private String composeAttachmentUrl(String attachmentId) {
+        def sysparm_query = "parent=${sysId}"
+        return "https://${this.INSTANCE}/api/now/attachment/${attachmentId}/file"
     }
 
     @NonCPS
@@ -101,6 +137,12 @@ class CMDBService {
     private String composeUpstreamCiRelationsIdsUrl(String sysId) {
         def sysparm_query = "child=${sysId}"
         return "https://${this.INSTANCE}/api/now/table/cmdb_rel_ci?sysparm_query=${sysparm_query}&sysparm_fields=${this.SYSPARM_CMDB_REL_CI_FIELDS.join(',')}&sysparm_limit=${this.SYSPARM_CI_RELATIONS_LIMIT}"
+    }
+
+    @NonCPS
+    private String composeAttachmentsIdRetrieveUrl(String sysId) {
+        def sysparm_query = "ysparm_query%3Dtable_name%3Dcmdb_ci_business_app%5Etable_sys_id%3D${sysId}"
+        return "https://${this.INSTANCE}/api/now/attachment?sysparm_query=${sysparm_query}&sysparm_limit=${this.SYSPARM_CI_RELATIONS_LIMIT}"
     }
 
     @NonCPS
@@ -215,6 +257,38 @@ class CMDBService {
 
         return response.result ? response.result.first() : [:]
     }
+
+
+    @NonCPS
+    public def findAttachmentForSystem(String sysId) {
+        def response = this.httpUtil.get(
+            this.composeAttachmentsIdRetrieveUrl(sysId)
+        )
+
+        logger.debug("Attachments for system with id: ${sysId} - size ${response.result?.size()} found \n > response: ${response}")
+        if (!response.result) {
+            return null
+        }
+
+        def attachment = response.result?.find {
+            it.file_name == "Overview.png" || it.file_name == "Overview.jpg" || it.file_name == "Overview.jpeg"
+        }
+        if (attachment) {
+            logger.debug("Attachment for system ${sysId} with name Overview.jpg/png/jpeg found: ${attachment}")
+            def image = [:]
+            image.contentType = attachment.content_type
+            image.createdDate = attachment.sys_created_on
+            image.createdBy = attachment.sys_created_by
+            image.fileName = attachment.file_name
+            image.data = this.httpUtil.getStreamAsEncodedBytes(attachment.download_link)
+            return image
+        } else {
+            logger.debug("No attachment for system ${sysId} with name Overview.jpg/png/jpeg found")
+        }
+
+        return null
+    }
+
 
     @NonCPS
     public Map loadData(String ciName) {
