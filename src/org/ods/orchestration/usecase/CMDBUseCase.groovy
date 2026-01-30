@@ -4,6 +4,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.service.CMDBService
 import org.ods.util.ILogger
 
+import groovy.json.JsonOutput
+
 @SuppressWarnings(['LineLength', 'ParameterName', 'IfStatementBraces'])
 class CMDBUseCase {
     private final CMDBService cmdb
@@ -31,6 +33,27 @@ class CMDBUseCase {
             }
         }
 
+        findDevEnv(rootNode).each { devEnv ->
+            def devEnvClone = devEnv.clone()
+            devEnvClone.children = []
+            result << devEnvClone
+
+            findAppServicesInDevEnv(devEnv).each { appService ->
+                def appServiceClone = appService.clone()
+                appServiceClone.children = []
+                devEnvClone.children << appServiceClone
+            }
+
+            devEnvClone.children << findDatabaseProjects(devEnv)
+        }
+
+        return result
+    }
+
+    @NonCPS
+    public static List<Map> findDatabaseProjects(Map rootNode) {
+        def result = []
+
         def findDatabaseProjects = { node ->
             node.children.findAll { child ->
                 return this.isDatabaseCatalogNode(child)
@@ -43,40 +66,26 @@ class CMDBUseCase {
             }
         }
 
-        def findServers = { node ->
-            node.children.findAll { child ->
-                return this.isServerNode(child)
+        findDatabaseProjects(rootNode).each { dbProject ->
+            def dbProjectClone = dbProject.clone()
+            dbProjectClone.children = []
+            result << dbProjectClone
+
+            findDatabases(dbProject).each { db ->
+                def dbClone = db.clone()
+                dbClone.children = []
+                dbProjectClone.children << dbClone
+
+                dbClone.children << findServers(db)
             }
         }
 
-        findDevEnv(rootNode).each { devEnv ->
-            def devEnvClone = devEnv.clone()
-            devEnvClone.children = []
-            result << devEnvClone
+        findDatabases(rootNode).each { db ->
+            def dbClone = db.clone()
+            dbClone.children = []
+            result.children << dbClone
 
-            findAppServicesInDevEnv(devEnv).each { appService ->
-                def appServiceClone = appService.clone()
-                appServiceClone.children = []
-                devEnvClone.children << appServiceClone
-            }
-
-            findDatabaseProjects(devEnv).each { dbProject ->
-                def dbProjectClone = dbProject.clone()
-                dbProjectClone.children = []
-                devEnvClone.children << dbProjectClone
-
-                findDatabases(dbProject).each { db ->
-                    def dbClone = db.clone()
-                    dbClone.children = []
-                    dbProjectClone.children << dbClone
-
-                    findServers(db).each { server ->
-                        def serverClone = server.clone()
-                        serverClone.children = []
-                        dbClone.children << serverClone
-                    }
-                }
-            }
+            dbClone.children << findServers(db)
         }
 
         return result
@@ -169,6 +178,44 @@ class CMDBUseCase {
     }
 
     @NonCPS
+    public static List<Map> findServers(Map rootNode) {
+        def result = []
+
+        def findServers = { node ->
+            node.children.findAll { child ->
+                return this.isServerNode(child)
+            }
+        }
+
+        findServers(rootNode).each { server ->
+            def serverClone = server.clone()
+            serverClone.children = []
+            result << serverClone
+        }
+
+        return result
+    }
+
+    @NonCPS
+    public static List<Map> findSoftware(Map rootNode) {
+        def result = []
+
+        def findSoftware = { node ->
+            node.children.findAll { child ->
+                return isSoftware(child)
+            }
+        }
+
+        findSoftware(rootNode).each { software ->
+            def softwareClone = software.clone()
+            softwareClone.children = []
+            result << softwareClone
+        }
+
+        return result
+    }
+
+    @NonCPS
     public static boolean isAPI(Map node) {
         return node.application_type == "Application Programming Interface"
     }
@@ -242,21 +289,42 @@ class CMDBUseCase {
     }
 
     @NonCPS
-    public Map loadData(String ciName) {
-        return this.cmdb.loadData(ciName)
+    public static boolean isSoftware(Map node) {
+        return node.sys_class_name == "u_cmdb_ci_software"
     }
 
     @NonCPS
-    public List toFlatData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy, List result = [], Map parentNode = null) {
+    public Map loadData(String ciName) {
+        def data = this.cmdb.loadData(ciName)
+        sanitizeData(data)
+        logger.debug "???: ${JsonOutput.prettyPrint(JsonOutput.toJson(data))}\n"
+        return data
+    }
+
+    @NonCPS
+    public void sanitizeData(Map node, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+        logger.debug "!!!: in CMDBUseCase::sanitizeData\n"
+        logger.debug "apply nodeSanitizerStrategy to ${node.hashCode()}: ${node.name}\n"
+        nodeSanitizerStrategy(node)
+        if (node.parentNode) {
+            nodeSanitizerStrategy(node.parentNode)
+        }
+
+        logger.debug "sanitized node to ${node.hashCode()}: ${JsonOutput.prettyPrint(JsonOutput.toJson(node))}\n"
+
+        node.children?.each { Map childNode ->
+            sanitizeData(childNode, nodeSanitizerStrategy)
+        }
+    }
+
+    @NonCPS
+    public List toFlatData(Map node, List result = [], Map parentNode = null) {
         def item = node.clone()
         item.remove('children')
-        if (nodeSanitizerStrategy) {
-            nodeSanitizerStrategy(item)
-        }
         result << item
 
         node.children?.each { Map childNode ->
-            toFlatData(childNode, nodeSanitizerStrategy, result, item)
+            toFlatData(childNode, result, item)
         }
 
         return result
@@ -311,7 +379,7 @@ class CMDBUseCase {
     */
 
     @NonCPS
-    public String toMermaidGraphCode(Map rootNode, Closure nodeSanitizerStrategy = this.&defaultNodeSanitizerStrategy) {
+    public String toMermaidGraphCode(Map rootNode) {
         if (!rootNode) return ""
 
         def entities = [] as Set
@@ -369,7 +437,7 @@ class CMDBUseCase {
             return "    ${id}(${text})"
         }
 
-        def flatData = this.toFlatData(rootNode, nodeSanitizerStrategy_)
+        def flatData = this.toFlatData(rootNode)
         flatData.each { node ->
             entities << toNodeCode(node)
             if (node.relation && node.parent_name) relations << toEdgeCode(node)

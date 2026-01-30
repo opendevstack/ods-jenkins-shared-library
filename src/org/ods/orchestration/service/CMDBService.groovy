@@ -49,7 +49,7 @@ class CMDBService {
             connection.setRequestProperty("Authorization", "Bearer ${this.accessToken}")
             connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,*/*")
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            return connection.inputStream.bytes.encodeBase64()
+            return connection.inputStream.bytes.encodeBase64() ?: connection.getResponseMessage()
         }
 
         @NonCPS
@@ -348,6 +348,9 @@ class CMDBService {
     @NonCPS
     private void sanitizeCiProperties(Map node, Map parentNode = null, Closure relationSanitizerStrategy = null) {
         if (parentNode) {
+            node.parentNode = parentNode.clone()
+            node.parentNode.children = null
+
             node.parent_sys_id = parentNode.sys_id
             node.parent_name = parentNode.name
         }

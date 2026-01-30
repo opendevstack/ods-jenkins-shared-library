@@ -62,10 +62,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.REQ as String)        : 'Requirements Specification incl. Risk Assessment Document',
         (DocumentType.DES as String)        : 'System and Software Description Document',
         (DocumentType.EVD as String)        : 'Qualification Evidence Document',
+        (DocumentType.TRM as String)        : 'Manual Traceability Matrix Document',
     ]
 
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
     ]
+
+    static String TESTED_REQUIREMENTS = 'executedTests'
+    static String NON_TESTED_REQUIREMENTS = 'untestedRequirements'
+
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
@@ -334,54 +339,70 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def dependencies = this.bbt.getODSComponentDependencies(project.getGitReleaseBranch())
 
         def parentCi = cmdb.loadData(this.project.buildParams.configItem)
-
-        cmdb.defaultNodeSanitizerStrategy(parentCi)
         def modules = cmdb.findModules(parentCi)
+        def devEnvironment = cmdb.findEnvironments(parentCi).find { return cmdb.isDevelopmentEnvironment(it) }
+        def databaseProjects = cmdb.findDatabaseProjects(parentCi)
         def interfaces = cmdb.findInterfaces(parentCi)
-        def devEnvironment = cmdb.findEnvironments(parentCi).find { env ->
-            return cmdb.isDevelopmentEnvironment(env)
-        }
+        def servers = cmdb.findServers(parentCi)
+        def software = cmdb.findSoftware(parentCi)
 
         def parentCiAll = combineParentWithChildren(parentCi, [devEnvironment] + interfaces + modules)
         def parentCiModules = combineParentWithChildren(parentCi, modules)
-        def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
+        //def parentCiRelations = combineParentWithChildren(parentCi, [devEnvironment] + interfaces)
+        def parentCiDevEnvironment = combineParentWithChildren(parentCi, [devEnvironment])
+        def parentCiInterfaces = combineParentWithChildren(parentCi, interfaces)
+        def parentCiDatabaseProjects = combineParentWithChildren(parentCi, databaseProjects)
+        def parentCiServers = combineParentWithChildren(parentCi, servers)
+        def parentCiSoftware = combineParentWithChildren(parentCi, software)
+
+        // compute Mermaid diagram for all relevant entities
+        def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
+
+        // cnmpute Mermaid diagram for parent Ci system components
+        def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
 
         // compute Mermaid diagram for parent Ci modules
         def parentCiModulesPngImage = generateMermaidDiagram(parentCiModules)
 
         // compute Mermaid diagram for parent Ci relations
-        def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
+        //def parentCiRelationsPngImage = generateMermaidDiagram(parentCiRelations)
+        def parentCiInterfacesPngImage = interfaces.size() > 0 ? generateMermaidDiagram(parentCiInterfaces) : null
+        def parentCiDatabaseProjectsPngImage = databaseProjects.size() > 0 ? generateMermaidDiagram(parentCiDatabaseProjects) : null
+        def parentCiServersPngImage = servers.size() > 0 ? generateMermaidDiagram(parentCiServers) : null
+        def parentCiSoftwarePngImage = software.size() > 0 ? generateMermaidDiagram(parentCiSoftware) : null
 
-        // compute Mermaid diagram for all relevant entities
-        def fullDiagramPngImage = generateMermaidDiagram(parentCiAll)
+        def cmdbAttachmentOverview = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
 
-        // Mermaid for components
-        def componentsDiagramPngImage = generateComponentDiagram(components, dependencies)
-
-        def environment = getTargetEnvironment()
-
-        def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
-
-        if (cmdbAttachmentOveriew) {
-            cmdbAttachmentOveriew.htmlImage = 
-                "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
+        if (cmdbAttachmentOverview) {
+            cmdbAttachmentOverview.htmlImage = 
+                "data:${cmdbAttachmentOverview.contentType};base64,${cmdbAttachmentOverview.data}"
         }
 
         def data_ = [
             metadata: metadata,
-            environment: environment,
+            environment: getTargetEnvironment(),
             data : [
-                components: components,
+                cmdbAttachmentOverview: cmdbAttachmentOverview,
+                //fullDiagramPngImage: fullDiagramPngImage,
                 parentCi: parentCi,
-                parentCiModules: modules,
-                parentCiRelations: cmdb.toFlatData(parentCiRelations),
-                parentCiModulesPngImage: parentCiModulesPngImage,
-                parentCiRelationsPngImage: parentCiRelationsPngImage,
                 componentsDiagramPngImage: componentsDiagramPngImage,
+                components: components,
+                parentCiModulesPngImage: parentCiModulesPngImage,
+                parentCiModules: modules,
+                //parentCiRelationsPngImage: parentCiRelationsPngImage,
+                //parentCiRelations: cmdb.toFlatData(parentCiRelations),
+                environments: cmdb.toFlatData(parentCiDevEnvironment).drop(1),
+                parentCiDatabaseProjectsPngImage: parentCiDatabaseProjectsPngImage,
+                databaseProjects: cmdb.toFlatData(parentCiDatabaseProjects).drop(1),
+                parentCiInterfacesPngImage: parentCiInterfacesPngImage,
+                interfaces: cmdb.toFlatData(parentCiInterfaces).drop(1),
+                parentCiServersPngImage: parentCiServersPngImage,
+                servers: cmdb.toFlatData(parentCiServers).drop(1),
+                parentCiSoftwarePngImage: parentCiSoftwarePngImage,
+                software: cmdb.toFlatData(parentCiSoftware).drop(1),
                 changeHistory: this.getChangeHistory(),
                 references: getDocReferences(),
-                cmdbUrl : cmdb.getCMDBUrl(),
-                cmdbAttachmentOveriew : cmdbAttachmentOveriew,
+                cmdbUrl: cmdb.getCMDBUrl(),
             ]
         ]
 
@@ -397,7 +418,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.DES, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
-
         return uri
     }
 
@@ -514,7 +534,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 components: executedComponents,
                 testComponents: testComponents,
-                tests: tests,
+                tests: tests.get(TESTED_REQUIREMENTS),
+                untestedRequirements: tests.get(NON_TESTED_REQUIREMENTS)?.size(),
                 sonar: sonarReports,
                 aqua: aquaReports,
                 repos: pullRequests,
@@ -530,6 +551,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(DocumentType.EVD, repo, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+        logger.debug("non tested requirements: ${tests.get(NON_TESTED_REQUIREMENTS)}")
+        if (tests.get(NON_TESTED_REQUIREMENTS)?.size() > 0) {
+            documentType = DocumentType.TRM as String
+            metadata = getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType])
+            metadata.orientation = 'Landscape'
+            data_ = [
+                metadata: metadata,
+                environment: environment,
+                env: project.buildParams.targetEnvironment.toUpperCase(Locale.ENGLISH),
+                assembled: project.isAssembleMode,
+                data: [
+                    tests: tests.get(TESTED_REQUIREMENTS),
+                    manualtests: tests.get(NON_TESTED_REQUIREMENTS),
+                    changeHistory: this.getChangeHistory(),
+                    references: getDocReferences(),
+                ]
+            ]
+            watermarkText = this.getWatermarkText(documentType)
+            this.createDocument(DocumentType.TRM, repo, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        }
 
         return uri
     }
@@ -627,7 +668,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<Map> getTestResults(Map data) {
+    private Map<String, List<Map>> getTestResults(Map data) {
+        def testReturn = [ : ]
         def integrationTestResults = extractTestResults(data.tests?.integration, 'Integration')
         def acceptanceTestResults = extractTestResults(data.tests?.acceptance, 'Acceptance')
         def installationTestResults = extractTestResults(data.tests?.installation, 'Installation')
@@ -640,18 +682,26 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     def msg = "Test ${test.name} of type ${test.type} failed with result ${test.result}."
                     throw new RuntimeException(msg)
                 }
-                testedRequirements << test.reqId
             }
+            testedRequirements << test.reqId
             return test
         }
-        if (!project.developerPreviewMode) {
-            def untested = project.requirementsByNumber.keySet() - testedRequirements
-            if (untested) {
-                def msg = "The following requirements were not tested: ${untested.sort()}"
-                throw new RuntimeException(msg)
+        testReturn[TESTED_REQUIREMENTS] = tests
+        // @TODO . this needs a super smart way to identify untested requirements
+        //if (!project.developerPreviewMode) {
+        def untested = project.requirementsByNumber.keySet() - testedRequirements
+        if (untested) {
+            def msg = "The following requirements were not tested automatically: ${untested.sort()}"
+            testReturn[NON_TESTED_REQUIREMENTS] = untested.sort().collect { reqId ->
+                def req = project.requirementsByNumber[reqId]
+                return [
+                    reqId: reqId,
+                    requirementName: req?.metadata?.pageTitle
+                ]
             }
         }
-        return tests
+        //}
+        return testReturn
     }
 
     @NonCPS
