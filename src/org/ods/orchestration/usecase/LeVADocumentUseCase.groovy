@@ -368,6 +368,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def cmdbAttachmentOveriew = cmdb.getDocumentAttachmentForSystem(parentCi.sys_id)
 
         if (cmdbAttachmentOveriew) {
+            logger.debug("image: ${cmdbAttachmentOveriew}")
             cmdbAttachmentOveriew.htmlImage = 
                 "<img src=\"data:${cmdbAttachmentOveriew.contentType};base64,${cmdbAttachmentOveriew.data}\">"
         }
