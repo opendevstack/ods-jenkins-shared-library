@@ -44,7 +44,7 @@ class CMDBUseCase {
                 devEnvClone.children << appServiceClone
             }
 
-            //devEnvClone.children << findDatabaseProjects(devEnv)
+            devEnvClone.children << findDatabaseProjects(devEnv)
         }
 
         return result
@@ -87,6 +87,18 @@ class CMDBUseCase {
                     serverClone.children = []
                     dbClone.children << serverClone
                 }
+            }
+        }
+
+        findDatabases(rootNode).each { db ->
+            def dbClone = db.clone()
+            dbClone.children = []
+            result.children << dbClone
+
+            findServers(db).each { server ->
+                def serverClone = server.clone()
+                serverClone.children = []
+                dbClone.children << serverClone
             }
         }
 
