@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+* Add component information in automatic release close notes ([#1254](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1254))
 
 ### Fixed
 * Log correct error message for wrong preview-branch value ([#1249](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1249))
