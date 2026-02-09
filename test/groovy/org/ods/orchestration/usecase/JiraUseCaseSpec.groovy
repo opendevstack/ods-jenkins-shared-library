@@ -873,6 +873,12 @@ class JiraUseCaseSpec extends SpecHelper {
         def testResults = new TestResults();
         testResults.setFailed(1)
         project.getAggregatedTestResults() >> testResults
+        project.data.metadata.repositories[0].data << [
+            git: [
+                commit: 1234
+            ],
+            failedStage: true
+        ]
 
         def error = new RuntimeException("Oh no!")
 
@@ -891,6 +897,12 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Failed",
             env: 'D',
+            components: [
+                ['id':'demo-app-carts', 'commit':1234, 'failed':true],
+                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
+                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
+                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+            ],
             startDateTimestamp: "1234567890",
         ])
 
@@ -907,6 +919,12 @@ class JiraUseCaseSpec extends SpecHelper {
         def testResults = new TestResults();
         testResults.setSucceeded(1)
         project.getAggregatedTestResults() >> testResults
+        project.data.metadata.repositories[0].data << [
+            git: [
+                commit: 1234
+            ],
+            failedStage: true
+        ]
 
         when:
         usecase.updateJiraReleaseStatusResult("", false)
@@ -923,6 +941,12 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             status: "Successful",
             env: 'D',
+            components: [
+                ['id':'demo-app-carts', 'commit':1234, 'failed':true],
+                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
+                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
+                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+            ],
             startDateTimestamp: "1234567890",
         ])
     }
