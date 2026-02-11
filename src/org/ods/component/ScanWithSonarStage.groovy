@@ -278,7 +278,7 @@ class ScanWithSonarStage extends Stage {
         )
         steps.sh(
             label: 'Move and rename report to artifacts dir',
-            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
+            script: "mv sonarqube-report_fail.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
                     "echo 'Failed to move report'"
         )
         
