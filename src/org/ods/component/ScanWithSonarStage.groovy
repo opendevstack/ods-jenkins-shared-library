@@ -278,22 +278,23 @@ class ScanWithSonarStage extends Stage {
         )
         steps.sh(
             label: 'Move and rename report to artifacts dir',
-            script: "mv sonarqube-report_force_fail.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
+            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
                     "echo 'Failed to move report'"
         )
         
         try {
-            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
+            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report_fail-*")
 
-            def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
+            def sonarqubeStashPath = "sonarqube-report_fail-${context.componentId}-${context.buildNumber}"
             context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
 
             steps.stash(
                 name: "${sonarqubeStashPath}",
-                includes: "artifacts/sonarqube-report-*"
+                includes: "artifacts/sonarqube-report_fail-*"
+
             )
 
-            context.addArtifactURI('sonarqube-report', targetReport)
+            context.addArtifactURI('sonarqube-report_fail', targetReport)
         } catch (Exception e) {
             logger.warn "Failed to archive or stash artifacts: ${e.message}"
         }
