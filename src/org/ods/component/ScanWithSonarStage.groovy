@@ -278,10 +278,10 @@ class ScanWithSonarStage extends Stage {
         )
         steps.sh(
             label: 'Move and rename report to artifacts dir',
-            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} || " +
-                    "(echo 'Failed to move report')"
+            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
+                    "echo 'Failed to move report'"
         )
-        steps.archiveArtifacts(artifacts: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*")
+        steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
 
         def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
