@@ -396,7 +396,7 @@ class JiraUseCase {
                 components.add([
                     id: repo.id,
                     commit: gitSHA ? gitSHA : 'N/A',
-                    failed: gitSHA ? (repo.data?.failedStage ? true : false) : 'N/A',
+                    status: gitSHA ? (repo.data?.failedStage ? 'FAILURE' : 'SUCCESS') : 'N/A',
                 ])
             }
         }
