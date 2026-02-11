@@ -68,15 +68,11 @@ def call(Map config) {
                 logger.debugClocked('pod-template')
                 withEnv(envs) {
                     def result
-                    def cannotContinueAsHasOpenIssuesInClosingRelease = false
                     try {
                         result = new InitStage(this, project, repos, startAgentStage).execute()
                     } catch (OpenIssuesException ex) {
-                        cannotContinueAsHasOpenIssuesInClosingRelease = true
-                    }
-                    if (cannotContinueAsHasOpenIssuesInClosingRelease) {
                         logger.warn('Cannot continue as it has open issues in the release.')
-                        return
+                        throw ex
                     }
                     if (result) {
                         project = result.project
