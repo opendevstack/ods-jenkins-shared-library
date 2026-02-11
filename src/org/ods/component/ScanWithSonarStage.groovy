@@ -156,6 +156,10 @@ class ScanWithSonarStage extends Stage {
             targetReport
         )
 
+        // Upload report to Nexus and create Bitbucket code insight
+        URI nexusUri = generateAndArchiveReportInNexus(targetReport,
+            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
+
         // We need always the QG to put in insight report in Bitbucket
         def qualityGateResult = getQualityGateResult(
             sonarProjectKey,
@@ -165,9 +169,6 @@ class ScanWithSonarStage extends Stage {
             privateToken
         ).toUpperCase()
 
-        // Upload report to Nexus and create Bitbucket code insight
-        URI nexusUri = generateAndArchiveReportInNexus(targetReport,
-            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
         createBitbucketCodeInsightReport(qualityGateResult, nexusUri.toString(), sonarProjectKey,
             context.sonarQubeEdition, sonarProperties['sonar.branch.name'].toString())
 
@@ -277,9 +278,10 @@ class ScanWithSonarStage extends Stage {
         )
         steps.sh(
             label: 'Move and rename report to artifacts dir',
-            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport}"
+            script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} || " +
+                    "(echo 'Failed to move report'"
         )
-        steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
+        steps.archiveArtifacts(artifacts: "${steps.env.WORKSPACE}/artifacts/sonarqube-report-*")
 
         def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
@@ -380,7 +382,7 @@ class ScanWithSonarStage extends Stage {
     }
 
     private URI generateAndArchiveReportInNexus(String targetReport, nexusRepository) {
-        def reportPath = "artifacts/${targetReport}"
+        def reportPath = "${steps.env.WORKSPACE}/artifacts/${targetReport}"
         def reportBytes = steps.readFile(file: reportPath, encoding: "ISO-8859-1") as String
         byte[] pdfBytes = reportBytes.getBytes("ISO-8859-1")
 
