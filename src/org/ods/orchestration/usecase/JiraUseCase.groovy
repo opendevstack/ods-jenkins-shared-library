@@ -392,10 +392,11 @@ class JiraUseCase {
         logger.debug("---- buildComponentsDataForRelease project (${this.project.key}) data ----\r${this.project}\r -----")
         this.project.data.metadata.repositories.each { repo ->
             if (repo.include == true) {
+                def gitSHA = repo.data?.git?.commit
                 components.add([
                     id: repo.id,
-                    commit: repo.data?.git?.commit,
-                    failed: repo.data?.failedStage ? true : false,
+                    commit: gitSHA ? gitSHA : 'N/A',
+                    failed: gitSHA ? (repo.data?.failedStage ? true : false) : 'N/A',
                 ])
             }
         }
