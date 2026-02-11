@@ -281,7 +281,6 @@ class ScanWithSonarStage extends Stage {
             script: "mv sonarqube-report.pdf ${steps.env.WORKSPACE}/artifacts/${targetReport} 2>&1 || " +
                     "echo 'Failed to move report'"
         )
-        
         try {
             steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
 
@@ -298,8 +297,6 @@ class ScanWithSonarStage extends Stage {
         } catch (Exception e) {
             logger.warn "Failed to archive or stash artifacts: ${e.message}"
         }
-        
-        
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
