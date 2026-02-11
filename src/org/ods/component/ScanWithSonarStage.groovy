@@ -283,18 +283,18 @@ class ScanWithSonarStage extends Stage {
         )
         
         try {
-            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report_fail-*")
+            steps.archiveArtifacts(artifacts: "artifacts/sonarqube-report-*")
 
-            def sonarqubeStashPath = "sonarqube-report_fail-${context.componentId}-${context.buildNumber}"
+            def sonarqubeStashPath = "sonarqube-report-${context.componentId}-${context.buildNumber}"
             context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
 
             steps.stash(
                 name: "${sonarqubeStashPath}",
-                includes: "artifacts/sonarqube-report_fail-*"
+                includes: "artifacts/sonarqube-report-*"
 
             )
 
-            context.addArtifactURI('sonarqube-report_fail', targetReport)
+            context.addArtifactURI('sonarqube-report', targetReport)
         } catch (Exception e) {
             logger.warn "Failed to archive or stash artifacts: ${e.message}"
         }
