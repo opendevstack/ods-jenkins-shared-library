@@ -389,7 +389,6 @@ class JiraUseCase {
 
     List buildComponentsDataForRelease() {
         def components = []
-        logger.debug("---- buildComponentsDataForRelease project (${this.project.key}) data ----\r${this.project}\r -----")
         this.project.data.metadata.repositories.each { repo ->
             if (repo.include == true) {
                 def gitSHA = repo.data?.git?.commit
