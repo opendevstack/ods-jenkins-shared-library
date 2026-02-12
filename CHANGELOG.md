@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+* Update automatic release component information with N/A when pipelines have not run yet ([#1257](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1257))
 * Add component information in automatic release close notes ([#1254](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1254))
 
 ### Fixed
