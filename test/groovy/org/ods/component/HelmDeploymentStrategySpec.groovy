@@ -6,6 +6,7 @@ import org.ods.util.HelmStatus
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import org.ods.util.PodData
 import spock.lang.Shared
 import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
@@ -39,20 +40,20 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         'targetProject'                 : 'myproject-test',
     ]
 
-    // Expected rollout data now uses simple maps with deploymentId and containers
-    static Map<String, Map<String, Object>> expectedRolloutData = [
-        'core': [
-            'deploymentId': 'core',
-            'containers'  : [
+    // Expected rollout data now uses PodData objects wrapped in lists
+    static Map<String, List<PodData>> expectedRolloutData = [
+        'core': [new PodData(
+            deploymentId: 'core',
+            containers  : [
                 'chart-component-a': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef",
             ],
-        ],
-        'standalone-gateway': [
-            'deploymentId': 'standalone-gateway',
-            'containers'  : [
+        )],
+        'standalone-gateway': [new PodData(
+            deploymentId: 'standalone-gateway',
+            containers  : [
                 'chart-component-b': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba",
             ],
-        ]
+        )]
     ]
 
     static def config = [
@@ -98,7 +99,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> coreContainerImages
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> standaloneGatewayContainerImages
 
-        Map<String, Map<String, Object>> rolloutData
+        Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
@@ -128,9 +129,14 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         expectedRolloutData.keySet() == rolloutData.keySet()
 
-        expectedRolloutData.each { key, expectedData ->
-            def actualData = rolloutData[key]
-            assert expectedData == actualData
+        expectedRolloutData.each { key, expectedDataList ->
+            def actualDataList = rolloutData[key]
+            assert expectedDataList.size() == actualDataList.size()
+            expectedDataList.each { expectedData ->
+                def actualData = actualDataList[0]
+                assert expectedData.deploymentId == actualData.deploymentId
+                assert expectedData.containers == actualData.containers
+            }
         }
     }
 
@@ -169,12 +175,12 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                         Deployment: ['core', 'standalone-gateway']
                     ]
                 ],
-                core: [
+                core: [new PodData(
                     deploymentId: 'core',
                     containers: [
                         'core': 'myproject-dev/helm-component-a@sha256:12345abcdef'
                     ]
-                ],
+                )],
             ]
         ]
 
@@ -210,10 +216,10 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         // Verify rolloutData structure
         rolloutData.containsKey('core')
         rolloutData.containsKey('standalone-gateway')
-        rolloutData['core'].deploymentId == 'core'
-        rolloutData['core'].containers instanceof Map
-        rolloutData['standalone-gateway'].deploymentId == 'standalone-gateway'
-        rolloutData['standalone-gateway'].containers instanceof Map
+        rolloutData['core'][0].deploymentId == 'core'
+        rolloutData['core'][0].containers instanceof Map
+        rolloutData['standalone-gateway'][0].deploymentId == 'standalone-gateway'
+        rolloutData['standalone-gateway'][0].containers instanceof Map
 
         // Verify deploymentMean was added
         actualDeploymentMeans.deployments.containsKey('core-deploymentMean')
@@ -252,7 +258,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
             'postgres': "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
         ]
 
-        Map<String, Map<String, Object>> rolloutData
+        Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
@@ -264,9 +270,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         // Verify StatefulSet is included in rolloutData
         rolloutData.containsKey('database')
-        rolloutData['database'].deploymentId == 'database'
-        rolloutData['database'].containers instanceof Map
-        rolloutData['database'].containers['postgres'] == "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
+        rolloutData['database'][0].deploymentId == 'database'
+        rolloutData['database'][0].containers instanceof Map
+        rolloutData['database'][0].containers['postgres'] == "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
     }
 
     def "rollout: check rolloutData with CronJob resource"() {
@@ -300,7 +306,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
             'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
         ]
 
-        Map<String, Map<String, Object>> rolloutData
+        Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
@@ -312,9 +318,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         // Verify CronJob is included in rolloutData
         rolloutData.containsKey('cleanup-job')
-        rolloutData['cleanup-job'].deploymentId == 'cleanup-job'
-        rolloutData['cleanup-job'].containers instanceof Map
-        rolloutData['cleanup-job'].containers['cleanup'] == "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
+        rolloutData['cleanup-job'][0].deploymentId == 'cleanup-job'
+        rolloutData['cleanup-job'][0].containers instanceof Map
+        rolloutData['cleanup-job'][0].containers['cleanup'] == "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
     }
 
     def "rollout: check rolloutData with multi-container Deployment"() {
@@ -349,7 +355,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
             'envoy-sidecar': "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
         ]
 
-        Map<String, Map<String, Object>> rolloutData
+        Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
@@ -361,11 +367,11 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
         // Verify multi-container deployment has both containers
         rolloutData.containsKey('multi-container-app')
-        rolloutData['multi-container-app'].deploymentId == 'multi-container-app'
-        rolloutData['multi-container-app'].containers instanceof Map
-        rolloutData['multi-container-app'].containers.size() == 2
-        rolloutData['multi-container-app'].containers['main-app'] == "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345"
-        rolloutData['multi-container-app'].containers['envoy-sidecar'] == "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
+        rolloutData['multi-container-app'][0].deploymentId == 'multi-container-app'
+        rolloutData['multi-container-app'][0].containers instanceof Map
+        rolloutData['multi-container-app'][0].containers.size() == 2
+        rolloutData['multi-container-app'][0].containers['main-app'] == "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345"
+        rolloutData['multi-container-app'][0].containers['envoy-sidecar'] == "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
     }
 
     def "rollout: check rolloutData with all resource types (Deployment, StatefulSet, CronJob)"() {
@@ -406,7 +412,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
             'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
         ]
 
-        Map<String, Map<String, Object>> rolloutData
+        Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
@@ -420,19 +426,19 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         rolloutData.size() == 5  // core, standalone-gateway, multi-container-app, database, cleanup-job
 
         // Verify Deployments
-        rolloutData['core'].deploymentId == 'core'
-        rolloutData['standalone-gateway'].deploymentId == 'standalone-gateway'
+        rolloutData['core'][0].deploymentId == 'core'
+        rolloutData['standalone-gateway'][0].deploymentId == 'standalone-gateway'
 
         // Verify multi-container Deployment
-        rolloutData['multi-container-app'].containers.size() == 2
+        rolloutData['multi-container-app'][0].containers.size() == 2
 
         // Verify StatefulSet
-        rolloutData['database'].deploymentId == 'database'
-        rolloutData['database'].containers['postgres'].contains('postgres@sha256')
+        rolloutData['database'][0].deploymentId == 'database'
+        rolloutData['database'][0].containers['postgres'].contains('postgres@sha256')
 
         // Verify CronJob
-        rolloutData['cleanup-job'].deploymentId == 'cleanup-job'
-        rolloutData['cleanup-job'].containers['cleanup'].contains('cleanup@sha256')
+        rolloutData['cleanup-job'][0].deploymentId == 'cleanup-job'
+        rolloutData['cleanup-job'][0].containers['cleanup'].contains('cleanup@sha256')
     }
 
 }
