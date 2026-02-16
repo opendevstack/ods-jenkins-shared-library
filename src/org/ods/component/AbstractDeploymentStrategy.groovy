@@ -3,6 +3,7 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
+import org.ods.util.PodData
 
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
 
@@ -12,7 +13,7 @@ abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
     ]
 
     @Override
-    abstract Map<String, ?> deploy()
+    abstract Map<String, List<PodData>> deploy()
 
     // Fetches original kubernetes revisions of deployment resources.
     //

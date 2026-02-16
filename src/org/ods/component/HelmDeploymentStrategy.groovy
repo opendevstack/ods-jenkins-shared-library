@@ -7,6 +7,7 @@ import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import org.ods.util.PodData
 
 class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
@@ -80,7 +81,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     @Override
-    Map<String, Map<String, Object>> deploy() {
+    Map<String, List<PodData>> deploy() {
         if (!context.environment) {
             logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
@@ -165,10 +166,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     //    'Deployment/bar': [deploymentId: 'bar', containers: [...], ...]
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
-    private Map<String, Map<String, Object>> getRolloutData(
+    private Map<String, List<PodData>> getRolloutData(
         HelmStatus helmStatus
     ) {
-        Map<String, Map<String, Object>> rolloutData = [:]
+        Map<String, List<PodData>> rolloutData = [:]
 
         Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
                 .findAll { kind, res -> kind in DEPLOYMENT_KINDS }
@@ -188,11 +189,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
                 containersByResource[name] = containers
 
-                def resourceData = [
+                def podData = new PodData(
                     deploymentId: name,
                     containers: containers,
-                ]
-                rolloutData[name] = resourceData
+                )
+                rolloutData[name] = [podData]
             }
         }
 
@@ -242,11 +243,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 }
             }
         }
-        def consolidatedDeploymentData = [
+        def consolidatedPodData = new PodData(
             deploymentId: options.helmReleaseName,
-            containers: flattenedContainers,
-        ]
-        context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedDeploymentData)
+            containers: flattenedContainers as Map<String, String>,
+        )
+        context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedPodData.toMap())
 
         return rolloutData
     }
