@@ -213,7 +213,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     printCallStack()
     assertJobStatusSuccess()
     // New format: deploymentInfo keys are just the resource name without kind prefix
-    deploymentInfo['core'].deploymentId == "core"
+    deploymentInfo['core'][0].deploymentId == "core"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
