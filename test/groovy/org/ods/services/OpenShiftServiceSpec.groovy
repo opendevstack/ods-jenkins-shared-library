@@ -248,6 +248,51 @@ class OpenShiftServiceSpec extends SpecHelper {
         ]
     }
 
+    def "parsePodJson with pod ownership passing - all pods running"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def file = new FixtureHelper().getResource("pod_ownership_running-jobcompleted.json")
+
+        when:
+        def podJson = new JsonSlurperClassic().parseText(file.text)
+        def results = service.parsePodJson(podJson)
+
+        then:
+        // Should return 5 pods: 6 total pods, minus 1 Job pod
+        // (Pod 1: ReplicaSet owner, Pod 2: ReplicaSet owner, Pod 3: no owner, 
+        //  Pod 4-2: no owner, Pod 4-4: ReplicationController owner, Pod backup: Job owner - filtered)
+        results.size() == 5
+        results[0].podName == 'ownership-test-pod-1-556f55cd8c-cz8wg'
+        results[0].podStatus == 'Running'
+        results[1].podName == 'ownership-test-pod-2-7c57f69c74-jzlcw'
+        results[1].podStatus == 'Running'
+        results[2].podName == 'ownership-test-pod-3-0'
+        results[2].podStatus == 'Running'
+        results[3].podName == 'ownership-test-pod-4-2-nx4nc'
+        results[3].podStatus == 'Running'
+        results[4].podName == 'ownership-test-pod-4-4-bhv8c'
+        results[4].podStatus == 'Running'
+    }
+
+    def "parsePodJson with pending and failed pods - not all pods running"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+        def file = new FixtureHelper().getResource("pod-ownership-pending-failed.json")
+
+        when:
+        def podJson = new JsonSlurperClassic().parseText(file.text)
+        def results = service.parsePodJson(podJson)
+
+        then:
+        // Should return empty list because not all non-Job pods are running
+        // The file has 6 pods: Pod 1 (Failed), Pod 2 (Pending), Pod 3 (Succeeded), 
+        // Pod 4-2 (Running), Pod 4-4 (Running), and 1 Job pod (Running - filtered out)
+        // Since 5 non-Job pods exist but not all are "Running", returns empty list
+        results.size() == 0
+    }
+
     def "helm status data extraction"() {
         given:
         def steps = Spy(util.PipelineSteps)
