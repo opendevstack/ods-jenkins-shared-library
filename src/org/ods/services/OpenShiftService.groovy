@@ -19,6 +19,8 @@ class OpenShiftService {
     static final String ROLLOUT_WAITING = 'waiting'
     static final String DEPLOYMENTCONFIG_KIND = 'DeploymentConfig'
     static final String DEPLOYMENT_KIND = 'Deployment'
+    static final String STATEFULSET_KIND = 'StatefulSet'
+    static final String CRONJOB_KIND = 'CronJob'
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -569,6 +571,39 @@ class OpenShiftService {
             label: "Get container images for ${kind} ${name}",
             returnStdout: true
         ).toString().trim().tokenize(' ').collect { imageInfoForImageUrl(it) }
+    }
+
+    // getContainerImagesWithNameFromPodSpec returns a map of container name -> image (with SHA)
+    // for resources that have a pod template spec (Deployment, DeploymentConfig, StatefulSet, CronJob).
+    // For CronJob, the pod template is at .spec.jobTemplate.spec.template.spec.containers
+    // For Deployment/DeploymentConfig/StatefulSet, it's at .spec.template.spec.containers
+    @TypeChecked(TypeCheckingMode.SKIP)
+    Map<String, String> getContainerImagesWithNameFromPodSpec(String project, String kind, String name) {
+        def jsonPath = kind == 'CronJob' ?
+            '.spec.jobTemplate.spec.template.spec.containers' :
+            '.spec.template.spec.containers'
+
+        def stdout = steps.sh(
+            script: "oc -n ${project} get ${kind} ${name} -o jsonpath='{${jsonPath}}'",
+            label: "Get container images for ${kind} ${name}",
+            returnStdout: true
+        ).toString().trim()
+
+        Map<String, String> containers = [:]
+        if (stdout) {
+            def containersJson = new JsonSlurperClassic().parseText(stdout)
+            containersJson.each { container ->
+                def containerName = container.name
+                def image = container.image
+                // Resolve image tag to SHA if needed
+                def imageWithSha = imageInfoWithShaForImageStreamUrl(image)
+                def fullImageWithSha = imageWithSha.registry ?
+                    "${imageWithSha.registry}/${imageWithSha.repository}/${imageWithSha.name}@${imageWithSha.sha}" :
+                    "${imageWithSha.repository}/${imageWithSha.name}@${imageWithSha.sha}"
+                containers[containerName] = fullImageWithSha
+            }
+        }
+        return containers
     }
 
     String getOriginUrlFromBuildConfig(String project, String bcName) {

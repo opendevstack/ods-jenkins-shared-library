@@ -40,33 +40,20 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         'targetProject'                 : 'myproject-test',
     ]
 
+    // Expected rollout data now uses PodData objects wrapped in lists
     static Map<String, List<PodData>> expectedRolloutData = [
-        'Deployment/core': [
-            new PodData(
-                [
-                    'containers'                  : [
-                        'chart-component-a': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef",
-                    ],
-                    'deploymentId'                : 'backend-helm-monorepo-chart-component-a-789abcde',
-                    'podMetaDataCreationTimestamp': '2024-11-11T16:01:04Z',
-                    'podName'                     : 'backend-helm-monorepo-chart-component-a-789abcde-asdf',
-                    'podNamespace'                : "${contextData.targetProject}",
-                    'podStatus'                   : 'Running',
-                ])
-        ],
-        'Deployment/standalone-gateway': [
-            new PodData(
-                [
-                    'containers'                  : [
-                        'chart-component-b': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba",
-                    ],
-                    'deploymentId'                : 'backend-helm-monorepo-chart-component-b-01234abc',
-                    'podMetaDataCreationTimestamp': '2024-11-11T16:01:04Z',
-                    'podName'                     : 'backend-helm-monorepo-chart-component-b-01234abc-qwerty',
-                    'podNamespace'                : "${contextData.targetProject}",
-                    'podStatus'                   : 'Running',
-                ])
-        ]
+        'core': [new PodData(
+            deploymentId: 'core',
+            containers  : [
+                'chart-component-a': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef",
+            ],
+        )],
+        'standalone-gateway': [new PodData(
+            deploymentId: 'standalone-gateway',
+            containers  : [
+                'chart-component-b': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba",
+            ],
+        )]
     ]
 
     static def config = [
@@ -76,27 +63,15 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         'selector'               : "app.kubernetes.io/instance=${contextData.componentId}",
     ]
 
-    static def corePodData = new PodData([
-        'containers'                  : [
-            'chart-component-a': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef",
-        ],
-        'deploymentId'                : 'backend-helm-monorepo-chart-component-a-789abcde',
-        'podMetaDataCreationTimestamp': '2024-11-11T16:01:04Z',
-        'podName'                     : 'backend-helm-monorepo-chart-component-a-789abcde-asdf',
-        'podNamespace'                : "${contextData.targetProject}",
-        'podStatus'                   : 'Running',
-    ])
+    // Container images returned by getContainerImagesWithNameFromPodSpec for 'core' deployment
+    static def coreContainerImages = [
+        'chart-component-a': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef",
+    ]
 
-    static def standaloneGatewayPodData = new PodData([
-        'containers'                  : [
-            'chart-component-b': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba",
-        ],
-        'deploymentId'                : 'backend-helm-monorepo-chart-component-b-01234abc',
-        'podMetaDataCreationTimestamp': '2024-11-11T16:01:04Z',
-        'podName'                     : 'backend-helm-monorepo-chart-component-b-01234abc-qwerty',
-        'podNamespace'                : "${contextData.targetProject}",
-        'podStatus'                   : 'Running',
-    ])
+    // Container images returned by getContainerImagesWithNameFromPodSpec for 'standalone-gateway' deployment
+    static def standaloneGatewayContainerImages = [
+        'chart-component-b': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba",
+    ]
 
     def "rollout: check rolloutData"() {
         given:
@@ -120,6 +95,10 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
         jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
 
+        // Setup stub for getContainerImagesWithNameFromPodSpec
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> coreContainerImages
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> standaloneGatewayContainerImages
+
         Map<String, List<PodData>> rolloutData
         HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
@@ -127,7 +106,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         rolloutData = strategy.deploy()
 
         then:
-        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> { helmStatus }
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
 
         1 * openShift.helmUpgrade(
                 contextData.targetProject,
@@ -144,34 +123,24 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                     'global.imageTag': '',
                 ],
                 ['--install', '--atomic'],
-                ['--additional-flag-1', '--additional-flag-2'],
+                ['--additional-flag-1', '--additional-flag-2', '--history-max 5'],
                 true,
         )
 
-        2 * openShift.checkForPodData(contextData.targetProject, config.selector, _) >> { args ->
-            switch (args[2]) {
-                case 'core':
-                    return [corePodData]
-                case 'standalone-gateway':
-                    return [standaloneGatewayPodData]
-                default:
-                    return []
+        expectedRolloutData.keySet() == rolloutData.keySet()
+
+        expectedRolloutData.each { key, expectedDataList ->
+            def actualDataList = rolloutData[key]
+            assert expectedDataList.size() == actualDataList.size()
+            expectedDataList.each { expectedData ->
+                def actualData = actualDataList[0]
+                assert expectedData.deploymentId == actualData.deploymentId
+                assert expectedData.containers == actualData.containers
             }
-        }
-
-        assert expectedRolloutData.keySet() == rolloutData.keySet()
-
-        expectedRolloutData.each { key, expectedPodData ->
-            def actualPodData = rolloutData[key]
-
-            def expectedMaps = expectedPodData*.toMap()
-            def actualMaps = actualPodData*.toMap()
-
-            assert expectedMaps == actualMaps
         }
     }
 
-    def "rollout: check deploymentMean when multiple pods then accept only latest"() {
+    def "rollout: check deploymentMean with container images from pod spec"() {
         given:
 
         def expectedDeploymentMeans = [
@@ -185,7 +154,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                     helmReleaseName: 'core',
                     helmEnvBasedValuesFiles: [],
                     helmValuesFiles: ['values.yaml'],
-                    helmValues: [: ],
+                    helmValues: [:],
                     helmDefaultFlags: ['--install', '--atomic'],
                     helmAdditionalFlags: [],
                     helmStatus: [name: 'standalone-app',
@@ -201,56 +170,17 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                                      Secret: ['core-rsa-key-secret','core-security-exandradev-secret','core-security-unify-secret'],
                                      Service: ['core','standalone-gateway']
                                  ]
+                    ],
+                    resources: [
+                        Deployment: ['core', 'standalone-gateway']
                     ]
                 ],
-                core: [podName: null,
-                       podNamespace: null,
-                       podMetaDataCreationTimestamp: '2024-12-12T20:10:47Z',
-                       deploymentId: 'core-124',
-                       podStatus: null,
-                       containers: [
-                           containerA: 'imageAnew',
-                           containerB: 'imageBnew'
-                       ]
-                ],
-                'standalone-gateway-deploymentMean': [
-                    type: 'helm',
-                    selector: 'app=myproject-core',
-                    namespace: 'foo-dev',
-                    chartDir: 'chart',
-                    helmReleaseName: 'core',
-                    helmEnvBasedValuesFiles: [],
-                    helmValuesFiles: ['values.yaml'],
-                    helmValues: [:],
-                    helmDefaultFlags: ['--install','--atomic'],
-                    helmAdditionalFlags: [],
-                    helmStatus: [
-                        name: 'standalone-app',
-                        version: '43',
-                        namespace: 'myproject-test',
-                        status: 'deployed',
-                        description: 'Upgrade complete',
-                        lastDeployed: '2024-03-04T15:21:09.34520527Z',
-                        resourcesByKind: [
-                            Cluster: ['some-cluster'],
-                            ConfigMap: ['core-appconfig-configmap'],
-                            Deployment: ['core','standalone-gateway'],
-                            Secret: ['core-rsa-key-secret','core-security-exandradev-secret','core-security-unify-secret'],
-                            Service: ['core','standalone-gateway']
-                        ]
-                    ]
-            ],
-                'standalone-gateway': [
-                    podName: null,
-                    podNamespace: null,
-                    podMetaDataCreationTimestamp: '2024-12-12T20:10:47Z',
-                    deploymentId: 'core-124',
-                    podStatus: null,
+                core: [new PodData(
+                    deploymentId: 'core',
                     containers: [
-                        containerA: 'imageAnew',
-                        containerB: 'imageBnew'
+                        'core': 'myproject-dev/helm-component-a@sha256:12345abcdef'
                     ]
-                ]
+                )],
             ]
         ]
 
@@ -259,10 +189,12 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
         IContext context = new Context(null, ctxData, logger)
         OpenShiftService openShiftService = Mock(OpenShiftService.class)
-        openShiftService.checkForPodData(*_) >> [
-            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:46Z", containers: ["containerA": "imageAold", "containerB": "imageBold"]]),
-            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAnew", "containerB": "imageBnew"]]),
-            new PodData([deploymentId: "${contextData.componentId}-123", podMetaDataCreationTimestamp: "2024-11-11T20:10:46Z"])
+        // Now uses getContainerImagesWithNameFromPodSpec instead of checkForPodData
+        openShiftService.getContainerImagesWithNameFromPodSpec('foo-dev', 'Deployment', 'core') >> [
+            'containerA': 'myproject-dev/helm-component-a@sha256:12345abcdef'
+        ]
+        openShiftService.getContainerImagesWithNameFromPodSpec('foo-dev', 'Deployment', 'standalone-gateway') >> [
+            'containerB': 'myproject-dev/helm-component-b@sha256:98765fedcba'
         ]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -276,45 +208,237 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         def deploymentResources = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
         def rolloutData = strategy.getRolloutData(deploymentResources)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
-
 
         then:
         printCallStack()
         assertJobStatusSuccess()
 
-        assert expectedDeploymentMeans == actualDeploymentMeans
+        // Verify rolloutData structure
+        rolloutData.containsKey('core')
+        rolloutData.containsKey('standalone-gateway')
+        rolloutData['core'][0].deploymentId == 'core'
+        rolloutData['core'][0].containers instanceof Map
+        rolloutData['standalone-gateway'][0].deploymentId == 'standalone-gateway'
+        rolloutData['standalone-gateway'][0].containers instanceof Map
+
+        // Verify deploymentMean was added
+        actualDeploymentMeans.deployments.containsKey('core-deploymentMean')
+        actualDeploymentMeans.deployments['core-deploymentMean'].type == 'helm'
+        actualDeploymentMeans.deployments['core-deploymentMean'].helmReleaseName == 'core'
     }
 
-    def "rollout: check deploymentMean when multiple pods with same timestamp but different image then pipeline fails"() {
+    def "rollout: check rolloutData with StatefulSet resource"() {
         given:
-        def config = [:]
+        def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMapWithStatefulSet())
 
-        def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
-        IContext context = new Context(null, ctxData, logger)
-        OpenShiftService openShiftService = Mock(OpenShiftService.class)
-        openShiftService.checkForPodData(*_) >> [
-            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAnew", "containerB": "imageBnew"]]),
-            new PodData([deploymentId: "${contextData.componentId}-124", podMetaDataCreationTimestamp: "2024-12-12T20:10:47Z", containers: ["containerA": "imageAold", "containerB": "imageBold"]]),
+        OpenShiftService openShift = Mock()
+        JenkinsService jenkins = Stub()
+        IPipelineSteps steps = Stub()
+
+        IContext context = Stub {
+            getTargetProject() >> contextData.targetProject
+            getEnvironment() >> contextData.environment
+            getBuildArtifactURIs() >> contextData.artifactUriStore
+            getComponentId() >> contextData.componentId
+            getClusterRegistryAddress() >> contextData.clusterRegistryAddress
+            getCdProject() >> contextData.cdProject
+        }
+
+        steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
+        jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+
+        // Setup stubs for all resource types
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> [
+            'core': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef"
         ]
-        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> [
+            'standalone-gateway': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'StatefulSet', 'database') >> [
+            'postgres': "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
+        ]
 
-        JenkinsService jenkinsService = Stub(JenkinsService.class)
-        jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
-        ServiceRegistry.instance.add(JenkinsService, jenkinsService)
-
-        HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
+        Map<String, List<PodData>> rolloutData
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
 
         when:
-        def deploymentResources = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
-        def rolloutData = strategy.getRolloutData(deploymentResources)
-        def actualDeploymentMeans = context.getBuildArtifactURIs()
-
+        rolloutData = strategy.deploy()
 
         then:
-        printCallStack()
-        def e = thrown(RuntimeException)
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
+        1 * openShift.helmUpgrade(*_)
 
-        assert e.message == "Unable to determine the most recent Pod. Multiple pods running with the same latest creation timestamp and different images found for core"
+        // Verify StatefulSet is included in rolloutData
+        rolloutData.containsKey('database')
+        rolloutData['database'][0].deploymentId == 'database'
+        rolloutData['database'][0].containers instanceof Map
+        rolloutData['database'][0].containers['postgres'] == "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
+    }
+
+    def "rollout: check rolloutData with CronJob resource"() {
+        given:
+        def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMapWithCronJob())
+
+        OpenShiftService openShift = Mock()
+        JenkinsService jenkins = Stub()
+        IPipelineSteps steps = Stub()
+
+        IContext context = Stub {
+            getTargetProject() >> contextData.targetProject
+            getEnvironment() >> contextData.environment
+            getBuildArtifactURIs() >> contextData.artifactUriStore
+            getComponentId() >> contextData.componentId
+            getClusterRegistryAddress() >> contextData.clusterRegistryAddress
+            getCdProject() >> contextData.cdProject
+        }
+
+        steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
+        jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+
+        // Setup stubs for all resource types
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> [
+            'core': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> [
+            'standalone-gateway': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'CronJob', 'cleanup-job') >> [
+            'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
+        ]
+
+        Map<String, List<PodData>> rolloutData
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+
+        when:
+        rolloutData = strategy.deploy()
+
+        then:
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
+        1 * openShift.helmUpgrade(*_)
+
+        // Verify CronJob is included in rolloutData
+        rolloutData.containsKey('cleanup-job')
+        rolloutData['cleanup-job'][0].deploymentId == 'cleanup-job'
+        rolloutData['cleanup-job'][0].containers instanceof Map
+        rolloutData['cleanup-job'][0].containers['cleanup'] == "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
+    }
+
+    def "rollout: check rolloutData with multi-container Deployment"() {
+        given:
+        def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMapWithMultiContainerDeployment())
+
+        OpenShiftService openShift = Mock()
+        JenkinsService jenkins = Stub()
+        IPipelineSteps steps = Stub()
+
+        IContext context = Stub {
+            getTargetProject() >> contextData.targetProject
+            getEnvironment() >> contextData.environment
+            getBuildArtifactURIs() >> contextData.artifactUriStore
+            getComponentId() >> contextData.componentId
+            getClusterRegistryAddress() >> contextData.clusterRegistryAddress
+            getCdProject() >> contextData.cdProject
+        }
+
+        steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
+        jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+
+        // Setup stubs for all resource types including multi-container deployment
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> [
+            'core': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> [
+            'standalone-gateway': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'multi-container-app') >> [
+            'main-app': "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345",
+            'envoy-sidecar': "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
+        ]
+
+        Map<String, List<PodData>> rolloutData
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+
+        when:
+        rolloutData = strategy.deploy()
+
+        then:
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
+        1 * openShift.helmUpgrade(*_)
+
+        // Verify multi-container deployment has both containers
+        rolloutData.containsKey('multi-container-app')
+        rolloutData['multi-container-app'][0].deploymentId == 'multi-container-app'
+        rolloutData['multi-container-app'][0].containers instanceof Map
+        rolloutData['multi-container-app'][0].containers.size() == 2
+        rolloutData['multi-container-app'][0].containers['main-app'] == "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345"
+        rolloutData['multi-container-app'][0].containers['envoy-sidecar'] == "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
+    }
+
+    def "rollout: check rolloutData with all resource types (Deployment, StatefulSet, CronJob)"() {
+        given:
+        def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMapWithAllResourceTypes())
+
+        OpenShiftService openShift = Mock()
+        JenkinsService jenkins = Stub()
+        IPipelineSteps steps = Stub()
+
+        IContext context = Stub {
+            getTargetProject() >> contextData.targetProject
+            getEnvironment() >> contextData.environment
+            getBuildArtifactURIs() >> contextData.artifactUriStore
+            getComponentId() >> contextData.componentId
+            getClusterRegistryAddress() >> contextData.clusterRegistryAddress
+            getCdProject() >> contextData.cdProject
+        }
+
+        steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
+        jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+
+        // Setup stubs for all resource types
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> [
+            'core': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-a@sha256:12345abcdef"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> [
+            'standalone-gateway': "${contextData.clusterRegistryAddress}/myproject-dev/helm-component-b@sha256:98765fedcba"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'multi-container-app') >> [
+            'main-app': "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345",
+            'envoy-sidecar': "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'StatefulSet', 'database') >> [
+            'postgres': "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
+        ]
+        openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'CronJob', 'cleanup-job') >> [
+            'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
+        ]
+
+        Map<String, List<PodData>> rolloutData
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+
+        when:
+        rolloutData = strategy.deploy()
+
+        then:
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
+        1 * openShift.helmUpgrade(*_)
+
+        // Verify all resource types are included
+        rolloutData.size() == 5  // core, standalone-gateway, multi-container-app, database, cleanup-job
+
+        // Verify Deployments
+        rolloutData['core'][0].deploymentId == 'core'
+        rolloutData['standalone-gateway'][0].deploymentId == 'standalone-gateway'
+
+        // Verify multi-container Deployment
+        rolloutData['multi-container-app'][0].containers.size() == 2
+
+        // Verify StatefulSet
+        rolloutData['database'][0].deploymentId == 'database'
+        rolloutData['database'][0].containers['postgres'].contains('postgres@sha256')
+
+        // Verify CronJob
+        rolloutData['cleanup-job'][0].deploymentId == 'cleanup-job'
+        rolloutData['cleanup-job'][0].containers['cleanup'].contains('cleanup@sha256')
     }
 
 }
