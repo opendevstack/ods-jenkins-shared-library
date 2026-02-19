@@ -838,4 +838,92 @@ class OpenShiftServiceSpec extends SpecHelper {
         then:
         thrown(RuntimeException)
     }
+
+    @Unroll
+    def "getContainerImagesWithNameFromPodSpec for #kind with #containerCount container(s)"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)])
+
+        // Mock steps.sh to return the containers JSON
+        def expectedJsonPath = kind == 'CronJob' ? '.spec.jobTemplate.spec.template.spec.containers' : '.spec.template.spec.containers'
+        steps.sh({
+            it.script == "oc -n myproject-dev get ${kind} my-resource -o jsonpath='{${expectedJsonPath}}'" &&
+            it.returnStdout == true
+        }) >> containersJson
+
+        // Mock imageInfoWithShaForImageStreamUrl to return pre-resolved image info
+        service.imageInfoWithShaForImageStreamUrl(_) >> { String imageUrl ->
+            // Return a mock response with consistent format
+            [
+                registry: 'image-registry.openshift.svc:5000',
+                repository: 'myproject-dev',
+                name: imageUrl.contains('component-0') ? 'component-0' : 'component-1',
+                sha: imageUrl.contains('component-0') ? 'sha256:abc1230' : 'sha256:abc1231',
+                shaStripped: imageUrl.contains('component-0') ? 'abc1230' : 'abc1231'
+            ]
+        }
+
+        when:
+        def result = service.getContainerImagesWithNameFromPodSpec('myproject-dev', kind, 'my-resource')
+
+        then:
+        result.size() == expectedResult.size()
+        result.keySet() == expectedResult.keySet()
+        // Check each container has an image with SHA
+        result.each { containerName, imageWithSha ->
+            assert imageWithSha.contains('@sha256:')
+        }
+
+        where:
+        kind           | containerCount | containersJson                                                                                                                                                                        || expectedResult
+        'Deployment'   | 1              | '[{"name":"main","image":"image-registry.openshift.svc:5000/myproject-dev/component-0:latest"}]'                                                                                      || ['main': 'any']
+        'Deployment'   | 2              | '[{"name":"main","image":"image-registry.openshift.svc:5000/myproject-dev/component-0:latest"},{"name":"sidecar","image":"image-registry.openshift.svc:5000/myproject-dev/component-1:latest"}]' || ['main': 'any', 'sidecar': 'any']
+        'StatefulSet'  | 1              | '[{"name":"db","image":"image-registry.openshift.svc:5000/myproject-dev/component-0:latest"}]'                                                                                        || ['db': 'any']
+        'CronJob'      | 1              | '[{"name":"job","image":"image-registry.openshift.svc:5000/myproject-dev/component-0:latest"}]'                                                                                       || ['job': 'any']
+    }
+
+    def "getContainerImagesWithNameFromPodSpec returns empty map when no containers"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+
+        steps.sh({
+            it.script == "oc -n myproject-dev get Deployment my-deployment -o jsonpath='{.spec.template.spec.containers}'" &&
+            it.returnStdout == true
+        }) >> ''
+
+        when:
+        def result = service.getContainerImagesWithNameFromPodSpec('myproject-dev', 'Deployment', 'my-deployment')
+
+        then:
+        result.isEmpty()
+    }
+
+    def "getContainerImagesWithNameFromPodSpec uses different jsonpath for CronJob"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)])
+
+        steps.sh({
+            it.script == "oc -n myproject-dev get CronJob my-cronjob -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers}'" &&
+            it.returnStdout == true
+        }) >> '[{"name":"job-runner","image":"image-registry.openshift.svc:5000/myproject-dev/job-runner:latest"}]'
+
+        service.imageInfoWithShaForImageStreamUrl(_) >> [
+            registry: 'image-registry.openshift.svc:5000',
+            repository: 'myproject-dev',
+            name: 'job-runner',
+            sha: 'sha256:cronjob123',
+            shaStripped: 'cronjob123'
+        ]
+
+        when:
+        def result = service.getContainerImagesWithNameFromPodSpec('myproject-dev', 'CronJob', 'my-cronjob')
+
+        then:
+        result.size() == 1
+        result.containsKey('job-runner')
+        result['job-runner'].contains('@sha256:')
+    }
 }

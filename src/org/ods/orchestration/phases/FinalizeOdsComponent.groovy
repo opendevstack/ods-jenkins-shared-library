@@ -125,7 +125,7 @@ class FinalizeOdsComponent {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
-        // Verify that all DCs are managed by ODS
+        // Verify that all workload resources are managed by ODS
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
 
@@ -141,23 +141,47 @@ class FinalizeOdsComponent {
 
         deploymentMeans.values().each{deploymentMean->
             String componentSelector = deploymentMean.selector
-
+            // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
+            // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
+            // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
+            def allWorkloadKinds = [
+                OpenShiftService.DEPLOYMENT_KIND,
+                OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                OpenShiftService.STATEFULSET_KIND,
+                OpenShiftService.CRONJOB_KIND
+            ]
             def allComponentDeploymentsByKind = os.getResourcesForComponent(
                 project.targetProject,
-                [OpenShiftService.DEPLOYMENTCONFIG_KIND, OpenShiftService.DEPLOYMENT_KIND],
+                allWorkloadKinds,
                 componentSelector
             )
-            def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND] ?: []
-            if (allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND]) {
-                allComponentDeployments.addAll(allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENT_KIND])
+            // Flatten all workload kinds into a single list for verification
+            def allComponentDeployments = []
+            allWorkloadKinds.each { kind ->
+                if (allComponentDeploymentsByKind[kind]) {
+                    allComponentDeployments.addAll(allComponentDeploymentsByKind[kind])
+                }
             }
             logger.debug(
                 "ODS created deployments for ${repo.id}: " +
-                "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
+                "${odsBuiltDeployments}, all workloads: ${allComponentDeployments}"
             )
 
-            odsBuiltDeployments.each { odsBuiltDeploymentName ->
-                allComponentDeployments.remove(odsBuiltDeploymentName)
+            // For helm deployments, use the resources field to determine tracked resources
+            // This contains resources organized by kind (e.g., Deployment, StatefulSet, etc.)
+            if (deploymentMean.type == 'helm' && deploymentMean.resources) {
+                def helmTrackedDeployments = []
+                deploymentMean.resources.each { kind, names ->
+                    helmTrackedDeployments.addAll(names ?: [])
+                }
+                helmTrackedDeployments.each { trackedName ->
+                    allComponentDeployments.remove(trackedName)
+                }
+            } else {
+                // For non-helm deployments, use the legacy approach
+                odsBuiltDeployments.each { odsBuiltDeploymentName ->
+                    allComponentDeployments.remove(odsBuiltDeploymentName)
+                }
             }
 
 
@@ -178,8 +202,15 @@ class FinalizeOdsComponent {
         // if the underlying image points to *-cd, we can continue.
         def excludedProjects = MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT + ["${project.key}-cd".toString()]
         odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
-            odsBuiltDeployment.containers?.each { String containerName, String containerImage ->
-                def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
+            def containersData = odsBuiltDeployment.containers
+            if (!containersData || !Map.isInstance(containersData)) {
+                return
+            }
+            // Both Tailor and Helm use flat structure: {containerName: image-string}
+            // Process and validate images across both deployment strategies
+            containersData.each { String containerName, containerImage ->
+                def imageUrl = containerImage.toString()
+                def owningProject = os.imageInfoWithShaForImageStreamUrl(imageUrl).repository
                 if (project.targetProject != owningProject && !excludedProjects.contains(owningProject)) {
                     def msg = "Deployment: ${odsBuiltDeploymentName} / " +
                         "Container: ${containerName} / Owner: ${owningProject}/ Excluded Projects: ${excludedProjects}"
