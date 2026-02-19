@@ -879,6 +879,11 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             failedStage: true
         ]
+        project.data.metadata.repositories[1].data << [
+            git: [
+                commit: 5678
+            ]
+        ]
 
         def error = new RuntimeException("Oh no!")
 
@@ -898,10 +903,10 @@ class JiraUseCaseSpec extends SpecHelper {
             status: "Failed",
             env: 'D',
             components: [
-                ['id':'demo-app-carts', 'commit':1234, 'failed':true],
-                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
-                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
-                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+                ['id':'demo-app-carts', 'commit':1234, 'status':'FAILURE'],
+                ['id':'demo-app-catalogue', 'commit':5678, 'status':'SUCCESS'],
+                ['id':'demo-app-front-end', 'commit':'N/A', 'status':'N/A'],
+                ['id':'demo-app-tests', 'commit':'N/A', 'status':'N/A']
             ],
             startDateTimestamp: "1234567890",
         ])
@@ -925,6 +930,11 @@ class JiraUseCaseSpec extends SpecHelper {
             ],
             failedStage: true
         ]
+        project.data.metadata.repositories[1].data << [
+            git: [
+                commit: 5678
+            ]
+        ]
 
         when:
         usecase.updateJiraReleaseStatusResult("", false)
@@ -942,10 +952,10 @@ class JiraUseCaseSpec extends SpecHelper {
             status: "Successful",
             env: 'D',
             components: [
-                ['id':'demo-app-carts', 'commit':1234, 'failed':true],
-                ['id':'demo-app-catalogue', 'commit':null, 'failed':false],
-                ['id':'demo-app-front-end', 'commit':null, 'failed':false],
-                ['id':'demo-app-tests', 'commit':null, 'failed':false]
+                ['id':'demo-app-carts', 'commit':1234, 'status':'FAILURE'],
+                ['id':'demo-app-catalogue', 'commit':5678, 'status':'SUCCESS'],
+                ['id':'demo-app-front-end', 'commit':'N/A', 'status':'N/A'],
+                ['id':'demo-app-tests', 'commit':'N/A', 'status':'N/A']
             ],
             startDateTimestamp: "1234567890",
         ])
