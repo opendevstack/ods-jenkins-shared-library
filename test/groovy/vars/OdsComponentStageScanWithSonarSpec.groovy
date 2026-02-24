@@ -117,28 +117,65 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         assertJobStatusSuccess()
     }
 
-    def "skips scan if not enabled in cluster and project"() {
-        given:
-        def c = config + [environment: 'dev']
-        IContext context = new Context(null, c, logger)
-        BitbucketService bitbucketService = Stub(BitbucketService.class)
-        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
-        NexusService nexusService = Mock(NexusService.class)
-        ServiceRegistry.instance.add(NexusService, nexusService)
-        SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
-        ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-        def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
-        script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
-        helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
-        // Mock sh to return config map with enabled=false
-        helper.registerAllowedMethod('sh', [Map]) { Map args -> '{"data": {"enabled": "false", "alertEmails": "test@example.com"}}' }
-        when:
-        script.call(context)
-        then:
-        printCallStack()
-        assertCallStackContains('SonarQube scan not enabled at cluster level')
-        assertJobStatusSuccess()
+  @Unroll
+  def "enable/disable scan: clusterEnabled=#clusterEnabled, projectEnabled=#projectEnabled"() {
+    // The configmap key for project-level override is "projects.<projectId>.enabled".
+    // The shared config has projectId='foo', so the key is "projects.foo.enabled".
+    // Project value always governs when the key is present; cluster value is ignored.
+    given:
+    def c = config + [environment: 'dev']
+    IContext context = new Context(null, c, logger)
+    BitbucketService bitbucketService = Stub(BitbucketService.class)
+    bitbucketService.findPullRequest(*_) >> [:]
+    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+    NexusService nexusService = Mock(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
+    SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
+    sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
+    sonarQubeService.scan(*_) >> null
+    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
+    sonarQubeService.getSonarQubeHostUrl() >> 'https://sonarqube.example.com'
+    ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+
+    when:
+    def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
+    script.env.OPENSHIFT_BUILD_NAMESPACE = 'test-namespace'
+    helper.registerAllowedMethod('archiveArtifacts', [Map]) { Map args -> }
+    helper.registerAllowedMethod('stash', [Map]) { Map args -> }
+    helper.registerAllowedMethod('readFile', [Map]) { Map args -> '' }
+    helper.registerAllowedMethod('emailext', [Map]) { Map args -> }
+    helper.registerAllowedMethod('sh', [Map]) { Map args -> configMapJson }
+    script.call(context)
+
+    then:
+    printCallStack()
+    assertJobStatusSuccess()
+    if (shouldScan) {
+      assertCallStackContains('SonarQube Analysis')
+    } else {
+      assertCallStackContains(skipReason)
+      assertCallStackContains('SonarQube scan not enabled')
     }
+
+    where:
+    // Project value always takes precedence; cluster value is irrelevant when project key is present.
+    clusterEnabled | projectEnabled || configMapJson                                                                          | shouldScan | skipReason
+    'true'         | 'true'         || '{"data": {"enabled": "true",  "projects.foo.enabled": "true"}}'                      | true       | ''
+    'true'         | 'false'        || '{"data": {"enabled": "true",  "projects.foo.enabled": "false"}}'                     | false      | 'Skipping SonarQube scan because project is not enabled'
+    // Project enabled=true overrides a disabled cluster → scan MUST run
+    'false'        | 'true'         || '{"data": {"enabled": "false", "projects.foo.enabled": "true"}}'                      | true       | ''
+    // Project disabled regardless of cluster state → scan MUST NOT run
+    'false'        | 'false'        || '{"data": {"enabled": "false", "projects.foo.enabled": "false"}}'                     | false      | 'Skipping SonarQube scan because project is not enabled'
+    // Cluster enabled not explicitly set (defaults true); project value still governs
+    'not set'      | 'true'         || '{"data": {"projects.foo.enabled": "true"}}'                                           | true       | ''
+    'not set'      | 'false'        || '{"data": {"projects.foo.enabled": "false"}}'                                          | false      | 'Skipping SonarQube scan because project is not enabled'
+    // Project not set (empty map) → falls back to cluster configuration
+    'true'         | 'not set'      || '{"data": {"enabled": "true"}}'                                                         | true       | ''
+    'false'        | 'not set'      || '{"data": {"enabled": "false"}}'                                                        | false      | 'Skipping SonarQube scan because is not enabled at cluster level'
+  }
 
   @Unroll
   def "checks quality gate"() {
