@@ -172,6 +172,9 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     // Cluster enabled not explicitly set (defaults true); project value still governs
     'not set'      | 'true'         || '{"data": {"projects.foo.enabled": "true"}}'                                           | true       | ''
     'not set'      | 'false'        || '{"data": {"projects.foo.enabled": "false"}}'                                          | false      | 'Skipping SonarQube scan because project is not enabled'
+    // Project not set (empty map) → falls back to cluster configuration
+    'true'         | 'not set'      || '{"data": {"enabled": "true"}}'                                                         | true       | ''
+    'false'        | 'not set'      || '{"data": {"enabled": "false"}}'                                                        | false      | 'Skipping SonarQube scan because is not enabled at cluster level'
   }
 
   @Unroll
