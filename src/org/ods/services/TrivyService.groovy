@@ -8,7 +8,7 @@ import org.ods.util.IPipelineSteps
 class TrivyService {
 
     static final int TRIVY_SUCCESS = 0
-    static final int TRIVY_OPERATIONAL_ERROR = 1
+    static final int TRIVY_FAIL = 1
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -19,11 +19,11 @@ class TrivyService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int scanViaCli(String scanners, String pkgType, String format, String flags,
-        String reportFile, String nexusRepository, String openshiftDomain ) {
+    int scan(String resourceName, String scanners, String pkgType, String format, String flags,
+        String reportFile, String nexusRepository, String openshiftDomain) {
+        logger.startClocked(resourceName)
         logger.info "Starting to scan via Trivy CLI..."
-        int status = TRIVY_SUCCESS
-        status = steps.sh(
+        int returnCode = steps.sh(
             label: 'Scan via Trivy CLI',
             returnStatus: true,
             script: """
@@ -53,8 +53,22 @@ class TrivyService {
                 set -e
             """
         )
-
-        return status
+        switch (returnCode) {
+            case TRIVY_SUCCESS:
+                logger.info "Finished scan via Trivy CLI successfully!"
+                break
+            case TRIVY_FAIL:
+                logger.info(
+                    "An error occurred while processing the Trivy scan request " +
+                    "(e.g. invalid command line options, operational error, or " +
+                    "severity threshold exceeded when using the --exit-code flag)."
+                )
+                break
+            default:
+                logger.info "An unknown return code was returned: ${returnCode}"
+        }
+        logger.infoClocked(resourceName, "Trivy scan (via CLI)")
+        return returnCode
     }
 
 }

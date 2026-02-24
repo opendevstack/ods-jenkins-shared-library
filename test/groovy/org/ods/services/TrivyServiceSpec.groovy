@@ -5,16 +5,14 @@ import vars.test_helper.PipelineSpockTestBase
 
 class TrivyServiceSpec extends PipelineSpockTestBase {
 
-    def "invoke Trivy cli"() {
+    def "scan - SUCCESS"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(TrivyService, constructorArgs: [
-            steps,
-            new Logger(steps, false)
-        ])
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(TrivyService, constructorArgs: [steps, logger])
 
         when:
-        def result = service.scanViaCli("vuln,misconfig,secret,license", "os,library",
+        def result = service.scan("component1", "vuln,misconfig,secret,license", "os,library",
            "cyclonedx", "--debug --timeout=10m", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
@@ -47,9 +45,47 @@ class TrivyServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('set -e')
 
             return 0
-        }    
-
+        }
+        1 * logger.info("Finished scan via Trivy CLI successfully!")
         0 == result
+    }
+
+    def "scan - Operational Error"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(TrivyService, constructorArgs: [steps, logger])
+
+        when:
+        def result = service.scan("component1", "vuln,misconfig,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
+
+        then:
+        1 * steps.sh({ it.label == 'Scan via Trivy CLI' }) >> 1
+        1 * steps.sh({ it.label == 'Read SBOM with Trivy CLI' }) >> 0
+        1 * logger.info(
+                  "An error occurred while processing the Trivy scan request " +
+                  "(e.g. invalid command line options, operational error, or " +
+                  "severity threshold exceeded when using the --exit-code flag)."
+        )
+        1 == result
+    }
+
+    def "scan - Unknown return code"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(TrivyService, constructorArgs: [steps, logger])
+
+        when:
+        def result = service.scan("component1", "vuln,misconfig,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
+
+        then:
+        1 * steps.sh({ it.label == 'Scan via Trivy CLI' }) >> 127
+        1 * steps.sh({ it.label == 'Read SBOM with Trivy CLI' }) >> 0
+        1 * logger.info("An unknown return code was returned: 127")
+        127 == result
     }
 
 }
