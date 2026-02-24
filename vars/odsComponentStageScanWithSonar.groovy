@@ -125,10 +125,9 @@ private String handleSonarScan(
     }
     // Project config takes precedence: if project is explicitly configured, use its value
     // Otherwise, fall back to cluster config
-    boolean shouldRun = configurationSonarProject.isEmpty() ? 
+    boolean shouldRun = configurationSonarProject.isEmpty() ?
         Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true") :
         Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
-    
     if (shouldRun) {
         new ScanWithSonarStage(
             this,
@@ -142,8 +141,8 @@ private String handleSonarScan(
             configurationSonarProject
         ).execute()
     } else {
-        String reason = !configurationSonarProject.isEmpty() ? 
-            "project is not enabled" : 
+        String reason = !configurationSonarProject.isEmpty() ?
+            "project is not enabled" :
             "is not enabled at cluster level"
         services.logger.warn("Skipping SonarQube scan because $reason " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
