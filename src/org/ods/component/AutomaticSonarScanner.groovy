@@ -66,10 +66,10 @@ class AutomaticSonarScanner implements Serializable {
                 "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
             )
         } else {
-            configurationSonarProject.put('enabled', true)
+            configurationSonarProject.put('enabled', false)
             logger.info(
                 "Not parameter 'projects.${context.projectId}.enabled' at cluster level. " +
-                "Default enabled"
+                "Default disabled"
             )
         }
 
@@ -77,11 +77,11 @@ class AutomaticSonarScanner implements Serializable {
             configurationSonarCluster['enabled']?.toString() ?: "true"
         )
         boolean enabledInProject = Boolean.valueOf(
-            configurationSonarProject['enabled']?.toString() ?: "true"
+            configurationSonarProject['enabled']?.toString() ?: "false"
         )
 
         // Only run scan if enabled in both cluster and project
-        if (enabledInCluster && enabledInProject) {
+        if (enabledInCluster || enabledInProject) {
             Stage sonarStage = new ScanWithSonarStage(
                 script,
                 context,
@@ -100,14 +100,6 @@ class AutomaticSonarScanner implements Serializable {
                 logger.warn(
                     "Skipping SonarQube scan because it is not enabled at cluster nor " +
                     "project level"
-                )
-            } else if (enabledInCluster) {
-                logger.warn(
-                    "Skipping SonarQube scan because it is not enabled at project level"
-                )
-            } else {
-                logger.warn(
-                    "Skipping SonarQube scan because it is not enabled at cluster level"
                 )
             }
         }
