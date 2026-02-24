@@ -103,11 +103,11 @@ private List fetchSonarConfig(OpenShiftService openShiftService, IContext contex
     Map configurationSonarProject = [:]
     def key = "projects." + context.projectId + ".enabled"
     if (configurationSonarCluster.containsKey(key)) {
+        // Store the actual project-level configuration
         configurationSonarProject.put('enabled', configurationSonarCluster.get(key))
         logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
     } else {
-        configurationSonarProject.put('enabled', false)
-        logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level. Default enabled"
+        logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level."
     }
     return [configurationSonarCluster, configurationSonarProject, alertEmails]
 }
@@ -120,12 +120,16 @@ private String handleSonarScan(
     Map services // expects keys: bitbucketService, sonarQubeService, nexusService, logger
 ) {
     String errorMessages = ''
-    boolean enabledInCluster = Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true")
-    boolean enabledInProject = Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "false")
     if (configurationSonarCluster['nexusRepository']) {
         config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
     }
-    if (enabledInCluster || enabledInProject) {
+    // Project config takes precedence: if project is explicitly configured, use its value
+    // Otherwise, fall back to cluster config
+    boolean shouldRun = configurationSonarProject.isEmpty() ? 
+        Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true") :
+        Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
+    
+    if (shouldRun) {
         new ScanWithSonarStage(
             this,
             context,
@@ -138,10 +142,13 @@ private String handleSonarScan(
             configurationSonarProject
         ).execute()
     } else {
-        services.logger.warn("Skipping SonarQube scan because is not enabled at cluster nor project level " +
+        String reason = !configurationSonarProject.isEmpty() ? 
+            "project is not enabled" : 
+            "is not enabled at cluster level"
+        services.logger.warn("Skipping SonarQube scan because $reason " +
             "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
             "in ${config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE} project")
-        errorMessages += "<li>SonarQube scan not enabled at cluster nor project level</li>"
+        errorMessages += "<li>SonarQube scan not enabled</li>"
     }
     return errorMessages
 }
