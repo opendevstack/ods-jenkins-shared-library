@@ -66,22 +66,18 @@ class AutomaticSonarScanner implements Serializable {
                 "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
             )
         } else {
-            configurationSonarProject.put('enabled', true)
             logger.info(
-                "Not parameter 'projects.${context.projectId}.enabled' at cluster level. " +
-                "Default enabled"
+                "Not parameter 'projects.${context.projectId}.enabled' at cluster level."
             )
         }
 
-        boolean enabledInCluster = Boolean.valueOf(
-            configurationSonarCluster['enabled']?.toString() ?: "true"
-        )
-        boolean enabledInProject = Boolean.valueOf(
-            configurationSonarProject['enabled']?.toString() ?: "true"
-        )
+        // Project config takes precedence: if project is explicitly configured, use its value
+        // Otherwise, fall back to cluster config
+        boolean shouldRun = configurationSonarProject.isEmpty() ?
+            Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true") :
+            Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
 
-        // Only run scan if enabled in both cluster and project
-        if (enabledInCluster && enabledInProject) {
+        if (shouldRun) {
             Stage sonarStage = new ScanWithSonarStage(
                 script,
                 context,
@@ -96,20 +92,14 @@ class AutomaticSonarScanner implements Serializable {
             sonarStage.execute()
             logger.info("Automatic SonarQube scan completed successfully")
         } else {
-            if (!enabledInCluster && !enabledInProject) {
-                logger.warn(
-                    "Skipping SonarQube scan because it is not enabled at cluster nor " +
-                    "project level"
-                )
-            } else if (enabledInCluster) {
-                logger.warn(
-                    "Skipping SonarQube scan because it is not enabled at project level"
-                )
-            } else {
-                logger.warn(
-                    "Skipping SonarQube scan because it is not enabled at cluster level"
-                )
-            }
+            String reason = !configurationSonarProject.isEmpty() ?
+                "project is not enabled" :
+                "is not enabled at cluster level"
+            logger.warn(
+                "Skipping SonarQube scan because $reason " +
+                "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
+                "in ${config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE} project"
+            )
         }
     }
 
