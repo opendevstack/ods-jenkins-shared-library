@@ -1,6 +1,5 @@
 package org.ods.component
 
-import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
@@ -58,9 +57,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.containsKey('helmEnvBasedValuesFiles')) {
             config.helmEnvBasedValuesFiles = []
         }
-        if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
-        }
+        // helmDefaultFlags are always set and cannot be overridden
+        config.helmDefaultFlags = ['--install', '--atomic']
         if (!config.containsKey('helmAdditionalFlags')) {
             config.helmAdditionalFlags = []
         }
@@ -69,6 +67,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         }
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
+        }
+        if (!config.containsKey('helmReleasesHistoryLimit')) {
+            config.helmReleasesHistoryLimit = 5
         }
         this.context = context
         this.logger = logger
@@ -142,13 +143,17 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
                 mergedHelmValuesFiles.addAll(options.helmValuesFiles)
                 mergedHelmValuesFiles.addAll(envConfigFiles)
 
+                // Add history-max flag to limit stored release revisions
+                def mergedAdditionalFlags = options.helmAdditionalFlags.collect { it }
+                mergedAdditionalFlags << "--history-max ${options.helmReleasesHistoryLimit}".toString()
+
                 openShift.helmUpgrade(
                     targetProject,
                     options.helmReleaseName,
                     mergedHelmValuesFiles,
                     mergedHelmValues,
                     options.helmDefaultFlags,
-                    options.helmAdditionalFlags,
+                    mergedAdditionalFlags,
                     options.helmDiff
                 )
             }
@@ -157,8 +162,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // rollout returns a map like this:
     // [
-    //    'DeploymentConfig/foo': [[podName: 'foo-a', ...], [podName: 'foo-b', ...]],
-    //    'Deployment/bar': [[podName: 'bar-a', ...]]
+    //    'DeploymentConfig/foo': [deploymentId: 'foo', containers: [...], ...],
+    //    'Deployment/bar': [deploymentId: 'bar', containers: [...], ...]
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
@@ -169,143 +174,82 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, List<String>> deploymentKinds = helmStatus.resourcesByKind
                 .findAll { kind, res -> kind in DEPLOYMENT_KINDS }
 
+        // Collect containers organized by resource (kind/name) to preserve all images
+        Map<String, Map<String, String>> containersByResource = [:]
+        Map<String, List<String>> resourcesByKind = [:]
+
         deploymentKinds.each { kind, names ->
+            resourcesByKind[kind] = names
             names.each { name ->
-                context.addDeploymentToArtifactURIs("${name}-deploymentMean",
-                    [
-                        type: 'helm',
-                        selector: options.selector,
-                        namespace: context.targetProject,
-                        chartDir: options.chartDir,
-                        helmReleaseName: options.helmReleaseName,
-                        helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
-                        helmValuesFiles: options.helmValuesFiles,
-                        helmValues: options.helmValues,
-                        helmDefaultFlags: options.helmDefaultFlags,
-                        helmAdditionalFlags: options.helmAdditionalFlags,
-                        helmStatus: helmStatus.toMap(),
-                    ]
+                // Get container images directly from the resource spec (deployment/statefulset/cronjob)
+                def containers = openShift.getContainerImagesWithNameFromPodSpec(
+                    context.targetProject, kind, name
                 )
-                def podDataContext = [
-                    "targetProject=${context.targetProject}",
-                    "selector=${options.selector}",
-                    "name=${name}",
-                ]
-                def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-                List<PodData> podData = null
-                for (def i = 0; i < options.deployTimeoutRetries; i++) {
-                    podData = openShift.checkForPodData(context.targetProject, options.selector, name)
-                    if (podData) {
-                        break
-                    }
-                    steps.echo("${msgPodsNotFound} - waiting")
-                    steps.sleep(12)
-                }
-                if (!podData) {
-                    throw new RuntimeException(msgPodsNotFound)
-                }
-                logger.debug("Helm podData for ${podDataContext.join(', ')}: ${podData}")
+                logger.debug("Helm container images for ${kind}/${name}: ${containers}")
 
-                rolloutData["${kind}/${name}"] = podData
+                containersByResource[name] = containers
 
-                // We need to find the pod that was created as a result of the deployment.
-                // The previous pod may still be alive when we use a rollout strategy.
-                // We can tell one from the other using their creation timestamp,
-                // being the most recent the one we are interested in.
-                def latestPods = getLatestPods(podData)
-                // While very unlikely, it may happen that there is more than one pod with the same timestamp.
-                // Note that timestamp resolution is seconds.
-                // If that happens, we are unable to know which is the correct pod.
-                // However, it doesn't matter which pod is the right one, if they all have the same images.
-                def sameImages = haveSameImages(latestPods)
-                if (!sameImages) {
-                    throw new RuntimeException(
-                        "Unable to determine the most recent Pod. " +
-                        "Multiple pods running with the same latest creation timestamp " +
-                        "and different images found for ${name}"
-                    )
-                }
-                // Deployment and DeploymentConfig resource.
-                context.addDeploymentToArtifactURIs(name, latestPods[0]?.toMap())
+                def podData = new PodData(
+                    deploymentId: name,
+                    containers: containers,
+                )
+                rolloutData[name] = [podData]
             }
         }
+
+        // Create a single deploymentMean entry for the entire helm release
+        def deploymentMean = [
+            type: 'helm',
+            selector: options.selector,
+            namespace: context.targetProject,
+            chartDir: options.chartDir,
+            helmReleaseName: options.helmReleaseName,
+            helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,
+            helmValuesFiles: options.helmValuesFiles,
+            helmValues: options.helmValues,
+            helmDefaultFlags: options.helmDefaultFlags,
+            helmAdditionalFlags: options.helmAdditionalFlags,
+            helmStatus: helmStatus.toMap(),
+            resources: resourcesByKind,
+        ]
+
+        // Store deployment mean once per helm release (not per resource)
+        context.addDeploymentToArtifactURIs("${options.helmReleaseName}-deploymentMean", deploymentMean)
+
+        // Store consolidated deployment data with all unique containers flattened
+        // Ensure all container images are plain strings (handle deserialization artifacts)
+        // Flatten containers from all resources into a single map to support multiple containers per resource
+        def flattenedContainers = [:]
+        containersByResource.each { resourceName, containerMap ->
+            containerMap.each { containerName, image ->
+                // Extract string value - image might be String, or wrapped in Map/List after deserialization
+                def imageStr = image
+                while (Map.isInstance(imageStr) && imageStr.size() > 0) {
+                    imageStr = imageStr.values()[0]
+                }
+                while (List.isInstance(imageStr) && imageStr.size() > 0) {
+                    imageStr = imageStr[0]
+                }
+                def stringValue = imageStr.toString()
+                // Ensure no trailing bracket or other artifacts remain from serialization
+                // Use double-escaped bracket to ensure proper regex matching in Groovy
+                stringValue = stringValue.replaceAll('\\]\\s*$', '')
+                // Create a unique key for each container
+                // If resource has only one container, use resource name; otherwise use resource::container format
+                def containerKey = containerMap.size() == 1 ? resourceName : "${resourceName}::${containerName}"
+                // Only add if this image isn't already present (avoid duplicates of same image)
+                if (!flattenedContainers.values().contains(stringValue)) {
+                    flattenedContainers[containerKey] = stringValue
+                }
+            }
+        }
+        def consolidatedPodData = new PodData(
+            deploymentId: options.helmReleaseName,
+            containers: flattenedContainers as Map<String, String>,
+        )
+        context.addDeploymentToArtifactURIs(options.helmReleaseName, consolidatedPodData.toMap())
+
         return rolloutData
-    }
-
-    /**
-     * Returns the pods with the latest creation timestamp.
-     * Note that the resolution of this timestamp is seconds and there may be more than one pod with the same
-     * latest timestamp.
-     *
-     * @param pods the pods over which to find the latest ones.
-     * @return a list with all the pods sharing the same, latest timestamp.
-     */
-    @NonCPS
-    private static List getLatestPods(Iterable pods) {
-        return maxElements(pods) { it.podMetaDataCreationTimestamp }
-    }
-
-    /**
-     * Checks whether all the given pods contain the same images, ignoring order and multiplicity.
-     *
-     * @param pods the pods to check for image equality.
-     * @return true if all the pods have the same images or false otherwise.
-     */
-    @NonCPS
-    private static boolean haveSameImages(Iterable pods) {
-        return areEqual(pods) { a, b ->
-            def imagesA = a.containers.values() as Set
-            def imagesB = b.containers.values() as Set
-            return imagesA == imagesB
-        }
-    }
-
-    /**
-     * Selects the items in the iterable which when passed as a parameter to the supplied closure
-     * return the maximum value. A null return value represents the least possible return value,
-     * so any item for which the supplied closure returns null, won't be selected (unless all items return null).
-     * The return list contains all the elements that returned the maximum value.
-     *
-     * @param iterable the iterable over which to search for maximum values.
-     * @param getValue a closure returning the value that corresponds to each element.
-     * @return the list of all the elements for which the closure returns the maximum value.
-     */
-    @NonCPS
-    private static List maxElements(Iterable iterable, Closure getValue) {
-        if (!iterable) {
-            return [] // Return an empty list if the iterable is null or empty
-        }
-
-        // Find the maximum value using the closure
-        def maxValue = iterable.collect(getValue).max()
-
-        // Find all elements with the maximum value
-        return iterable.findAll { getValue(it) == maxValue }
-    }
-
-    /**
-     * Checks whether all the elements in the given iterable are deemed as equal by the given closure.
-     *
-     * @param iterable the iterable over which to check for element equality.
-     * @param equals a closure that checks two elements for equality.
-     * @return true if all the elements are equal or false otherwise.
-     */
-    @NonCPS
-    private static boolean areEqual(Iterable iterable, Closure equals) {
-        def equal = true
-        if (iterable) {
-            def first = true
-            def base = null
-            iterable.each {
-                if (first) {
-                    base = it
-                    first = false
-                } else if (!equals(base, it)) {
-                    equal = false
-                }
-            }
-        }
-        return equal
     }
 
 }

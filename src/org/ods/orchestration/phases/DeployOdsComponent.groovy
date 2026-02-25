@@ -11,7 +11,6 @@ import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.util.PodData
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -60,35 +59,7 @@ class DeployOdsComponent {
 
                     applyTemplates(openShiftDir, deploymentMean)
 
-                    def retries = project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                    def podDataContext = [
-                        "targetProject=${project.targetProject}",
-                        "selector=${deploymentMean.selector}",
-                        "name=${deploymentName}",
-                    ]
-                    def msgPodsNotFound = "Could not find 'running' pod(s) for '${podDataContext.join(', ')}'"
-                    List<PodData> podData = null
-                    for (def i = 0; i < retries; i++) {
-                        podData = os.checkForPodData(project.targetProject, deploymentMean.selector, deploymentName)
-                        if (podData) {
-                            break
-                        }
-                        steps.echo("${msgPodsNotFound} - waiting")
-                        steps.sleep(12)
-                    }
-
-                    if (!podData) {
-                        throw new RuntimeException(msgPodsNotFound)
-                    }
-                    logger.debug("Helm podData for '${podDataContext.join(', ')}': ${podData}")
-
-                    // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                    // update this to deal with multiple pods.
-                    def pod = podData[0].toMap()
-
-                    // TODO verifyImageShas doesn't work properly
-                    //verifyImageShas(deployment, pod.containers)
-                    repo.data.openshift.deployments << [(deploymentName): pod]
+                    // Store deployment metadata for Helm release
                     def deploymentMeanKey = deploymentName + '-deploymentMean'
                     repo.data.openshift.deployments << [(deploymentMeanKey): deploymentMean]
                 }
