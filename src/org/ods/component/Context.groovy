@@ -495,7 +495,7 @@ class Context implements IContext {
         // https://issues.jenkins-ci.org/browse/JENKINS-27421 and
         // https://issues.jenkins-ci.org/browse/JENKINS-35191.
         for (def key : config.branchToEnvironmentMapping.keySet()) {
-           if (config.gitBranch.startsWith(key) && key.endsWith('/')) {
+            if (config.gitBranch.startsWith(key) && key.endsWith('/')) {
                 setMostSpecificEnvironment(
                     config.branchToEnvironmentMapping[key],
                     config.gitBranch.replace(key, '')
