@@ -23,6 +23,7 @@
 ## [4.11.2] - 2026-03-02
 ### Fixed
 * Fix SonarQube run enable/disable logic ([#1259](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1259))
+* Fix branch mapping logic to ensure correct environment assignment ([#1263](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1263))
 
 ## [4.11.1] - 2025-12-19
 
