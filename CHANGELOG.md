@@ -7,7 +7,14 @@
 ### Changed
 
 ### Fixed
+* Fail pipeline when deploying with issues in progress ([#1258](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1258))
+* Log correct error message for wrong preview-branch value ([#1249](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1249))
+* Fail the pipeline when no version specified for a deploy to Q, P ([#1248](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1248))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.11.2] - 2026-03-02
+### Fixed
+* Fix SonarQube run enable/disable logic ([#1259](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1259))
 
 ## [4.11.1] - 2025-12-19
 
