@@ -163,8 +163,9 @@ class JiraUseCase {
 
         testFailures.each { failure ->
             String version = this.project.buildParams.changeId
+            def summary = failure.type ? failure.type : 'Failure/Error in test'
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, failure.type, failure.text, version)
+                this.project.jiraProjectKey, summary, failure.text, version)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -187,7 +188,7 @@ class JiraUseCase {
             // Create a JiraDataItem from the newly created bug
             def bugJiraDataItem = new JiraDataItem(project, [ // add project reference for access to Project.JiraDataItem
               key: bug.key,
-              name: failure.type,
+              name: summary,
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
@@ -386,6 +387,21 @@ class JiraUseCase {
         this.jira.updateBuildNumber(projectKey, changeId, buildNumber)
     }
 
+    List buildComponentsDataForRelease() {
+        def components = []
+        this.project.data.metadata.repositories.each { repo ->
+            if (repo.include == true) {
+                def gitSHA = repo.data?.git?.commit
+                components.add([
+                    id: repo.id,
+                    commit: gitSHA ? gitSHA : 'N/A',
+                    status: gitSHA ? (repo.data?.failedStage ? 'FAILURE' : 'SUCCESS') : 'N/A',
+                ])
+            }
+        }
+        return components
+    }
+
     void updateJiraReleaseStatusResult(String message, boolean isError) {
         if (!this.jira) {
             logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
@@ -417,6 +433,8 @@ class JiraUseCase {
             ],
             status: status,
             env: env,
+            components: this.buildComponentsDataForRelease(),
+            startDateTimestamp: this.steps.currentBuild.startTimeInMillis,
         ]
 
         this.jira.updateReleaseStatusIssue(projectKey, changeId, fields)
@@ -427,6 +445,10 @@ class JiraUseCase {
     }
 
     void addCommentInReleaseStatus(String message) {
+        if (!this.jira) {
+            logger.debug("Jira not connected, cannot append comment: ${message}")
+            return
+        }
         def changeId = this.project.buildParams.changeId
         if (message) {
             def projectKey = this.project.jiraProjectKey

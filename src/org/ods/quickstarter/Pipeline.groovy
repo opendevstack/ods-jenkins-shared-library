@@ -33,6 +33,7 @@ class Pipeline implements Serializable {
         config.packageName = script.env.PACKAGE_NAME
         config.group = script.env.GROUP_ID
         config.openShiftProject = "${config.projectId}-cd"
+        config.cdUserCredentialsId = script.env.CD_USER_CREDENTIALS_ID
 
         // config options
         if (!config.sourceDir) {

@@ -35,18 +35,19 @@ def call(IContext context, Map config = [:], Closure block) {
     if (context.triggeredByOrchestrationPipeline && !config.allow) {
         error('withOpenShiftCluster is not supported within an orchestration pipeline context.')
     }
-
-    if (!config.apiUrl) {
-        error('''Param 'apiUrl' is required''')
+    def openshiftClusterApiUrl = config.apiUrl ?: config.openshiftClusterApiUrl
+    if (!openshiftClusterApiUrl) {
+        error('''Param 'apiUrl' or 'openshiftClusterApiUrl' is required''')
     }
-    if (!config.credentialsId) {
-        error('''Param 'credentialsId' is required''')
+    def openshiftClusterCredentialsId = config.credentialsId ?: config.openshiftClusterCredentialsId
+    if (!openshiftClusterCredentialsId) {
+        error('''Param 'credentialsId' or 'openshiftClusterCredentialsId' is required''')
     }
     IPipelineSteps steps = new PipelineSteps(this)
     def jenkinsClusterApiUrl = OpenShiftService.getApiUrl(steps)
     withCredentials([
         usernamePassword(
-            credentialsId: config.credentialsId,
+            credentialsId: openshiftClusterCredentialsId,
             usernameVariable: 'EXTERNAL_OPENSHIFT_API_USER',
             passwordVariable: 'EXTERNAL_OPENSHIFT_API_TOKEN'
         )
@@ -54,7 +55,7 @@ def call(IContext context, Map config = [:], Closure block) {
         def occuredException
         try {
             OpenShiftService.loginToExternalCluster(
-                steps, config.apiUrl, EXTERNAL_OPENSHIFT_API_TOKEN
+                steps, openshiftClusterApiUrl, EXTERNAL_OPENSHIFT_API_TOKEN
             )
             block(context)
         } catch (ex) {

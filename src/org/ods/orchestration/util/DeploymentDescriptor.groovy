@@ -24,7 +24,7 @@ class DeploymentDescriptor {
             def strippedDownContainers = [:]
             if (!dn.endsWith(deploymentMeanPostfix)) {
                 d.containers.each { cn, image ->
-                    def imageParts = image.split('/')[-2..-1]
+                    def imageParts = image.toString().split('/')[-2..-1]
                     if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
                         strippedDownContainers[cn] = imageParts.join('/')
                     } else {

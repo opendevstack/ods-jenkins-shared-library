@@ -3,18 +3,23 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-import kong.unirest.Unirest
 import kong.unirest.ContentType
+import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
 
-class NexusService {
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.Paths
 
+class NexusService {
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
 
-    private URI baseURL
-    private IPipelineSteps steps
-    private String credentialsId
+    final private URI baseURL
+    final private IPipelineSteps steps
+    final private String credentialsId
 
     NexusService(String baseURL, IPipelineSteps steps, String credentialsId) {
         if (!baseURL?.trim()) {
@@ -84,11 +89,12 @@ class NexusService {
         String name,
         File artifact,
         String contentType) {
-        return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
+        return storeArtifact(repository, directory, name, artifact.getBytes(StandardCharsets.UTF_8), contentType)
     }
 
     @SuppressWarnings('LineLength')
-    URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    URI storeComplextArtifact(String repository, byte[] artifact, String contentType,
+                              String repositoryType, Map nexusParams = [ : ]) {
         def restCall
         steps.withCredentials([
             steps.usernamePassword(
@@ -104,9 +110,33 @@ class NexusService {
         return processStoreArtifactRes(restCall, repository, artifact, contentType, repositoryType, nexusParams)
     }
 
+    Path buildXunitZipFile(def steps, String testDir, String zipFileName) {
+        if (!testDir || !steps.fileExists(testDir)) {
+            throw new IllegalArgumentException("Error: The test directory '${testDir}' does not exist.")
+        }
+
+        // Create a temporary directory inside the workspace
+        Path tmpDir = Paths.get(steps.env.WORKSPACE, "tmp")
+        Files.createDirectories(tmpDir)
+
+        // Define the ZIP file path in the tmp directory
+        Path zipFilePath = tmpDir.resolve(zipFileName)
+
+        // Run shell command to zip contents of testDir into tmp folder
+        steps.sh "cd ${testDir} && zip -r '${zipFilePath.toString()}' ."
+
+        if (!Files.exists(zipFilePath, LinkOption.NOFOLLOW_LINKS) || Files.size(zipFilePath) == 0) {
+            throw new RuntimeException("Error: The ZIP file was not created correctly at '${zipFilePath}'.")
+        }
+
+        return zipFilePath
+    }
+
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
-    private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    private URI processStoreArtifactRes(def restCall, String repository, byte[] artifact,
+                                        String contentType, String repositoryType, Map nexusParams = [ : ]) {
+
         nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
@@ -170,7 +200,8 @@ class NexusService {
 
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess', 'ParameterCount'])
     @NonCPS
-    private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository, String nexusDirectory, String name, String extractionPath){
+    private Map<URI, File> processRetrieveArtifactRes(def restCall, String urlToDownload, String nexusRepository,
+                                                      String nexusDirectory, String name, String extractionPath) {
         // hurray - unirest, in case file exists - don't do anything.
         File artifactExists = new File("${extractionPath}/${name}")
         if (artifactExists) {

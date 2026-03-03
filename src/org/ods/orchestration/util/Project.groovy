@@ -299,7 +299,6 @@ class Project {
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
 
-
     private TestResults aggregatedTestResults;
 
     protected Map data = [:]
@@ -720,7 +719,7 @@ class Project {
 
     void setOpenShiftData(String sessionApiUrl) {
         def envConfig = getEnvironmentConfig()
-        def targetApiUrl = envConfig?.apiUrl
+        def targetApiUrl = envConfig?.apiUrl ?: envConfig?.openshiftClusterApiUrl
         if (!targetApiUrl) {
             targetApiUrl = sessionApiUrl
         }
@@ -730,10 +729,13 @@ class Project {
     }
 
     @NonCPS
-    boolean getTargetClusterIsExternal() {
+    boolean isTargetClusterExternal() {
+        return isTargetClusterExternal(this.data.openshift.sessionApiUrl, this.data.openshift.targetApiUrl)
+    }
+
+    @NonCPS
+    static boolean isTargetClusterExternal(def sessionApiUrl, def targetApiUrl) {
         def isExternal = false
-        def sessionApiUrl = this.data.openshift.sessionApiUrl
-        def targetApiUrl = this.data.openshift.targetApiUrl
         def targetApiUrlMatcher = targetApiUrl =~ /:[0-9]+$/
         if (targetApiUrlMatcher.find()) {
             isExternal = sessionApiUrl != targetApiUrl
@@ -777,6 +779,15 @@ class Project {
             environment = 'test'
         }
         environment
+    }
+
+    static String getTargetProjectForEnv(Project project, String env) {
+        def concreteEnv = Project.getConcreteEnvironment(
+            env,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+        return "${project.key}-${concreteEnv}"
     }
 
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false, boolean versionedDevEnvsEnabled = false) {
@@ -1912,7 +1923,7 @@ class Project {
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
-            def newDataExpanded = expandPredecessorInformation (oldData, newData, discontinuations)
+            def newDataExpanded = expandPredecessorInformation (oldData, newData)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
 
             // Update data from previous version
@@ -2088,7 +2099,7 @@ class Project {
      * @return Map new data with the issue predecessors expanded
      */
     @NonCPS
-    private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
+    private static Map expandPredecessorInformation(Map savedData, Map newData) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
             if (!predecessorIssue) {
@@ -2115,11 +2126,7 @@ class Project {
                         def expandedPredecessors = predecessors.collect { predecessor ->
                             expandPredecessor(issueType, issueKey, predecessor)
                         }.flatten()
-                        // Get old links from predecessor (just one allowed)
-                        def predecessorIssue = savedData.get(issueType).get(predecessors.first())
-                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue, discontinuations)
-
-                        [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
+                        [(issueKey): (issue + [expandedPredecessors: expandedPredecessors])]
                     }
                 }
                 [(issueType): updatedIssues]

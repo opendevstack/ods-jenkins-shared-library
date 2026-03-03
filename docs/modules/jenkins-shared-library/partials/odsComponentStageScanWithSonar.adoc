@@ -51,6 +51,11 @@ _List<String>_
  will be extracted from  `branchToEnvironmentMapping` of the `context`.
 
 
+| *odsNamespace* +
+_Map<String,&nbsp;String>_
+|ods namespace where the agents have been built on.
+
+
 | *requireQualityGatePass* +
 _boolean_
 |Whether to fail the build if the quality gate defined in the SonarQube
@@ -63,5 +68,11 @@ _String_
  BuildOpenShiftImageStage puts the imageRef into a map with the `resourceName` as key.
  In order to be able to receive the imageRef for scanning, the `resourceName` needs
  to be the same as in BuildOpenShiftImageStage.
+
+
+| *sonarQubeNexusRepository* +
+_String_
+|Nexus repository to upload the SonarQube report to.
+ Automaticaly set by sonarqube configMap if present.
 
 |===

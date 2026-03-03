@@ -43,4 +43,15 @@ class ScanWithSonarOptions extends Options {
      * to be the same as in BuildOpenShiftImageStage. */
     String resourceName
 
+    /**
+     * ods namespace where the agents have been built on.
+     */
+    Map<String, String> odsNamespace
+
+    /**
+     * Nexus repository to upload the SonarQube report to.
+     * Automaticaly set by sonarqube configMap if present.
+     */
+    String sonarQubeNexusRepository
+
 }

@@ -3,6 +3,7 @@ import org.ods.component.IContext
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
+import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -10,12 +11,48 @@ import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 
 def call(IContext context, Map config = [:]) {
-    ILogger logger = ServiceRegistry.instance.get(Logger)
-    // this is only for testing, because we need access to the script context :(
-    if (!logger) {
-        logger = new Logger (this, !!env.DEBUG)
+    def (logger, steps, bitbucketService, sonarQubeService, nexusService, openShiftService) =
+        initializeServices(context)
+    initializeConfig(config)
+    Map configurationSonarCluster = [:]
+    Map configurationSonarProject = [:]
+    String errorMessages = ''
+    String alertEmails = ''
+    try {
+        (configurationSonarCluster, configurationSonarProject, alertEmails) =
+            fetchSonarConfig(openShiftService, context, config, logger)
+        errorMessages = handleSonarScan(
+            configurationSonarCluster,
+            configurationSonarProject,
+            context,
+            config,
+            [
+                bitbucketService: bitbucketService,
+                sonarQubeService: sonarQubeService,
+                nexusService: nexusService,
+                logger: logger,
+            ]
+        )
+    } catch (Exception e) {
+        logger.warn("Error with SonarQube scan due to: ${e.message}")
+        logger.debug("Stacktrace: ${e.getStackTrace().join('\n')}")
+        errorMessages += "<li>Error with SonarQube scan: ${e.message}</li>"
     }
-    def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
+    notifySonar(steps, context, alertEmails, errorMessages)
+}
+
+private List initializeServices(IContext context) {
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+    if (!logger) {
+        logger = new Logger(this, !!env.DEBUG)
+    }
+    ServiceRegistry registry = ServiceRegistry.instance
+    IPipelineSteps steps = registry.get(IPipelineSteps)
+    if (!steps) {
+        steps = new PipelineSteps(this)
+        registry.add(IPipelineSteps, steps)
+    }
+    BitbucketService bitbucketService = registry.get(BitbucketService)
     if (!bitbucketService) {
         bitbucketService = new BitbucketService(
             this,
@@ -24,29 +61,109 @@ def call(IContext context, Map config = [:]) {
             context.credentialsId,
             logger
         )
+        registry.add(BitbucketService, bitbucketService)
     }
-    def sonarQubeService = ServiceRegistry.instance.get(SonarQubeService)
+    SonarQubeService sonarQubeService = registry.get(SonarQubeService)
     if (!sonarQubeService) {
         sonarQubeService = new SonarQubeService(
             this,
             logger,
             'SonarServerConfig'
         )
+        registry.add(SonarQubeService, sonarQubeService)
     }
-    def nexusService = ServiceRegistry.instance.get(NexusService)
+    NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
-        IPipelineSteps steps = new PipelineSteps(this)
         nexusService = new NexusService(context.nexusUrl, steps, context.credentialsId)
+        registry.add(NexusService, nexusService)
     }
-    def stage = new ScanWithSonarStage(
-        this,
-        context,
-        config,
-        bitbucketService,
-        sonarQubeService,
-        nexusService,
-        logger
-    )
-    stage.execute()
+    OpenShiftService openShiftService = registry.get(OpenShiftService)
+    if (!openShiftService) {
+        openShiftService = new OpenShiftService(steps, logger)
+        registry.add(OpenShiftService, openShiftService)
+    }
+    return [logger, steps, bitbucketService, sonarQubeService, nexusService, openShiftService]
 }
+
+private void initializeConfig(Map config) {
+    if (!config.odsNamespace) {
+        config.odsNamespace = [:]
+    }
+    if (!config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE) {
+        config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE = env.OPENSHIFT_BUILD_NAMESPACE
+    }
+}
+
+private List fetchSonarConfig(OpenShiftService openShiftService, IContext context, Map config, ILogger logger) {
+    Map configurationSonarCluster = openShiftService.getConfigMapData(
+        config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE,
+        ScanWithSonarStage.SONAR_CONFIG_MAP_NAME
+    )
+    String alertEmails = configurationSonarCluster['alertEmails']
+    Map configurationSonarProject = [:]
+    def key = "projects." + context.projectId + ".enabled"
+    if (configurationSonarCluster.containsKey(key)) {
+        // Store the actual project-level configuration
+        configurationSonarProject.put('enabled', configurationSonarCluster.get(key))
+        logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
+    } else {
+        logger.info "Not parameter 'projects.${context.projectId}.enabled' at cluster level."
+    }
+    return [configurationSonarCluster, configurationSonarProject, alertEmails]
+}
+
+private String handleSonarScan(
+    Map configurationSonarCluster,
+    Map configurationSonarProject,
+    IContext context,
+    Map config,
+    Map services // expects keys: bitbucketService, sonarQubeService, nexusService, logger
+) {
+    String errorMessages = ''
+    if (configurationSonarCluster['nexusRepository']) {
+        config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
+    }
+    // Project config takes precedence: if project is explicitly configured, use its value
+    // Otherwise, fall back to cluster config
+    boolean shouldRun = configurationSonarProject.isEmpty() ?
+        Boolean.valueOf(configurationSonarCluster['enabled']?.toString() ?: "true") :
+        Boolean.valueOf(configurationSonarProject['enabled']?.toString() ?: "true")
+    if (shouldRun) {
+        new ScanWithSonarStage(
+            this,
+            context,
+            config,
+            services.bitbucketService,
+            services.sonarQubeService,
+            services.nexusService,
+            services.logger,
+            configurationSonarCluster,
+            configurationSonarProject
+        ).execute()
+    } else {
+        String reason = !configurationSonarProject.isEmpty() ?
+            "project is not enabled" :
+            "is not enabled at cluster level"
+        services.logger.warn("Skipping SonarQube scan because $reason " +
+            "in '${ScanWithSonarStage.SONAR_CONFIG_MAP_NAME}' ConfigMap " +
+            "in ${config.odsNamespace.OPENSHIFT_BUILD_NAMESPACE} project")
+        errorMessages += "<li>SonarQube scan not enabled</li>"
+    }
+    return errorMessages
+}
+
+private void notifySonar(IPipelineSteps steps, IContext context, String recipients = '', String message = '') {
+    String subject = "Build $context.componentId on project $context.projectId had not executed SonarQube!"
+    String body = "<p>$subject</p> " +
+        "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
+
+    if (message) {
+        steps.emailext(
+            body: body, mimeType: 'text/html',
+            replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+            to: recipients
+        )
+    }
+}
+
 return this

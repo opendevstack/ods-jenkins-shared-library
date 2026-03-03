@@ -1,5 +1,6 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.lang3.StringUtils
@@ -369,7 +370,7 @@ class ScanWithAquaStage extends Stage {
             URI report = nexus.storeArtifact(
                 "${nexusRepository}",
                 "${context.projectId}/${this.options.resourceName}/" +
-                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
+                    "${context.buildTime.format('YYYY-MM-dd_HH-mm-ss')}_${context.buildNumber}/aqua",
                 reportFile,
                 (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
@@ -418,12 +419,14 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
+    @NonCPS
     private List filterRemoteCriticalWithSolutionVulnerabilities(Map aquaJsonMap, Set whitelistedRECVs) {
         List result = []
         aquaJsonMap.resources.each { it ->
             (it as Map).vulnerabilities.each { vul ->
                 Map vulnerability = vul as Map
-                if ((vulnerability?.exploit_type as String)?.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE)
+                if ((vulnerability?.exploit_type as String)?.split(',')*.trim()
+                    .any { it.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE) }
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
                     if (Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {

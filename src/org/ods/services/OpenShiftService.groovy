@@ -19,6 +19,8 @@ class OpenShiftService {
     static final String ROLLOUT_WAITING = 'waiting'
     static final String DEPLOYMENTCONFIG_KIND = 'DeploymentConfig'
     static final String DEPLOYMENT_KIND = 'Deployment'
+    static final String STATEFULSET_KIND = 'StatefulSet'
+    static final String CRONJOB_KIND = 'CronJob'
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -571,6 +573,39 @@ class OpenShiftService {
         ).toString().trim().tokenize(' ').collect { imageInfoForImageUrl(it) }
     }
 
+    // getContainerImagesWithNameFromPodSpec returns a map of container name -> image (with SHA)
+    // for resources that have a pod template spec (Deployment, DeploymentConfig, StatefulSet, CronJob).
+    // For CronJob, the pod template is at .spec.jobTemplate.spec.template.spec.containers
+    // For Deployment/DeploymentConfig/StatefulSet, it's at .spec.template.spec.containers
+    @TypeChecked(TypeCheckingMode.SKIP)
+    Map<String, String> getContainerImagesWithNameFromPodSpec(String project, String kind, String name) {
+        def jsonPath = kind == 'CronJob' ?
+            '.spec.jobTemplate.spec.template.spec.containers' :
+            '.spec.template.spec.containers'
+
+        def stdout = steps.sh(
+            script: "oc -n ${project} get ${kind} ${name} -o jsonpath='{${jsonPath}}'",
+            label: "Get container images for ${kind} ${name}",
+            returnStdout: true
+        ).toString().trim()
+
+        Map<String, String> containers = [:]
+        if (stdout) {
+            def containersJson = new JsonSlurperClassic().parseText(stdout)
+            containersJson.each { container ->
+                def containerName = container.name
+                def image = container.image
+                // Resolve image tag to SHA if needed
+                def imageWithSha = imageInfoWithShaForImageStreamUrl(image)
+                def fullImageWithSha = imageWithSha.registry ?
+                    "${imageWithSha.registry}/${imageWithSha.repository}/${imageWithSha.name}@${imageWithSha.sha}" :
+                    "${imageWithSha.repository}/${imageWithSha.name}@${imageWithSha.sha}"
+                containers[containerName] = fullImageWithSha
+            }
+        }
+        return containers
+    }
+
     String getOriginUrlFromBuildConfig(String project, String bcName) {
         return steps.sh(
             script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
@@ -1066,7 +1101,7 @@ class OpenShiftService {
         }
         // if we have a resourceName only return the items matching that
         if (resourceName != null) {
-            def filteredPods= pods.findAll { it.podName.startsWith(resourceName) }
+            def filteredPods = pods.findAll { it.podName.startsWith(resourceName) }
             return filteredPods
         }
         return pods
@@ -1234,24 +1269,6 @@ class OpenShiftService {
             script: "oc -n ${project} rollout status ${kind}/${name} --watch=true",
             label: "Watch rollout of latest version of ${kind}/${name}"
         )
-    }
-
-    private void reloginToCurrentClusterIfNeeded() {
-        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-        def success = steps.sh(
-            script: """
-               ${logger.shellScriptDebugFlag}
-                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
-                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
-            """,
-            returnStatus: true,
-            label: 'Check if OCP session exists'
-        ) == 0
-        if (!success) {
-            throw new RuntimeException(
-                'Could not (re)login to cluster, this is a systemic failure'
-            )
-        }
     }
 
     private void importImageFromProject(
@@ -1476,5 +1493,23 @@ class OpenShiftService {
             label: scriptLabel,
             returnStdout: true
         ).toString().trim()
+    }
+
+    void reloginToCurrentClusterIfNeeded() {
+        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
+        def success = steps.sh(
+            script: """
+               ${logger.shellScriptDebugFlag}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
+        if (!success) {
+            throw new RuntimeException(
+                'Could not (re)login to cluster, this is a systemic failure'
+            )
+        }
     }
 }

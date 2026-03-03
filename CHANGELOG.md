@@ -4,13 +4,78 @@
 
 ### Added
 
-
 ### Changed
-* Helm parity with Tailor ([#1219](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1219))
-
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.12.0] - 2026-03-02
+### Changed
+* Update automatic release component information with N/A when pipelines have not run yet ([#1257](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1257))
+* Enhance Helm strategy and support of Statefullset/Cronjob ([#1253](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1253))
+* Add component information in automatic release close notes ([#1254](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1254))
+
+### Fixed
+* Fail pipeline when deploying with issues in progress ([#1258](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1258))
+* Log correct error message for wrong preview-branch value ([#1249](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1249))
+* Fail the pipeline when no version specified for a deploy to Q, P ([#1248](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1248))
+
+## [4.11.2] - 2026-03-02
+### Fixed
+* Fix SonarQube run enable/disable logic ([#1259](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1259))
+
+## [4.11.1] - 2025-12-19
+
+### Fixed
+* Manage 'remote' value of exploit_type in Aqua in case of several values ([#1251](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1251))
+
+## [4.11.0] - 2025-12-03
+
+### Added
+* Documented that multiple replicas are not supported by the orchestration pipeline ([#1245]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1245)
+
+### Changed
+ * Enforce SonarQube stage and make it safe to fail ([#1223]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1223)
+ * Switch SonarQube report tool ([#1244]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1244)
+
+## [4.10.2] - 2025-10-16
+### Fixed
+* Fix in the orchestration pipeline that occurred pushing test evidences to nexus ([#1242](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1242))
+
+## [4.10.1] - 2025-10-14
+### Changed
+* Set default value for cdUserCredentialsId ([#1240](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1240))
+
+## [4.10.0] - 2025-10-13
+### Added
+* Exposing Relevant Artifacts for Non-SLC-Generating EDP Projects ([#1224](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
+
+## [4.9.4] - 2025-10-07
+### Fixed
+* When calling external jira plugin, start date of the job is passed ([#1236](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1224))
+
+## [4.9.3] - 2025-09-30
+### Fixed
+* Manage missing type in failures/errors in JUnit XML report ([#1233](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1233))
+
+
+## [4.9.2] - 2025-09-08
+### Fixed
+* Ignore links from predecessor issues since all links are now duplicated ([#1231](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1231))
+
+### Changed
+* Descriptive error message when a Risk is orphan ([#1230](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1230))
+
+
+## [4.9.1] - 2025-8-11
+### Fixed
+* Fix credentials id retrieval ([#1228](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1228))
+
+
+## [4.9.0] - 2025-8-06
+### Changed
+* Enforce prod config in metadata.yml ([#1222](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1222))
+* Helm parity with Tailor ([#1219](https://github.com/opendevstack/ods-jenkins-shared-library/issues/1219))
 
 ## [4.8.2] - 2025-6-04
 * Avoid check PROD environment if repos are not included in release ([#1217](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1217))

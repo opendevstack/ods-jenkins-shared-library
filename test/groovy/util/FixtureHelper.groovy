@@ -2202,6 +2202,236 @@ class FixtureHelper {
         ]
     }
 
+    /**
+     * Creates a helm status map with a StatefulSet resource.
+     * StatefulSet is used for stateful applications like databases.
+     */
+    static Map createHelmCmdStatusMapWithStatefulSet() {
+        def baseMap = createHelmCmdStatusMap()
+        def resources = baseMap.info.resources
+
+        // Add StatefulSet resource
+        resources['apps/v1/StatefulSet'] = [[
+            'apiVersion': 'apps/v1',
+            'kind'      : 'StatefulSet',
+            'metadata'  : [
+                'annotations'      : [
+                    'meta.helm.sh/release-name'     : 'standalone-app',
+                    'meta.helm.sh/release-namespace': 'myproject-test',
+                ],
+                'creationTimestamp': '2024-01-15T10:30:00Z',
+                'generation'       : 5,
+                'labels'           : [
+                    'app.kubernetes.io/instance'  : 'standalone-app',
+                    'app.kubernetes.io/managed-by': 'Helm',
+                    'app.kubernetes.io/name'      : 'database',
+                    'app.kubernetes.io/version'   : 'v1.0.0',
+                    'helm.sh/chart'               : 'database-0.1.0',
+                ],
+                'name'             : 'database',
+                'namespace'        : 'myproject-test',
+                'resourceVersion'  : '1234567890',
+                'uid'              : '12345678-1234-1234-1234-statefulset01',
+            ],
+            'spec'      : [
+                'serviceName'       : 'database',
+                'replicas'          : 1,
+                'selector'          : [
+                    'matchLabels': [
+                        'app.kubernetes.io/instance': 'standalone-app',
+                        'app.kubernetes.io/name'    : 'database',
+                    ],
+                ],
+                'template'          : [
+                    'metadata': [
+                        'labels': [
+                            'app.kubernetes.io/instance': 'standalone-app',
+                            'app.kubernetes.io/name'    : 'database',
+                        ],
+                    ],
+                    'spec'    : [
+                        'containers': [[
+                            'name'           : 'postgres',
+                            'image'          : 'image-registry.openshift.svc:1000/myproject-test/postgres:15',
+                            'imagePullPolicy': 'IfNotPresent',
+                            'ports'          : [[
+                                'containerPort': 5432,
+                                'name'         : 'postgres',
+                                'protocol'     : 'TCP',
+                            ]],
+                        ]],
+                    ],
+                ],
+            ],
+            'status'    : [
+                'replicas'     : 1,
+                'readyReplicas': 1,
+            ],
+        ]]
+
+        return baseMap
+    }
+
+    /**
+     * Creates a helm status map with a CronJob resource.
+     * CronJob is used for scheduled tasks.
+     */
+    static Map createHelmCmdStatusMapWithCronJob() {
+        def baseMap = createHelmCmdStatusMap()
+        def resources = baseMap.info.resources
+
+        // Add CronJob resource
+        resources['batch/v1/CronJob'] = [[
+            'apiVersion': 'batch/v1',
+            'kind'      : 'CronJob',
+            'metadata'  : [
+                'annotations'      : [
+                    'meta.helm.sh/release-name'     : 'standalone-app',
+                    'meta.helm.sh/release-namespace': 'myproject-test',
+                ],
+                'creationTimestamp': '2024-01-15T10:30:00Z',
+                'generation'       : 3,
+                'labels'           : [
+                    'app.kubernetes.io/instance'  : 'standalone-app',
+                    'app.kubernetes.io/managed-by': 'Helm',
+                    'app.kubernetes.io/name'      : 'cleanup-job',
+                    'app.kubernetes.io/version'   : 'v1.0.0',
+                    'helm.sh/chart'               : 'cleanup-job-0.1.0',
+                ],
+                'name'             : 'cleanup-job',
+                'namespace'        : 'myproject-test',
+                'resourceVersion'  : '1234567891',
+                'uid'              : '12345678-1234-1234-1234-cronjob00001',
+            ],
+            'spec'      : [
+                'schedule'         : '0 2 * * *',
+                'concurrencyPolicy': 'Forbid',
+                'jobTemplate'      : [
+                    'spec': [
+                        'template': [
+                            'spec': [
+                                'containers'   : [[
+                                    'name'           : 'cleanup',
+                                    'image'          : 'image-registry.openshift.svc:1000/myproject-test/cleanup:latest',
+                                    'imagePullPolicy': 'Always',
+                                    'command'        : ['/bin/sh', '-c', 'cleanup.sh'],
+                                ]],
+                                'restartPolicy': 'OnFailure',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'status'    : [],
+        ]]
+
+        return baseMap
+    }
+
+    /**
+     * Creates a helm status map with a Deployment that has 2 containers (main + sidecar).
+     * This is common for service mesh patterns.
+     */
+    static Map createHelmCmdStatusMapWithMultiContainerDeployment() {
+        def baseMap = createHelmCmdStatusMap()
+        def resources = baseMap.info.resources
+
+        // Add a multi-container deployment
+        resources['v1/Deployment'] << [
+            'apiVersion': 'apps/v1',
+            'kind'      : 'Deployment',
+            'metadata'  : [
+                'annotations'      : [
+                    'deployment.kubernetes.io/revision': '10',
+                    'meta.helm.sh/release-name'        : 'standalone-app',
+                    'meta.helm.sh/release-namespace'   : 'myproject-test',
+                ],
+                'creationTimestamp': '2024-01-15T10:30:00Z',
+                'generation'       : 10,
+                'labels'           : [
+                    'app.kubernetes.io/instance'  : 'standalone-app',
+                    'app.kubernetes.io/managed-by': 'Helm',
+                    'app.kubernetes.io/name'      : 'multi-container-app',
+                    'app.kubernetes.io/version'   : 'v2.0.0',
+                    'helm.sh/chart'               : 'multi-container-app-0.2.0',
+                ],
+                'name'             : 'multi-container-app',
+                'namespace'        : 'myproject-test',
+                'resourceVersion'  : '1234567892',
+                'uid'              : '12345678-1234-1234-1234-multicontainer',
+            ],
+            'spec'      : [
+                'progressDeadlineSeconds': 600,
+                'replicas'               : 1,
+                'revisionHistoryLimit'   : 10,
+                'selector'               : [
+                    'matchLabels': [
+                        'app.kubernetes.io/instance': 'standalone-app',
+                        'app.kubernetes.io/name'    : 'multi-container-app',
+                    ],
+                ],
+                'strategy'               : [
+                    'type': 'RollingUpdate',
+                ],
+                'template'               : [
+                    'metadata': [
+                        'labels': [
+                            'app.kubernetes.io/instance': 'standalone-app',
+                            'app.kubernetes.io/name'    : 'multi-container-app',
+                        ],
+                    ],
+                    'spec'    : [
+                        'containers': [[
+                            'name'           : 'main-app',
+                            'image'          : 'image-registry.openshift.svc:1000/myproject-test/main-app:v2.0.0',
+                            'imagePullPolicy': 'IfNotPresent',
+                            'ports'          : [[
+                                'containerPort': 8080,
+                                'name'         : 'http',
+                                'protocol'     : 'TCP',
+                            ]],
+                        ], [
+                            'name'           : 'envoy-sidecar',
+                            'image'          : 'image-registry.openshift.svc:1000/myproject-test/envoy:v1.25.0',
+                            'imagePullPolicy': 'IfNotPresent',
+                            'ports'          : [[
+                                'containerPort': 15001,
+                                'name'         : 'envoy-admin',
+                                'protocol'     : 'TCP',
+                            ]],
+                        ]],
+                    ],
+                ],
+            ],
+            'status'    : [
+                'availableReplicas' : 1,
+                'readyReplicas'     : 1,
+                'replicas'          : 1,
+                'updatedReplicas'   : 1,
+            ],
+        ]
+
+        return baseMap
+    }
+
+    /**
+     * Creates a helm status map with all resource types: Deployment, StatefulSet, CronJob.
+     * This tests the full range of DEPLOYMENT_KINDS.
+     */
+    static Map createHelmCmdStatusMapWithAllResourceTypes() {
+        def baseMap = createHelmCmdStatusMapWithStatefulSet()
+        def cronJobMap = createHelmCmdStatusMapWithCronJob()
+        def multiContainerMap = createHelmCmdStatusMapWithMultiContainerDeployment()
+
+        // Merge CronJob resources
+        baseMap.info.resources['batch/v1/CronJob'] = cronJobMap.info.resources['batch/v1/CronJob']
+
+        // Merge multi-container deployment (it's already in the v1/Deployment array)
+        baseMap.info.resources['v1/Deployment'] << multiContainerMap.info.resources['v1/Deployment'].last()
+
+        return baseMap
+    }
+
     static Map createProjectMetadata() {
         def file = new FixtureHelper().getResource("project-metadata.yml")
         return new Yaml().load(file.text)
@@ -2438,6 +2668,39 @@ class FixtureHelper {
         """
     }
 
+    static String createSockShopJUnitXmlTestResultsWithoutType() {
+        """
+        <testsuites name="sockshop-suites" tests="4" failures="1" errors="1">
+            <testsuite name="sockshop-suite-1" tests="2" failures="0" errors="1" skipped="0" timestamp="2020-03-08T20:49:53Z">
+                <properties>
+                    <property name="my-property-a" value="my-property-a-value"/>
+                </properties>
+                <testcase name="NET130_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
+                <testcase name="NET139_verify-payment-service-installation" classname="org.sockshop.PaymentServiceInstallationTest" status="Error" time="2">
+                    <error message="my-error-message">This is an error.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-2" tests="2" failures="1" errors="0" skipped="1" timestamp="2020-03-08T20:46:54Z">
+                <testcase name="NET140_verify-order-service-installation" classname="org.sockshop.OrderServiceInstallationTest" status="Failed" time="3">
+                    <failure message="my-failure-message">This is a failure.</failure>
+                </testcase>
+                <testcase name="NET141_verify-databse-authentication" classname="org.sockshop.ShippingServiceInstallationTest" status="Missing" time="4">
+                    <skipped/>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-3" tests="1" failures="0" errors="0" skipped="0" timestamp="2020-03-08T20:46:55Z">
+                <testcase name="NET138_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
+            </testsuite>
+            <testsuite name="sockshop-suite-4" tests="4" failures="0" errors="0" skipped="1" timestamp="2020-03-08T20:46:56Z">
+                <testcase name="NET136_user-exists-in-system" classname="org.sockshop.integration.UserTest" status="Succeeded" time="3" />
+                <testcase name="NET142_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
+                <testcase name="NET143_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
+                <testcase name="NET144_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
+            </testsuite>
+        </testsuites>
+        """
+    }
+
     static Map createOpenShiftPodDataForComponent() {
         return [
             items: [
@@ -2480,6 +2743,12 @@ class FixtureHelper {
         )
     }
 
+    static Map createSockShopTestResultsWithoutType() {
+        return JUnitParser.parseJUnitXML(
+            createSockShopJUnitXmlTestResultsWithoutType()
+        )
+    }
+
     static Set createTestResultErrors() {
         return JUnitParser.Helper.getErrors(createTestResults())
     }
@@ -2494,6 +2763,9 @@ class FixtureHelper {
 
     static Set createSockShopTestResultFailures() {
         return JUnitParser.Helper.getFailures(createSockShopTestResults())
+    }
+    static Set createSockShopTestResultFailuresWithoutType() {
+        return JUnitParser.Helper.getFailures(createSockShopTestResultsWithoutType())
     }
 
     static List createSockShopJiraTestIssues() {
