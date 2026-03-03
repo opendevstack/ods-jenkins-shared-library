@@ -387,6 +387,21 @@ class JiraUseCase {
         this.jira.updateBuildNumber(projectKey, changeId, buildNumber)
     }
 
+    List buildComponentsDataForRelease() {
+        def components = []
+        this.project.data.metadata.repositories.each { repo ->
+            if (repo.include == true) {
+                def gitSHA = repo.data?.git?.commit
+                components.add([
+                    id: repo.id,
+                    commit: gitSHA ? gitSHA : 'N/A',
+                    status: gitSHA ? (repo.data?.failedStage ? 'FAILURE' : 'SUCCESS') : 'N/A',
+                ])
+            }
+        }
+        return components
+    }
+
     void updateJiraReleaseStatusResult(String message, boolean isError) {
         if (!this.jira) {
             logger.warn("updateJiraReleaseStatusResult: Could *NOT* update release status result because jira has invalid value.")
@@ -418,6 +433,7 @@ class JiraUseCase {
             ],
             status: status,
             env: env,
+            components: this.buildComponentsDataForRelease(),
             startDateTimestamp: this.steps.currentBuild.startTimeInMillis,
         ]
 

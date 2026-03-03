@@ -54,7 +54,6 @@ def call(Map config) {
     def repos = []
 
     logger.startClocked('orchestration-master-node')
-
     node('master') {
         try {
             logger.debugClocked('orchestration-master-node')
@@ -69,15 +68,11 @@ def call(Map config) {
                 logger.debugClocked('pod-template')
                 withEnv(envs) {
                     def result
-                    def cannotContinueAsHasOpenIssuesInClosingRelease = false
                     try {
                         result = new InitStage(this, project, repos, startAgentStage).execute()
                     } catch (OpenIssuesException ex) {
-                        cannotContinueAsHasOpenIssuesInClosingRelease = true
-                    }
-                    if (cannotContinueAsHasOpenIssuesInClosingRelease) {
                         logger.warn('Cannot continue as it has open issues in the release.')
-                        return
+                        throw ex
                     }
                     if (result) {
                         project = result.project
@@ -99,28 +94,29 @@ def call(Map config) {
         } catch (Exception e) {
             logger.error("Exception catched in the pipeline execution: ${e.message}")
             uploadResourcesToNexus(steps, project, logger)
+            throw e
+        } finally {
+            try {
+                logger.resetStopwatch()
+                project.clear()
+                ServiceRegistry.removeInstance()
+                UnirestConfig.shutdown()
+                project = null
+                git = null
+                repos = null
+                steps = null
+
+                new ClassLoaderCleaner().clean(logger, processId)
+                // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
+                logger.debug("forceClean via jenkins internals....")
+                // Force cleanup of the heap to release memory
+                Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+                cleanupHeap.setAccessible(true)
+                cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+            } catch (Exception e) {
+                logger.debug("cleanupHeap err: ${e}")
+            }
         }
-    }
-
-    logger.resetStopwatch()
-    project.clear()
-    ServiceRegistry.removeInstance()
-    UnirestConfig.shutdown()
-    project = null
-    git = null
-    repos = null
-    steps = null
-
-    try {
-        new ClassLoaderCleaner().clean(logger, processId)
-        // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
-        logger.debug("forceClean via jenkins internals....")
-        // Force cleanup of the heap to release memory
-        Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
-        cleanupHeap.setAccessible(true)
-        cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
-    } catch (Exception e) {
-        logger.debug("cleanupHeap err: ${e}")
     }
 }
 

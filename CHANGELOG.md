@@ -7,10 +7,18 @@
 ### Changed
 
 ### Fixed
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.12.0] - 2026-03-02
+### Changed
+* Update automatic release component information with N/A when pipelines have not run yet ([#1257](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1257))
+* Enhance Helm strategy and support of Statefullset/Cronjob ([#1253](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1253))
+* Add component information in automatic release close notes ([#1254](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1254))
+
+### Fixed
 * Fail pipeline when deploying with issues in progress ([#1258](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1258))
 * Log correct error message for wrong preview-branch value ([#1249](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1249))
 * Fail the pipeline when no version specified for a deploy to Q, P ([#1248](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1248))
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.11.2] - 2026-03-02
 ### Fixed
