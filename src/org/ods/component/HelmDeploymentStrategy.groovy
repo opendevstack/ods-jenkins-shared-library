@@ -34,11 +34,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         ILogger logger
     ) {
         HelmDeploymentConfig.applyDefaults(context, config)
-
         this.context = context
         this.logger = logger
         this.steps = steps
-
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
@@ -47,6 +45,10 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
 
     @Override
     Map<String, List<PodData>> deploy() {
+        if (!context.environment) {
+            logger.warn 'Skipping because of empty (target) environment ...'
+            return [:]
+        }
         // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
         def targetProject = context.targetProject
         if (options.helmValues['namespaceOverride']) {
@@ -149,7 +151,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             names.each { name ->
                 // Get container images directly from the resource spec (deployment/statefulset/cronjob)
                 def containers = openShift.getContainerImagesWithNameFromPodSpec(
-                    context.targetProject, kind, name
+                    targetProject, kind, name
                 )
                 logger.debug("Helm container images for ${kind}/${name}: ${containers}")
 
@@ -167,7 +169,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def deploymentMean = [
             type: 'helm',
             selector: options.selector,
-            namespace: context.targetProject,
+            namespace: targetProject,
             chartDir: options.chartDir,
             helmReleaseName: options.helmReleaseName,
             helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,

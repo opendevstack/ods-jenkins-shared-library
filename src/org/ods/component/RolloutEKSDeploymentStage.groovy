@@ -40,7 +40,6 @@ import org.ods.util.ILogger
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         ImageECR imageECR = new ImageECR(steps, context, awsEnvironmentVars)
-
         if (config.helmWithOnlyECR) {
             logger.info('ECR-only deployment configured (no EKS rollout)')
             deploymentStrategy = new ECROnlyDeploymentStrategy(context, config, imageECR, logger)

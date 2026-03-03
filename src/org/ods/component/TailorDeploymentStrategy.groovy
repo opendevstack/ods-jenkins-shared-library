@@ -19,7 +19,6 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
-    private final IImageRepository imageRepository
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     TailorDeploymentStrategy(
@@ -31,10 +30,43 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         IImageRepository imageRepository,
         ILogger logger
     ) {
-        DeploymentConfig deploymentConfig = new DeploymentConfig()
-        deploymentConfig.updateCommonConfig(context, config)
-        deploymentConfig.updateTailorConfig(context, config)
-
+        if (!config.selector) {
+            config.selector = context.selector
+        }
+        if (!config.imageTag) {
+            config.imageTag = context.shortGitCommit
+        }
+        if (!config.deployTimeoutMinutes) {
+            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
+        }
+        if (!config.deployTimeoutRetries) {
+            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
+        }
+        // Tailor options
+        if (!config.openshiftDir) {
+            config.openshiftDir = 'openshift'
+        }
+        if (!config.tailorPrivateKeyCredentialsId) {
+            config.tailorPrivateKeyCredentialsId = "${context.cdProject}-tailor-private-key"
+        }
+        if (!config.tailorSelector) {
+            config.tailorSelector = config.selector
+        }
+        if (!config.containsKey('tailorVerify')) {
+            config.tailorVerify = true
+        }
+        if (!config.containsKey('tailorExclude')) {
+            config.tailorExclude = 'bc,is'
+        }
+        if (!config.containsKey('tailorParamFile')) {
+            config.tailorParamFile = '' // none apart the automatic param file
+        }
+        if (!config.containsKey('tailorPreserve')) {
+            config.tailorPreserve = [] // do not preserve any paths in live config
+        }
+        if (!config.containsKey('tailorParams')) {
+            config.tailorParams = []
+        }
         this.context = context
         this.logger = logger
         this.steps = steps

@@ -9,7 +9,6 @@ import org.ods.util.ILogger
 
 def call(IContext context, Map config = [:]) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    // this is only for testing, because we need access to the script context :(
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }

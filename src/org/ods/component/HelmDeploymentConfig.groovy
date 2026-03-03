@@ -53,6 +53,9 @@ class HelmDeploymentConfig {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
+        if (!config.containsKey('helmReleasesHistoryLimit')) {
+            config.helmReleasesHistoryLimit = 5
+        }
     }
 
 }
