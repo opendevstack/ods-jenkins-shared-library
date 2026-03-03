@@ -125,19 +125,19 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         IPipelineSteps steps = new PipelineSteps(script)
-        IImageRepository imageRepository = new ImageRepositoryOpenshift(steps, context, openShift)
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
 
         // Use tailorDeployment in the following cases:
         // (1) We have an openshiftDir
         // (2) We do not have an openshiftDir but neither do we have an indication that it is Helm
         if (isTailorDeployment || (!isHelmDeployment && !isTailorDeployment)) {
-            deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
+            deploymentStrategy = new TailorDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
             String resourcePath = 'org/ods/component/RolloutOpenShiftDeploymentStage.deprecate-tailor.GString.txt'
             def msg = this.steps.libraryResource(resourcePath)
             logger.warn(msg)
         }
         if (isHelmDeployment) {
-            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, null, logger)
+            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
         }
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()

@@ -6,7 +6,7 @@ import groovy.transform.TypeChecked
 class RolloutOpenShiftDeploymentOptions extends Options {
 
     String envPath
-    
+
     /**
      * Selector scope used to determine which resources are part of a component
      * (defaults to `context.selector`). */
@@ -128,5 +128,10 @@ class RolloutOpenShiftDeploymentOptions extends Options {
      * Additional parameters to pass to Tailor (defaults to `[]`). Only
      * relevant if the directory referenced by `openshiftDir` exists. */
     List<String> tailorParams
+
+    /**
+     * Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
+     */
+    Boolean helmWithOnlyECR
 
 }

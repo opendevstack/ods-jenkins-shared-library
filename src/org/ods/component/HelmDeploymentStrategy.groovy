@@ -20,7 +20,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final ILogger logger
     private final IPipelineSteps steps
     private final IImageRepository imageRepository
-    private final EKSService eks
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
@@ -33,7 +32,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         OpenShiftService openShift,
         JenkinsService jenkins,
         IImageRepository imageRepository,
-        EKSService eks,
         ILogger logger
     ) {
             // TODO
@@ -79,6 +77,9 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
+        if (!config.containsKey('helmWithOnlyECR')) {
+            config.helmWithOnlyECR = false
+        }
 
         this.context = context
         this.logger = logger
@@ -88,7 +89,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         this.openShift = openShift
         this.jenkins = jenkins
         this.imageRepository = imageRepository
-        this.eks = eks
     }
 
     @Override
@@ -102,14 +102,11 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info("Retagging images for ${targetProject} ")
         def rolloutData
         imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
-        if (config.helmWithoutEKS) {
+        if (options.helmWithOnlyECR) {
             logger.info("No EKS deployment configured, skipping...")
             return rolloutData = [:]
         }
-        if (config.helmEKS) {
-            logger.info("Deploy to EKS deployment configured, skipping...")
-            eks.setEKSCluster()
-        }
+
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(targetProject)
         HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)

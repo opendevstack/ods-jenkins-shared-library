@@ -5,10 +5,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
-import org.ods.util.PipelineSteps
-import org.ods.util.IPipelineSteps
 import org.ods.services.EKSService
-import com.cloudbees.groovy.cps.NonCPS
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -86,10 +83,14 @@ class RolloutEKSDeploymentStage extends Stage {
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-        ImageRepositoryECR imageRepository = new ImageRepositoryECR(steps, context, awsEnvironmentVars)  
-        EKSService eks = new EKSService(steps, context, awsEnvironmentVars,  logger)
-        deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, eks, logger)    
-        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")          
+        ImageECR imageECR = new ImageECR(steps, context, awsEnvironmentVars)
+        if (config.helmWithOnlyECR) {
+            logger.info("Deploy to EKS deployment configured")
+            EKSService eks = new EKSService(steps, context, awsEnvironmentVars,  logger)
+            eks.setEKSCluster() // this should be always after instance ImageECR
+        }
+        deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageECR, logger)
+        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()
     }
 

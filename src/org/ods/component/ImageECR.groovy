@@ -2,17 +2,16 @@ package org.ods.component
 
 import org.ods.services.EKSService
 import org.ods.util.IPipelineSteps
-import org.ods.component.IContext
 
-class ImageRepositoryECR implements IImageRepository {
+class ImageECR implements IImageRepository {
 
     // Constructor arguments
     private final IPipelineSteps steps
     private final IContext context
-    private final EKSService eks
+    private final String ocToken
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
-    ImageRepositoryECR(
+    ImageECR(
         IPipelineSteps steps,
         IContext context,
         Map<String, Object> awsEnvironmentVars
@@ -20,6 +19,7 @@ class ImageRepositoryECR implements IImageRepository {
         this.steps = steps
         this.context = context
         this.awsEnvironmentVars = awsEnvironmentVars
+        this.ocToken = getOCToken()
     }
 
     public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
@@ -34,7 +34,7 @@ class ImageRepositoryECR implements IImageRepository {
     }
 
     private int copyImage(image, context, sourceTag, targetTag) {
-        String ocCredentials="jenkins:${getOCToken()}"
+        String ocCredentials="jenkins:${this.ocToken}"
         String awsCredentials="AWS:${getAWSPassword()}"
         String dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
         String awsTarget="docker://${getECRRegistry()}/${image}:${targetTag}"
@@ -77,6 +77,6 @@ class ImageRepositoryECR implements IImageRepository {
         ) as int
         if (status != 0 && showError) {
             steps.error("Error executing ${command}, status ${status}")
-        } 
+        }
     }
 }
