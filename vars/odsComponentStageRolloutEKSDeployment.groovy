@@ -20,9 +20,6 @@ def call(IContext context, Map config = [:]) {
     if (!config.envPath) {
         config.envPath = "./environments"
     }
-    if (!config.helmWithOnlyECR) {
-        config.helmWithOnlyECR = false
-    }
 
     Map awsEnvironmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
     return new RolloutEKSDeploymentStage(

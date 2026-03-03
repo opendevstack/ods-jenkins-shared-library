@@ -2,14 +2,14 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.services.EKSService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
-import org.ods.services.EKSService
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
-class RolloutEKSDeploymentStage extends Stage {
+    class RolloutEKSDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to OpenShift'
     private final OpenShiftService openShift
@@ -19,7 +19,6 @@ class RolloutEKSDeploymentStage extends Stage {
     private Map<String, Object> config
     private Map<String, Object> awsEnvironmentVars
 
-    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
     @TypeChecked(TypeCheckingMode.SKIP)
     RolloutEKSDeploymentStage(
         def script,
@@ -30,50 +29,7 @@ class RolloutEKSDeploymentStage extends Stage {
         Map<String, Object> awsEnvironmentVars,
         ILogger logger) {
         super(script, context, logger)
-
-        // TODO
-       // DeploymentConfig deploymentConfig = new DeploymentConfig()
-        // deploymentConfig.updateCommonConfig(context, config)
-        // deploymentConfig.updateHelmConfig(context, config)
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        if (!config.chartDir) {
-            config.chartDir = 'chart'
-        }
-        if (!config.containsKey('helmReleaseName')) {
-            config.helmReleaseName = context.componentId
-        }
-        if (!config.containsKey('helmValues')) {
-            config.helmValues = [:]
-        }
-        if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = [ 'values.yaml' ]
-        }
-        if (!config.containsKey('helmEnvBasedValuesFiles')) {
-            config.helmEnvBasedValuesFiles = []
-        }
-        if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
-        }
-        if (!config.containsKey('helmAdditionalFlags')) {
-            config.helmAdditionalFlags = []
-        }
-        if (!config.containsKey('helmDiff')) {
-            config.helmDiff = true
-        }
-        if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
-        }
+        HelmDeploymentConfig.applyDefaults(context, config)
         this.config = config
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
@@ -84,12 +40,17 @@ class RolloutEKSDeploymentStage extends Stage {
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         ImageECR imageECR = new ImageECR(steps, context, awsEnvironmentVars)
+
         if (config.helmWithOnlyECR) {
-            logger.info("Deploy to EKS deployment configured")
-            EKSService eks = new EKSService(steps, context, awsEnvironmentVars,  logger)
-            eks.setEKSCluster() // this should be always after instance ImageECR
+            logger.info('ECR-only deployment configured (no EKS rollout)')
+            deploymentStrategy = new ECROnlyDeploymentStrategy(context, config, imageECR, logger)
+        } else {
+            logger.info('Full EKS deployment configured')
+            EKSService eks = new EKSService(steps, context, awsEnvironmentVars, logger)
+            eks.setEKSCluster()
+            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageECR, logger)
         }
-        deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageECR, logger)
+
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()
     }

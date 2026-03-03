@@ -3,7 +3,6 @@ package org.ods.component
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.EKSService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
@@ -34,52 +33,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         IImageRepository imageRepository,
         ILogger logger
     ) {
-            // TODO
-       // DeploymentConfig deploymentConfig = new DeploymentConfig()
-        // deploymentConfig.updateCommonConfig(context, config)
-        // deploymentConfig.updateHelmConfig(context, config)
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        if (!config.chartDir) {
-            config.chartDir = 'chart'
-        }
-        if (!config.containsKey('helmReleaseName')) {
-            config.helmReleaseName = context.componentId
-        }
-        if (!config.containsKey('helmValues')) {
-            config.helmValues = [:]
-        }
-        if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = [ 'values.yaml' ]
-        }
-        if (!config.containsKey('helmEnvBasedValuesFiles')) {
-            config.helmEnvBasedValuesFiles = []
-        }
-        if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
-        }
-        if (!config.containsKey('helmAdditionalFlags')) {
-            config.helmAdditionalFlags = []
-        }
-        if (!config.containsKey('helmDiff')) {
-            config.helmDiff = true
-        }
-        if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
-        }
-        if (!config.containsKey('helmWithOnlyECR')) {
-            config.helmWithOnlyECR = false
-        }
+        HelmDeploymentConfig.applyDefaults(context, config)
 
         this.context = context
         this.logger = logger
@@ -102,10 +56,6 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         logger.info("Retagging images for ${targetProject} ")
         def rolloutData
         imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
-        if (options.helmWithOnlyECR) {
-            logger.info("No EKS deployment configured, skipping...")
-            return rolloutData = [:]
-        }
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
         helmUpgrade(targetProject)
