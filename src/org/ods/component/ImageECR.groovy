@@ -8,6 +8,7 @@ class ImageECR implements IImageRepository {
     // Constructor arguments
     private final IPipelineSteps steps
     private final IContext context
+    private final Map<String, Object> awsEnvironmentVars
     private final String ocToken
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])

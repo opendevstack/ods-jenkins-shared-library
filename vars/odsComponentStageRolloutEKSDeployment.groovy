@@ -20,8 +20,8 @@ def call(IContext context, Map config = [:]) {
     if (!config.envPath) {
         config.envPath = "./environments"
     }
-    if (!config.eks) {
-        config.eks = true
+    if (!config.helmWithOnlyECR) {
+        config.helmWithOnlyECR = false
     }
 
     Map awsEnvironmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
@@ -33,6 +33,6 @@ def call(IContext context, Map config = [:]) {
         ServiceRegistry.instance.get(JenkinsService),
         awsEnvironmentVars,
         logger
-    ).execute()     
+    ).execute()
 }
 return this
