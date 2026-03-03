@@ -1,6 +1,8 @@
 
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
+
 class DeploymentConfig {
 
     public void updateCommonConfig(IContext context, Map<String, Object> config) {

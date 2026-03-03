@@ -3,6 +3,7 @@ package org.ods.component
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.services.EKSService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
@@ -78,7 +79,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         if (!config.helmPrivateKeyCredentialsId) {
             config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
-        
+
         this.context = context
         this.logger = logger
         this.steps = steps
@@ -91,39 +92,40 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     }
 
     @Override
-    Map<String, List<PodData>> deploy() {      
+    Map<String, List<PodData>> deploy() {
         // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
         def targetProject = context.targetProject
         if (options.helmValues['namespaceOverride']) {
             targetProject = options.helmValues['namespaceOverride']
-            logger.info("Override namespace deployment to ${targetProject} ") 
+            logger.info("Override namespace deployment to ${targetProject} ")
         }
         logger.info("Retagging images for ${targetProject} ")
+        def rolloutData
         imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
-        if (config.eks) {
-            eks.setEKSCluster()
-            logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
-            helmUpgrade(targetProject)
-            HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
-            if (logger.debugMode) {
-                def helmStatusMap = helmStatus.toMap()
-                logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
-            }
-            def rolloutData = getRolloutData(helmStatus, targetProject)
-        } else {
+        if (config.helmWithoutEKS) {
             logger.info("No EKS deployment configured, skipping...")
-            def rolloutData = [:] 
+            return rolloutData = [:]
         }
-        
-        return rolloutData
+        if (config.helmEKS) {
+            logger.info("Deploy to EKS deployment configured, skipping...")
+            eks.setEKSCluster()
+        }
+        logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
+        helmUpgrade(targetProject)
+        HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
+        if (logger.debugMode) {
+            def helmStatusMap = helmStatus.toMap()
+            logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
+        }
+        return getRolloutData(helmStatus, targetProject)
     }
 
-    private void helmUpgrade(String targetProject) {        
+    private void helmUpgrade(String targetProject) {
         steps.dir(options.chartDir) {
             jenkins.maybeWithPrivateKeyCredentials(options.helmPrivateKeyCredentialsId) { String pkeyFile ->
                 if (pkeyFile) {
                     steps.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
-                }              
+                }
                 // we add two things persistent - as these NEVER change (and are env independent)
                 options.helmValues['registry'] = context.clusterRegistryAddress
                 options.helmValues['componentId'] = context.componentId

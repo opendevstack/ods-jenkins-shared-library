@@ -7,6 +7,7 @@ import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
+import org.ods.component.ImageRepositoryOpenshift
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
@@ -29,7 +30,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, logger)
-        
+
             // TODO
        // DeploymentConfig deploymentConfig = new DeploymentConfig()
         // deploymentConfig.updateCommonConfig(context, config)
@@ -124,7 +125,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         IPipelineSteps steps = new PipelineSteps(script)
-        IImageRepository imageRepository = new ImageRepositoryOpenShift(steps, context, openShift)
+        IImageRepository imageRepository = new ImageRepositoryOpenshift(steps, context, openShift)
 
         // Use tailorDeployment in the following cases:
         // (1) We have an openshiftDir
@@ -136,7 +137,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             logger.warn(msg)
         }
         if (isHelmDeployment) {
-            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, logger)
+            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageRepository, null, logger)
         }
         logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
         return deploymentStrategy.deploy()
