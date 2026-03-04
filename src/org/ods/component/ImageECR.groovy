@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
 
 class ImageECR implements IImageRepository {
 
