@@ -48,7 +48,7 @@ class EKSService {
             steps.error("Error executing ${command}, status ${status}")
         }
     }
-    
+
     private withCredentials(String awsAccessKeyId, String awsSecretAccessKey, Closure block) {
         steps.withCredentials([
             steps.string(credentialsId: awsAccessKeyId, variable: 'AWS_ACCESS_KEY_ID'),

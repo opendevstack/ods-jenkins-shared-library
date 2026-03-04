@@ -48,7 +48,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
         }
-        // Maybe we need to deploy to another namespace 
+        // Maybe we need to deploy to another namespace
         // (ie we want to deploy a monitoring stack into a specific namespace)
         def targetProject = context.targetProject
         if (options.helmValues['namespaceOverride']) {
