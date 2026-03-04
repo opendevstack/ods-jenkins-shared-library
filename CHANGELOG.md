@@ -43,6 +43,7 @@
 ### Fixed
 * Fix SonarQube run enable/disable logic ([#1259](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1259))
 
+
 ## [4.11.1] - 2025-12-19
 
 ### Fixed
