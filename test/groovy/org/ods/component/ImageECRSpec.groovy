@@ -31,7 +31,7 @@ class ImageECRSpec extends PipelineSpockTestBase {
         IContext context = new Context(script, DEFAULT_CONTEXT + contextOverrides, logger)
         // Stub the OC token call made in the constructor
         steps.sh([script: 'oc whoami -t', returnStdout: true]) >> 'my-oc-token'
-        new ImageECR(steps, context, awsEnv)
+        new ImageECR(steps, context, logger, awsEnv)
     }
 
     def "constructor retrieves OC token"() {

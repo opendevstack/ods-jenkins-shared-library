@@ -35,7 +35,7 @@ class ImageECR implements IImageRepository {
     }
 
     private void createRepository(String repositoryName) {
-        def createRepoCmd = "aws ecr describe-repositories --repository-names"
+        def createRepoCmd = "aws ecr create-repository --repository-name"
         executeCommand("${createRepoCmd} ${repositoryName} --region ${awsEnvironmentVars.region}", false)
     }
 

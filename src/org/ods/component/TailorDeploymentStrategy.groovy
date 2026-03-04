@@ -16,6 +16,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
