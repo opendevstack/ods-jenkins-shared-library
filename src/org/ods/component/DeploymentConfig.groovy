@@ -1,11 +1,10 @@
-
 package org.ods.component
 
 import com.cloudbees.groovy.cps.NonCPS
 
 class DeploymentConfig {
 
-    public void updateCommonConfig(IContext context, Map<String, Object> config) {
+    void updateCommonConfig(IContext context, Map<String, Object> config) {
         if (!config.selector) {
             config.selector = context.selector
         }
@@ -20,7 +19,7 @@ class DeploymentConfig {
         }
     }
 
-    public void updateHelmConfig(IContext context, Map<String, Object> config){
+    void updateHelmConfig(IContext context, Map<String, Object> config){
         if (!config.chartDir) {
             config.chartDir = 'chart'
         }
@@ -51,9 +50,9 @@ class DeploymentConfig {
     }
 
     @NonCPS
-    public static void updateTailorConfig(IContext context, Map<String, Object> config) {
+    static void updateTailorConfig(IContext context, Map<String, Object> config) {
         if (!config.openshiftDir) {
-                config.openshiftDir = 'openshift'
+            config.openshiftDir = 'openshift'
         }
         if (!config.tailorPrivateKeyCredentialsId) {
             config.tailorPrivateKeyCredentialsId = "${context.cdProject}-tailor-private-key"
@@ -77,4 +76,5 @@ class DeploymentConfig {
             config.tailorParams = []
         }
     }
+
 }

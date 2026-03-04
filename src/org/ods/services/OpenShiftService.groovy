@@ -1092,7 +1092,7 @@ class OpenShiftService {
             pods = extractPodData(podJson)
         } else {
             logger.debug("Not all pods are in 'running' state or succeeded")
-            def phases = podJson.items.collect { pod -> 
+            def phases = podJson.items.collect { pod ->
                 [name: pod.metadata?.name, phase: pod.status?.phase?.toLowerCase()] 
                 if (pod.status?.phase?.toLowerCase() != 'running') {
                     logger.debug("Pod ${pod.metadata?.name} is in phase '${pod.status?.phase}'")

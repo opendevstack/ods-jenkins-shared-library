@@ -15,7 +15,7 @@ import org.ods.util.ILogger
     private final OpenShiftService openShift
     private final JenkinsService jenkins
     private final RolloutOpenShiftDeploymentOptions options
-    private IDeploymentStrategy deploymentStrategy
+    private IDeploymentStrategy depStr
     private Map<String, Object> config
     private Map<String, Object> awsEnvironmentVars
 
@@ -42,16 +42,17 @@ import org.ods.util.ILogger
         ImageECR imageECR = new ImageECR(steps, context, awsEnvironmentVars)
         if (config.helmWithOnlyECR) {
             logger.info('ECR-only deployment configured (no EKS rollout)')
-            deploymentStrategy = new ECROnlyDeploymentStrategy(context, config, imageECR, logger)
+            depStr = new ECROnlyDeploymentStrategy(context, config, imageECR, logger)
         } else {
             logger.info('Full EKS deployment configured')
             EKSService eks = new EKSService(steps, context, awsEnvironmentVars, logger)
             eks.setEKSCluster()
-            deploymentStrategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageECR, logger)
+            depStr = new HelmDeploymentStrategy(
+                steps, context, config, openShift, jenkins, imageECR, logger)
         }
 
-        logger.info("deploymentStrategy: ${deploymentStrategy} -- ${deploymentStrategy.class.name}")
-        return deploymentStrategy.deploy()
+        logger.info("deploymentStrategy: ${depStr} -- ${depStr.class.name}")
+        return depStr.deploy()
     }
 
     protected String stageLabel() {
@@ -60,4 +61,5 @@ import org.ods.util.ILogger
         }
         STAGE_NAME
     }
+
 }

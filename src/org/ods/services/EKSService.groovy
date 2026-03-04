@@ -5,6 +5,7 @@ import org.ods.component.IContext
 import org.ods.util.ILogger
 
 class EKSService {
+
     // Constructor arguments
     private final IPipelineSteps steps
     private final IContext context
@@ -31,7 +32,8 @@ class EKSService {
             executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
             executeCommand("aws configure set region ${awsEnvironmentVars.region} --profile default")
             executeCommand("aws eks list-clusters")
-            executeCommand("aws eks update-kubeconfig --region ${awsEnvironmentVars.region} --name ${awsEnvironmentVars.eksCluster}")
+            def updateCommand = "aws eks update-kubeconfig --region"
+            executeCommand("${updateCommand} ${awsEnvironmentVars.region} --name ${awsEnvironmentVars.eksCluster}")
             executeCommand("kubectl create namespace ${context.getProjectId()}-${context.getEnvironment()}", false)
         }
     }
@@ -44,7 +46,7 @@ class EKSService {
         ) as int
         if (status != 0 && showError) {
             steps.error("Error executing ${command}, status ${status}")
-        } 
+        }
     }
     
     private withCredentials(String awsAccessKeyId, String awsSecretAccessKey, Closure block) {
@@ -55,4 +57,5 @@ class EKSService {
             block(steps.env.AWS_ACCESS_KEY_ID, steps.env.AWS_SECRET_ACCESS_KEY)
         }
     }
+
 }

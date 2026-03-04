@@ -21,7 +21,7 @@ class ImageRepositoryOpenshift implements IImageRepository {
         this.openShift = openShift
     }
 
-    public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
+    void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
         images.each { image ->
             findOrCreateImageStream(targetProject, image)
             openShift.importImageTagFromProject(
@@ -37,4 +37,5 @@ class ImageRepositoryOpenshift implements IImageRepository {
             steps.error "Could not find/create ImageStream ${image} in ${targetProject}. Error was: ${ex}"
         }
     }
+
 }

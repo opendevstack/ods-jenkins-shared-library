@@ -1,6 +1,5 @@
 package org.ods.component
 
-import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.JenkinsService
@@ -49,7 +48,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
         }
-        // Maybe we need to deploy to another namespace (ie we want to deploy a monitoring stack into a specific namespace)
+        // Maybe we need to deploy to another namespace 
+        // (ie we want to deploy a monitoring stack into a specific namespace)
         def targetProject = context.targetProject
         if (options.helmValues['namespaceOverride']) {
             targetProject = options.helmValues['namespaceOverride']

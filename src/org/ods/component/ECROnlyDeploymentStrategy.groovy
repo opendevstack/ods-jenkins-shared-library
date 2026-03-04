@@ -1,7 +1,6 @@
 package org.ods.component
 
 import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 
 /**

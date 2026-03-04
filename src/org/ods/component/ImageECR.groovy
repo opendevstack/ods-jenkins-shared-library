@@ -1,6 +1,5 @@
 package org.ods.component
 
-import org.ods.services.EKSService
 import org.ods.util.IPipelineSteps
 
 class ImageECR implements IImageRepository {
@@ -8,6 +7,7 @@ class ImageECR implements IImageRepository {
     // Constructor arguments
     private final IPipelineSteps steps
     private final IContext context
+    private final ILogger logger
     private final Map<String, Object> awsEnvironmentVars
     private final String ocToken
 
@@ -15,15 +15,18 @@ class ImageECR implements IImageRepository {
     ImageECR(
         IPipelineSteps steps,
         IContext context,
+        ILogger logger,
         Map<String, Object> awsEnvironmentVars
     ) {
         this.steps = steps
         this.context = context
+        this.logger = logger
         this.awsEnvironmentVars = awsEnvironmentVars
         this.ocToken = getOCToken()
     }
 
     public void retagImages(String targetProject, Set<String> images,  String sourceTag, String targetTag) {
+        logger.debug("retagImages called with targetProject=${targetProject}, images=${images}")
         images.each { image ->
             createRepository(image)
             copyImage(image, context, sourceTag, targetTag)
@@ -31,14 +34,15 @@ class ImageECR implements IImageRepository {
     }
 
     private void createRepository(String repositoryName) {
-        executeCommand("aws ecr create-repository --repository-name ${repositoryName} --region ${awsEnvironmentVars.region}", false)
+        def createRepoCmd = "aws ecr describe-repositories --repository-names"
+        executeCommand("${createRepoCmd} ${repositoryName} --region ${awsEnvironmentVars.region}", false)
     }
 
     private int copyImage(image, context, sourceTag, targetTag) {
-        String ocCredentials="jenkins:${this.ocToken}"
-        String awsCredentials="AWS:${getAWSPassword()}"
-        String dockerSource="docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
-        String awsTarget="docker://${getECRRegistry()}/${image}:${targetTag}"
+        String ocCredentials = "jenkins:${this.ocToken}"
+        String awsCredentials = "AWS:${getAWSPassword()}"
+        String dockerSource = "docker://${context.config.dockerRegistry}/${context.cdProject}/${image}:${sourceTag}"
+        String awsTarget = "docker://${getECRRegistry()}/${image}:${targetTag}"
 
         return steps.sh(
             script: """
@@ -80,4 +84,5 @@ class ImageECR implements IImageRepository {
             steps.error("Error executing ${command}, status ${status}")
         }
     }
+
 }
