@@ -90,7 +90,7 @@ class OpenShiftService {
             throw new RuntimeException ("Route does not contain a dot: ${routeUrl}")
         }
 
-        def openShiftPublicHost = routeUrl[routePrefixLength+1..-1]
+        def openShiftPublicHost = routeUrl[routePrefixLength + 1..-1]
         return openShiftPublicHost
     }
 
@@ -866,7 +866,7 @@ class OpenShiftService {
      * @param patch a <code>Map</code> specifying the patch to apply.
      * @param path the optional absolute path at which to apply the patch.
      * @param project the namespace of the resource. Default: null (the current project).
-     * @return
+     * @return String
      */
     String patch(String resource, Map<String, ?> patch, String path = null, String project = null) {
         if (!resource) {
@@ -1087,7 +1087,7 @@ class OpenShiftService {
     @TypeChecked(TypeCheckingMode.SKIP)
     List<PodData> parsePodJson(podJson, String resourceName = null) {
         List<PodData> pods = []
-        if (podJson && 
+        if (podJson &&
             podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' || it == 'succeeded' }) {
             // If we got passed a resourceName we need to collect all the pod data from each pod
             pods = extractPodData(podJson)
