@@ -92,6 +92,11 @@ _Integer_
 |Adjust retries to wait for the pod during a rollout (defaults to 5).
 
 
+| *envPath* +
+_String_
+|
+
+
 | *helmAdditionalFlags* +
 _List<String>_
 |List of additional flags to be passed verbatim to to `helm upgrade`
@@ -163,6 +168,11 @@ _Map<String,&nbsp;String>_
 _List<String>_
 |List of paths to values files (empty by default). Only relevant if the
  directory referenced by `chartDir` exists.
+
+
+| *helmWithOnlyECR* +
+_Boolean_
+|Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
 
 
 | *imageTag* +
