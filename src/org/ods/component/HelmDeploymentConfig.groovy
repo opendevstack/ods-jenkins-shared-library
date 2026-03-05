@@ -1,5 +1,6 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 
@@ -12,6 +13,7 @@ import groovy.transform.TypeCheckingMode
 @TypeChecked
 class HelmDeploymentConfig {
 
+    @NonCPS
     @TypeChecked(TypeCheckingMode.SKIP)
     static void applyDefaults(IContext context, Map<String, Object> config) {
         if (!config.selector) {
