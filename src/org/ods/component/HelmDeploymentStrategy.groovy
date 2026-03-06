@@ -17,6 +17,8 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
+
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
 
@@ -27,57 +29,17 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
-        if (!config.selector) {
-            config.selector = context.selector
-        }
-        if (!config.imageTag) {
-            config.imageTag = context.shortGitCommit
-        }
-        if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 15
-        }
-        if (!config.deployTimeoutRetries) {
-            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
-        }
-        // Helm options
-        if (!config.chartDir) {
-            config.chartDir = 'chart'
-        }
-        if (!config.containsKey('helmReleaseName')) {
-            config.helmReleaseName = context.componentId
-        }
-        if (!config.containsKey('helmValues')) {
-            config.helmValues = [:]
-        }
-        if (!config.containsKey('helmValuesFiles')) {
-            config.helmValuesFiles = ['values.yaml']
-        }
-        if (!config.containsKey('helmEnvBasedValuesFiles')) {
-            config.helmEnvBasedValuesFiles = []
-        }
-        // helmDefaultFlags are always set and cannot be overridden
-        config.helmDefaultFlags = ['--install', '--atomic']
-        if (!config.containsKey('helmAdditionalFlags')) {
-            config.helmAdditionalFlags = []
-        }
-        if (!config.containsKey('helmDiff')) {
-            config.helmDiff = true
-        }
-        if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
-        }
-        if (!config.containsKey('helmReleasesHistoryLimit')) {
-            config.helmReleasesHistoryLimit = 5
-        }
+        HelmDeploymentConfig.applyDefaults(context, config)
         this.context = context
         this.logger = logger
         this.steps = steps
-
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
@@ -86,13 +48,19 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
         }
-
-        // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+        // Maybe we need to deploy to another namespace
+        // (ie we want to deploy a monitoring stack into a specific namespace)
+        def targetProject = context.targetProject
+        if (options.helmValues['namespaceOverride']) {
+            targetProject = options.helmValues['namespaceOverride']
+            logger.info("Override namespace deployment to ${targetProject} ")
+        }
+        logger.info("Retagging images for ${targetProject} ")
+        imageRepository.retagImages(targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         logger.info("Rolling out ${context.componentId} with HELM, selector: ${options.selector}")
-        helmUpgrade(context.targetProject)
-        HelmStatus helmStatus = openShift.helmStatus(context.targetProject, options.helmReleaseName)
+        helmUpgrade(targetProject)
+        HelmStatus helmStatus = openShift.helmStatus(targetProject, options.helmReleaseName)
         if (logger.debugMode) {
             def helmStatusMap = helmStatus.toMap()
             logger.debug("${this.class.name} -- HELM STATUS: ${helmStatusMap}")
@@ -102,7 +70,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(helmStatus)
+        def rolloutData = getRolloutData(helmStatus, targetProject)
         return rolloutData
     }
 
@@ -167,7 +135,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
     // ]
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map<String, List<PodData>> getRolloutData(
-        HelmStatus helmStatus
+        HelmStatus helmStatus, String targetProject
     ) {
         Map<String, List<PodData>> rolloutData = [:]
 
@@ -183,7 +151,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
             names.each { name ->
                 // Get container images directly from the resource spec (deployment/statefulset/cronjob)
                 def containers = openShift.getContainerImagesWithNameFromPodSpec(
-                    context.targetProject, kind, name
+                    targetProject, kind, name
                 )
                 logger.debug("Helm container images for ${kind}/${name}: ${containers}")
 
@@ -201,7 +169,7 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         def deploymentMean = [
             type: 'helm',
             selector: options.selector,
-            namespace: context.targetProject,
+            namespace: targetProject,
             chartDir: options.chartDir,
             helmReleaseName: options.helmReleaseName,
             helmEnvBasedValuesFiles: options.helmEnvBasedValuesFiles,

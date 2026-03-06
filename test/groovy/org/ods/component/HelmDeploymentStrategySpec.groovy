@@ -94,20 +94,20 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         // of HelmDeploymentStrategy and should also be tested
         steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
         jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
 
         // Setup stub for getContainerImagesWithNameFromPodSpec
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'core') >> coreContainerImages
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'Deployment', 'standalone-gateway') >> standaloneGatewayContainerImages
 
         Map<String, List<PodData>> rolloutData
-        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
 
         when:
         rolloutData = strategy.deploy()
 
         then:
         1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
-
         1 * openShift.helmUpgrade(
                 contextData.targetProject,
                 contextData.componentId,
@@ -142,14 +142,14 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
 
     def "rollout: check deploymentMean with container images from pod spec"() {
         given:
-
+        def targetProject = 'foo-dev'
         def expectedDeploymentMeans = [
             builds: [:],
             deployments: [
                 'core-deploymentMean': [
                     type: 'helm',
                     selector: 'app=myproject-core',
-                    namespace: 'foo-dev',
+                    namespace: targetProject,
                     chartDir: 'chart',
                     helmReleaseName: 'core',
                     helmEnvBasedValuesFiles: [],
@@ -185,8 +185,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         ]
 
         def config = [:]
-
-        def ctxData = contextData + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
+        def ctxData = contextData + [environment: 'dev', targetProject: targetProject, openshiftRolloutTimeoutRetries: 5, chartDir: 'chart']
         IContext context = new Context(null, ctxData, logger)
         OpenShiftService openShiftService = Mock(OpenShiftService.class)
         // Now uses getContainerImagesWithNameFromPodSpec instead of checkForPodData
@@ -201,12 +200,14 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         JenkinsService jenkinsService = Stub(JenkinsService.class)
         jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
         ServiceRegistry.instance.add(JenkinsService, jenkinsService)
+        IPipelineSteps steps = Stub()
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShiftService)
 
-        HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, logger])
+        HelmDeploymentStrategy strategy = Spy(HelmDeploymentStrategy, constructorArgs: [null, context, config, openShiftService, jenkinsService, imgRepo, logger])
 
         when:
         def deploymentResources = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
-        def rolloutData = strategy.getRolloutData(deploymentResources)
+        def rolloutData = strategy.getRolloutData(deploymentResources, targetProject)
         def actualDeploymentMeans = context.getBuildArtifactURIs()
 
         then:
@@ -230,7 +231,6 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
     def "rollout: check rolloutData with StatefulSet resource"() {
         given:
         def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMapWithStatefulSet())
-
         OpenShiftService openShift = Mock()
         JenkinsService jenkins = Stub()
         IPipelineSteps steps = Stub()
@@ -257,9 +257,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'StatefulSet', 'database') >> [
             'postgres': "${contextData.clusterRegistryAddress}/myproject-dev/postgres@sha256:dbsha123456"
         ]
-
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
         Map<String, List<PodData>> rolloutData
-        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
 
         when:
         rolloutData = strategy.deploy()
@@ -305,9 +305,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'CronJob', 'cleanup-job') >> [
             'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
         ]
-
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
         Map<String, List<PodData>> rolloutData
-        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
 
         when:
         rolloutData = strategy.deploy()
@@ -354,9 +354,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
             'main-app': "${contextData.clusterRegistryAddress}/myproject-dev/main-app@sha256:mainapp12345",
             'envoy-sidecar': "${contextData.clusterRegistryAddress}/myproject-dev/envoy@sha256:envoy67890"
         ]
-
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
         Map<String, List<PodData>> rolloutData
-        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
 
         when:
         rolloutData = strategy.deploy()
@@ -411,9 +411,9 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         openShift.getContainerImagesWithNameFromPodSpec(contextData.targetProject, 'CronJob', 'cleanup-job') >> [
             'cleanup': "${contextData.clusterRegistryAddress}/myproject-dev/cleanup@sha256:cronjob12345"
         ]
-
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
         Map<String, List<PodData>> rolloutData
-        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, logger)
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins,imgRepo, logger)
 
         when:
         rolloutData = strategy.deploy()
