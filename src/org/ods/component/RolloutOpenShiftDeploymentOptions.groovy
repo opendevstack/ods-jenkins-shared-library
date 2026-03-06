@@ -134,4 +134,16 @@ class RolloutOpenShiftDeploymentOptions extends Options {
      * relevant if the directory referenced by `openshiftDir` exists. */
     List<String> tailorParams
 
+    /**
+     * Path to AWS environment configuration files (defaults to `./environments`).
+     * Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
+     */
+    String envPath
+
+    /**
+     * Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
+     * Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
+     */
+    Boolean helmWithOnlyECR
+
 }

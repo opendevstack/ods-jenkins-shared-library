@@ -94,7 +94,8 @@ _Integer_
 
 | *envPath* +
 _String_
-|
+|Path to AWS environment configuration files (defaults to `./environments`).
+ Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
 
 
 | *helmAdditionalFlags* +
@@ -173,6 +174,7 @@ _List<String>_
 | *helmWithOnlyECR* +
 _Boolean_
 |Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
+ Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
 
 
 | *imageTag* +
