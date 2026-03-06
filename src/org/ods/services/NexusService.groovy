@@ -146,8 +146,12 @@ class NexusService {
                 new ByteArrayInputStream(artifact),
                 ContentType.create(contentType),
                 nexusParams['pypi.asset'].substring( nexusParams['pypi.asset'].lastIndexOf("/") + 1 ))
-        }
-        else {
+        } else if (repositoryType == 'npm') {
+            restCall = restCall.field("npm.asset",
+                new ByteArrayInputStream(artifact),
+                ContentType.create(contentType),
+                nexusParams['npm.asset']) 
+        } else {
             restCall = restCall.field(
                 repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
                 new ByteArrayInputStream(artifact), contentType)
