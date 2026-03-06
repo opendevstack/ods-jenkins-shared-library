@@ -150,7 +150,7 @@ class NexusService {
             restCall = restCall.field("npm.asset",
                 new ByteArrayInputStream(artifact),
                 ContentType.create(contentType),
-                nexusParams['npm.asset']) 
+                nexusParams['npm.asset'])
         } else {
             restCall = restCall.field(
                 repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
