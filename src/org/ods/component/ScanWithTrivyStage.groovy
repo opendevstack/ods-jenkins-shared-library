@@ -27,7 +27,6 @@ class ScanWithTrivyStage extends Stage {
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
-        // check format
         if (!config.format) {
             config.format = 'cyclonedx'
         }
@@ -57,59 +56,31 @@ class ScanWithTrivyStage extends Stage {
     }
 
     protected run() {
-        String errorMessages = ''
-        int returnCode = scanViaCli(options.scanners, options.pkgType, options.format,
-            options.additionalFlags, options.reportFile, options.nexusDataBaseRepository,
-            openShift.getApplicationDomain())
-        if ([TrivyService.TRIVY_SUCCESS].contains(returnCode)) {
-            try {
-                URI reportUriNexus = archiveReportInNexus(options.reportFile, options.nexusReportRepository)
-                createBitbucketCodeInsightReport(options.nexusReportRepository ? reportUriNexus.toString() : null,
-                    returnCode, errorMessages)
-                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, options.reportFile)
-            } catch (err) {
-                logger.warn("Error archiving the Trivy reports due to: ${err}")
-            }
-        } else {
-            errorMessages += "<li>Error executing Trivy CLI</li>"
-            createBitbucketCodeInsightReport(errorMessages)
+        String flags = options.additionalFlags.collect { " $it" }.join("")
+        int returnCode = trivy.scan(
+            options.resourceName,
+            options.scanners,
+            options.pkgType,
+            options.format,
+            flags,
+            options.reportFile,
+            options.nexusDataBaseRepository,
+            openShift.getApplicationDomain()
+        )
+        try {
+            URI reportUriNexus = archiveReportInNexus()
+            createBitbucketCodeInsightReport(reportUriNexus?.toString(), returnCode)
+            archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, options.reportFile)
+        } catch (Exception err) {
+            logger.warn("Error archiving the Trivy reports due to: ${err}")
+            createBitbucketCodeInsightErrorReport("<li>Error archiving Trivy report: ${err.message}</li>")
         }
-        return
     }
 
-    @SuppressWarnings('ParameterCount')
-    private int scanViaCli(String scanners, String pkgType, String format,
-        List<String> additionalFlags, String reportFile, String nexusDataBaseRepository, String openshiftAppDomain) {
-        logger.startClocked(options.resourceName)
-        String flags = ""
-        additionalFlags.each { flag ->
-            flags += " " + flag
-        }
-        int returnCode = trivy.scanViaCli(scanners, pkgType, format, flags, reportFile,
-            nexusDataBaseRepository, openshiftAppDomain)
-        switch (returnCode) {
-            case TrivyService.TRIVY_SUCCESS:
-                logger.info "Finished scan via Trivy CLI successfully!"
-                break
-            case TrivyService.TRIVY_OPERATIONAL_ERROR:
-                logger.info "An error occurred in processing the scan request " +
-                    "(e.g. invalid command line options, operational error)."
-                break
-            default:
-                logger.info "An unknown return code was returned: ${returnCode}"
-        }
-        logger.infoClocked(options.resourceName, "Trivy scan (via CLI)")
-        return returnCode
-    }
-
-    @SuppressWarnings('ParameterCount')
-    private createBitbucketCodeInsightReport(String nexusUrlReport, int returnCode, String messages) {
-        String title = "Trivy Security"
-        String details = "Please visit the following link to review the Trivy Security scan report:"
-        String result = returnCode == 0 ? "PASS" : "FAIL"
+    private void createBitbucketCodeInsightReport(String nexusUrlReport, int returnCode) {
         def data = [
             key: BITBUCKET_TRIVY_REPORT_KEY,
-            title: title,
+            title: "Trivy Security",
             link: nexusUrlReport,
             otherLinks: [
                 [
@@ -118,65 +89,44 @@ class ScanWithTrivyStage extends Stage {
                     link: nexusUrlReport
                 ]
             ],
-            details: details,
-            result: result,
+            details: "Please visit the following link to review the Trivy Security scan report:",
+            result: returnCode == TrivyService.TRIVY_SUCCESS ? "PASS" : "FAIL",
         ]
-
-        if (messages) {
-            data.put("messages", [
-                [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
-            ])
-        }
-
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
-    private createBitbucketCodeInsightReport(String messages) {
-        String title = "Trivy Security"
-        String details = "There was some problems with Trivy:"
-
-        String result = "FAIL"
-
+    private void createBitbucketCodeInsightErrorReport(String errorMessages) {
         def data = [
             key: BITBUCKET_TRIVY_REPORT_KEY,
-            title: title,
+            title: "Trivy Security",
             messages: [
                 [
                     title: "Messages",
-                    value: prepareMessageToBitbucket(messages)
+                    value: prepareMessageToBitbucket(errorMessages)
                 ]
             ],
-            details: details,
-            result: result,
+            details: "There was some problems with Trivy:",
+            result: "FAIL",
         ]
-
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
-    private String prepareMessageToBitbucket(String message = "") {
+    private static String prepareMessageToBitbucket(String message = "") {
         return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
     }
 
-    @SuppressWarnings('ReturnNullFromCatchBlock')
-    private URI archiveReportInNexus(String reportFile, nexusReportRepository) {
-        try {
-            URI report = nexus.storeArtifact(
-                "${nexusReportRepository}",
-                "${context.projectId}/${this.options.resourceName}/" +
-                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/trivy",
-                "${reportFile}",
-                (steps.readFile(file: reportFile) as String).bytes, "json")
-
-            logger.info "Report stored in: ${report}"
-
-            return report
-        } catch (err) {
-            logger.warn("Error archiving the Trivy reports in Nexus due to: ${err}")
-            return null
-        }
+    private URI archiveReportInNexus() {
+        URI report = nexus.storeArtifact(
+            options.nexusReportRepository,
+            "${context.projectId}/${options.resourceName}/" +
+                "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/trivy",
+            options.reportFile,
+            (steps.readFile(file: options.reportFile) as String).bytes, "json")
+        logger.info "Report stored in: ${report}"
+        return report
     }
 
-    private archiveReportInJenkins(boolean archive, String reportFile) {
+    private void archiveReportInJenkins(boolean archive, String reportFile) {
         String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
         steps.sh(
             label: 'Create artifacts dir',
@@ -191,7 +141,6 @@ class ScanWithTrivyStage extends Stage {
         }
         String trivyScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('trivyScanStashPath', trivyScanStashPath)
-
         steps.stash(
             name: "${trivyScanStashPath}",
             includes: 'artifacts/SCSR*',
