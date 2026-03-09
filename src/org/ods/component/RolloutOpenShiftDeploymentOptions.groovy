@@ -135,14 +135,21 @@ class RolloutOpenShiftDeploymentOptions extends Options {
     List<String> tailorParams
 
     /**
-     * Path to AWS environment configuration files (defaults to `./environments`).
-     * Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
+     * Path to AWS environment configuration env files (defaults to `./environments`).
+     * Files (dev.yml, test.yaml, prod.yaml) must contain the following keys:
+     *  account: "..."
+     *  eksCluster: "..."
+     *  region: ...
+     *  credentials:
+     *      key: ... (e.g. projectName-cd-aws-us-access-key-id-dev)
+     *      secret: ... (e.g. projectName-cd-aws-us-secret-access-key-dev)
+     * Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
      */
-    String envPath
+    String awsEnvPath
 
     /**
      * Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
-     * Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
+     * Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
      */
     Boolean helmWithOnlyECR
 

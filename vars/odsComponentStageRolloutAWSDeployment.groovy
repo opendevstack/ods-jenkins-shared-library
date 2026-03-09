@@ -1,4 +1,4 @@
-import org.ods.component.RolloutEKSDeploymentStage
+import org.ods.component.RolloutAWSDeploymentStage
 import org.ods.component.IContext
 
 import org.ods.services.OpenShiftService
@@ -16,12 +16,12 @@ def call(IContext context, Map config = [:]) {
         logger.warn 'Skipping because of empty (target) environment ...'
         return
     }
-    if (!config.envPath) {
-        config.envPath = "./environments"
+    if (!config.awsEnvPath) {
+        config.awsEnvPath = "./environments"
     }
 
-    Map awsEnvironmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
-    return new RolloutEKSDeploymentStage(
+    Map awsEnvironmentVars = readYaml(file: "${config.awsEnvPath}/${context.environment}.yml")
+    return new RolloutAWSDeploymentStage(
         this,
         context,
         config,

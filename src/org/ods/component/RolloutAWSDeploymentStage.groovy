@@ -9,7 +9,7 @@ import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
-    class RolloutEKSDeploymentStage extends Stage {
+    class RolloutAWSDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to OpenShift'
     private final OpenShiftService openShift
@@ -20,7 +20,7 @@ import org.ods.util.ILogger
     private Map<String, Object> awsEnvironmentVars
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    RolloutEKSDeploymentStage(
+    RolloutAWSDeploymentStage(
         def script,
         IContext context,
         Map<String, Object> config,

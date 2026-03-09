@@ -5,7 +5,7 @@ import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
-class RolloutEKSDeploymentStageSpec extends PipelineSpockTestBase {
+class RolloutAWSDeploymentStageSpec extends PipelineSpockTestBase {
 
     private static final Map<String, Object> DEFAULT_CONTEXT = [
         componentId: 'component-a',
@@ -17,13 +17,13 @@ class RolloutEKSDeploymentStageSpec extends PipelineSpockTestBase {
         openshiftRolloutTimeoutRetries: 7
     ]
 
-    private RolloutEKSDeploymentStage createStage(Map<String, Object> config = [:], Map<String, Object> contextValues = [:]) {
+    private RolloutAWSDeploymentStage createStage(Map<String, Object> config = [:], Map<String, Object> contextValues = [:]) {
         def script = loadScript('vars/withStage.groovy')
         def logger = Spy(new Logger(script, false))
         IContext context = new Context(script, DEFAULT_CONTEXT + contextValues, logger)
         OpenShiftService openShift = Mock(OpenShiftService)
         JenkinsService jenkins = Mock(JenkinsService)
-        new RolloutEKSDeploymentStage(script, context, config, openShift, jenkins, [:], logger)
+        new RolloutAWSDeploymentStage(script, context, config, openShift, jenkins, [:], logger)
     }
 
     def "constructor sets default rollout and helm options from context"() {

@@ -61,6 +61,19 @@ In addition to the configuration options below, one can use e.g. a `Tailorfile` 
 | Option | Description
 
 
+| *awsEnvPath* +
+_String_
+|Path to AWS environment configuration env files (defaults to `./environments`).
+ Files (dev.yml, test.yaml, prod.yaml) must contain the following keys:
+  account: "..."
+  eksCluster: "..."
+  region: ...
+  credentials:
+      key: ... (e.g. projectName-cd-aws-us-access-key-id-dev)
+      secret: ... (e.g. projectName-cd-aws-us-secret-access-key-dev)
+ Only relevant for ECR-based deployments (odsComponentStageRolloutAWSDeployment)
+
+
 | *branch* +
 _String_
 |Branch to run stage for.
@@ -90,12 +103,6 @@ _Integer_
 | *deployTimeoutRetries* +
 _Integer_
 |Adjust retries to wait for the pod during a rollout (defaults to 5).
-
-
-| *envPath* +
-_String_
-|Path to AWS environment configuration files (defaults to `./environments`).
- Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
 
 
 | *helmAdditionalFlags* +
@@ -174,7 +181,7 @@ _List<String>_
 | *helmWithOnlyECR* +
 _Boolean_
 |Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
- Only relevant for ECR-based deployments (odsComponentStageRolloutEKSDeployment)
+ Only relevant for ECR-based deployments (odsComponentStageRolloutAWSDeployment)
 
 
 | *imageTag* +
