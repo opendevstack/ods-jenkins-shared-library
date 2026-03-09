@@ -28,7 +28,7 @@ def call(IContext context, Map config = [:]) {
         logger.warn "Update repo type in metadata.yml to ods-infra."
         return
     }
-    config.repoType = repoType
+    env.repoType = repoType
     return new RolloutAWSDeploymentStage(
         this,
         context,
