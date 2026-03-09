@@ -2,6 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
@@ -70,8 +71,12 @@ class HelmDeploymentStrategy extends AbstractDeploymentStrategy {
         // // we assume that Helm does "Deployment" that should work for most
         // // cases since they don't have triggers.
         // metadataSvc.updateMetadata(false, deploymentResources)
-        def rolloutData = getRolloutData(helmStatus, targetProject)
-        return rolloutData
+        Map<String, List<PodData>> rolloutData = [:]
+        if (steps.env.repoType == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+            return rolloutData
+        } else {
+            return getRolloutData(helmStatus, targetProject)
+        }
     }
 
     private void helmUpgrade(String targetProject) {

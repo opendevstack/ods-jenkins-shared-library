@@ -1,5 +1,6 @@
 package org.ods.component
 
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import org.ods.util.HelmStatus
@@ -439,6 +440,41 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
         // Verify CronJob
         rolloutData['cleanup-job'][0].deploymentId == 'cleanup-job'
         rolloutData['cleanup-job'][0].containers['cleanup'].contains('cleanup@sha256')
+    }
+
+    def "rollout: returns empty rolloutData when repoType is ods-infra"() {
+        given:
+        def helmStatus = HelmStatus.fromJsonObject(FixtureHelper.createHelmCmdStatusMap())
+
+        OpenShiftService openShift = Mock()
+        JenkinsService jenkins = Stub()
+        IPipelineSteps steps = Stub()
+
+        IContext context = Stub {
+            getTargetProject() >> contextData.targetProject
+            getEnvironment() >> contextData.environment
+            getBuildArtifactURIs() >> contextData.artifactUriStore
+            getComponentId() >> contextData.componentId
+            getClusterRegistryAddress() >> contextData.clusterRegistryAddress
+            getCdProject() >> contextData.cdProject
+        }
+
+        steps.getEnv() >> [repoType: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA]
+        steps.dir(contextData.chartDir, _ as Closure) >> { args -> args[1]() }
+        jenkins.maybeWithPrivateKeyCredentials("${contextData.cdProject}-helm-private-key", _ as Closure) >> { args -> args[1]() }
+        IImageRepository imgRepo = new ImageRepositoryOpenshift(steps, context, openShift)
+
+        HelmDeploymentStrategy strategy = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imgRepo, logger)
+
+        when:
+        Map<String, List<PodData>> rolloutData = strategy.deploy()
+
+        then:
+        1 * openShift.helmStatus(contextData.targetProject, contextData.componentId) >> helmStatus
+        1 * openShift.helmUpgrade(*_)
+        0 * openShift.getContainerImagesWithNameFromPodSpec(*_)
+
+        rolloutData == [:]
     }
 
 }

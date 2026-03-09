@@ -48,8 +48,7 @@ import org.ods.util.ILogger
             logger.info('Full EKS deployment configured')
             EKSService eks = new EKSService(steps, context, awsEnvironmentVars, logger)
             eks.setEKSCluster()
-            depStr = new HelmDeploymentStrategy(
-                steps, context, config, openShift, jenkins, imageECR, logger)
+            depStr = new HelmDeploymentStrategy(steps, context, config, openShift, jenkins, imageECR, logger)
         }
 
         logger.info("deploymentStrategy: ${depStr} -- ${depStr.class.name}")

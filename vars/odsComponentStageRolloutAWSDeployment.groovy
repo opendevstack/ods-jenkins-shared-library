@@ -1,6 +1,6 @@
 import org.ods.component.RolloutAWSDeploymentStage
 import org.ods.component.IContext
-
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
@@ -21,6 +21,14 @@ def call(IContext context, Map config = [:]) {
     }
 
     Map awsEnvironmentVars = readYaml(file: "${config.awsEnvPath}/${context.environment}.yml")
+    def metadata = readYaml(file: 'metadata.yml')
+    def repoType = metadata.type
+    if (repoType != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+        logger.warn "Skipping because of unsupported repository type '${repoType}' ..."
+        logger.warn "Update repo type in metadata.yml to ods-infra."
+        return
+    }
+    config.repoType = repoType
     return new RolloutAWSDeploymentStage(
         this,
         context,
