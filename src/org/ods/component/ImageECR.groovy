@@ -10,7 +10,7 @@ class ImageECR implements IImageRepository {
     private final IContext context
     private final ILogger logger
     private final Map<String, Object> awsEnvironmentVars
-    private final String ocToken
+    private String ocToken
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
     ImageECR(
@@ -23,6 +23,9 @@ class ImageECR implements IImageRepository {
         this.context = context
         this.logger = logger
         this.awsEnvironmentVars = awsEnvironmentVars
+    }
+
+    void fetchOCToken() {
         this.ocToken = getOCToken()
     }
 

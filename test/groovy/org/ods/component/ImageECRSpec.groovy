@@ -29,17 +29,38 @@ class ImageECRSpec extends PipelineSpockTestBase {
         def script = loadScript('vars/withStage.groovy')
         def logger = new Logger(script, false)
         IContext context = new Context(script, DEFAULT_CONTEXT + contextOverrides, logger)
-        // Stub the OC token call made in the constructor
+        // Stub the OC token call made in fetchOCToken
         steps.sh([script: 'oc whoami -t', returnStdout: true]) >> 'my-oc-token'
-        new ImageECR(steps, context, logger, awsEnv)
+        def imageECR = new ImageECR(steps, context, logger, awsEnv)
+        imageECR.fetchOCToken()
+        return imageECR
     }
 
-    def "constructor retrieves OC token"() {
+    def "constructor does not call shell commands"() {
+        given:
+        def script = loadScript('vars/withStage.groovy')
+        def logger = new Logger(script, false)
+        IContext context = new Context(script, DEFAULT_CONTEXT, logger)
+
         when:
-        def imageECR = createImageECR()
+        def imageECR = new ImageECR(steps, context, logger, AWS_ENV)
 
         then:
         imageECR != null
+        0 * steps.sh(_)
+    }
+
+    def "fetchOCToken retrieves OC token"() {
+        given:
+        def script = loadScript('vars/withStage.groovy')
+        def logger = new Logger(script, false)
+        IContext context = new Context(script, DEFAULT_CONTEXT, logger)
+        def imageECR = new ImageECR(steps, context, logger, AWS_ENV)
+
+        when:
+        imageECR.fetchOCToken()
+
+        then:
         1 * steps.sh({ it.script == 'oc whoami -t' && it.returnStdout == true }) >> 'my-oc-token'
     }
 
