@@ -71,7 +71,7 @@ _String_
   credentials:
       key: ... (e.g. projectName-cd-aws-us-access-key-id-dev)
       secret: ... (e.g. projectName-cd-aws-us-secret-access-key-dev)
- Only relevant for ECR-based deployments (odsComponentStageRolloutAWSDeployment)
+ Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
 
 
 | *branch* +
@@ -181,7 +181,7 @@ _List<String>_
 | *helmWithOnlyECR* +
 _Boolean_
 |Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
- Only relevant for ECR-based deployments (odsComponentStageRolloutAWSDeployment)
+ Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
 
 
 | *imageTag* +
