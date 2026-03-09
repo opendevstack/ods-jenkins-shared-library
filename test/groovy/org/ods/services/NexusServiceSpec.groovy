@@ -128,6 +128,54 @@ class NexusServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    Map storeNpmArtifactRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                artifact: [0] as byte[],
+                contentType: "application/octet-stream",
+                name: "package.tgz",
+                repository: "npm-hosted",
+            ],
+            password: "password",
+            path: "/service/rest/v1/components",
+            username: "username"
+        ]
+    
+        result.multipartRequestBody = [
+            "npm.asset": result.data.artifact
+        ]
+    
+        result.queryParams = [
+            "repository": result.data.repository
+        ]
+    
+        return result << mixins
+    }
+    
+    def "store npm artifact"() {
+        given:
+        def request = storeNpmArtifactRequestData()
+        def response = storeArtifactResponseData()
+    
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), "foo-cd-cd-user-with-password")
+    
+        when:
+        def result = service.storeComplextArtifact(
+            request.data.repository,
+            request.data.artifact,
+            request.data.contentType,
+            "npm",
+            ["npm.asset": request.data.name]
+        )
+    
+        then:
+        result == new URIBuilder("http://localhost:${server.port()}/repository/${request.data.repository}").build()
+    
+        cleanup:
+        stopServer(server)
+    }
+
     def "store artifact with HTTP 404 failure"() {
         given:
         def request = storeArtifactRequestData()
