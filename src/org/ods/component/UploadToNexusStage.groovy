@@ -55,6 +55,8 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['raw.directory': (options.targetDirectory ?: context.projectId)]
         } else if (options.repositoryType == 'pypi') {
             nexusParams << ['pypi.asset': options.distributionFile]
+        } else if (options.repositoryType == 'npm') {
+            nexusParams << ['npm.asset': options.distributionFile]
         }
 
         def data = steps.readFile(file: options.distributionFile, encoding: 'Base64').toString().getBytes()
