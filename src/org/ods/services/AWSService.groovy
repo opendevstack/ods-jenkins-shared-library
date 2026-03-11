@@ -4,7 +4,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.component.IContext
 import org.ods.util.ILogger
 
-class EKSService {
+class AWSService {
 
     // Constructor arguments
     private final IPipelineSteps steps
@@ -13,7 +13,7 @@ class EKSService {
     private final ILogger logger
 
     @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'ParameterCount'])
-    EKSService(
+    AWSService(
         IPipelineSteps steps,
         IContext context,
         Map<String, Object> awsEnvironmentVars,
@@ -25,12 +25,18 @@ class EKSService {
         this.logger = logger
     }
 
-    protected setEKSCluster() {
+    void awsLogin() {
         withCredentials((awsEnvironmentVars.credentials.key as String).toLowerCase(),
-                        (awsEnvironmentVars.credentials.secret as String).toLowerCase()) {
+            (awsEnvironmentVars.credentials.secret as String).toLowerCase()) {
             executeCommand('aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile default')
             executeCommand('aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile default')
             executeCommand("aws configure set region ${awsEnvironmentVars.region} --profile default")
+        }
+    }
+
+    void setEKSCluster() {
+        withCredentials((awsEnvironmentVars.credentials.key as String).toLowerCase(),
+                        (awsEnvironmentVars.credentials.secret as String).toLowerCase()) {
             executeCommand("aws eks list-clusters")
             def updateCommand = "aws eks update-kubeconfig --region"
             executeCommand("${updateCommand} ${awsEnvironmentVars.region} --name ${awsEnvironmentVars.eksCluster}")
@@ -54,7 +60,7 @@ class EKSService {
             steps.string(credentialsId: awsAccessKeyId, variable: 'AWS_ACCESS_KEY_ID'),
             steps.string(credentialsId: awsSecretAccessKey, variable: 'AWS_SECRET_ACCESS_KEY')
         ]) {
-            block(steps.env.AWS_ACCESS_KEY_ID, steps.env.AWS_SECRET_ACCESS_KEY)
+            block()
         }
     }
 
