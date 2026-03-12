@@ -80,6 +80,6 @@ _String_
 
 | *scanners* +
 _String_
-|Comma-separated list of what security issues to detect. Defaults to `vuln,config,secret,license`.
+|Comma-separated list of what security issues to detect. Defaults to `vuln,misconfig,secret,license`.
 
 |===

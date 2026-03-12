@@ -14,7 +14,7 @@ class ScanWithTrivyOptions extends Options {
     String format
 
     /**
-     * Comma-separated list of what security issues to detect. Defaults to `vuln,config,secret,license`. */
+     * Comma-separated list of what security issues to detect. Defaults to `vuln,misconfig,secret,license`. */
     String scanners
 
     /**

@@ -4,7 +4,6 @@ import org.ods.services.TrivyService
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 import util.PipelineSteps
@@ -32,6 +31,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
             logger))
         def nexus = Spy(new NexusService ("http://nexus", script, "foo-cd-cd-user-with-password"))
         def openShift = Spy(new OpenShiftService (script, logger))
+        openShift.getApplicationDomain() >> "openshift-domain.com"
         def stage = new ScanWithTrivyStage(
             script,
             context,
@@ -105,7 +105,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.archiveReportInNexus("trivy-sbom.json", "leva-documentation")
+        stage.archiveReportInNexus()
 
         then:
         1 * stage.script.readFile([file: "trivy-sbom.json"]) >> "Cool report"
@@ -133,7 +133,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://nexus", 0, null)
+        stage.createBitbucketCodeInsightReport("http://nexus", 0)
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -158,13 +158,13 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://nexus", 1, null)
+        stage.createBitbucketCodeInsightReport("http://nexus", 1)
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
     }
 
-    def "create Bitbucket Insight report - Messages"() {
+    def "create Bitbucket Insight report - Error Messages"() {
         given:
         def stage = createStage()
         def data = [
@@ -181,7 +181,7 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport('Message')
+        stage.createBitbucketCodeInsightErrorReport('Message')
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -192,12 +192,18 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
+        def result = stage.trivy.scan("component1", "vuln,misconfig,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
-        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
-           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> TrivyService.TRIVY_SUCCESS
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Scan via Trivy CLI']
+            return TrivyService.TRIVY_SUCCESS
+        }
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Read SBOM with Trivy CLI']
+            return 0
+        }
         1 * stage.logger.info("Finished scan via Trivy CLI successfully!")
         TrivyService.TRIVY_SUCCESS == result
     }
@@ -207,15 +213,24 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
+        def result = stage.trivy.scan("component1", "vuln,misconfig,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
-        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
-           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> TrivyService.TRIVY_OPERATIONAL_ERROR
-        1 * stage.logger.info("An error occurred in processing the scan request " +
-            "(e.g. invalid command line options, operational error).")
-        TrivyService.TRIVY_OPERATIONAL_ERROR == result
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Scan via Trivy CLI']
+            return TrivyService.TRIVY_FAIL
+        }
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Read SBOM with Trivy CLI']
+            return 0
+        }
+        1 * stage.logger.info(
+                  "An error occurred while processing the Trivy scan request " +
+                  "(e.g. invalid command line options, operational error, or " +
+                  "severity threshold exceeded when using the --exit-code flag)."
+        )
+        TrivyService.TRIVY_FAIL == result
     }
 
     def "scan with CLI - Error"() {
@@ -223,12 +238,18 @@ class ScanWithTrivyStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        def result = stage.scanViaCli("vuln,config,secret,license", "os,library", "cyclonedx",
-            [], "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
+        def result = stage.trivy.scan("component1", "vuln,misconfig,secret,license", "os,library",
+           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com")
 
         then:
-        1 * stage.trivy.scanViaCli("vuln,config,secret,license", "os,library",
-           "cyclonedx", "", "trivy-sbom.json", "docker-group-ods", "openshift-domain.com") >> 127
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Scan via Trivy CLI']
+            return 127
+        }
+        1 * stage.script.sh(_) >> {
+            assert it.label == ['Read SBOM with Trivy CLI']
+            return 0
+        }
         1 * stage.logger.info("An unknown return code was returned: 127")
         127 == result
     }
