@@ -61,6 +61,19 @@ In addition to the configuration options below, one can use e.g. a `Tailorfile` 
 | Option | Description
 
 
+| *awsEnvPath* +
+_String_
+|Path to AWS environment configuration env files (defaults to `./environments`).
+ Files (dev.yml, test.yaml, prod.yaml) must contain the following keys:
+  account: "..."
+  eksCluster: "..."
+  region: ...
+  credentials:
+      key: ... (e.g. projectName-cd-aws-us-access-key-id-dev)
+      secret: ... (e.g. projectName-cd-aws-us-secret-access-key-dev)
+ Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
+
+
 | *branch* +
 _String_
 |Branch to run stage for.
@@ -163,6 +176,12 @@ _Map<String,&nbsp;String>_
 _List<String>_
 |List of paths to values files (empty by default). Only relevant if the
  directory referenced by `chartDir` exists.
+
+
+| *helmWithOnlyECR* +
+_Boolean_
+|Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
+ Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
 
 
 | *imageTag* +
