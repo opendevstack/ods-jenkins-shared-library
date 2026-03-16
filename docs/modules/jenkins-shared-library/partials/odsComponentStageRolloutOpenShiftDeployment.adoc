@@ -181,6 +181,8 @@ _List<String>_
 | *helmWithOnlyECR* +
 _Boolean_
 |Whether to use Helm for deployment or only sync with ECR (defaults to `false`)
+ If `true`, the process will only use the ECR repository to store the image. So, no Helm deployment will be done.
+ If `false`, the image will be stored in ECR and the helm deployment will be executed.
  Only relevant for AWS-based deployments (odsComponentStageRolloutAWSDeployment)
 
 
