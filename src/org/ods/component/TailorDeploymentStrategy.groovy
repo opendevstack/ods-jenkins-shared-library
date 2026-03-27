@@ -16,6 +16,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
     private final JenkinsService jenkins
     private final ILogger logger
     private final IPipelineSteps steps
+    private final IImageRepository imageRepository
 
     // assigned in constructor
     private final RolloutOpenShiftDeploymentOptions options
@@ -27,6 +28,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         Map<String, Object> config,
         OpenShiftService openShift,
         JenkinsService jenkins,
+        IImageRepository imageRepository,
         ILogger logger
     ) {
         if (!config.selector) {
@@ -73,6 +75,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         this.options = new RolloutOpenShiftDeploymentOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
+        this.imageRepository = imageRepository
     }
 
     @Override
@@ -96,7 +99,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         def refreshResources = false
 
         // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+        imageRepository.retagImages(context.targetProject, getBuiltImages(), options.imageTag, options.imageTag)
 
         if (steps.fileExists(options.openshiftDir)) {
             refreshResources = true
