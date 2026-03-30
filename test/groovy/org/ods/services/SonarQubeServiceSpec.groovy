@@ -108,7 +108,7 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         service.scan(optionsWithoutPrivateToken)
 
         then:
-        2 * steps.sh(label: 'Set Java 17 for SonarQube scan', script: "source use-j17.sh")
+        2 * steps.sh(label: 'Set Java 21 for SonarQube scan', script: "source use-j21.sh")
         1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") })
         1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
     }
