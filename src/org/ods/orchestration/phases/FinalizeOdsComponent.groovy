@@ -11,6 +11,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+
 // Finalize ODS component (code or service) in 'dev'.
 @TypeChecked
 class FinalizeOdsComponent {
@@ -148,7 +149,7 @@ class FinalizeOdsComponent {
 
         deploymentMeans.values().each { deploymentMean ->
             String componentSelector = deploymentMean.selector
-            def workloadKinds = (deploymentMean.type == 'helm' && deploymentMean.resources) ? 
+            def workloadKinds = (deploymentMean.type == 'helm' && deploymentMean.resources) ?
                 allWorkloadKinds : tailorWorkloadKinds
 
             def allComponentDeploymentsByKind = os.getResourcesForComponent(
