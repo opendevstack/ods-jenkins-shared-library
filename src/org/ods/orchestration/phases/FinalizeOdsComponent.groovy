@@ -2,6 +2,7 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.component.AbstractDeploymentStrategy
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -139,18 +140,11 @@ class FinalizeOdsComponent {
                 " Likely you upgraded and tried to deploy to Q instead of rebuilding on dev")
         }
 
-        // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
-        // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
-        // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
-        def allWorkloadKinds = [
-            OpenShiftService.DEPLOYMENT_KIND,
-            OpenShiftService.DEPLOYMENTCONFIG_KIND,
-            OpenShiftService.STATEFULSET_KIND,
-            OpenShiftService.CRONJOB_KIND
-        ]
-        def tailorWorkloadKinds = [
-            OpenShiftService.DEPLOYMENTCONFIG_KIND
-        ]
+        // Use shared workload kinds from AbstractDeploymentStrategy
+        // allWorkloadKinds: Deployment, DeploymentConfig, StatefulSet, CronJob (for Helm deployments)
+        // tailorWorkloadKinds: DeploymentConfig (for tailor/legacy deployments)
+        def allWorkloadKinds = AbstractDeploymentStrategy.DEPLOYMENT_KINDS
+        def tailorWorkloadKinds = AbstractDeploymentStrategy.TAILOR_DEPLOYMENT_KINDS
 
         deploymentMeans.values().each { deploymentMean ->
             String componentSelector = deploymentMean.selector

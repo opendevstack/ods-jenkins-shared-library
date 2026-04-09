@@ -8,11 +8,11 @@ import org.ods.util.PodData
 abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
 
     // Deployment resource kinds that are supported for Helm.
-    protected final List<String> DEPLOYMENT_KINDS = [
+    public static final List<String> DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
         OpenShiftService.STATEFULSET_KIND, OpenShiftService.CRONJOB_KIND,
     ]
-    protected final List<String> TAILOR_DEPLOYMENT_KINDS = [
+    public static final List<String> TAILOR_DEPLOYMENT_KINDS = [
         OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
     ]
 
