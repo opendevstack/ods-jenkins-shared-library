@@ -2,6 +2,7 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.component.AbstractDeploymentStrategy
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -10,7 +11,8 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
-// Finalize ODS comnponent (code or service) in 'dev'.
+
+// Finalize ODS component (code or service) in 'dev'.
 @TypeChecked
 class FinalizeOdsComponent {
 
@@ -139,22 +141,23 @@ class FinalizeOdsComponent {
                 " Likely you upgraded and tried to deploy to Q instead of rebuilding on dev")
         }
 
-        deploymentMeans.values().each{deploymentMean->
+        // Use shared workload kinds from AbstractDeploymentStrategy
+        // allWorkloadKinds: Deployment, DeploymentConfig, StatefulSet, CronJob (for Helm deployments)
+        // tailorWorkloadKinds: DeploymentConfig (for tailor/legacy deployments)
+        def allWorkloadKinds = AbstractDeploymentStrategy.DEPLOYMENT_KINDS
+        def tailorWorkloadKinds = AbstractDeploymentStrategy.TAILOR_DEPLOYMENT_KINDS
+
+        deploymentMeans.values().each { deploymentMean ->
             String componentSelector = deploymentMean.selector
-            // Query all pod-managing workload kinds (Deployment, DeploymentConfig, StatefulSet, CronJob)
-            // This ensures compatibility with all Kubernetes workload types, not just the legacy pair.
-            // DeploymentConfig is included for backward compatibility with OpenShift 3.x and tailor tooling.
-            def allWorkloadKinds = [
-                OpenShiftService.DEPLOYMENT_KIND,
-                OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                OpenShiftService.STATEFULSET_KIND,
-                OpenShiftService.CRONJOB_KIND
-            ]
+            def workloadKinds = (deploymentMean.type == 'helm' && deploymentMean.resources) ?
+                allWorkloadKinds : tailorWorkloadKinds
+
             def allComponentDeploymentsByKind = os.getResourcesForComponent(
                 project.targetProject,
-                allWorkloadKinds,
+                workloadKinds,
                 componentSelector
             )
+
             // Flatten all workload kinds into a single list for verification
             def allComponentDeployments = []
             allWorkloadKinds.each { kind ->
