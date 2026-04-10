@@ -86,7 +86,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
         }
 
         def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, DEPLOYMENT_KINDS, options.selector
+            context.targetProject, TAILOR_DEPLOYMENT_KINDS, options.selector
         )
 
         if (context.triggeredByOrchestrationPipeline
@@ -108,7 +108,7 @@ class TailorDeploymentStrategy extends AbstractDeploymentStrategy {
 
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(
-                context.targetProject, DEPLOYMENT_KINDS, options.selector
+                context.targetProject, TAILOR_DEPLOYMENT_KINDS, options.selector
             )
         }
 
