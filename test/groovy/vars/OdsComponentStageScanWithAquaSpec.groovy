@@ -310,4 +310,57 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         assertJobStatusSuccess()
     }
 
+    def "forwards branches config into ScanWithAquaStage"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+        def aquaConfigMapName = ScanWithAquaStage.AQUA_CONFIG_MAP_NAME
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData('ods', aquaConfigMapName) >> [
+            enabled: true, alertEmails: "mail1@mail.com", url: "http://aqua", registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", aquaConfigMapName) >> [enabled: true]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        NexusService nexusService = Stub(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+
+        and: "mock the stage constructor and validate inherited config"
+        GroovyMock(ScanWithAquaStage, global: true)
+        ScanWithAquaStage.getAQUA_CONFIG_MAP_NAME() >> aquaConfigMapName
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        script.call(
+            context,
+            [
+                imageLabels: [JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE: 'ods'],
+                resourceName: 'my-image',
+                branches: ['master', 'release/']
+            ]
+        )
+
+        then:
+        1 * new ScanWithAquaStage(
+            _,
+            _,
+            {
+                it.resourceName == 'my-image' &&
+                    it.branches == ['master', 'release/']
+            },
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+            _
+        ) >> Stub(ScanWithAquaStage) {
+            execute() >> null
+        }
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
 }
