@@ -6,6 +6,7 @@
 
 ### Changed
 * Push container images to AWS ECR independently of EKS, while optionally triggering EKS deployments when needed ([#1267](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1267))
+* Updated Java version in sonarqube execution to Java 21 ([#1269](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1269))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
