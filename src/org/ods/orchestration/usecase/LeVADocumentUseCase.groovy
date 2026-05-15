@@ -23,6 +23,7 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil.PipelineConfig
 
+import java.nio.file.NoSuchFileException
 import java.time.LocalDateTime
 
 @SuppressWarnings([
@@ -1863,6 +1864,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def envs = Environment.values().collect { it.toString() }
                 def trackingIssues = this.getDocumentTrackingIssuesForHistory(doc, envs)
                 version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                // Guard: cap Jira version against Bitbucket saved history to handle
+                // desync caused by pipeline failures after Jira update but before Bitbucket save.
+                try {
+                    def docHistory = new DocumentHistory(this.steps, this.logger,
+                        project.buildParams.targetEnvironmentToken, doc)
+                    def savedEntries = docHistory.loadSavedDocHistoryData()
+                    if (savedEntries) {
+                        def maxSavedVersion = savedEntries.collect { it.getEntryId() }.max()
+                        version = Math.min(version, maxSavedVersion)
+                    }
+                } catch (Exception ignored) {
+                    // No saved history or unable to read — fall back to Jira value
+                }
                 if (project.isWorkInProgress ||
                     LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
                     project.buildParams.targetEnvironmentToken) {

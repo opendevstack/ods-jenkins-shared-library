@@ -1990,6 +1990,46 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         version == 'CHG00001/4'
     }
 
+    def "get version caps inflated Jira version against Bitbucket saved history"() {
+        given:
+        // Set up a workspace with saved document history where max entryId = 4
+        def workspace = tempFolder.newFolder()
+        def projectDataDir = new File(workspace, 'projectData')
+        projectDataDir.mkdirs()
+        // For CSD with targetEnv=D, sourceEnvironment=D (first creation env), file = documentHistory-D-CSD.json
+        new File(projectDataDir, 'documentHistory-D-CSD.json').text = '''[
+            {"entryId": 3, "projectVersion": "1.0", "docVersion": "3", "rational": "initial"},
+            {"entryId": 4, "projectVersion": "1.0", "docVersion": "4", "rational": "update"}
+        ]'''
+
+        def testSteps = Spy(util.PipelineSteps)
+        testSteps.env.WORKSPACE = workspace.absolutePath
+        testSteps.env.RELEASE_PARAM_VERSION = 'CHG00001'
+
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.buildParams >> [targetEnvironmentToken: 'D']
+        project.getDocumentVersionFromHistories('CSD') >> null
+
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        // Jira returns 5 (inflated by a killed pipeline that updated Jira but not Bitbucket)
+        jiraUseCase.getLatestDocVersionId(_) >> 5L
+
+        def useCase = Spy(new LeVADocumentUseCase(
+            project, testSteps, null, null, null, jiraUseCase,
+            null, null, null, null, null, null, logger))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        // Without fix: would be CHG00001/6 (jira=5, +1 speculative)
+        // With fix: CHG00001/5 (min(5,4)=4, +1 speculative)
+        version == 'CHG00001/5'
+    }
+
     def "requirements are properly sorted and indexed by epic and key"() {
         given:
         def updatedReqs = [
