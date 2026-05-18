@@ -187,7 +187,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
             "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the previous document version '${bugfixProjectVersion}/2'.")] + entries11_first
+                " This document version invalidates the previous document version '${secondProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -1045,6 +1045,29 @@ class DocumentHistorySpec extends SpecHelper {
 
         where:
         docName << ['TIR-component', 'IVR']
+    }
+
+    def "partial doc invalidates only existing versions of current project when previous version is missing"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedData = entries20Alt
+        def jiraData = noJiraData + [
+            version: '2.0',
+            previousVersion: '9.9'
+        ]
+        def docContent = computeIssuesDoc(savedData)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'TIR-component'])
+        history.loadSavedDocHistoryData() >> savedData
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        history.latestVersionId == 7L
+        history.data.first().getDocVersion() == '2.0/7'
+        history.data.first().getRational() ==
+            "No changes were made to this document for project version '2.0'. " +
+            "This document version invalidates the previous document versions '2.0/6', '2.0/5'."
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
