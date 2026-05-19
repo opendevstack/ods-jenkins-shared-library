@@ -1899,17 +1899,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * problems are not silently masked.
      */
     private Long loadLatestVersionFromBitbucket(Project project, String doc) {
+        def savedEntries = null
         try {
-            def savedEntries = new DocumentHistory(this.steps, this.logger,
+            savedEntries = new DocumentHistory(this.steps, this.logger,
                 project.buildParams.targetEnvironmentToken, doc).loadSavedDocHistoryData()
-            if (!savedEntries) {
-                return null
-            }
-            return savedEntries.collect { it.getEntryId() }.max() as Long
         } catch (NoSuchFileException ignored) {
-            // Legitimate first-time scenario: no history file has been saved yet.
+            // Legitimate first-time scenario: no history file has been saved yet;
+            // leave savedEntries as null so the caller falls back to Jira.
+        }
+        if (!savedEntries) {
             return null
         }
+        return savedEntries.collect { it.getEntryId() }.max() as Long
     }
 
     @NonCPS
