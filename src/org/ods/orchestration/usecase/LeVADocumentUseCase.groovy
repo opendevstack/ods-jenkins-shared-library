@@ -1861,21 +1861,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             version = project.getDocumentVersionFromHistories(doc)
             if (!version) {
                 // The document has not (yet) been generated in this pipeline run.
-                def envs = Environment.values().collect { it.toString() }
-                def trackingIssues = this.getDocumentTrackingIssuesForHistory(doc, envs)
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                // Guard: cap Jira version against Bitbucket saved history to handle
-                // desync caused by pipeline failures after Jira update but before Bitbucket save.
-                try {
-                    def docHistory = new DocumentHistory(this.steps, this.logger,
-                        project.buildParams.targetEnvironmentToken, doc)
-                    def savedEntries = docHistory.loadSavedDocHistoryData()
-                    if (savedEntries) {
-                        def maxSavedVersion = savedEntries.collect { it.getEntryId() }.max()
-                        version = Math.min(version, maxSavedVersion)
-                    }
-                } catch (Exception ignored) {
-                    // No saved history or unable to read — fall back to Jira value
+                // Prefer the version actually persisted in Bitbucket (source of truth for what
+                // got committed) over the value stored in Jira, which can be one step ahead if a
+                // previous pipeline run updated Jira but failed before saving the history to
+                // Bitbucket (root cause of EDPCoreEDPC-4140).
+                version = loadLatestVersionFromBitbucket(project, doc)
+                if (version == null) {
+                    // No saved history yet (e.g. first time the document is generated for this
+                    // project/environment chain): fall back to Jira's latest known value.
+                    def envs = Environment.values().collect { it.toString() }
+                    def trackingIssues = this.getDocumentTrackingIssuesForHistory(doc, envs)
+                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
                 }
                 if (project.isWorkInProgress ||
                     LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
@@ -1890,6 +1886,30 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return "${this.steps.env.RELEASE_PARAM_VERSION}/${version}"
+    }
+
+    /**
+     * Returns the highest entryId persisted in the Bitbucket-saved DocumentHistory for the
+     * given document, or {@code null} when no history has been saved yet. The lookup honours
+     * the source-environment resolution performed internally by {@link DocumentHistory}
+     * (i.e. it walks back to the previous creation environment when needed).
+     *
+     * Only the "file does not exist" condition is treated as "no history yet". Any other
+     * failure (corrupt JSON, malformed entries, I/O error) is propagated so that real
+     * problems are not silently masked.
+     */
+    private Long loadLatestVersionFromBitbucket(Project project, String doc) {
+        try {
+            def savedEntries = new DocumentHistory(this.steps, this.logger,
+                project.buildParams.targetEnvironmentToken, doc).loadSavedDocHistoryData()
+            if (!savedEntries) {
+                return null
+            }
+            return savedEntries.collect { it.getEntryId() }.max() as Long
+        } catch (NoSuchFileException ignored) {
+            // Legitimate first-time scenario: no history file has been saved yet.
+            return null
+        }
     }
 
     @NonCPS
