@@ -1866,13 +1866,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // previous pipeline run updated Jira but failed before saving the history to
                 // Bitbucket (root cause of EDPCoreEDPC-4140).
                 version = loadLatestVersionFromBitbucket(project, doc)
-                if (version == null) {
-                    // No saved history yet (e.g. first time the document is generated for this
-                    // project/environment chain): fall back to Jira's latest known value.
-                    def envs = Environment.values().collect { it.toString() }
-                    def trackingIssues = this.getDocumentTrackingIssuesForHistory(doc, envs)
-                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                }
                 if (project.isWorkInProgress ||
                     LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
                     project.buildParams.targetEnvironmentToken) {
@@ -1890,25 +1883,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * Returns the highest entryId persisted in the Bitbucket-saved DocumentHistory for the
-     * given document, or {@code null} when no history has been saved yet. The lookup honours
-     * the source-environment resolution performed internally by {@link DocumentHistory}
-     * (i.e. it walks back to the previous creation environment when needed).
+     * given document, or {@code 0L} when no history has been saved yet (first-time scenario).
+     * The lookup honours the source-environment resolution performed internally by
+     * {@link DocumentHistory} (i.e. it walks back to the previous creation environment when needed).
      *
      * Only the "file does not exist" condition is treated as "no history yet". Any other
      * failure (corrupt JSON, malformed entries, I/O error) is propagated so that real
      * problems are not silently masked.
      */
-    private Long loadLatestVersionFromBitbucket(Project project, String doc) {
+    protected Long loadLatestVersionFromBitbucket(Project project, String doc) {
         def savedEntries = null
         try {
             savedEntries = new DocumentHistory(this.steps, this.logger,
                 project.buildParams.targetEnvironmentToken, doc).loadSavedDocHistoryData()
         } catch (NoSuchFileException ignored) {
-            // Legitimate first-time scenario: no history file has been saved yet;
-            // leave savedEntries as null so the caller falls back to Jira.
+            // Legitimate first-time scenario: no history file has been saved yet.
+            // savedEntries remains null so we return 0L (base for the first version).
         }
         if (!savedEntries) {
-            return null
+            return 0L
         }
         return savedEntries.collect { it.getEntryId() }.max() as Long
     }
