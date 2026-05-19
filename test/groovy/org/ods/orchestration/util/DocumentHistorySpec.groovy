@@ -1070,6 +1070,64 @@ class DocumentHistorySpec extends SpecHelper {
             "This document version invalidates the previous document versions '2.0/6', '2.0/5'."
     }
 
+    def "partial doc uses stored docVersion values instead of entryId reconstruction"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedData = [
+            new DocumentHistoryEntry([
+                bugs: [], securityVulnerabilities: [], (Project.JiraDataItem.TYPE_DOCS): [],
+                components: [], epics: [], mitigations: [], requirements: [],
+                risks: [], tests: [], techSpecs: []
+            ], 30L, '2.0', '1.1', '2.0/30', 'x'),
+            new DocumentHistoryEntry([
+                bugs: [], securityVulnerabilities: [], (Project.JiraDataItem.TYPE_DOCS): [],
+                components: [], epics: [], mitigations: [], requirements: [],
+                risks: [], tests: [], techSpecs: []
+            ], 29L, '2.0', '1.1', '2.0/20', 'y'),
+            new DocumentHistoryEntry([
+                bugs: [], securityVulnerabilities: [], (Project.JiraDataItem.TYPE_DOCS): [],
+                components: [], epics: [], mitigations: [], requirements: [],
+                risks: [], tests: [], techSpecs: []
+            ], 19L, '1.5', '1.0', '1.5/19', 'z')
+        ]
+        def jiraData = noJiraData + [
+            version: '2.0',
+            previousVersion: '9.9'
+        ]
+        def docContent = computeIssuesDoc(savedData)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'TIR-component'])
+        history.loadSavedDocHistoryData() >> savedData
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        history.data.first().getDocVersion() == '2.0/31'
+        history.data.first().getRational() ==
+            "No changes were made to this document for project version '2.0'. " +
+            "This document version invalidates the previous document versions '2.0/30', '2.0/20'."
+    }
+
+    def "full doc throws when previous version is missing from history"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedData = entries20Alt
+        def jiraData = noJiraData + [
+            version: '2.0',
+            previousVersion: '9.9'
+        ]
+        def docContent = computeIssuesDoc(savedData)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'SSDS'])
+        history.loadSavedDocHistoryData() >> savedData
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message.contains('Inconsistent state found when building DocumentHistory')
+    }
+
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
         if (a.getEntryId() != b.getEntryId()) return false
         if (a.getProjectVersion() != b.getProjectVersion()) return false
