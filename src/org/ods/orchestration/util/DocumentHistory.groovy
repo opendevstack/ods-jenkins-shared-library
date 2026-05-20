@@ -332,10 +332,18 @@ class DocumentHistory {
         if (concurrentVersions.isEmpty()) {
             return ''
         } else {
-            def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
+            def entriesToInvalidate = oldVersionsSimplified.findAll { it.version == currentEntry.getProjectVersion() }
+
+            def invalidatedDocVersions = entriesToInvalidate
+                .collect { "${it.version}/${it.id}" }
+
+            if (invalidatedDocVersions.isEmpty()) {
+                return ''
+            }
+
+            def pluralS = (invalidatedDocVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the previous document version${pluralS} " +
-                "'${currentEntry.getProjectVersion()}/" +
-                "${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
+                "'${invalidatedDocVersions.join("', '")}'."
         }
     }
 

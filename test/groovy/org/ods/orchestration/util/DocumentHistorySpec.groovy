@@ -1047,6 +1047,58 @@ class DocumentHistorySpec extends SpecHelper {
         docName << ['TIR-component', 'IVR']
     }
 
+    @Unroll
+    def "rationaleIfConcurrentVersionsAreFound #expected #current #data"() {
+        given:
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'TIR-edpp-apache-james'])
+        history.@data = data
+
+        expect:
+        history.rationaleIfConcurrentVersionsAreFound(current) == expected
+
+        where:
+        expected | current | data
+        " This document version invalidates the previous document versions 'CHG0180360/28', 'CHG0180360/29'."  | getEntry(30L, 'CHG0180360', '', 'CHG0180360/30')  |
+            [
+                getEntry(1L, 'CHG0115786', '', 'CHG0115786/1'),
+                getEntry(2L, 'CHG0115786', '', 'CHG0115786/2'),
+                getEntry(3L, 'CHG0115786', '', 'CHG0115786/3'),
+                getEntry(4L, 'CHG0115786', '', 'CHG0115786/4'),
+                getEntry(5L, 'CHG0115786', '', 'CHG0115786/5'),
+                getEntry(6L, 'CHG0115786', '', 'CHG0115786/6'),
+                getEntry(7L, 'CHG0115786', '', 'CHG0115786/7'),
+                getEntry(8L, 'CHG0115786', '', 'CHG0115786/8'),
+                getEntry(9L, 'CHG0115786', '', 'CHG0115786/9'),
+                getEntry(10L, 'CHG0115786', '', 'CHG0115786/10'),
+                getEntry(11L, 'CHG0115786', '', 'CHG0115786/11'),
+                getEntry(12L, 'CHG0115786', '', 'CHG0115786/12'),
+                getEntry(13L, 'CHG0115786', '', 'CHG0115786/13'),
+                getEntry(14L, 'CHG0115786', '', 'CHG0115786/14'),
+                getEntry(15L, 'CHG0115786', '', 'CHG0115786/15'),
+                getEntry(16L, 'CHG0124422', '', 'CHG0124422/17'),
+                getEntry(17L, 'CHG0124422', '', 'CHG0124422/18'),
+                getEntry(18L, 'CHG0124422', '', 'CHG0124422/19'),
+                getEntry(19L, 'CHG0124422', '', 'CHG0124422/20'),
+                getEntry(20L, 'CHG0124422', '', 'CHG0124422/21'),
+                getEntry(21L, 'CHG0124422', '', 'CHG0124422/22'),
+                getEntry(22L, 'CHG0124422', '', 'CHG0124422/23'),
+                getEntry(23L, 'CHG0124422', '', 'CHG0124422/24'),
+                getEntry(24L, 'CHG0124422', '', 'CHG0124422/24'),
+                getEntry(25L, 'CHG0124422', '', 'CHG0124422/25'),
+                getEntry(26L, 'CHG0124422', '', 'CHG0124422/26'),
+                getEntry(27L, 'CHG0124422', '', 'CHG0124422/27'),
+                getEntry(28L, 'CHG0180360', '', 'CHG0180360/28'),
+                getEntry(29L, 'CHG0180360', '', 'CHG0180360/29'),
+                getEntry(30L, 'CHG0180360', '', 'CHG0180360/30')
+            ]
+    }
+
+    private DocumentHistoryEntry getEntry(Long entryId, String projectVersion, String previousProjectVersion, String docVersion) {
+        def rational = 'x'
+        def data = [bugs: [], securityVulnerabilities: [], 'docs': [], components: [], epics: [], mitigations: [], requirements: [], risks: [], tests: [], techSpecs: []]
+        new DocumentHistoryEntry(data, entryId, projectVersion, previousProjectVersion, docVersion, rational)
+    }
+
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
         if (a.getEntryId() != b.getEntryId()) return false
         if (a.getProjectVersion() != b.getProjectVersion()) return false
