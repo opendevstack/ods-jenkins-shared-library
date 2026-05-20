@@ -255,10 +255,9 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private static List<DocumentHistoryEntry> getConcurrentVersions(List<DocumentHistoryEntry> entries,
-                                                                    String previousProjVersion) {
+    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
         // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
-        entries.takeWhile { it.getProjectVersion() != previousProjVersion }
+        versions.takeWhile { it.version != previousProjVersion }.collect { it.id }
     }
 
     @NonCPS
@@ -315,12 +314,13 @@ class DocumentHistory {
      */
     @NonCPS
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
-        def oldEntries = this.data.findAll { it.getEntryId() != currentEntry.getEntryId() }
-        def concurrentEntries = getConcurrentVersions(oldEntries, currentEntry.getPreviousProjectVersion())
-        def previousVersionWasFound = oldEntries.size() != concurrentEntries.size()
-        def missingPreviousVersion = currentEntry.getPreviousProjectVersion() && !previousVersionWasFound
+        def oldVersionsSimplified = this.data.collect {
+            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
+        }.findAll { it.id != currentEntry.getEntryId() }
+        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
-        if (missingPreviousVersion && LeVADocumentUtil.isFullDocument(documentName)) {
+        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
+            LeVADocumentUtil.isFullDocument(documentName)) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
                 "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
@@ -329,18 +329,13 @@ class DocumentHistory {
                 ' in your release manager repository')
         }
 
-        if (concurrentEntries.isEmpty()) {
+        if (concurrentVersions.isEmpty()) {
             return ''
         } else {
-            // In normal concurrent-version scenarios invalidate all concurrent versions.
-            // If previous project version is missing for partial docs, fallback to the
-            // current project version only to avoid over-invalidating old history.
-            def entriesToInvalidate = missingPreviousVersion
-                ? concurrentEntries.findAll { it.getProjectVersion() == currentEntry.getProjectVersion() }
-                : concurrentEntries
+            def entriesToInvalidate = oldVersionsSimplified.findAll { it.version == currentEntry.getProjectVersion() }
 
             def invalidatedDocVersions = entriesToInvalidate
-                .collect { it.getDocVersion() ?: "${it.getProjectVersion()}/${it.getEntryId()}" }
+                .collect { "${it.version}/${it.id}" }
 
             if (invalidatedDocVersions.isEmpty()) {
                 return ''
