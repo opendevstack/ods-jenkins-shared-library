@@ -255,14 +255,13 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private static List<String> getConcurrentVersions(List<Map> versions, String projectVersion, String previousProjVersion) {
+    private static List<Map> getConcurrentVersions(List<Map> versions, String projectVersion, String previousProjVersion) {
         if (!projectVersion) {
             return []
         }
 
         return versions
             .findAll { it.previousVersion == previousProjVersion }
-            .collect { it.id }
     }
 
     @NonCPS
@@ -339,8 +338,7 @@ class DocumentHistory {
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the previous document version${pluralS} " +
-                "'${currentEntry.getProjectVersion()}/" +
-                "${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
+                concurrentVersions.sort{it.id}.reverse().collect{ v -> "'${v.version}/${v.id}'" }.join(', ') + "."
         }
     }
 

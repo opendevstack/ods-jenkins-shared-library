@@ -187,7 +187,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
             "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the previous document version '${bugfixProjectVersion}/2'.")] + entries11_first
+                " This document version invalidates the previous document version '${secondProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -1058,7 +1058,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         where:
         expected | current | data
-        " This document version invalidates the previous document versions 'CHG0180360/20', 'CHG0180360/21', 'CHG0180360/22', 'CHG0180360/23', 'CHG0180360/24', 'CHG0180360/25', 'CHG0180360/26', 'CHG0180360/27', 'CHG0180360/28', 'CHG0180360/29'."  | getEntry(30L, 'CHG0180360', 'CHG0172383', 'CHG0180360/30')  |
+        " This document version invalidates the previous document versions 'CHG0180360/29', 'CHG0180360/28', 'CHG0180360/27', 'CHG0180360/26', 'CHG0180360/25', 'CHG0180360/24', 'CHG0180360/23', 'CHG0180360/22', 'CHG0180360/21', 'CHG0180360/20'."  | getEntry(30L, 'CHG0180360', 'CHG0172383', 'CHG0180360/30')  |
             [
                 getEntry(1L, 'CHG0066331', 'CHG0066328', 'CHG0115786/1'),
                 getEntry(2L, 'CHG0075365', 'CHG0066331', 'CHG0075365/2'),
@@ -1079,16 +1079,16 @@ class DocumentHistorySpec extends SpecHelper {
                 getEntry(17L, 'CHG0120267', 'CHG0115786', 'CHG0120267/18'),
                 getEntry(18L, 'CHG0124422', 'CHG0120267', 'CHG0124422/19'),
                 getEntry(19L, 'CHG0124422', 'CHG0120267', 'CHG0124422/20'),
-                getEntry(20L, null, 'CHG0172383', 'CHG0180360/21'),
-                getEntry(21L, null, 'CHG0172383', 'CHG0180360/22'),
-                getEntry(22L, null, 'CHG0172383', 'CHG0180360/23'),
-                getEntry(23L, null, 'CHG0172383', 'CHG0180360/24'),
-                getEntry(24L, null, 'CHG0172383', 'CHG0180360/24'),
-                getEntry(25L, null, 'CHG0172383', 'CHG0180360/25'),
-                getEntry(26L, null, 'CHG0172383', 'CHG0180360/26'),
-                getEntry(27L, null, 'CHG0172383', 'CHG0180360/27'),
-                getEntry(28L, null, 'CHG0172383', 'CHG0180360/28'),
-                getEntry(29L, null, 'CHG0172383', 'CHG0180360/29'),
+                getEntry(20L, 'CHG0180360', 'CHG0172383', 'CHG0180360/21'),
+                getEntry(21L, 'CHG0180360', 'CHG0172383', 'CHG0180360/22'),
+                getEntry(22L, 'CHG0180360', 'CHG0172383', 'CHG0180360/23'),
+                getEntry(23L, 'CHG0180360', 'CHG0172383', 'CHG0180360/24'),
+                getEntry(24L, 'CHG0180360', 'CHG0172383', 'CHG0180360/24'),
+                getEntry(25L, 'CHG0180360', 'CHG0172383', 'CHG0180360/25'),
+                getEntry(26L, 'CHG0180360', 'CHG0172383', 'CHG0180360/26'),
+                getEntry(27L, 'CHG0180360', 'CHG0172383', 'CHG0180360/27'),
+                getEntry(28L, 'CHG0180360', 'CHG0172383', 'CHG0180360/28'),
+                getEntry(29L, 'CHG0180360', 'CHG0172383', 'CHG0180360/29'),
                 getEntry(30L, 'CHG0180360', 'CHG0172383', 'CHG0180360/30')
             ]
     }
