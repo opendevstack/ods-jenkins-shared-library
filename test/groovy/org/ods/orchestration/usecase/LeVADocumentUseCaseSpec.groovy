@@ -1850,13 +1850,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 1L
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, logger))
 
         when:
         def versions = useCase.getReferencedDocumentsVersion()
 
         then:
-        9 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
+        9 * useCase.loadLatestVersionFromBitbucket(_, _) >> 1L
         versions == [
             CSD: 'ConfigItem / See version created within this change',
             CSD_version: 'WIP/3',
@@ -1939,16 +1939,17 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.isVersioningEnabled >> true
         project.isWorkInProgress >> true
         project.getDocumentVersionFromHistories('CSD') >> null
+        project.buildParams >> [targetEnvironmentToken: 'D']
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, logger))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
-        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        1 * useCase.loadLatestVersionFromBitbucket(_, 'CSD') >> 4L
         version == 'WIP/5'
     }
 
@@ -1961,13 +1962,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, logger))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
-        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        1 * useCase.loadLatestVersionFromBitbucket(_, 'CSD') >> 4L
         version == 'CHG00001/5'
     }
 
@@ -1980,14 +1981,42 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 4L
-        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, stepsNoWip, null, null, null, jiraUseCase, null, null, null, null, null, null, logger))
 
         when:
         def version = useCase.getVersion(project, 'CSD')
 
         then:
-        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        1 * useCase.loadLatestVersionFromBitbucket(_, 'CSD') >> 4L
         version == 'CHG00001/4'
+    }
+
+    def "get version caps inflated Jira version against Bitbucket saved history"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.buildParams >> [targetEnvironmentToken: 'D']
+        project.getDocumentVersionFromHistories('CSD') >> null
+
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        // Jira returns 5 (inflated by a killed pipeline that updated Jira but not Bitbucket)
+        jiraUseCase.getLatestDocVersionId(_) >> 5L
+
+        def useCase = Spy(new LeVADocumentUseCase(
+            project, stepsNoWip, null, null, null, jiraUseCase,
+            null, null, null, null, null, null, logger))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        // Bitbucket has max entryId=4; Jira (inflated) is ignored
+        1 * useCase.loadLatestVersionFromBitbucket(_, 'CSD') >> 4L
+        0 * useCase.getDocumentTrackingIssuesForHistory(_, _)
+        // Without fix: would be CHG00001/6 (jira=5, +1 speculative)
+        // With fix: CHG00001/5 (bitbucket=4, +1 speculative)
+        version == 'CHG00001/5'
     }
 
     def "requirements are properly sorted and indexed by epic and key"() {
