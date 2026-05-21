@@ -255,9 +255,14 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
-        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
-        versions.takeWhile { it.version != previousProjVersion }.collect { it.id }
+    private static List<String> getConcurrentVersions(List<Map> versions, String projectVersion, String previousProjVersion) {
+        if (!projectVersion) {
+            return []
+        }
+
+        return versions
+            .findAll { it.previousVersion == previousProjVersion }
+            .collect { it.id }
     }
 
     @NonCPS
@@ -315,9 +320,9 @@ class DocumentHistory {
     @NonCPS
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = this.data.collect {
-            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
+            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion(), docVersion: it.getDocVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
-        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
+        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getProjectVersion(), currentEntry.getPreviousProjectVersion())
 
         if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
             LeVADocumentUtil.isFullDocument(documentName)) {
@@ -332,18 +337,10 @@ class DocumentHistory {
         if (concurrentVersions.isEmpty()) {
             return ''
         } else {
-            def entriesToInvalidate = oldVersionsSimplified.findAll { it.version == currentEntry.getProjectVersion() }
-
-            def invalidatedDocVersions = entriesToInvalidate
-                .collect { "${it.version}/${it.id}" }
-
-            if (invalidatedDocVersions.isEmpty()) {
-                return ''
-            }
-
-            def pluralS = (invalidatedDocVersions.size() == 1) ? '' : 's'
+            def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the previous document version${pluralS} " +
-                "'${invalidatedDocVersions.join("', '")}'."
+                "'${currentEntry.getProjectVersion()}/" +
+                "${concurrentVersions.join("', '${currentEntry.getProjectVersion()}/")}'."
         }
     }
 
