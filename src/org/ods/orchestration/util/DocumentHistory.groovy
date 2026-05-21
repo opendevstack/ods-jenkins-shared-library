@@ -255,11 +255,7 @@ class DocumentHistory {
     }
 
     @NonCPS
-    private static List<Map> getConcurrentVersions(List<Map> versions, String projectVersion, String previousProjVersion) {
-        if (!projectVersion) {
-            return []
-        }
-
+    private static List<Map> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
         return versions
             .findAll { it.previousVersion == previousProjVersion }
     }
@@ -319,9 +315,10 @@ class DocumentHistory {
     @NonCPS
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = this.data.collect {
-            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion(), docVersion: it.getDocVersion()]
+            [id: it.getEntryId(), version: it.getProjectVersion(),
+             previousVersion: it.getPreviousProjectVersion(), docVersion: it.getDocVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
-        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getProjectVersion(), currentEntry.getPreviousProjectVersion())
+        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
         if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
             LeVADocumentUtil.isFullDocument(documentName)) {
@@ -338,7 +335,7 @@ class DocumentHistory {
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return " This document version invalidates the previous document version${pluralS} " +
-                concurrentVersions.sort{it.id}.reverse().collect{ v -> "'${v.version}/${v.id}'" }.join(', ') + "."
+                concurrentVersions.toSorted{it.id}.reverse().collect{ v -> "'${v.version}/${v.id}'" }.join(', ') + "."
         }
     }
 
