@@ -315,8 +315,7 @@ class DocumentHistory {
     @NonCPS
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = this.data.collect {
-            [id: it.getEntryId(), version: it.getProjectVersion(),
-             previousVersion: it.getPreviousProjectVersion(), docVersion: it.getDocVersion()]
+            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
         def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
