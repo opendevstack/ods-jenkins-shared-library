@@ -187,7 +187,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
             "1.0.1/3", "Modifications for project version '${bugfixProjectVersion}'." +
-                " This document version invalidates the previous document version '${bugfixProjectVersion}/2'.")] + entries11_first
+                " This document version invalidates the previous document version '${secondProjectVersion}/2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -1045,6 +1045,58 @@ class DocumentHistorySpec extends SpecHelper {
 
         where:
         docName << ['TIR-component', 'IVR']
+    }
+
+    @Unroll
+    def "rationaleIfConcurrentVersionsAreFound #expected #current #data"() {
+        given:
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, 'D', 'TIR-edpp-apache-james'])
+        history.@data = data
+
+        expect:
+        history.rationaleIfConcurrentVersionsAreFound(current) == expected
+
+        where:
+        expected | current | data
+        " This document version invalidates the previous document versions 'CHG0180360/29', 'CHG0180360/28', 'CHG0180360/27', 'CHG0180360/26', 'CHG0180360/25', 'CHG0180360/24', 'CHG0180360/23', 'CHG0180360/22', 'CHG0180360/21', 'CHG0180360/20'."  | getEntry(30L, 'CHG0180360', 'CHG0172383', 'CHG0180360/30')  |
+            [
+                getEntry(1L, 'CHG0066331', 'CHG0066328', 'CHG0115786/1'),
+                getEntry(2L, 'CHG0075365', 'CHG0066331', 'CHG0075365/2'),
+                getEntry(3L, 'CHG0075365', 'CHG0066331', 'CHG0075365/3'),
+                getEntry(4L, 'CHG0080390', 'CHG0075365', 'CHG0080390/4'),
+                getEntry(5L, 'CHG0080390', 'CHG0075365', 'CHG0080390/5'),
+                getEntry(6L, 'CHG0080390', 'CHG0075365', 'CHG0080390/6'),
+                getEntry(7L, 'CHG0080390', 'CHG0075365', 'CHG0080390/7'),
+                getEntry(8L, 'CHG0083404', 'CHG0080390', 'CHG0083404/8'),
+                getEntry(9L, 'CHG0083404', 'CHG0080390', 'CHG0083404/9'),
+                getEntry(10L, 'CHG0083404', 'CHG0080390', 'CHG0083404/10'),
+                getEntry(11L, 'CHG0095486', 'CHG0083404', 'CHG0095486/11'),
+                getEntry(12L, 'CHG0100965', 'CHG0095486', 'CHG0100965/12'),
+                getEntry(13L, 'CHG0100965', 'CHG0095486', 'CHG0100965/13'),
+                getEntry(14L, 'CHG0112915', 'CHG0100965', 'CHG0112915/14'),
+                getEntry(15L, 'CHG0115786', 'CHG0112915', 'CHG0115786/15'),
+                getEntry(16L, 'CHG0120267', 'CHG0115786', 'CHG0120267/17'),
+                getEntry(17L, 'CHG0120267', 'CHG0115786', 'CHG0120267/18'),
+                getEntry(18L, 'CHG0124422', 'CHG0120267', 'CHG0124422/19'),
+                getEntry(19L, 'CHG0124422', 'CHG0120267', 'CHG0124422/20'),
+                getEntry(20L, 'CHG0180360', 'CHG0172383', 'CHG0180360/21'),
+                getEntry(21L, 'CHG0180360', 'CHG0172383', 'CHG0180360/22'),
+                getEntry(22L, 'CHG0180360', 'CHG0172383', 'CHG0180360/23'),
+                getEntry(23L, 'CHG0180360', 'CHG0172383', 'CHG0180360/24'),
+                getEntry(24L, 'CHG0180360', 'CHG0172383', 'CHG0180360/24'),
+                getEntry(25L, 'CHG0180360', 'CHG0172383', 'CHG0180360/25'),
+                getEntry(26L, 'CHG0180360', 'CHG0172383', 'CHG0180360/26'),
+                getEntry(27L, 'CHG0180360', 'CHG0172383', 'CHG0180360/27'),
+                getEntry(28L, 'CHG0180360', 'CHG0172383', 'CHG0180360/28'),
+                getEntry(29L, 'CHG0180360', 'CHG0172383', 'CHG0180360/29'),
+                getEntry(30L, 'CHG0180360', 'CHG0172383', 'CHG0180360/30')
+            ]
+    }
+
+    private DocumentHistoryEntry getEntry(Long entryId, String projectVersion, String previousProjectVersion, String docVersion) {
+        def rational = 'x'
+        def data = [bugs: [], securityVulnerabilities: [], 'docs': [], components: [], epics: [], mitigations: [], requirements: [], risks: [], tests: [], techSpecs: []]
+        new DocumentHistoryEntry(data, entryId, projectVersion, previousProjectVersion, docVersion, rational)
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {

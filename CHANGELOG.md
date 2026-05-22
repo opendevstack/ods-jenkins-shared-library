@@ -12,6 +12,7 @@
 * Fix Nexus not accepting npm artifacts when uploaded through odsComponentStageUploadToNexus ([#1268](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1268))
 * Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
 * Fix referenced document version incorrectly incremented in getVersion() by preferring Bitbucket history over Jira ([#1274] https://github.com/opendevstack/ods-jenkins-shared-library/pull/1272)
+* Fix document history rational to invalidate only concurrent versions ([#1273](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1273))
 
 ## [4.12.1] - 2026-04-10
 ### Fixed
