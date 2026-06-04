@@ -10,6 +10,12 @@
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix branch mapping logic to ensure correct environment assignment ([#1263](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1263))
 * Fix Nexus not accepting npm artifacts when uploaded through odsComponentStageUploadToNexus ([#1268](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1268))
+* Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
+
+## [4.12.2] - 2026-06-04
+### Fixed
+* Fix referenced document version incorrectly incremented in getVersion() by preferring Bitbucket history over Jira ([#1272] https://github.com/opendevstack/ods-jenkins-shared-library/pull/1272)
+* Fix document history rational to invalidate only concurrent versions ([#1273](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1273))
 
 ## [4.12.1] - 2026-04-10
 ### Fixed

@@ -23,6 +23,7 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil.PipelineConfig
 
+import java.nio.file.NoSuchFileException
 import java.time.LocalDateTime
 
 @SuppressWarnings([
@@ -1860,9 +1861,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             version = project.getDocumentVersionFromHistories(doc)
             if (!version) {
                 // The document has not (yet) been generated in this pipeline run.
-                def envs = Environment.values().collect { it.toString() }
-                def trackingIssues = this.getDocumentTrackingIssuesForHistory(doc, envs)
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                // Prefer the version actually persisted in Bitbucket (source of truth for what
+                // got committed) over the value stored in Jira, which can be one step ahead if a
+                // previous pipeline run updated Jira but failed before saving the history to
+                // Bitbucket (root cause of EDPCoreEDPC-4140).
+                version = loadLatestVersionFromBitbucket(project, doc)
                 if (project.isWorkInProgress ||
                     LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
                     project.buildParams.targetEnvironmentToken) {
@@ -1876,6 +1879,31 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return "${this.steps.env.RELEASE_PARAM_VERSION}/${version}"
+    }
+
+    /**
+     * Returns the highest entryId persisted in the Bitbucket-saved DocumentHistory for the
+     * given document, or {@code 0L} when no history has been saved yet (first-time scenario).
+     * The lookup honours the source-environment resolution performed internally by
+     * {@link DocumentHistory} (i.e. it walks back to the previous creation environment when needed).
+     *
+     * Only the "file does not exist" condition is treated as "no history yet". Any other
+     * failure (corrupt JSON, malformed entries, I/O error) is propagated so that real
+     * problems are not silently masked.
+     */
+    protected Long loadLatestVersionFromBitbucket(Project project, String doc) {
+        def savedEntries = null
+        try {
+            savedEntries = new DocumentHistory(this.steps, this.logger,
+                project.buildParams.targetEnvironmentToken, doc).loadSavedDocHistoryData()
+        } catch (NoSuchFileException ignored) {
+            // Legitimate first-time scenario: no history file has been saved yet.
+            // savedEntries remains null so we return 0L (base for the first version).
+        }
+        if (!savedEntries) {
+            return 0L
+        }
+        return savedEntries.collect { it.getEntryId() }.max() as Long
     }
 
     @NonCPS
