@@ -66,6 +66,9 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
+        if (!config.containsKey('scanTimeout')) {
+            config.scanTimeout = 10
+        }
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
         }
@@ -227,12 +230,25 @@ class ScanWithSonarStage extends Stage {
                 privateToken: privateToken,
             ])
         }
-        if (pullRequestInfo) {
-            bitbucket.withTokenCredentials { username, token ->
-                doScan(pullRequestInfo + [bitbucketToken: token])
+        def checkPullRequest = {
+            if (pullRequestInfo) {
+                bitbucket.withTokenCredentials { username, token ->
+                    doScan(pullRequestInfo + [bitbucketToken: token])
+                }
+            } else {
+                doScan([:])
+            }
+        }
+        if (options.scanTimeout > 0) {
+            try {
+                steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
+                    checkPullRequest()
+                }
+            } catch (Exception e) {
+                logger.info "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
             }
         } else {
-            doScan([:])
+            checkPullRequest()
         }
     }
 

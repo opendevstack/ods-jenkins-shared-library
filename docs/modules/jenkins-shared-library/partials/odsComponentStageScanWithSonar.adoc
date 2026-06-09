@@ -75,4 +75,8 @@ _String_
 |Nexus repository to upload the SonarQube report to.
  Automaticaly set by sonarqube configMap if present.
 
+ | *scanTimeout* +
+_Integer_
+|Adjust timeout of SonarQube scan (defaults to 10 minutes).
+
 |===

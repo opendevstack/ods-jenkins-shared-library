@@ -54,4 +54,10 @@ class ScanWithSonarOptions extends Options {
      */
     String sonarQubeNexusRepository
 
+    /**
+     * Timeout in minutes for the SonarQube scanner execution.
+     * When reached, the scan is aborted but the pipeline continues.
+     * Defaults to 0 (no timeout). */
+    int scanTimeout
+
 }
