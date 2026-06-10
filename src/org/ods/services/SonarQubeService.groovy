@@ -84,11 +84,10 @@ class SonarQubeService {
                 scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
             }
             script.sh(
-                label: 'Run SonarQube scan',
+                label: 'Run SonarQube scan with Java 17',
                 script: """
                 source use-j17.sh
-                export SONAR_SCANNER_OPTS='${SONAR_SCANNER_OPTS}'
-                ${getScannerBinary()} ${scannerParams.join(' ')}
+                SONAR_SCANNER_OPTS='${SONAR_SCANNER_OPTS}' ${getScannerBinary()} ${scannerParams.join(' ')}
                 """
             )
         }
