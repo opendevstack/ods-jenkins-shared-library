@@ -4,6 +4,7 @@ import org.ods.util.ILogger
 
 class SonarQubeService {
 
+    private static final String SONAR_SCANNER_OPTS = '-Djava.util.concurrent.ForkJoinPool.common.parallelism=2'
     private final def script
     private final String sonarQubeEnv
     private final ILogger logger
@@ -49,7 +50,6 @@ class SonarQubeService {
         String sonarQubeEdition = options.sonarQubeEdition
         String exclusions = options.exclusions
         String privateToken = options.privateToken
-        Integer filesizeLimit = options.filesizeLimit
 
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
@@ -57,7 +57,7 @@ class SonarQubeService {
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
-                "-Dsonar.filesize.limit=${filesizeLimit}",
+                "-Dsonar.filesize.limit=${properties['sonar.filesize.limit']}",
                 "-Dsonar.sources=.",
             ]
             if (exclusions?.trim()) {
@@ -84,12 +84,12 @@ class SonarQubeService {
                 scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
             }
             script.sh(
-                label: 'Set Java 17 for SonarQube scan',
-                script: "source use-j17.sh"
-            )
-            script.sh(
                 label: 'Run SonarQube scan',
-                script: "${getScannerBinary()} ${scannerParams.join(' ')}"
+                script: """
+                source use-j17.sh
+                export SONAR_SCANNER_OPTS='-XshowSettings:vm'
+                ${getScannerBinary()} ${scannerParams.join(' ')}
+                """
             )
         }
     }

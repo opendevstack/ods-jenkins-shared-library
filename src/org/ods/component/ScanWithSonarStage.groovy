@@ -108,6 +108,7 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
         sonarProperties['sonar.branch.name'] = context.gitBranch
+        sonarProperties['sonar.filesize.limit'] = options.filesizeLimit
 
         def pullRequestInfo = assemblePullRequestInfo()
         def ocSecretName = "sonarqube-private-token"
