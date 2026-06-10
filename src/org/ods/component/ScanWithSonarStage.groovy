@@ -148,7 +148,7 @@ class ScanWithSonarStage extends Stage {
         try {
             if (options.scanTimeout > 0) {
                 steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
-                    steps.sleep(time: 2, unit: 'MINUTES')
+                    steps.sleep(120)
                     closure()
                 }
             } else {
