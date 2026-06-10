@@ -122,21 +122,39 @@ class ScanWithSonarStage extends Stage {
                 )
             ]) {
                 logger.info("SonarQube private projects enabled, using private token.")
+                executeWithTimeout {
+                    runSonarQubeScanAndReport(
+                        sonarProjectKey,
+                        sonarProperties,
+                        pullRequestInfo,
+                        steps.env.privateToken as String
+                    )
+                }
+            }
+        } else {
+            logger.info("SonarQube private projects disabled, using public token.")
+            executeWithTimeout {
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
                     sonarProperties,
                     pullRequestInfo,
-                    steps.env.privateToken as String
+                    ""
                 )
             }
-        } else {
-            logger.info("SonarQube private projects disabled, using public token.")
-            runSonarQubeScanAndReport(
-                sonarProjectKey,
-                sonarProperties,
-                pullRequestInfo,
-                ""
-            )
+        }
+    }
+
+    private void executeWithTimeout(Closure closure) {
+        try {
+            if (options.scanTimeout > 0) {
+                steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
+                    closure()
+                }
+            } else {
+                closure()
+            }
+        } catch (Exception e) {
+            logger.info "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
         }
     }
 
@@ -230,27 +248,12 @@ class ScanWithSonarStage extends Stage {
                 privateToken: privateToken,
             ])
         }
-        def checkPullRequest = {
-            if (pullRequestInfo) {
-                bitbucket.withTokenCredentials { username, token ->
-                    doScan(pullRequestInfo + [bitbucketToken: token])
-                }
-            } else {
-                doScan([:])
-            }
-        }
-        if (options.scanTimeout > 0) {
-            try {
-                steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
-                    steps.sleep(time: 2, unit: 'MINUTES')
-                    checkPullRequest()
-                    
-                }
-            } catch (Exception e) {
-                logger.info "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
+        if (pullRequestInfo) {
+            bitbucket.withTokenCredentials { username, token ->
+                doScan(pullRequestInfo + [bitbucketToken: token])
             }
         } else {
-            checkPullRequest()
+            doScan([:])
         }
     }
 
