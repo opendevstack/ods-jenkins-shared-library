@@ -243,6 +243,7 @@ class ScanWithSonarStage extends Stage {
             try {
                 steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
                     checkPullRequest()
+                    steps.sleep(time: 2, unit: 'MINUTES')
                 }
             } catch (Exception e) {
                 logger.info "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
