@@ -67,7 +67,7 @@ class ScanWithSonarStage extends Stage {
             config.requireQualityGatePass = false
         }
         if (!config.containsKey('scanTimeout')) {
-            config.scanTimeout = 1
+            config.scanTimeout = 10
         }
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
@@ -148,7 +148,6 @@ class ScanWithSonarStage extends Stage {
         try {
             if (options.scanTimeout > 0) {
                 steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
-                    steps.sleep(120)
                     closure()
                 }
             } else {
