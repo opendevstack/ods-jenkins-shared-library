@@ -87,7 +87,7 @@ class SonarQubeService {
                 label: 'Run SonarQube scan',
                 script: """
                 source use-j17.sh
-                export SONAR_SCANNER_OPTS='-XshowSettings:vm ${SONAR_SCANNER_OPTS}'
+                export SONAR_SCANNER_OPTS='${SONAR_SCANNER_OPTS}'
                 ${getScannerBinary()} ${scannerParams.join(' ')}
                 """
             )
