@@ -60,4 +60,9 @@ class ScanWithSonarOptions extends Options {
      * Defaults to 0 (no timeout). */
     int scanTimeout
 
+    /**
+     * Maximum file size in kilobytes for files to be analyzed by SonarQube.
+     * Defaults to 2000. */
+    int filesizeLimit
+
 }

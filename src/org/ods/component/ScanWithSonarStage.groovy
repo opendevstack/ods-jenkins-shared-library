@@ -69,6 +69,9 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('scanTimeout')) {
             config.scanTimeout = 10
         }
+        if (!config.containsKey('filesizeLimit')) {
+            config.filesizeLimit = 2000
+        }
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
         }

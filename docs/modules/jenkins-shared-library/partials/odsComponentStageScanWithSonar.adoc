@@ -79,4 +79,8 @@ _String_
 _Integer_
 |Adjust timeout of SonarQube scan (defaults to 10 minutes).
 
+ | *filesizeLimit* +
+_Integer_
+|Maximum file size in kilobytes for files to be analyzed by SonarQube (Defaults to 2000).
+
 |===

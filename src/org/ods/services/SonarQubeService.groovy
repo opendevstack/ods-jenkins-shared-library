@@ -49,6 +49,7 @@ class SonarQubeService {
         String sonarQubeEdition = options.sonarQubeEdition
         String exclusions = options.exclusions
         String privateToken = options.privateToken
+        Integer filesizeLimit = options.filesizeLimit
 
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
@@ -56,6 +57,7 @@ class SonarQubeService {
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
+                "-Dsonar.filesize.limit=${filesizeLimit}",
                 "-Dsonar.sources=.",
             ]
             if (exclusions?.trim()) {
