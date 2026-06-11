@@ -296,4 +296,72 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         stage.sonarQubeProjectsPrivate == true
     }
 
+    def "stage uses default scanTimeout and filesizeLimit values"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
+        def config = [:]
+        def configurationSonarCluster = [:]
+        def stage = new ScanWithSonarStage(
+            script,
+            new Context(script, [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], logger),
+            config,
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
+            configurationSonarCluster,
+            [:]
+        )
+        expect:
+        stage.options.scanTimeout == 10
+        stage.options.filesizeLimit == 2
+    }
+
+    def "stage uses custom scanTimeout and filesizeLimit values"() {
+        given:
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def script = Spy(PipelineSteps)
+        script.env.WORKSPACE = tempFolderPath
+        def logger = Spy(new Logger(script, false))
+        def config = [scanTimeout: 30, filesizeLimit: 5]
+        def configurationSonarCluster = [:]
+        def stage = new ScanWithSonarStage(
+            script,
+            new Context(script, [
+                componentId: "component1",
+                projectId: "prj1",
+                buildUrl: "http://build",
+                buildNumber: "56",
+                repoName: "component1",
+                gitCommit: "12112121212121",
+                cdProject: "prj1-cd",
+                credentialsId: "cd-user",
+                branchToEnvironmentMapping: ['*': 'dev']
+            ], logger),
+            config,
+            Spy(new BitbucketService(script, 'https://bitbucket.example.com', 'FOO', 'foo-cd-cd-user-with-password', logger)),
+            Spy(new SonarQubeService(script, logger, "SonarServerConfig")),
+            Spy(new NexusService("http://nexus", script, "foo-cd-cd-user-with-password")),
+            logger,
+            configurationSonarCluster,
+            [:]
+        )
+        expect:
+        stage.options.scanTimeout == 30
+        stage.options.filesizeLimit == 5
+    }
+
 }
