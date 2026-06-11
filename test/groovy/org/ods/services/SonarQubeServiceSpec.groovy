@@ -109,8 +109,8 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
 
         then:
         2 * steps.sh(label: 'Set Java 21 for SonarQube scan', script: "source use-j21.sh")
-        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") && it.contains("SONAR_SCANNER_OPTS='-Djava.util.concurrent.ForkJoinPool.common.parallelism=2'") })
-        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") && it.contains("SONAR_SCANNER_OPTS='-Djava.util.concurrent.ForkJoinPool.common.parallelism=2'") })
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") })
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
     }
 
     def "generateReport calls script.sh with correct params and uses correct token"() {

@@ -4,7 +4,6 @@ import org.ods.util.ILogger
 
 class SonarQubeService {
 
-    private static final String SONAR_SCANNER_OPTS = '-Djava.util.concurrent.ForkJoinPool.common.parallelism=2'
     private final def script
     private final String sonarQubeEnv
     private final ILogger logger
@@ -59,7 +58,6 @@ class SonarQubeService {
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
                 "-Dsonar.filesize.limit=${properties['sonar.filesize.limit']}",
                 "-Dsonar.sources=.",
-                "-Dsonar.cfamily.threads=2"
             ]
             if (exclusions?.trim()) {
                 scannerParams << "-Dsonar.exclusions=${exclusions}"
@@ -85,8 +83,8 @@ class SonarQubeService {
                 scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
             }
             script.sh(
-                label: 'Set Java 17 for SonarQube scan',
-                script: "source use-j17.sh"
+                label: 'Set Java 21 for SonarQube scan',
+                script: "source use-j21.sh"
             )
             script.sh(
                 label: 'Run SonarQube scan',
