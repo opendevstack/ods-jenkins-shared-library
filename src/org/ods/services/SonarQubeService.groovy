@@ -59,6 +59,7 @@ class SonarQubeService {
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
                 "-Dsonar.filesize.limit=${properties['sonar.filesize.limit']}",
                 "-Dsonar.sources=.",
+                "-Dsonar.cfamily.threads=2"
             ]
             if (exclusions?.trim()) {
                 scannerParams << "-Dsonar.exclusions=${exclusions}"
@@ -89,10 +90,7 @@ class SonarQubeService {
             )
             script.sh(
                 label: 'Run SonarQube scan',
-                script: """
-                SONAR_SCANNER_OPTS='${SONAR_SCANNER_OPTS}' \\
-                ${getScannerBinary()} ${scannerParams.join(' ')}
-                """
+                script: "${getScannerBinary()} ${scannerParams.join(' ')}"
             )
         }
     }
