@@ -286,6 +286,8 @@ class Project {
 
     protected static final String BUILD_PARAM_VERSION_DEFAULT = 'WIP'
 
+    protected static final String MAIN_BRANCH_DEFAULT = 'master'
+
     protected static String METADATA_FILE_NAME = 'metadata.yml'
 
     protected List initErrors = []
@@ -640,6 +642,13 @@ class Project {
 
     boolean getIsPromotionMode() {
         isPromotionMode(buildParams.targetEnvironmentToken)
+    }
+
+    // The repository's main (integration) branch. The release manager reads the
+    // env state from this branch and records it back onto it. Defaults to
+    // 'master' but can be overridden via the 'mainBranch' build parameter.
+    String getMainBranch() {
+        buildParams.mainBranch ?: MAIN_BRANCH_DEFAULT
     }
 
     String getTargetEnvironmentToken() {
@@ -1179,10 +1188,13 @@ class Project {
             rePromote = false
         }
 
+        def mainBranch = steps.env.mainBranch?.trim() ?: MAIN_BRANCH_DEFAULT
+
         return [
             changeDescription: changeDescription,
             changeId: changeId,
             configItem: configItem,
+            mainBranch: mainBranch,
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,

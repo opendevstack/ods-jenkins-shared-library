@@ -13,6 +13,7 @@ import org.ods.orchestration.usecase.JiraUseCaseSupport
 import org.ods.orchestration.usecase.JiraUseCaseZephyrSupport
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
+import org.ods.orchestration.usecase.SonarQubeUseCase
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
@@ -339,6 +340,13 @@ class InitStage extends Stage {
                 registry.get(IPipelineSteps)
             )
         )
+        registry.add(SonarQubeUseCase,
+            new SonarQubeUseCase(
+                registry.get(Project),
+                registry.get(IPipelineSteps),
+                registry.get(NexusService)
+            )
+        )
         addBitBucketToRegistry(steps, logger, registry)
         addLeVADocumentUseCaseToRegistry(registry, logger)
         registry.add(LeVADocumentScheduler,
@@ -440,6 +448,7 @@ class InitStage extends Stage {
                 registry.get(NexusService),
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
+                registry.get(SonarQubeUseCase),
                 registry.get(BitbucketTraceabilityUseCase),
                 logger
             )
@@ -564,8 +573,8 @@ class InitStage extends Stage {
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
                 logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
-                    "using master branch for developer preview.")
-                project.setGitReleaseBranch("master")
+                    "using ${project.mainBranch} branch for developer preview.")
+                project.setGitReleaseBranch(project.mainBranch)
             }
         }
     }

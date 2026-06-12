@@ -301,7 +301,7 @@ class MROPipelineUtil extends PipelineUtil {
         def bbs = ServiceRegistry.instance.get(BitbucketService)
         String gitReleaseBranch = this.project.gitReleaseBranch
         repo.defaultBranch = bbs.getDefaultBranch(repo.id)
-        if ("master" == gitReleaseBranch) {
+        if (this.project.mainBranch == gitReleaseBranch) {
             gitReleaseBranch = repo.defaultBranch
         }
         if(isWorkInProgress && repo.'preview-branch') {
@@ -344,18 +344,8 @@ class MROPipelineUtil extends PipelineUtil {
                 this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch})" +
                     "${repo.'preview-branch' ? ' and preview-branch has been configured' : ''}, " +
                     "checking out branch ${repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch} for repo ${repo.id}")
-                try {
-                    scmResult.scm = checkoutBranchInRepoDir(repo, repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch)
-                    scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
-                } catch (ex) {
-                    if (repo.'preview-branch') {
-                        def errorMessage = "The preview branch configured for repository " +
-                            "\"${repo.name ? repo.name : GitUtil.buildFullRepoName(project.getKey(), repo.id)} " +
-                            "(preview-branch: ${repo.'preview-branch'})\" could not be found."
-                        throw new RuntimeException(errorMessage, ex)
-                    }
-                    throw ex
-                }
+                scmResult.scm = checkoutBranchInRepoDir(repo, repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch)
+                scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
             }
         }
         return scmResult

@@ -124,6 +124,42 @@ class FinalizeStageSpec extends SpecHelper {
         1 * gitService.pushForceBranchWithTags(project.gitReleaseBranch)
     }
 
+    def "pushToCustomMainBranchWhenReleaseBranchEqualsMainBranch"(){
+        given:
+        project.buildParams.version = 'WIP'
+        project.buildParams.mainBranch = 'feature/bibmes'
+        project.setGitReleaseBranch('feature/bibmes')
+
+        when:
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
+
+        then:
+        1 * gitService.pushRef('feature/bibmes')
+        0 * gitService.switchToOriginTrackingBranch(_)
+        0 * gitService.switchToExistingBranch(_)
+        0 * gitService.pushForceBranchWithTags(_)
+    }
+
+    def "recordEnvStateOnCustomMainBranchWhenReleaseBranchDiffers"(){
+        given:
+        project.buildParams.version = "1.0.0"
+        project.buildParams.mainBranch = 'feature/bibmes'
+        project.gitData.targetTag = "1.0.0"
+        project.setGitReleaseBranch('release/1.0.0')
+        gitService.remoteTagExists(project.targetTag) >> false
+
+        when:
+        finalStage.recordAndPushEnvStateForReleaseManager(script, logger, gitService)
+
+        then:
+        1 * gitService.switchToOriginTrackingBranch('feature/bibmes')
+        1 * gitService.pushRef('feature/bibmes')
+        1 * gitService.switchToExistingBranch('release/1.0.0')
+        1 * gitService.createTag(project.targetTag)
+        1 * gitService.pushForceBranchWithTags('release/1.0.0')
+        0 * gitService.pushRef('master')
+    }
+
     def "integrateIntoMainBranchRepos if repo of type is #type"() {
         given:
         def repos = project.data.metadata.repositories
