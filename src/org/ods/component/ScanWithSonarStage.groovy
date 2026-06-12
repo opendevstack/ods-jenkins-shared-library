@@ -155,10 +155,11 @@ class ScanWithSonarStage extends Stage {
                     closure()
                 }
             } else {
+                logger.info "SonarQube scan timeout is disabled (sonarQubeScanTimeout: ${options.scanTimeout})."
                 closure()
             }
         } catch (Exception e) {
-            logger.info "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
+            logger.warn "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
         }
     }
 
