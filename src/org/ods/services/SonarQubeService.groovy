@@ -56,6 +56,7 @@ class SonarQubeService {
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
+                "-Dsonar.filesize.limit=${properties['sonar.filesize.limit']}",
                 "-Dsonar.sources=.",
             ]
             if (exclusions?.trim()) {
