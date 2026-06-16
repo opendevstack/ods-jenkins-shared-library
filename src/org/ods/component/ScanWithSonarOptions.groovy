@@ -54,4 +54,16 @@ class ScanWithSonarOptions extends Options {
      */
     String sonarQubeNexusRepository
 
+    /**
+     * Timeout in minutes for the SonarQube scanner execution.
+     * When reached, the scan is aborted but the pipeline continues.
+     * Defaults to 10. */
+    int scanTimeout
+
+    /**
+     * Sets the limit in megabytes (MB) for files to be discarded from the analysis scope
+     * if the file size is greater than specified.
+     * Defaults to 2 MB. */
+    int filesizeLimit
+
 }

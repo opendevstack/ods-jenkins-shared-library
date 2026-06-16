@@ -87,7 +87,7 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
         logger.debugMode >> false
         def service = new SonarQubeService(steps, logger, "env")
         def optionsWithPrivateToken = [
-            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name'],
+            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name', 'sonar.filesize.limit': '2'],
             gitCommit: "abcdef123456",
             pullRequestInfo: [:],
             sonarQubeEdition: "community",
@@ -95,7 +95,7 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
             privateToken: "my-private-token"
         ]
         def optionsWithoutPrivateToken = [
-            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name'],
+            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name', 'sonar.filesize.limit': '2'],
             gitCommit: "abcdef123456",
             pullRequestInfo: [:],
             sonarQubeEdition: "community",
@@ -109,8 +109,8 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
 
         then:
         2 * steps.sh(label: 'Set Java 17 for SonarQube scan', script: "source use-j17.sh")
-        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") })
-        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=my-private-token") })
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("/opt/sonar-scanner/bin/sonar-scanner") && it.contains("-Dsonar.projectKey=key") && it.contains("-Dsonar.projectName=name") && it.contains("-Dsonar.filesize.limit=2") && it.contains("-Dsonar.exclusions=test/**") && it.contains("-Dsonar.auth.token=public-token") })
     }
 
     def "generateReport calls script.sh with correct params and uses correct token"() {
@@ -207,6 +207,38 @@ class SonarQubeServiceSpec extends PipelineSpockTestBase {
 
         expect:
         service.generateAndStoreSonarQubeToken("credId", "namespace", "secretName") == ""
+    }
+
+    def "scan includes sonar.filesize.limit parameter from properties"() {
+        given:
+        def steps = GroovyMock(util.PipelineSteps)
+        steps.tool('SonarScanner') >> '/opt/sonar-scanner'
+        steps.withSonarQubeEnv(_, _) >> { String env, Closure block -> block() }
+        steps.getSONAR_HOST_URL() >> 'https://sonarqube.example.com'
+        steps.getSONAR_AUTH_TOKEN() >> 'public-token'
+        steps.sh(_) >> { Map args ->
+            if (args.returnStatus) {
+                return 1
+            }
+            return null
+        }
+        def logger = Mock(org.ods.util.ILogger)
+        logger.debugMode >> false
+        def service = new SonarQubeService(steps, logger, "env")
+        def options = [
+            properties: ['sonar.projectKey': 'key', 'sonar.projectName': 'name', 'sonar.filesize.limit': '5'],
+            gitCommit: "abcdef123456",
+            pullRequestInfo: [:],
+            sonarQubeEdition: "community",
+            exclusions: "",
+            privateToken: ""
+        ]
+
+        when:
+        service.scan(options)
+
+        then:
+        1 * steps.sh(label: 'Run SonarQube scan', script: { it.contains("-Dsonar.filesize.limit=5") })
     }
 
     def "getScannerBinary returns tool path if which fails"() {
