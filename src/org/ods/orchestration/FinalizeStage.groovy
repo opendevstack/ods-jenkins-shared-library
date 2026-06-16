@@ -19,7 +19,6 @@ import groovy.json.JsonOutput
 class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
-    private final String MASTER_BRANCH = "master"
 
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
@@ -267,18 +266,19 @@ class FinalizeStage extends Stage {
             messageToCommit
         )
 
-        if (project.gitReleaseBranch == MASTER_BRANCH) {
-            git.pushRef(MASTER_BRANCH)
+        def mainBranch = project.mainBranch
+        if (project.gitReleaseBranch == mainBranch) {
+            git.pushRef(mainBranch)
         } else {
             // We don't need to merge, we simply commit the env file.
             // That avoids unnecessary merge conflicts.
-            git.switchToOriginTrackingBranch(MASTER_BRANCH)
+            git.switchToOriginTrackingBranch(mainBranch)
             git.checkoutAndCommitFiles(
                 project.gitReleaseBranch,
                 filesToCommit,
                 "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
             )
-            git.pushRef(MASTER_BRANCH)
+            git.pushRef(mainBranch)
             git.switchToExistingBranch(project.gitReleaseBranch)
             if (!project.isWorkInProgress) {
                 git.createTag(project.targetTag)
