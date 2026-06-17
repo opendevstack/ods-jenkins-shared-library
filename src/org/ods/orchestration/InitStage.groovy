@@ -564,8 +564,8 @@ class InitStage extends Stage {
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
                 logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
-                    "using ${project.mainBranch} branch for developer preview.")
-                project.setGitReleaseBranch(project.mainBranch)
+                    "using ${this.project.mainBranch} branch for developer preview.")
+                project.setGitReleaseBranch(this.project.mainBranch)
             }
         }
     }
