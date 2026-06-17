@@ -66,7 +66,7 @@ dependencies {
     // Otherwise we might run into a race condition when parallel compilation happens,
     // e.g. because two pipelines are started in parallel.
     // See https://github.com/opendevstack/ods-jenkins-shared-library/issues/422.
-    implementation "com.cloudbees:groovy-cps:1.29"
+    implementation "com.cloudbees:groovy-cps:1.34"
     implementation "org.codehaus.groovy:groovy-all:2.4.21"
     implementation "org.jenkins-ci.main:jenkins-core:2.46.3"
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
