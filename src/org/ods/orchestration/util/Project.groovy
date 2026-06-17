@@ -648,7 +648,11 @@ class Project {
     // env state from this branch and records it back onto it. Defaults to
     // 'master' but can be overridden via the 'mainBranch' build parameter.
     String getMainBranch() {
-        buildParams.mainBranch ?: MAIN_BRANCH_DEFAULT
+        return getMainBranch(buildParams)
+    }
+
+    static String getMainBranch(Map buildParams) {
+        return buildParams.mainBranch ?: MAIN_BRANCH_DEFAULT
     }
 
     String getTargetEnvironmentToken() {

@@ -531,19 +531,20 @@ class InitStage extends Stage {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
             } else {
-                checkOutRepoInNotPromotionMode(git, gitReleaseBranch, false, logger)
+                checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, false, logger)
             }
         } else {
             // Here is the difference with respect to deploy-to-D:
             // The branch to be used is obtained from buildParams.changeId, not from buildParams.version ( = WIP ).
             def gitReleaseBranch = GitService.getReleaseBranch(buildParams.changeId)
             logger.info("Release branch that should be used if available: ${gitReleaseBranch}")
-            checkOutRepoInNotPromotionMode(git, gitReleaseBranch, true, logger)
+            checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, true, logger)
         }
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
     }
 
     private void checkOutRepoInNotPromotionMode(GitService git,
+                                                Map buildParams,
                                                 String gitReleaseBranch,
                                                 boolean isWorkInProgress,
                                                 Logger logger) {
@@ -563,9 +564,10 @@ class InitStage extends Stage {
                 git.checkoutNewLocalBranch(gitReleaseBranch)
                 project.setGitReleaseBranch(gitReleaseBranch)
             } else {
+                def mainBranch = Project.getMainBranch(buildParams)
                 logger.info("Since no deploy was done to D (branch ${gitReleaseBranch} does not exist), " +
-                    "using ${this.project.mainBranch} branch for developer preview.")
-                project.setGitReleaseBranch(this.project.mainBranch)
+                    "using ${mainBranch} branch for developer preview.")
+                project.setGitReleaseBranch(mainBranch)
             }
         }
     }
