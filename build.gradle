@@ -75,7 +75,7 @@ dependencies {
     implementation 'org.slf4j:jcl-over-slf4j:1.7.30'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
     implementation "com.konghq:unirest-java:2.4.03:standalone"
-    implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2"
+    implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.1.0"
     implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2"
     implementation "net.lingala.zip4j:zip4j:2.1.1"
     implementation "org.apache.ivy:ivy:2.2.0"
