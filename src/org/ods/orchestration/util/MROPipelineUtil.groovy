@@ -344,7 +344,7 @@ class MROPipelineUtil extends PipelineUtil {
                 this.logger.info("Since in WIP and no release branch exists (${this.project.gitReleaseBranch})" +
                     "${repo.'preview-branch' ? ' and preview-branch has been configured' : ''}, " +
                     "checking out branch ${repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch} for repo ${repo.id}")
-                try {                    
+                try {
                     scmResult.scm = checkoutBranchInRepoDir(repo, repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch)
                     scmResult.scmBranch = repo.'preview-branch' ? repo.'preview-branch' : repo.defaultBranch
                 } catch (ex) {
