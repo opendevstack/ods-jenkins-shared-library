@@ -3,7 +3,6 @@
 ## Unreleased
 
 ### Added
-* Add optional main branch param to orchestration ([#1280](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1280))
 
 ### Changed
 * Push container images to AWS ECR independently of EKS, while optionally triggering EKS deployments when needed ([#1267](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1267))
@@ -15,6 +14,10 @@
 * Fix Nexus not accepting npm artifacts when uploaded through odsComponentStageUploadToNexus ([#1268](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1268))
 * Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
 * Tune SonarQube scan to work at scale ([#1275](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1275))
+
+## [4.12.3] - 2026-06-19
+### Added
+* Add optional main branch param to orchestration ([#1280](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1280))
 
 
 ## [4.12.2] - 2026-06-04
