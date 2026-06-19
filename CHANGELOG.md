@@ -5,6 +5,7 @@
 ### Added
 
 ### Changed
+* Upgrade Helm support from v3 to v4: remove deprecated `--show-resources` flag from `helm status` (resources now always included in JSON output), rename default flag `--atomic` to `--rollback-on-failure` and `--force` to `--force-replace` ([#1385](https://github.com/opendevstack/ods-core/issues/1385))
 * Push container images to AWS ECR independently of EKS, while optionally triggering EKS deployments when needed ([#1267](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1267))
 * Updated Java version in sonarqube execution to Java 21 ([#1269](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1269))
 

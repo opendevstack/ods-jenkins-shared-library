@@ -20,7 +20,7 @@ The images used in the deployment will not be tagged or otherwise modified.
 [source,shell]
 ----
 HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n play-dev secrets diff upgrade \
-  --install --atomic --force \
+  --install --rollback-on-failure --force-replace \
   -f values.yaml \
   --set registry=registry.example.com \
   --set componentId=example-helm-chart \
@@ -31,7 +31,7 @@ HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n play-dev secrets diff upgrade \
 
 # run the upgrade
 helm -n play-dev secrets upgrade \
-  --install --atomic --force \
+  --install --rollback-on-failure --force-replace \
   -f values.yaml \
   --set registry=registry.example.com \
   --set componentId=example-helm-chart \
@@ -115,7 +115,7 @@ _List<String>_
 | *helmDefaultFlags* +
 _List<String>_
 |List of default flags to be passed verbatim to to `helm upgrade`
- (defaults to `['--install', '--atomic']`). Typically these should not be
+ (defaults to `['--install', '--rollback-on-failure']`). Typically these should not be
  modified - if you want to pass more flags, use `helmAdditionalFlags`
  instead. Only relevant if the directory referenced by `chartDir` exists.
 
