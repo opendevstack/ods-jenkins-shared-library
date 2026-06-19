@@ -301,7 +301,7 @@ class MROPipelineUtil extends PipelineUtil {
         def bbs = ServiceRegistry.instance.get(BitbucketService)
         String gitReleaseBranch = this.project.gitReleaseBranch
         repo.defaultBranch = bbs.getDefaultBranch(repo.id)
-        if ("master" == gitReleaseBranch) {
+        if (this.project.mainBranch == gitReleaseBranch) {
             gitReleaseBranch = repo.defaultBranch
         }
         if(isWorkInProgress && repo.'preview-branch') {

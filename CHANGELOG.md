@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+* Add optional main branch param to orchestration ([#1280](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1280))
 
 ### Changed
 
