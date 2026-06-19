@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+* Add optional main branch param to orchestration ([#1280](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1280))
 
 ### Changed
 * Push container images to AWS ECR independently of EKS, while optionally triggering EKS deployments when needed ([#1267](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1267))
