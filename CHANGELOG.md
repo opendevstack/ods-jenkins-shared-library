@@ -13,6 +13,9 @@
 * Fix branch mapping logic to ensure correct environment assignment ([#1263](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1263))
 * Fix Nexus not accepting npm artifacts when uploaded through odsComponentStageUploadToNexus ([#1268](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1268))
 * Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
+
+## [4.12.4] - 2026-06-29
+### Changed
 * Tune SonarQube scan to work at scale ([#1275](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1275))
 
 ## [4.12.3] - 2026-06-19
