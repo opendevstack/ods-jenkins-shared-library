@@ -5,11 +5,16 @@
 ### Added
 
 ### Changed
+
+### Fixed
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.13.0] - 2026-06-30
+### Changed
 * Push container images to AWS ECR independently of EKS, while optionally triggering EKS deployments when needed ([#1267](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1267))
 * Updated Java version in sonarqube execution to Java 21 ([#1269](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1269))
 
 ### Fixed
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix branch mapping logic to ensure correct environment assignment ([#1263](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1263))
 * Fix Nexus not accepting npm artifacts when uploaded through odsComponentStageUploadToNexus ([#1268](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1268))
 * Aqua Stage is being skipped when branches are not eligable ([#1170](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1170))
