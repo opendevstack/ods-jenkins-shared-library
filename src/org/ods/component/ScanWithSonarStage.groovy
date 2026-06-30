@@ -66,6 +66,12 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
+        if (!config.containsKey('scanTimeout')) {
+            config.scanTimeout = 10
+        }
+        if (!config.containsKey('filesizeLimit')) {
+            config.filesizeLimit = 2
+        }
         if (configurationSonarCluster['nexusRepository']) {
             config.sonarQubeNexusRepository = configurationSonarCluster['nexusRepository']
         }
@@ -102,6 +108,7 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
         sonarProperties['sonar.branch.name'] = context.gitBranch
+        sonarProperties['sonar.filesize.limit'] = options.filesizeLimit
 
         def pullRequestInfo = assemblePullRequestInfo()
         def ocSecretName = "sonarqube-private-token"
@@ -119,21 +126,35 @@ class ScanWithSonarStage extends Stage {
                 )
             ]) {
                 logger.info("SonarQube private projects enabled, using private token.")
+                executeWithTimeout {
+                    runSonarQubeScanAndReport(
+                        sonarProjectKey,
+                        sonarProperties,
+                        pullRequestInfo,
+                        steps.env.privateToken as String
+                    )
+                }
+            }
+        } else {
+            logger.info("SonarQube private projects disabled, using public token.")
+            executeWithTimeout {
                 runSonarQubeScanAndReport(
                     sonarProjectKey,
                     sonarProperties,
                     pullRequestInfo,
-                    steps.env.privateToken as String
+                    ""
                 )
             }
-        } else {
-            logger.info("SonarQube private projects disabled, using public token.")
-            runSonarQubeScanAndReport(
-                sonarProjectKey,
-                sonarProperties,
-                pullRequestInfo,
-                ""
-            )
+        }
+    }
+
+    private void executeWithTimeout(Closure closure) {
+        try {
+            steps.timeout(time: options.scanTimeout, unit: 'MINUTES') {
+                closure()
+            }
+        } catch (Exception e) {
+            logger.warn "SonarQube scan timed out after ${options.scanTimeout} minutes. Continuing pipeline."
         }
     }
 
