@@ -82,6 +82,9 @@ def call(IContext context, Map config = [:]) {
         if (config.resourceName) {
             inheritedConfig.resourceName = config.resourceName
         }
+        if (config.branches) {
+            inheritedConfig.branches = config.branches
+        }
         if (enabledInCluster && enabledInProject) {
             new ScanWithAquaStage(this,
                 context,
