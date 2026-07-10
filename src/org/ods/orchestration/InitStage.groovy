@@ -593,7 +593,8 @@ class InitStage extends Stage {
         )?.toString()
         if (!baseTag) {
             throw new RuntimeException(
-                "Error: unable to find latest tag *-${sourceEnvToken} for version ${buildParams.version}/${buildParams.changeId}."
+                "Error: unable to find latest tag *-${sourceEnvToken} " +
+                    "for version ${buildParams.version}/${buildParams.changeId}."
             )
         }
         logger.info("Checkout release manager repository @ ${baseTag}")

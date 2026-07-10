@@ -17,28 +17,9 @@ class EnvironmentResolver {
         this.enabledEnvironments = resolveEnabledEnvironments(rawEnvironments)
     }
 
-    @NonCPS
-    private List<String> resolveEnabledEnvironments(String raw) {
-        if (!raw?.trim()) {
-            raw = DEFAULT_ENVIRONMENTS
-        }
-        List<String> environments = raw.split(',').collect { it.trim() }.findAll { it }
-        validateEnvironments(environments)
-        return environments
-    }
-
-    @NonCPS
-    private void validateEnvironments(List<String> environments) {
-        boolean valid = ALLOWED_ENVIRONMENT_SETS.any { allowed -> allowed == environments }
-        if (!valid) {
-            String allowedStr = ALLOWED_ENVIRONMENT_SETS.collect { it.join(',') }.join(' | ')
-            throw new IllegalArgumentException(
-                "Invalid value for ENVIRONMENTS_ENABLED: '${environments.join(',')}'. " +
-                "Allowed values are: ${allowedStr}"
-            )
-        }
-    }
-
+    // -------------------------------------------------------------------------
+    // Public API
+    // -------------------------------------------------------------------------
     @NonCPS
     List<String> getEnabledEnvironments() {
         return enabledEnvironments
@@ -65,6 +46,29 @@ class EnvironmentResolver {
     @NonCPS
     String getSourceEnvTokenFor(String targetEnvironment) {
         return getSourceEnvFor(targetEnvironment)[0].toUpperCase() as String
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+    @NonCPS
+    private List<String> resolveEnabledEnvironments(String raw) {
+        String effective = raw?.trim() ? raw : DEFAULT_ENVIRONMENTS
+        List<String> environments = effective.split(',')*.trim().findAll { it }
+        validateEnvironments(environments)
+        return environments
+    }
+
+    @NonCPS
+    private void validateEnvironments(List<String> environments) {
+        boolean valid = ALLOWED_ENVIRONMENT_SETS.any { allowed -> allowed == environments }
+        if (!valid) {
+            String allowedStr = ALLOWED_ENVIRONMENT_SETS*.join(',').join(' | ')
+            throw new IllegalArgumentException(
+                "Invalid value for ENVIRONMENTS_ENABLED: '${environments.join(',')}'. " +
+                "Allowed values are: ${allowedStr}"
+            )
+        }
     }
 
 }
