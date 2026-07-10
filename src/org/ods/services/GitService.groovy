@@ -352,16 +352,12 @@ class GitService {
         )
     }
 
-    String readBaseTagList(String version, String changeId, String envToken) {
-        def previousEnvToken = 'D'
-        if (envToken == 'P') {
-            previousEnvToken = 'Q'
-        }
-        def tagPattern = "${ODS_GIT_TAG_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
+    String readBaseTagList(String version, String changeId, String sourceEnvToken) {
+        def tagPattern = "${ODS_GIT_TAG_PREFIX}v${version}-${changeId}-*-${sourceEnvToken}"
         script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
-            label: "list tags for version ${version}-${changeId}-*-${previousEnvToken}"
+            label: "list tags for version ${version}-${changeId}-*-${sourceEnvToken}"
         ).trim()
     }
 
