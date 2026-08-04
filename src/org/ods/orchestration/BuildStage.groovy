@@ -42,7 +42,8 @@ class BuildStage extends Stage {
             // We should turn the last argument 'data' of the scheduler into a
             // closure that return data.
             if (project.isAssembleMode
-                && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
+                && (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE ||
+                repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)) {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data.openshift.resurrectedBuild
                 if (resultsResurrected) {
@@ -50,7 +51,8 @@ class BuildStage extends Stage {
                         "${repo.data.openshift.resurrectedBuild} " +
                         "- no unit tests results will be reported")
                 } else {
-                    data << [tests: [unit: getTestResults(steps, repo) ]]
+                    def testResults = getTestResults(steps, repo)
+                    data << [tests: [unit: testResults ]]
                     jira.reportTestResultsForComponent(
                         "Technology-${repo.id}",
                         [Project.TestType.UNIT],
