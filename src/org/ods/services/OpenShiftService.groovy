@@ -38,10 +38,12 @@ class OpenShiftService {
     }
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
-        steps.sh(
-            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
-            label: "login to external cluster (${apiUrl})"
-        )
+        steps.withEnv(["TOKEN=${apiToken}"]) {
+            steps.sh(
+                script: "oc login ${apiUrl} --token=$TOKEN >& /dev/null",
+                label: "login to external cluster (${apiUrl})"
+            )
+        }
     }
 
     static String getApiUrl(IPipelineSteps steps) {
@@ -1498,15 +1500,17 @@ class OpenShiftService {
 
     void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-        def success = steps.sh(
+
+        steps.sh(
             script: """
-               ${logger.shellScriptDebugFlag}
-                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
-                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+                TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
+                ${logger.shellScriptDebugFlag}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true --token=$TOKEN &> /dev/null
             """,
             returnStatus: true,
             label: 'Check if OCP session exists'
         ) == 0
+        
         if (!success) {
             throw new RuntimeException(
                 'Could not (re)login to cluster, this is a systemic failure'
