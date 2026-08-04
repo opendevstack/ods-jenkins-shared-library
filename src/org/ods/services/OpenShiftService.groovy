@@ -1503,6 +1503,7 @@ class OpenShiftService {
 
         def success = steps.sh(
             script: """
+                echo "using master branch"
                 set +x
                 oc login ${kubeUrl} --insecure-skip-tls-verify=true \
                 --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
