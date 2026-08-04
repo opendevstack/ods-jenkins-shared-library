@@ -1501,16 +1501,16 @@ class OpenShiftService {
     void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
 
-        steps.sh(
+        def success = steps.sh(
             script: """
-                TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
-                ${logger.shellScriptDebugFlag}
-                oc login ${kubeUrl} --insecure-skip-tls-verify=true --token=$TOKEN &> /dev/null
+                set +x
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
             """,
             returnStatus: true,
             label: 'Check if OCP session exists'
         ) == 0
-        
+
         if (!success) {
             throw new RuntimeException(
                 'Could not (re)login to cluster, this is a systemic failure'
