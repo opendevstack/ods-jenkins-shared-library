@@ -38,9 +38,13 @@ class OpenShiftService {
     }
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
-        steps.withEnv(["TOKEN=${apiToken}"]) {
+        List<String> envVars = ["TOKEN=${apiToken}".toString()]
+        steps.withEnv(envVars) {
             steps.sh(
-                script: "oc login ${apiUrl} --token=$TOKEN >& /dev/null",
+                script: """
+                    set +x
+                    oc login ${apiUrl} --token=\$TOKEN >& /dev/null
+                """,
                 label: "login to external cluster (${apiUrl})"
             )
         }
@@ -1503,10 +1507,9 @@ class OpenShiftService {
 
         def success = steps.sh(
             script: """
-                echo "using master branch"
                 set +x
                 oc login ${kubeUrl} --insecure-skip-tls-verify=true \
-                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+                --token="\$(cat /run/secrets/kubernetes.io/serviceaccount/token)" &> /dev/null
             """,
             returnStatus: true,
             label: 'Check if OCP session exists'
