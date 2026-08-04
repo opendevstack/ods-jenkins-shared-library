@@ -164,10 +164,11 @@ class SonarQubeService {
     def getComputeEngineTaskJSON(String taskid, String privateToken) {
         withSonarServerConfig { hostUrl, authToken ->
             def tokenToUse = privateToken ?: authToken
-            script.withEnv(["TOKEN=${tokenToUse}"]) {
+            def envVariables = ["TOKEN=${tokenToUse}".toString()]
+            script.withEnv(envVariables) {
                 script.sh(
                     label: 'Get status of compute engine task',
-                    script: "curl -s -u $TOKEN: ${hostUrl}/api/ce/task?id=${taskid}",
+                    script: "curl -s -u \$TOKEN: ${hostUrl}/api/ce/task?id=${taskid}",
                     returnStdout: true
                 )
             }
