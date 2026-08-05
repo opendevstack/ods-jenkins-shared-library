@@ -38,16 +38,13 @@ class OpenShiftService {
     }
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
-        List<String> envVars = ["TOKEN=${apiToken}".toString()]
-        steps.withEnv(envVars) {
-            steps.sh(
-                script: """
-                    set +x
-                    oc login ${apiUrl} --token=\$TOKEN >& /dev/null
-                """,
-                label: "login to external cluster (${apiUrl})"
-            )
-        }
+        steps.sh(
+            script: """
+                set +x
+                oc login ${apiUrl} --token=${apiToken} >& /dev/null
+            """,
+            label: "login to external cluster (${apiUrl})"
+        )
     }
 
     static String getApiUrl(IPipelineSteps steps) {
