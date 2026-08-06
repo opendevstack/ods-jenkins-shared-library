@@ -39,9 +39,7 @@ class OpenShiftService {
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
-            script: '''
-                oc login "\${apiUrl}" --token="\${apiToken}" >& /dev/null
-            ''',
+            script: 'oc login "\${apiUrl}" --token="\${apiToken}" >& /dev/null',
             label: "login to external cluster (${apiUrl})"
         )
     }
@@ -1513,6 +1511,7 @@ class OpenShiftService {
 
         def success = steps.sh(
             script: '''
+                \${logger.shellScriptDebugFlag}
                 oc login "\${kubeUrl}" --insecure-skip-tls-verify=true \
                 --token="\${token}" &> /dev/null
             ''',
