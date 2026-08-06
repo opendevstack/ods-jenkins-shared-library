@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-
+* Add the feature of sending to Jira the unit test report of ods-infra components ([#1287](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1287))
 ### Changed
 
 ### Fixed
