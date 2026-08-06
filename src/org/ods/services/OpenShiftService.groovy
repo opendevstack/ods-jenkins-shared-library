@@ -1501,10 +1501,20 @@ class OpenShiftService {
     void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
 
+        def token = steps.sh(
+            script: '''
+                set +x
+                cat /run/secrets/kubernetes.io/serviceaccount/token
+                set -x
+            ''',
+            returnStdout: true,
+            label: 'Read OpenShift service-account token'
+        ).toString().trim()
+
         def success = steps.sh(
             script: '''
                 oc login "\${kubeUrl}" --insecure-skip-tls-verify=true \
-                --token="\$(cat /run/secrets/kubernetes.io/serviceaccount/token)" &> /dev/null
+                --token="\${token}" &> /dev/null
             ''',
             returnStatus: true,
             label: 'Check if OCP session exists'
