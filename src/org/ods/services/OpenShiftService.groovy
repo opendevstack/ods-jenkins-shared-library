@@ -44,7 +44,10 @@ class OpenShiftService {
         ]
         steps.withEnv(envVars) {
             steps.sh(
-                script: """oc login '\${OPENSHIFT_API_URL}' --token='\${OPENSHIFT_API_TOKEN}' >& /dev/null""",
+                script: """
+                    oc login '\${OPENSHIFT_API_URL}' \
+                    --token='\${OPENSHIFT_API_TOKEN}' >& /dev/null
+                """,
                 label: "login to external cluster (${apiUrl})"
             )
         }
