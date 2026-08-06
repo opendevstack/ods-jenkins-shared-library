@@ -39,7 +39,7 @@ class OpenShiftService {
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.withEnv([
-            "OPENSHIFT_API_URL=${apiURL}".toString(),
+            "OPENSHIFT_API_URL=${apiUrl}".toString(),
             "OPENSHIFT_API_TOKEN=${apiToken}".toString()
         ])
         steps.sh(
