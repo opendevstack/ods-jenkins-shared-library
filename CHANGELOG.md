@@ -7,6 +7,9 @@
 ### Changed
 
 ### Fixed
+* Fix OCP Token exposure to ensure it is not shown within logs ([#1288]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288)
+
+### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.13.0] - 2026-06-30
