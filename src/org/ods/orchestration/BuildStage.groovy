@@ -24,7 +24,6 @@ class BuildStage extends Stage {
 
     @SuppressWarnings('ParameterName')
     def run() {
-        def steps = ServiceRegistry.instance.get(IPipelineSteps)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
 
