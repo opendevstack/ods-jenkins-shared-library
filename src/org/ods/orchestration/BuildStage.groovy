@@ -25,10 +25,8 @@ class BuildStage extends Stage {
     @SuppressWarnings('ParameterName')
     def run() {
         def steps = ServiceRegistry.instance.get(IPipelineSteps)
-        def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
@@ -37,7 +35,7 @@ class BuildStage extends Stage {
         }
 
         def postExecuteRepo = { steps_, repo ->
-            runPostExecuteRepo(repo, steps, jira, util, levaDocScheduler, logger, phase)
+            runPostExecuteRepo(repo)
         }
 
         // (cut) the reason to NOT go parallel here is a jenkins feature with too many
@@ -63,7 +61,13 @@ class BuildStage extends Stage {
     // dependency and an explicit repository constraint.
     // We should turn the last argument 'data' of the scheduler into a
     // closure that return data.
-    private void runPostExecuteRepo(repo, steps, jira, util, levaDocScheduler, logger, phase) {
+    private void runPostExecuteRepo(repo) {
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
+        def jira = ServiceRegistry.instance.get(JiraUseCase)
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+        def phase = MROPipelineUtil.PipelinePhases.BUILD
         if (project.isAssembleMode
             && (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE ||
             repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)) {
