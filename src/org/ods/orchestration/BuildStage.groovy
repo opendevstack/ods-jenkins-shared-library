@@ -22,13 +22,10 @@ class BuildStage extends Stage {
         super(script, project, repos, startMROStageName)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric'])
+    @SuppressWarnings('ParameterName')
     def run() {
-        def steps = ServiceRegistry.instance.get(IPipelineSteps)
-        def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
@@ -37,40 +34,7 @@ class BuildStage extends Stage {
         }
 
         def postExecuteRepo = { steps_, repo ->
-            // FIXME: we are mixing a generic scheduler capability with a data
-            // dependency and an explicit repository constraint.
-            // We should turn the last argument 'data' of the scheduler into a
-            // closure that return data.
-            if (project.isAssembleMode
-                && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-                def data = [ : ]
-                def resultsResurrected = !!repo.data.openshift.resurrectedBuild
-                if (resultsResurrected) {
-                    logger.info("[${repo.id}] Resurrected tests from run " +
-                        "${repo.data.openshift.resurrectedBuild} " +
-                        "- no unit tests results will be reported")
-                } else {
-                    data << [tests: [unit: getTestResults(steps, repo) ]]
-                    jira.reportTestResultsForComponent(
-                        "Technology-${repo.id}",
-                        [Project.TestType.UNIT],
-                        data.tests.unit.testResults
-                    )
-                    // we check in any case ... (largely because the above call will
-                    // return immediatly when no jira adapter is configured).
-                    // this  will set failedTests if any xunit tests have failed
-                    util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
-                }
-
-                logger.debug("levaDocScheduler.run start")
-                levaDocScheduler.run(
-                    phase,
-                    PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-                    repo,
-                    data
-                )
-                logger.debug("levaDocScheduler.run end")
-            }
+            runPostExecuteRepo(repo)
         }
 
         // (cut) the reason to NOT go parallel here is a jenkins feature with too many
@@ -88,38 +52,86 @@ class BuildStage extends Stage {
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible
-        // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
-        // the build will have failed beforehand
         def failedRepos = repos?.flatten().findAll { it.data?.failedStage }
-        if (project.hasFailingTests() || failedRepos?.size > 0) {
-            def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
-                "\n${sanitizeFailedRepos(failedRepos)}"
+        handleBuildFailures(failedRepos, util)
+    }
 
-            def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
-            def jiraMessage = baseErrMsg
-            def logMessage = baseErrMsg
-            if (tailorFailedRepos?.size() > 0) {
-                String failedReposCommaSeparated = buildReposCommaSeparatedString(tailorFailedRepos)
-                logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
-                jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
+    // FIXME: we are mixing a generic scheduler capability with a data
+    // dependency and an explicit repository constraint.
+    // We should turn the last argument 'data' of the scheduler into a
+    // closure that return data.
+    private void runPostExecuteRepo(repo) {
+        def steps = ServiceRegistry.instance.get(IPipelineSteps)
+        def jira = ServiceRegistry.instance.get(JiraUseCase)
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+        def phase = MROPipelineUtil.PipelinePhases.BUILD
+        if (project.isAssembleMode
+            && (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE ||
+            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)) {
+            def data = [:]
+            def resultsResurrected = !!repo.data.openshift.resurrectedBuild
+            if (resultsResurrected) {
+                logger.info("[${repo.id}] Resurrected tests from run " +
+                    "${repo.data.openshift.resurrectedBuild} " +
+                    "- no unit tests results will be reported")
+            } else {
+                def testResults = getTestResults(steps, repo)
+                data << [tests: [unit: testResults]]
+                jira.reportTestResultsForComponent(
+                    "Technology-${repo.id}",
+                    [Project.TestType.UNIT],
+                    data.tests.unit.testResults
+                )
+                // we check in any case ... (largely because the above call will
+                // return immediatly when no jira adapter is configured).
+                // this  will set failedTests if any xunit tests have failed
+                util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
             }
 
-            def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
-            if (aquaCriticalVulnerabilityRepos?.size() > 0) {
-                Set securityVulnerabilityIssueKeys = project.jiraUseCase?.
-                    createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
-                String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
-                logMessage += aquaMessage
-                jiraMessage += aquaMessage
-            }
+            logger.debug("levaDocScheduler.run start")
+            levaDocScheduler.run(
+                phase,
+                PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                repo,
+                data
+            )
+            logger.debug("levaDocScheduler.run end")
+        }
+    }
 
-            util.failBuild(logMessage, false)
-            // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
-            // vulnerability with solution found then raise an exception
-            if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
-                || aquaCriticalVulnerabilityRepos?.size() > 0) {
-                throw new IllegalStateException(jiraMessage)
-            }
+    private void handleBuildFailures(failedRepos, util) {
+        if (!project.hasFailingTests() && !(failedRepos?.size > 0)) {
+            return
+        }
+        def baseErrMsg = "Delivery failed since the following Bitbucket repositories contain errors:\n" +
+            "\n${sanitizeFailedRepos(failedRepos)}"
+
+        def tailorFailedRepos = filterReposWithTailorFailure(failedRepos)
+        def jiraMessage = baseErrMsg
+        def logMessage = baseErrMsg
+        if (tailorFailedRepos?.size() > 0) {
+            String failedReposCommaSeparated = buildReposCommaSeparatedString(tailorFailedRepos)
+            logMessage += buildTailorMessage(failedReposCommaSeparated, LOG_CUSTOM_PART)
+            jiraMessage += buildTailorMessage(failedReposCommaSeparated, JIRA_CUSTOM_PART)
+        }
+
+        def aquaCriticalVulnerabilityRepos = filterReposWithAquaCriticalVulnerability(repos)
+        if (aquaCriticalVulnerabilityRepos?.size() > 0) {
+            Set securityVulnerabilityIssueKeys = project.jiraUseCase?.
+                createSecurityVulnerabilityIssues(aquaCriticalVulnerabilityRepos)
+            String aquaMessage = buildAquaSecurityVulnerabilityMessage(securityVulnerabilityIssueKeys)
+            logMessage += aquaMessage
+            jiraMessage += aquaMessage
+        }
+
+        util.failBuild(logMessage, false)
+        // If we are not in Developer Preview or we have a Tailor failure or a Aqua remotely exploitable
+        // vulnerability with solution found then raise an exception
+        if (!project.isWorkInProgress || tailorFailedRepos?.size() > 0
+            || aquaCriticalVulnerabilityRepos?.size() > 0) {
+            throw new IllegalStateException(jiraMessage)
         }
     }
 
