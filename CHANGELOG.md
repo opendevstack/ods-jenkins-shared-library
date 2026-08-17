@@ -3,11 +3,14 @@
 ## Unreleased
 
 ### Added
-* Add the feature of sending to Jira the unit test report of ods-infra components ([#1287](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1287))
 ### Changed
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.13.1] - 2026-08-17
+### Fixed
+* Add the feature of sending to Jira the unit test report of ods-infra components ([#1287](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1287))
 
 ## [4.13.0] - 2026-06-30
 ### Changed
