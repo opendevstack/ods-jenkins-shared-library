@@ -4,6 +4,7 @@
 
 ### Added
 ### Changed
+* Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
 
 ### Fixed
 * Fix OCP Token exposure to ensure it is not shown within logs ([#1288]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288)

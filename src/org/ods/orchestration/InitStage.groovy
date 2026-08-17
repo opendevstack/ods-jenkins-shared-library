@@ -13,6 +13,7 @@ import org.ods.orchestration.usecase.JiraUseCaseSupport
 import org.ods.orchestration.usecase.JiraUseCaseZephyrSupport
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.OpenIssuesException
+import org.ods.orchestration.util.EnvironmentResolver
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
@@ -529,7 +530,9 @@ class InitStage extends Stage {
             def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
             logger.debug("Release Manager branch to checkout: ${gitReleaseBranch}")
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
-                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, logger)
+                def resolver = new EnvironmentResolver(script.env.ENVIRONMENTS_ENABLED as String)
+                def sourceEnvToken = resolver.getSourceEnvTokenFor(buildParams.targetEnvironment as String)
+                checkOutRepoInPromotionMode(git, buildParams, gitReleaseBranch, sourceEnvToken, logger)
             } else {
                 checkOutRepoInNotPromotionMode(git, buildParams, gitReleaseBranch, false, logger)
             }
@@ -575,21 +578,23 @@ class InitStage extends Stage {
     private Exception checkOutRepoInPromotionMode(GitService git,
                                                   Map buildParams,
                                                   String gitReleaseBranch,
+                                                  String sourceEnvToken,
                                                   Logger logger) {
         def tagList = git.readBaseTagList(
             buildParams.version,
             buildParams.changeId,
-            buildParams.targetEnvironmentToken
+            sourceEnvToken
         )
         def baseTag = GitTag.readLatestBaseTag(
             tagList,
             buildParams.version,
             buildParams.changeId,
-            buildParams.targetEnvironmentToken
+            sourceEnvToken
         )?.toString()
         if (!baseTag) {
             throw new RuntimeException(
-                "Error: unable to find latest tag for version ${buildParams.version}/${buildParams.changeId}."
+                "Error: unable to find latest tag *-${sourceEnvToken} " +
+                    "for version ${buildParams.version}/${buildParams.changeId}."
             )
         }
         logger.info("Checkout release manager repository @ ${baseTag}")
