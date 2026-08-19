@@ -73,7 +73,7 @@ dependencies {
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13', ext: 'jar'
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.41', ext: 'jar'
     implementation 'org.slf4j:jcl-over-slf4j:1.7.30'
-    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
     implementation "com.konghq:unirest-java:2.4.03:standalone"
     implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2"
     implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2"
