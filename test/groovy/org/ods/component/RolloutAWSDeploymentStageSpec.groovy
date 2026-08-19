@@ -43,7 +43,7 @@ class RolloutAWSDeploymentStageSpec extends PipelineSpockTestBase {
         config.helmValues == [:]
         config.helmValuesFiles == ['values.yaml']
         config.helmEnvBasedValuesFiles == []
-        config.helmDefaultFlags == ['--install', '--atomic']
+        config.helmDefaultFlags == ['--install', '--rollback-on-failure']
         config.helmAdditionalFlags == []
         config.helmDiff == true
         config.helmPrivateKeyCredentialsId == 'foo-cd-helm-private-key'

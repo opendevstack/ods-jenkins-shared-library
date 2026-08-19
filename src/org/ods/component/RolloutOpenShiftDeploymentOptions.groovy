@@ -62,7 +62,7 @@ class RolloutOpenShiftDeploymentOptions extends Options {
 
     /**
      * List of default flags to be passed verbatim to to `helm upgrade`
-     * (defaults to `['--install', '--atomic']`). Typically these should not be
+     * (defaults to `['--install', '--rollback-on-failure']`). Typically these should not be
      * modified - if you want to pass more flags, use `helmAdditionalFlags`
      * instead. Only relevant if the directory referenced by `chartDir` exists. */
     List<String> helmDefaultFlags

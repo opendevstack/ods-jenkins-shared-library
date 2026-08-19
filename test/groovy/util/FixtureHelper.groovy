@@ -719,7 +719,7 @@ class FixtureHelper {
                                 'registry'   : 'image-registry.openshift.svc:1000',
                                 'componentId': 'backend-helm-monorepo',
                             ],
-                            'helmDefaultFlags'       : ['--install', '--atomic'],
+                            'helmDefaultFlags'       : ['--install', '--rollback-on-failure'],
                             'namespace'              : 'myodsproject-dev',
                             'helmReleaseName'        : 'backend-helm-monorepo',
                             'selector'               : 'app.kubernetes.io/instance=backend-helm-monorepo',
