@@ -6,7 +6,8 @@
 ### Changed
 
 ### Fixed
-* Fix OCP Token exposure to ensure it is not shown within logs ([#1288]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288)
+* Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
+* Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
