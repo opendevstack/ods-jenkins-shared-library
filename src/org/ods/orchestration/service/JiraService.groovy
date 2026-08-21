@@ -350,7 +350,7 @@ class JiraService {
             .asString()
 
         response.ifSuccess {
-            if (response.getStatus() != 201) {
+            if (response.getStatus() != 200) {
                 throw new RuntimeException("Error: unable to add attachment to Jira issue ${issueKey}. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
             }
         }
