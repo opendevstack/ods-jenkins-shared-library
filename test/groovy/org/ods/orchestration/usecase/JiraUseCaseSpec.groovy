@@ -194,6 +194,23 @@ class JiraUseCaseSpec extends SpecHelper {
         testIssues.find { it.key == "NET-140" }.bugs.contains("BUG-1")
     }
 
+    def "attach oversized test failure output to created bug"() {
+        given:
+        project.data.buildParams.changeId = '1.0'
+        def testIssues = createSockShopJiraTestIssues()
+        def failureText = 'x' * 32768
+        def failures = [[type: 'Failure/Error in test', text: failureText]] as Set
+        def bug = [key: 'BUG-1', fields: [summary: 'my-bug']]
+
+        when:
+        usecase.createBugsForFailedTestIssues(testIssues, failures, 'myComment')
+
+        then:
+        1 * jira.createIssueTypeBug(project.jiraProjectKey, 'Failure/Error in test',
+            'Full test failure output is attached as test-failure.txt.', '1.0') >> bug
+        1 * jira.addTextAttachmentToIssue('BUG-1', 'test-failure.txt', failureText)
+    }
+
     def "get document chapter data"() {
         given:
         // Test Parameters
