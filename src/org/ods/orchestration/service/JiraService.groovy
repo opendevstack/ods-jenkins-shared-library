@@ -12,6 +12,8 @@ import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
 
+import java.nio.charset.StandardCharsets
+
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
 
@@ -334,11 +336,12 @@ class JiraService {
         if (!name) {
             throw new IllegalAccessException('Please, specify a name for the attachment.')
         }
+        def binaryContent = content.getBytes(StandardCharsets.UTF_8)
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue/${issueKey}/attachments")
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header('X-Atlassian-Token', 'no-check')
-            .field(name, content)
+            .field(name, binaryContent, 'application/octet-stream')
             .asString()
 
         response.ifSuccess {
