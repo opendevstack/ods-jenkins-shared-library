@@ -323,13 +323,13 @@ class JiraService {
             description: description)
         if (content) {
             String issueKey = result.key
-            addTextAttachmentToIssue(issueKey, 'description.txt', content)
+            addAttachmentToIssue(issueKey, 'description.txt', content)
         }
         return result
     }
 
     @NonCPS
-    Map addTextAttachmentToIssue(String issueKey, String name, String content) {
+    Map addAttachmentToIssue(String issueKey, String name, String content) {
         name = name.strip()
         if (!name) {
             throw new IllegalAccessException('Please, specify a name for the attachment.')
@@ -337,7 +337,8 @@ class JiraService {
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue/${issueKey}/attachments")
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
-            .field(name, content, 'text/plain')
+            .header('X-Atlassian-Token', 'no-check')
+            .field(name, content)
             .asString()
 
         response.ifSuccess {
