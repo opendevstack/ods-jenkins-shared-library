@@ -19,6 +19,8 @@ class JiraService {
         '\u00A0': ' ',
     ]
 
+    private static final int MAX_DESCRIPTION_LEN = 32767
+
     URI baseURL
 
     String username
@@ -310,12 +312,51 @@ class JiraService {
     }
 
     Map createIssueTypeBug(String projectKey, String summary, String description, String fixVersion = null) {
+        def content = null
         if (!description?.trim()) {
             description = 'N/A - please check logs'
+        } else if (description.length() > MAX_DESCRIPTION_LEN) {
+            content = description
+            description = 'Description too long - please see the attachment description.txt.'
+        }
+        def result = createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
+            description: description)
+        if (content) {
+            String issueKey = result.key
+            addTextAttachmentToIssue(issueKey, 'description.txt', content)
+        }
+        return result
+    }
+
+    @NonCPS
+    Map addTextAttachmentToIssue(String issueKey, String name, String content) {
+        name = name.strip()
+        if (!name) {
+            throw new IllegalAccessException('Please, specify a name for the attachment.')
+        }
+        def response = Unirest.post("${this.baseURL}/rest/api/2/issue/${issueKey}/attachments")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .field(name, content, 'text/plain')
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 201) {
+                throw new RuntimeException("Error: unable to add attachment to Jira issue ${issueKey}. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            }
         }
 
-        return createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
-            description: description)
+        response.ifFailure {
+            def message = "Error: unable to add attachment to Jira issue ${issueKey}. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: Issue ${issueKey} not found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.body) as Map
     }
 
     @NonCPS
