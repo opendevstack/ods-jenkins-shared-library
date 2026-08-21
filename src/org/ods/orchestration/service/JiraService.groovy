@@ -326,13 +326,13 @@ class JiraService {
             description: description)
         if (content) {
             String issueKey = result.key
-            addAttachmentToIssue(issueKey, 'description.txt', content)
+            addTextAttachmentToIssue(issueKey, 'description.txt', content)
         }
         return result
     }
 
     @NonCPS
-    Map addAttachmentToIssue(String issueKey, String name, String content) {
+    Map addTextAttachmentToIssue(String issueKey, String name, String content) {
         name = name.strip()
         if (!name) {
             throw new IllegalAccessException('Please, specify a name for the attachment.')
@@ -346,7 +346,7 @@ class JiraService {
                 'file',
                 new ByteArrayInputStream(binaryContent),
                 ContentType.create('text/plain', StandardCharsets.UTF_8),
-                'description.txt')
+                name)
             .asString()
 
         response.ifSuccess {
