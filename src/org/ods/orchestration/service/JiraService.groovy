@@ -8,6 +8,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.util.StringCleanup
 
+import kong.unirest.ContentType
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -341,7 +342,11 @@ class JiraService {
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
             .header('X-Atlassian-Token', 'no-check')
-            .field(name, binaryContent, 'application/octet-stream')
+            .field(
+                'file',
+                new ByteArrayInputStream(binaryContent),
+                ContentType.create('text/plain', StandardCharsets.UTF_8),
+                'description.txt')
             .asString()
 
         response.ifSuccess {
