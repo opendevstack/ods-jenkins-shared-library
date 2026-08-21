@@ -8,6 +8,9 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.util.StringCleanup
 
+import java.nio.charset.StandardCharsets
+
+import kong.unirest.ContentType
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -307,6 +310,46 @@ class JiraService {
         }
 
         return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
+    void addTextAttachmentToIssue(String issueIdOrKey, String filename, String content) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to add attachment to Jira issue. \'issueIdOrKey\' is undefined.')
+        }
+
+        if (!filename?.trim()) {
+            throw new IllegalArgumentException('Error: unable to add attachment to Jira issue. \'filename\' is undefined.')
+        }
+
+        if (content == null) {
+            throw new IllegalArgumentException('Error: unable to add attachment to Jira issue. \'content\' is undefined.')
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}/attachments")
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("X-Atlassian-Token", "no-check")
+            .field("file", new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)),
+                ContentType.create("text/plain"), filename)
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Error: unable to add attachment to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            }
+        }
+
+        response.ifFailure {
+            def message = "Error: unable to add attachment to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to add attachment to Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
     }
 
     Map createIssueTypeBug(String projectKey, String summary, String description, String fixVersion = null) {

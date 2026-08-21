@@ -27,6 +27,13 @@ class JiraUseCase {
 
     private static final String JIRA_COMPONENT_TECHNOLOGY_PREFIX = 'Technology-'
 
+    private static final int JIRA_DESCRIPTION_MAX_LENGTH = 32767
+
+    private static final String TEST_FAILURE_ATTACHMENT_FILENAME = 'test-failure.txt'
+
+    private static final String TEST_FAILURE_ATTACHMENT_DESCRIPTION =
+        'Full test failure output is attached as test-failure.txt.'
+
     class IssueTypes {
 
         static final String DOCUMENTATION_TRACKING = 'Documentation'
@@ -164,8 +171,14 @@ class JiraUseCase {
         testFailures.each { failure ->
             String version = this.project.buildParams.changeId
             def summary = failure.type ? failure.type : 'Failure/Error in test'
+            def isFailureTextTooLong = failure.text?.length() > JIRA_DESCRIPTION_MAX_LENGTH
+            def description = isFailureTextTooLong ? TEST_FAILURE_ATTACHMENT_DESCRIPTION : failure.text
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, summary, failure.text, version)
+                this.project.jiraProjectKey, summary, description, version)
+
+            if (isFailureTextTooLong) {
+                this.jira.addTextAttachmentToIssue(bug.key, TEST_FAILURE_ATTACHMENT_FILENAME, failure.text)
+            }
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]

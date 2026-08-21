@@ -1210,6 +1210,44 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    Map addTextAttachmentToIssueRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                content: 'test failure output',
+                filename: 'test-failure.txt',
+                issueIdOrKey: 'JIRA-123'
+            ],
+            headers: [
+                'Accept': 'application/json',
+                'X-Atlassian-Token': 'no-check'
+            ],
+            password: 'password',
+            path: '/rest/api/2/issue/JIRA-123/attachments',
+            username: 'username'
+        ]
+
+        result.multipartRequestBody = [file: result.data.content.getBytes('UTF-8')]
+
+        return result << mixins
+    }
+
+    def "add text attachment to issue"() {
+        given:
+        def request = addTextAttachmentToIssueRequestData()
+        def response = [status: 200]
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.addTextAttachmentToIssue(request.data.issueIdOrKey, request.data.filename, request.data.content)
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        stopServer(server)
+    }
+
     Map getDocGenDataRequestData(Map mixins = [:]) {
         def result = [
             data: [
