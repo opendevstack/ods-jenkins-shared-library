@@ -333,9 +333,13 @@ class JiraService {
 
     @NonCPS
     Map addTextAttachmentToIssue(String issueKey, String name, String content) {
+        issueKey = issueKey.strip()
+        if (!issueKey) {
+            throw new IllegalArgumentException('Please, specify a valid issue key.')
+        }
         name = name.strip()
         if (!name) {
-            throw new IllegalAccessException('Please, specify a name for the attachment.')
+            throw new IllegalArgumentException('Please, specify a name for the attachment.')
         }
         def binaryContent = content.getBytes(StandardCharsets.UTF_8)
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue/${issueKey}/attachments")
