@@ -992,7 +992,7 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue with max length description"() {
+    def "create bug with max length description"() {
         given:
         def jira = Spy(new JiraService('https://www.example.com/', 'username', 'password'))
         def projectKey = 'projectKey'
@@ -1015,7 +1015,7 @@ class JiraServiceSpec extends SpecHelper {
         0 * jira.addTextAttachmentToIssue(_, _, _) >> [:]
     }
 
-    def "create issue with too-long description"() {
+    def "create bug with too-long description"() {
         given:
         def jira = Spy(new JiraService('https://www.example.com/', 'username', 'password'))
         def projectKey = 'projectKey'
