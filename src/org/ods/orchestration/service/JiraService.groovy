@@ -8,9 +8,12 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.util.StringCleanup
 
+import kong.unirest.ContentType
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
+
+import java.nio.charset.StandardCharsets
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -18,6 +21,8 @@ class JiraService {
     protected static Map CHARACTER_REMOVEABLE = [
         '\u00A0': ' ',
     ]
+
+    private static final int MAX_DESCRIPTION_LEN = 32767
 
     URI baseURL
 
@@ -310,12 +315,61 @@ class JiraService {
     }
 
     Map createIssueTypeBug(String projectKey, String summary, String description, String fixVersion = null) {
+        def content = null
         if (!description?.trim()) {
             description = 'N/A - please check logs'
+        } else if (description.length() > MAX_DESCRIPTION_LEN) {
+            content = description
+            description = 'Description too long - please see the attachment description.txt.'
+        }
+        def result = createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
+            description: description)
+        if (content) {
+            String issueKey = result.key
+            addTextAttachmentToIssue(issueKey, 'description.txt', content)
+        }
+        return result
+    }
+
+    @NonCPS
+    Map addTextAttachmentToIssue(String issueKey, String name, String content) {
+        issueKey = issueKey.strip()
+        if (!issueKey) {
+            throw new IllegalArgumentException('Please, specify a valid issue key.')
+        }
+        name = name.strip()
+        if (!name) {
+            throw new IllegalArgumentException('Please, specify a name for the attachment.')
+        }
+        def binaryContent = content.getBytes(StandardCharsets.UTF_8)
+        def response = Unirest.post("${this.baseURL}/rest/api/2/issue/${issueKey}/attachments")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header('X-Atlassian-Token', 'no-check')
+            .field(
+                'file',
+                new ByteArrayInputStream(binaryContent),
+                ContentType.create('text/plain', StandardCharsets.UTF_8),
+                name)
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Error: unable to add attachment to Jira issue ${issueKey}. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            }
         }
 
-        return createIssue(fixVersion: fixVersion, summary: summary, type: "Bug", projectKey: projectKey,
-            description: description)
+        response.ifFailure {
+            def message = "Error: unable to add attachment to Jira issue ${issueKey}. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: Issue ${issueKey} not found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.body) as Map
     }
 
     @NonCPS
