@@ -4,10 +4,11 @@
 
 ### Added
 ### Changed
+### Fixed
 
+## [4.13.2] - 2026-08-24
 ### Fixed
 * Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.13.1] - 2026-08-17
 ### Fixed
