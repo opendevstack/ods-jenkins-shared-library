@@ -6,6 +6,8 @@
 ### Changed
 
 ### Fixed
+* Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
+* Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.13.1] - 2026-08-17
@@ -46,6 +48,7 @@
 * Update automatic release component information with N/A when pipelines have not run yet ([#1257](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1257))
 * Enhance Helm strategy and support of Statefullset/Cronjob ([#1253](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1253))
 * Add component information in automatic release close notes ([#1254](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1254))
+* Improve Trivy Stage by being able to use severity thresholds ([#1262](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1262))
 
 ### Fixed
 * Fail pipeline when deploying with issues in progress ([#1258](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1258))
