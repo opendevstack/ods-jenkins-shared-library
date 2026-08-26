@@ -1528,13 +1528,14 @@ class OpenShiftService {
             success = steps.sh(
                 script: """
                     ${logger.shellScriptDebugFlag}
-                    oc login '\${K8S_URL}' --insecure-skip-tls-verify=true --token='\${K8S_TOKEN}' &> /dev/null
+                    oc login '\${K8S_URL}' --insecure-skip-tls-verify=true \
+                    --token='\${K8S_TOKEN}' &> /dev/null
                 """,
                 returnStatus: true,
                 label: 'Check if OCP session exists'
             ) == 0
         }
-
+        logger.debug("Relogin to cluster \${K8S_URL} with token \${K8S_TOKEN} got status: ${success}")
         if (!success) {
             throw new RuntimeException(
                 'Could not (re)login to cluster, this is a systemic failure'
