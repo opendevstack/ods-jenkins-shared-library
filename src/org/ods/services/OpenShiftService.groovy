@@ -1527,10 +1527,7 @@ class OpenShiftService {
         steps.withEnv(envVars) {
             success = steps.sh(
                 script: '''
-                    ${logger.shellScriptDebugFlag} \
-                    oc login ${K8S_URL} \
-                    --insecure-skip-tls-verify=true \
-                    --token=${K8S_TOKEN} &> /dev/null
+                    ${logger.shellScriptDebugFlag} oc login ${K8S_URL} --insecure-skip-tls-verify=true --token=${K8S_TOKEN} &> /dev/null
                 ''',
                 returnStatus: true,
                 label: 'Check if OCP session exists'
