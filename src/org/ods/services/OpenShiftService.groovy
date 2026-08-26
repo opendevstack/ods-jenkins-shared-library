@@ -1524,20 +1524,17 @@ class OpenShiftService {
             "K8S_TOKEN=${token}".toString()
         ]
 
-        def status = 0
         steps.withEnv(envVars) {
-            status = steps.sh(
+            success = steps.sh(
                 script: """
                     ${logger.shellScriptDebugFlag}
-                    oc login \${K8S_URL} --insecure-skip-tls-verify=true \
-                    --token=\${K8S_TOKEN} &> /dev/null
+                    oc login "\${K8S_URL}" --insecure-skip-tls-verify=true \
+                    --token="\${K8S_TOKEN}" &> /dev/null
                 """,
                 returnStatus: true,
                 label: 'Check if OCP session exists'
-            )
-            success = (status == 0)
+            ) == 0
         }
-        logger.debug("Relogin to cluster ${kubeUrl} with token ${token} got status: ${status}")
         if (!success) {
             throw new RuntimeException(
                 'Could not (re)login to cluster, this is a systemic failure'
