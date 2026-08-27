@@ -32,25 +32,20 @@ class OpenShiftService {
 
     static void createProject(IPipelineSteps steps, String name) {
         steps.sh(
-            script: "oc new-project ${name}",
+            script: """
+                    set +x
+                    oc new-project ${name}
+                    set -x
+                    """,
             label: "Create new OpenShift project ${name}"
         )
     }
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
-        List<String> envVars = [
-            "OPENSHIFT_API_URL=${apiUrl}".toString(),
-            "OPENSHIFT_API_TOKEN=${apiToken}".toString()
-        ]
-        steps.withEnv(envVars) {
-            steps.sh(
-                script: '''
-                    oc login "$OPENSHIFT_API_URL" \
-                    --token="$OPENSHIFT_API_TOKEN" >& /dev/null
-                ''',
-                label: "login to external cluster (${apiUrl})"
-            )
-        }
+        steps.sh(
+            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
+            label: "login to external cluster (${apiUrl})"
+        )
     }
 
     static String getApiUrl(IPipelineSteps steps) {
@@ -1507,30 +1502,16 @@ class OpenShiftService {
 
     void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-
-        def token = steps.sh(
-            script: '''
+        def success = steps.sh(
+            script: """
                 set +x
-                cat /run/secrets/kubernetes.io/serviceaccount/token
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
                 set -x
-            ''',
-            returnStdout: true,
-            label: 'Read OpenShift service-account token'
-        ).toString().trim()
-
-        def success = false
-        List<String> envVars = [
-            "K8S_URL=${kubeUrl}".toString(),
-            "K8S_TOKEN=${token}".toString()
-        ]
-
-        steps.withEnv(envVars) {
-            success = steps.sh(
-                script: 'oc login ${K8S_URL} --insecure-skip-tls-verify=true --token=${K8S_TOKEN} &> /dev/null',
-                returnStatus: true,
-                label: 'Check if OCP session exists'
-            ) == 0
-        }
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
         if (!success) {
             throw new RuntimeException(
                 'Could not (re)login to cluster, this is a systemic failure'
