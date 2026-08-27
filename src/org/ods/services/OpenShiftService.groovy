@@ -32,18 +32,18 @@ class OpenShiftService {
 
     static void createProject(IPipelineSteps steps, String name) {
         steps.sh(
-            script: """
-                    set +x
-                    oc new-project ${name}
-                    set -x
-                    """,
+            script: "oc new-project ${name}",
             label: "Create new OpenShift project ${name}"
         )
     }
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
-            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
+            script: """
+                    set +x
+                    oc login ${apiUrl} --token=${apiToken} >& /dev/null
+                    set -x
+                    """,
             label: "login to external cluster (${apiUrl})"
         )
     }
