@@ -44,7 +44,7 @@ class HelmDeploymentConfig {
             config.helmEnvBasedValuesFiles = []
         }
         if (!config.containsKey('helmDefaultFlags')) {
-            config.helmDefaultFlags = ['--install', '--atomic']
+            config.helmDefaultFlags = ['--install', '--rollback-on-failure']
         }
         if (!config.containsKey('helmAdditionalFlags')) {
             config.helmAdditionalFlags = []

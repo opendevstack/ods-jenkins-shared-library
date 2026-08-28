@@ -220,7 +220,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     buildArtifacts.size() > 0
     buildArtifacts.deployments['backend-helm-monorepo-deploymentMean']['type'] == 'helm'
 
-    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--atomic'], ['--history-max 5'], true)
+    1 * openShiftService.helmUpgrade('myproject-dev', 'backend-helm-monorepo', ['values.yaml'], ['registry':null, 'componentId':'core', 'global.registry':null, 'global.componentId':'core', 'imageNamespace':'myproject-dev', 'imageTag':'cd3e9082', 'global.imageNamespace':'myproject-dev', 'global.imageTag':'cd3e9082'], ['--install', '--rollback-on-failure'], ['--history-max 5'], true)
   }
 
   @Unroll

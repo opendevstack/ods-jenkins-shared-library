@@ -259,7 +259,7 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh(
-            script: 'helm -n myproject-dev status backend-helm-monorepo --show-resources  -o json',
+            script: 'helm -n myproject-dev status backend-helm-monorepo -o json',
             label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev',
             returnStdout: true,
         ) >> helmJsonText
@@ -285,12 +285,12 @@ class OpenShiftServiceSpec extends SpecHelper {
             }
         """
         when:
-        service.helmStatus('myproject-dev ', 'backend-helm-monorepo')
+        service.helmStatus('myproject-dev', 'backend-helm-monorepo')
 //            OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,])
         then:
         1 * steps.sh(
-            script: 'helm -n myproject-dev  status backend-helm-monorepo --show-resources  -o json',
-            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev ',
+            script: 'helm -n myproject-dev status backend-helm-monorepo -o json',
+            label: 'Gather Helm status for release backend-helm-monorepo in myproject-dev',
             returnStdout: true,
         ) >> helmJsonText
         thrown RuntimeException
@@ -308,18 +308,18 @@ class OpenShiftServiceSpec extends SpecHelper {
             'bar',
             ['values.yml', 'values-dev.yml'],
             [imageTag: '6f8db5fb'],
-            ['--install', '--atomic'],
+            ['--install', '--rollback-on-failure'],
             ['--force'],
             true
         )
 
         then:
         1 * steps.sh(
-            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com --no-color --three-way-merge --normalize-manifests bar ./',
+            script: 'HELM_DIFF_IGNORE_UNKNOWN_FLAGS=true helm -n foo secrets diff upgrade --install --rollback-on-failure --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com --no-color --three-way-merge --normalize-manifests bar ./',
             label: 'Show diff explaining what helm upgrade would change for release bar in foo'
         )
         1 * steps.sh(
-            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com bar ./',
+            script: 'helm -n foo secrets upgrade --install --rollback-on-failure --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --set ODS_OPENSHIFT_APP_DOMAIN=apps.openshift.com bar ./',
             label: 'Upgrade Helm release bar in foo',
             returnStatus: true
         )
