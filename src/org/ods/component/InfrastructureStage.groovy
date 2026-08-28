@@ -56,6 +56,10 @@ class InfrastructureStage extends Stage {
             }
             if (runMakeStage("deploy", this.options.cloudProvider,
                               environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+                if (script.fileExists('errored.tfstate')) {
+                    logger.warn ("WARN: Terraform could not write statefile. errored.tfstate will be saved as artifact.")
+                    steps.archiveArtifacts(artifacts: 'errored.tfstate')
+                }
                 script.error("IaC - Deploy stage failed!")
             }
             if (runMakeStage("deployment-test", this.options.cloudProvider,
