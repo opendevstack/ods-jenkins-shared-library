@@ -949,10 +949,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     def sortTestSteps(def testSteps) {
         testSteps.each { step ->
+            this.steps.echo "Test step: ${step}"
             step.step = this.jiraUseCase.renderToHTML(step.step)
             step.data = this.jiraUseCase.renderToHTML(step.data)
             step.result = this.jiraUseCase.renderToHTML(step.result)
-            // this.steps.echo "Original test step ${step.key}: ${step.getDelegate()}"
         }
         return testSteps?.sort(false) { it.orderId }
     }
