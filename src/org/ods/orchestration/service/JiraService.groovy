@@ -1011,6 +1011,7 @@ class JiraService {
         return true
     }
 
+    @NonCPS
     String render(String content) {
         if (!content || !content?.trim()) {
             return content
