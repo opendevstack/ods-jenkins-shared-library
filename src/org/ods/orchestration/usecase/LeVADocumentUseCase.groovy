@@ -909,10 +909,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = computeKeysInDocForTCP(integrationTestIssues + acceptanceTestIssues)
 
-        (integrationTestIssues + acceptanceTestIssues).each { testIssue ->
-            this.steps.echo "Original test issue ${testIssue.key}: ${testIssue.getDelegate()}"
-        }
-
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
@@ -924,7 +920,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : this.convertImages(testIssue.description ?: testIssue.name),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : sortTestSteps(testIssue.steps)
+                        steps       : sortTestSteps(renderTestSteps(testIssue.steps))
                     ]
                 }),
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
@@ -933,7 +929,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : this.convertImages(testIssue.description ?: testIssue.name),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : sortTestSteps(testIssue.steps)
+                        steps       : sortTestSteps(renderTestSteps(testIssue.steps))
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -948,13 +944,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @NonCPS
     def sortTestSteps(def testSteps) {
+        return testSteps?.sort(false) { it.orderId }
+    }
+
+    @NonCPS
+    def renderTestSteps(def testSteps) {
         testSteps.each { step ->
-            // this.steps.echo "Test step: ${step}"
             step.step = this.jiraUseCase.renderToHTML(step.step)
             step.data = this.jiraUseCase.renderToHTML(step.data)
             step.result = this.jiraUseCase.renderToHTML(step.result)
         }
-        return testSteps?.sort(false) { it.orderId }
+        return testSteps
     }
 
     @NonCPS
