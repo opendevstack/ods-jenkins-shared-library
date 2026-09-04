@@ -1011,4 +1011,29 @@ class JiraService {
         return true
     }
 
+    String render(String content) {
+        if (!content || !content?.trim()) {
+            return content
+        }
+
+        def response = 
+            Unirest.post("${this.baseURL}/rest/api/1.0/render")
+                .basicAuth(this.username, this.password)
+                .header("Content-Type", "application/json")
+                .body(JsonOutput.toJson([rendererType: "atlassian-wiki-renderer", unrenderedMarkup: content]))
+                .asString()
+
+        response.ifFailure {
+            def message = "ERROR: unable to render content from Jira. " +
+                "Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "ERROR: unable to render content from Jira. Jira could not be found at: ${this.getBaseURL()}"
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return response.getBody() as String
+    }
 }

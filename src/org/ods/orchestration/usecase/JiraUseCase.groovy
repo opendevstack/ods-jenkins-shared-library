@@ -646,4 +646,10 @@ class JiraUseCase {
     String getJiraComponentId(def repo) {
         return repo.data?.openshift?.jiraComponentId
     }
+
+    String renderToHTML(String content) {
+        if (!this.jira) return content
+
+        return this.jira.render(content)
+    }
 }
