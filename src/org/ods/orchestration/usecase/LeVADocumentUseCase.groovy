@@ -909,6 +909,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = computeKeysInDocForTCP(integrationTestIssues + acceptanceTestIssues)
 
+        (integrationTestIssues + acceptanceTestIssues).each { testIssue ->
+            this.steps.echo "Original test issue ${testIssue.key}: ${testIssue.getDelegate()}"
+        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
