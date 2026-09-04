@@ -647,9 +647,13 @@ class JiraUseCase {
         return repo.data?.openshift?.jiraComponentId
     }
 
-    String renderToHTML(String content) {
-        if (!this.jira) return content
+    def renderStep(def step) {
+        if (this.jira) {
+            step.step = this.jira.render(step.step)
+            step.data = this.jira.render(step.data)
+            step.result = this.jira.render(step.result)
+        }
 
-        return this.jira.render(content)
+        return step
     }
 }
