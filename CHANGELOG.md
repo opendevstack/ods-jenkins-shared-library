@@ -8,10 +8,13 @@
 ### Fixed
 * Fix login/relogin to openshift cluster ([#1294](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1294))
 * Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
-* Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.13.2] - 2026-08-24
+### Fixed
+* Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
 
 ## [4.13.1] - 2026-08-17
 ### Fixed
