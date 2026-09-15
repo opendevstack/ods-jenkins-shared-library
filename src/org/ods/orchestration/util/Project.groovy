@@ -300,6 +300,7 @@ class Project {
     protected String targetProject
     protected Boolean isVersioningEnabled = false
     private String _gitReleaseBranch
+    private EnvironmentResolver environmentResolver
 
     private TestResults aggregatedTestResults;
 
@@ -321,6 +322,8 @@ class Project {
     Project init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+        this.environmentResolver = new EnvironmentResolver(steps.env.ENVIRONMENTS_ENABLED as String)
+        logger.info("Deployment environments: ${environmentResolver.enabledEnvironments.join('->')}")
 
         return this
     }
@@ -336,11 +339,14 @@ class Project {
         def version = this.data.buildParams.version
         def changeId = this.data.buildParams.changeId
         def targetEnvironmentToken = this.data.buildParams.targetEnvironmentToken
+        def sourceEnvToken = environmentResolver.getSourceEnvTokenFor(
+            this.data.buildParams.targetEnvironment as String
+        )
         def baseTag = null
         def targetTag = null
         if (!getIsWorkInProgress()) {
-            def tagList = git.readBaseTagList(version, changeId, targetEnvironmentToken)
-            baseTag = GitTag.readLatestBaseTag(tagList, version, changeId, targetEnvironmentToken)
+            def tagList = git.readBaseTagList(version, changeId, sourceEnvToken)
+            baseTag = GitTag.readLatestBaseTag(tagList, version, changeId, sourceEnvToken)
 
             if (getIsAssembleMode()) {
                 if (baseTag) {
@@ -760,7 +766,7 @@ class Project {
     }
 
     String getSourceEnv() {
-        ['dev': 'dev', 'qa': 'dev', 'prod': 'qa'].get(buildParams.targetEnvironment)
+        environmentResolver.getSourceEnvFor(buildParams.targetEnvironment as String)
     }
 
     String getBaseTag() {

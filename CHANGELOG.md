@@ -4,6 +4,7 @@
 
 ### Added
 ### Changed
+* Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
 
 ### Fixed
 * Fix login/relogin to openshift cluster ([#1294](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1294))
