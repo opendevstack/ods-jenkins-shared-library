@@ -29,18 +29,14 @@ class GitTag {
         this.envToken = envToken
     }
 
-    static GitTag readLatestBaseTag(String tagList, String version, String changeId, String envToken) {
-        def previousEnvToken = 'D'
-        if (envToken == 'P') {
-            previousEnvToken = 'Q'
-        }
+    static GitTag readLatestBaseTag(String tagList, String version, String changeId, String sourceEnvToken) {
         if (tagList) {
             def tags = tagList.split("\n")
 
             def highestIteration = -1
             def highestBuildNumber = '0'
             tags.each {
-                def iterationInfo = extractIterationInfo(it, version, changeId, previousEnvToken)
+                def iterationInfo = extractIterationInfo(it, version, changeId, sourceEnvToken)
                 if (iterationInfo) {
                     def iterationCandidate = iterationInfo.first().toInteger()
                     def buildNumberCandidate = iterationInfo.last()
@@ -51,7 +47,7 @@ class GitTag {
                 }
             }
             if (highestIteration > -1 ) {
-                return new GitTag(version, changeId, highestIteration, highestBuildNumber, previousEnvToken)
+                return new GitTag(version, changeId, highestIteration, highestBuildNumber, sourceEnvToken)
             }
         }
         return null
