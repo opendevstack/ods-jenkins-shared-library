@@ -1,6 +1,9 @@
 # Changelog
 ## Unreleased
 
+* Add the missing feature of reporting unit tests of ods-infra components in DTR ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
+* Add the missing feature of reporting unit tests of ods-library components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
+
 ### Added
 ### Changed
 ### Fixed
