@@ -68,8 +68,11 @@ class BuildStage extends Stage {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def phase = MROPipelineUtil.PipelinePhases.BUILD
         if (project.isAssembleMode
-            && (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE ||
-            repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)) {
+            && (
+                repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE ||
+                repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA ||
+                repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB
+            )) {
             def data = [:]
             def resultsResurrected = !!repo.data.openshift.resurrectedBuild
             if (resultsResurrected) {
