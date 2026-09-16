@@ -10,6 +10,7 @@
 * Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
 
 ### Fixed
+* fix helm in orchestration pipeline not adding the helmValues with global prefix like in component pipeline ([#1295]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1295)
 * Fix login/relogin to openshift cluster ([#1294](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1294))
 * Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
 

@@ -190,6 +190,11 @@ class DeployOdsComponent {
                     // take the persisted ones.
                     helmMergedValues << deploymentMean.helmValues
 
+                    // we add the global ones - this allows usage in subcharts
+                    deploymentMean.helmValues.each { key, value ->
+                        helmMergedValues["global.${key}"] = value
+                    }
+
                     // deal with dynamic value files - which are env dependent
                     deploymentMean.helmEnvBasedValuesFiles.each { envValueFile ->
                         helmValuesFiles << envValueFile.replace('.env',
