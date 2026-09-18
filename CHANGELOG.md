@@ -1,5 +1,8 @@
 # Changelog
 
+### Changed
+* Updated properties sent to docgen according to new leva templates updates ([#1296](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1296))
+
 ## Unreleased
 
 * Add the missing feature of reporting unit tests of ods-infra components in DTR ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
