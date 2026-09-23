@@ -53,7 +53,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
-        (DocumentType.DIL as String)        : 'Discrepancy Log',
+        (DocumentType.DIL as String)        : 'Defect Log',
         (DocumentType.DTP as String)        : 'Software Development Testing Plan',
         (DocumentType.DTR as String)        : 'Software Development Testing Report',
         (DocumentType.CFTP as String)       : 'Combined Functional and Requirements Testing Plan',
