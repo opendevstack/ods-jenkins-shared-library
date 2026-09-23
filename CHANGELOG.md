@@ -2,6 +2,7 @@
 
 ### Changed
 * Updated properties sent to docgen according to new leva templates updates ([#1296](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1296))
+* Rename Discrepancy Log title to Defect Log ([#1297](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1297))
 
 ## Unreleased
 
