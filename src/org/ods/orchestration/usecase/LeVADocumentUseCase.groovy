@@ -394,8 +394,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!integrationTestBugs.isEmpty()) {
             data_.data.integrationTests = integrationTestBugs.collect { bug ->
                 [
-                    //Discrepancy ID -> BUG Issue ID
-                    discrepancyID        : bug.key,
+                    //Defect ID -> BUG Issue ID
+                    defectID             : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
                     testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
@@ -417,8 +417,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!acceptanceTestBugs.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestBugs.collect { bug ->
                 [
-                    //Discrepancy ID -> BUG Issue ID
-                    discrepancyID        : bug.key,
+                    //Defect ID -> BUG Issue ID
+                    defectID             : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
                     testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
@@ -583,7 +583,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key: r.key,
                     name: r.name,
                     description: convertImages(r.description),
-                    proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
+                    mitigations: "Mitigations: ${ mitigationsText }",
+                    tests: "Tests: ${ testsText }",
                     requirement: requirement,
                     gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
