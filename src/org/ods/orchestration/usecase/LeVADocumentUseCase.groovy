@@ -1392,7 +1392,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults, boolean checkDuplicateTestResults = true) {
         def result = [
-            discrepancies: 'No discrepancies found.',
+            discrepancies: 'No defects found.',
             conclusion   : [
                 summary  : 'Complete success, no defects',
                 statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred.",
