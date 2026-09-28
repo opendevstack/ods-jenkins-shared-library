@@ -1394,8 +1394,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def result = [
             discrepancies: 'No discrepancies found.',
             conclusion   : [
-                summary  : 'Complete success, no discrepancies',
-                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred.",
+                summary  : 'Complete success, no defects',
+                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred.",
             ]
         ]
 

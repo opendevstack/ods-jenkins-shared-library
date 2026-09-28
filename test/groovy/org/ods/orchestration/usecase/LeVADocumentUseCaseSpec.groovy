@@ -131,9 +131,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No discrepancies found."
-        result.conclusion.summary == "Complete success, no discrepancies"
-        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+        result.discrepancies == "No defects found."
+        result.conclusion.summary == "Complete success, no defects"
+        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
         // a single, successful testcase
         when:
@@ -153,9 +153,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No discrepancies found."
-        result.conclusion.summary == "Complete success, no discrepancies"
-        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+        result.discrepancies == "No defects found."
+        result.conclusion.summary == "Complete success, no defects"
+        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
         // a single testcase with an error
         when:
@@ -223,9 +223,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No discrepancies found."
-        result.conclusion.summary == "Complete success, no discrepancies"
-        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+        result.discrepancies == "No defects found."
+        result.conclusion.summary == "Complete success, no defects"
+        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
         when:
         // a single testIssue with an error
