@@ -1304,7 +1304,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             'namespace': 'myodsproject-dev',
             'type': 'helm',
             'descriptorPath': 'chart',
-            'defaultCmdLineArgs': '--install --atomic',
+            'defaultCmdLineArgs': '--install --rollback-on-failure',
             'additionalCmdLineArgs': '--additional-flag-1 --additional-flag-2',
             'configParams': '''<ul class='inner-ul'><li>registry: image-registry.openshift.svc:1000</li><li>componentId: backend-helm-monorepo</li></ul>''',
             'configFiles': '''<ul class='inner-ul'><li>values.yaml</li></ul>''',

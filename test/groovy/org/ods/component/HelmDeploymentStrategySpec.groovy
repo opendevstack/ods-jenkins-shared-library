@@ -123,7 +123,7 @@ class HelmDeploymentStrategySpec extends PipelineSpockTestBase {
                     'global.imageNamespace': contextData.targetProject,
                     'global.imageTag': '',
                 ],
-                ['--install', '--atomic'],
+                ['--install', '--rollback-on-failure'],
                 ['--additional-flag-1', '--additional-flag-2', '--history-max 5'],
                 true,
         )
