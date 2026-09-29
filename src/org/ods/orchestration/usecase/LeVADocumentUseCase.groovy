@@ -271,7 +271,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
-        def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
+        def defects = this.computeTestDefects("Development Tests", testIssues, unitTestData.testResults)
 
         def obtainEnum = { category, value ->
             return this.project.getEnumDictionary(category)[value as String]
@@ -318,10 +318,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
                 } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
+                defects     : defects.defects,
                 conclusion        : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
+                    summary  : defects.conclusion.summary,
+                    statement: defects.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
@@ -400,7 +400,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Integration",
-                    //Description of Failure or Discrepancy -> Bug Issue Summary
+                    //Description of Failure or Defect -> Bug Issue Summary
                     description          : bug.name,
                     //Remediation Action -> "To be fixed"
                     remediation          : "To be fixed",
@@ -423,7 +423,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     testcaseID           : bug.tests.collect { it.key }.join(", "),
                     //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Acceptance",
-                    //Description of Failure or Discrepancy -> Bug Issue Summary
+                    //Description of Failure or Defect -> Bug Issue Summary
                     description          : bug.name,
                     //Remediation Action -> "To be fixed"
                     remediation          : "To be fixed",
@@ -483,8 +483,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def acceptanceTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeAcceptance())
         def integrationTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeIntegration())
-        def discrepancies = this
-            .computeTestDiscrepancies("Integration and Acceptance Tests",
+        def defects = this
+            .computeTestDefects("Integration and Acceptance Tests",
                 (acceptanceTestIssues + integrationTestIssues),
                 junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]),
                 false)
@@ -500,8 +500,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
                 numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
                 conclusion                   : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
+                    summary  : defects.conclusion.summary,
+                    statement: defects.conclusion.statement
                 ],
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
                 documentHistoryLatestVersionId: docHistory?.latestVersionId ?: 1,
@@ -748,7 +748,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
-        def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
+        def defects = this.computeTestDefects("Installation Tests", installationTestIssues, installationTestData.testResults)
 
         def testsOfRepoTypeOdsCode = []
         def testsOfRepoTypeOdsService = []
@@ -789,10 +789,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
+                defects     : defects.defects,
                 conclusion        : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
+                    summary  : defects.conclusion.summary,
+                    statement: defects.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
                 testsOdsCode      : testsOfRepoTypeOdsCode,
@@ -1390,9 +1390,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         result
     }
 
-    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults, boolean checkDuplicateTestResults = true) {
+    protected Map computeTestDefects(String name, List testIssues, Map testResults, boolean checkDuplicateTestResults = true) {
         def result = [
-            discrepancies: 'No defects found.',
+            defects: 'No defects found.',
             conclusion   : [
                 summary  : 'Complete success, no defects',
                 statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred.",
@@ -1434,27 +1434,27 @@ class LeVADocumentUseCase extends DocGenUseCase {
             })
         }
 
-        // Compute test discrepancies
-        def isMajorDiscrepancy = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
-        if (isMajorDiscrepancy) {
-            result.discrepancies = 'The following major discrepancies were found during testing.'
-            result.conclusion.summary = 'No success - major discrepancies found'
-            result.conclusion.statement = 'Some discrepancies found as'
+        // Compute test defects
+        def isMajorDefect = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
+        if (isMajorDefect) {
+            result.defects = 'The following major defects were found during testing.'
+            result.conclusion.summary = 'No success - major defects found'
+            result.conclusion.statement = 'Some defects found as'
 
             if (failedTestIssues || extraneousFailedTestCases) {
                 result.conclusion.statement += ' tests did fail'
             }
 
             if (failedTestIssues) {
-                result.discrepancies += " Failed tests: ${failedTestIssues.collect { it.key }.join(', ')}."
+                result.defects += " Failed tests: ${failedTestIssues.collect { it.key }.join(', ')}."
             }
 
             if (extraneousFailedTestCases) {
-                result.discrepancies += " Other failed tests: ${extraneousFailedTestCases.size()}."
+                result.defects += " Other failed tests: ${extraneousFailedTestCases.size()}."
             }
 
             if (unexecutedTestIssues) {
-                result.discrepancies += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
+                result.defects += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
 
                 if (failedTestIssues || extraneousFailedTestCases) {
                     result.conclusion.statement += ' and others were not executed'

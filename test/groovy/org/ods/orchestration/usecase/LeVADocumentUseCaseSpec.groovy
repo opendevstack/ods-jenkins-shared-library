@@ -128,7 +128,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        def result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        def result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "No defects found."
@@ -150,7 +150,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "No defects found."
@@ -173,7 +173,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
@@ -196,7 +196,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
@@ -220,7 +220,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "No defects found."
@@ -245,7 +245,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
@@ -270,7 +270,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
@@ -303,7 +303,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1, JIRA-2."
@@ -319,7 +319,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             testsuites: []
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Unexecuted tests: JIRA-1."
@@ -344,7 +344,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Unexecuted tests: JIRA-2."
@@ -377,7 +377,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+        result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Other failed tests: 1."
@@ -642,7 +642,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
-        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
+        1 * usecase.computeTestDefects("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, files, _, documentTemplate, watermarkText)
 
@@ -694,7 +694,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
-        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
+        1 * usecase.computeTestDefects("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, files, _, documentTemplate, watermarkText)
     }
@@ -776,7 +776,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
         1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
-        1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", SortUtil.sortIssuesByKey(acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]), false   )
+        1 * usecase.computeTestDefects("Integration and Acceptance Tests", SortUtil.sortIssuesByKey(acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]), false   )
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentType, null, _, files, null, documentTemplate, watermarkText) >> uri
@@ -951,7 +951,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeInstallation() >> testIssues
-        1 * usecase.computeTestDiscrepancies("Installation Tests", testIssues, testResults)
+        1 * usecase.computeTestDefects("Installation Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentType, null, _, files, null, documentTemplate, watermarkText) >> uri
