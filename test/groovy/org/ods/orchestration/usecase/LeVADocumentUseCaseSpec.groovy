@@ -111,7 +111,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         stepsNoWip.getEnv() >> ['RELEASE_PARAM_VERSION': 'CHG00001']
     }
 
-    def "compute test discrepancies"() {
+    def "compute test defects"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, bbt, logger))
@@ -131,7 +131,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No defects found."
+        result.defects == "No defects found."
         result.conclusion.summary == "Complete success, no defects"
         result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
@@ -153,7 +153,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No defects found."
+        result.defects == "No defects found."
         result.conclusion.summary == "Complete success, no defects"
         result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
@@ -176,9 +176,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Other failed tests: 1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
 
         // a single testcase with a failure
         when:
@@ -199,9 +199,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Other failed tests: 1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
 
         when:
         // only successful testIssues
@@ -223,7 +223,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "No defects found."
+        result.defects == "No defects found."
         result.conclusion.summary == "Complete success, no defects"
         result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
 
@@ -248,9 +248,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Failed tests: JIRA-1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
 
         when:
         // a single testIssue with a failure
@@ -273,9 +273,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Failed tests: JIRA-1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
 
         when:
         // two testIssues with an error and a failure
@@ -306,9 +306,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1, JIRA-2."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Failed tests: JIRA-1, JIRA-2."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
 
         when:
         // an unexecuted testIssue
@@ -322,9 +322,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Unexecuted tests: JIRA-1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests were not executed."
+        result.defects == "The following major defects were found during testing. Unexecuted tests: JIRA-1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests were not executed."
 
         when:
         // two testIssues with an error, and an unexecuted
@@ -347,9 +347,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Unexecuted tests: JIRA-2."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail and others were not executed."
+        result.defects == "The following major defects were found during testing. Failed tests: JIRA-1. Unexecuted tests: JIRA-2."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail and others were not executed."
 
         when:
         // an erroneous testIssue and a failing extraneous testcase
@@ -380,9 +380,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.computeTestDefects(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Other failed tests: 1."
-        result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies found as tests did fail."
+        result.defects == "The following major defects were found during testing. Failed tests: JIRA-1. Other failed tests: 1."
+        result.conclusion.summary == "No success - major defects found"
+        result.conclusion.statement == "Some defects found as tests did fail."
     }
 
     def "get correct templates for GAMP category sensitive documents"() {
