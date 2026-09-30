@@ -1,10 +1,4 @@
 # Changelog
-
-### Changed
-* Replace discrepancy with defect for CFTR docs  ([#1298](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1298))
-* Updated properties sent to docgen according to new leva templates updates ([#1296](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1296))
-* Rename Discrepancy Log title to Defect Log ([#1297](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1297))
-
 ## Unreleased
 
 * Add the missing feature of reporting unit tests of ods-infra components in DTR ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
@@ -21,6 +15,12 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.13.3] - 2026-09-30
+### Changed
+* Replace discrepancy with defect for CFTR docs  ([#1298](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1298))
+* Updated properties sent to docgen according to new leva templates updates ([#1296](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1296))
+* Rename Discrepancy Log title to Defect Log ([#1297](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1297))
 
 ## [4.13.2] - 2026-08-24
 ### Fixed
