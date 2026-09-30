@@ -223,10 +223,10 @@
                             "testFiles": [
 
                             ],
-                            "discrepancies": "No discrepancies found.",
+                            "discrepancies": "No defects found.",
                             "conclusion": {
-                                "summary": "Complete success, no discrepancies",
-                                "statement": "It is determined that all steps of the Development Tests have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+                                "summary": "Complete success, no defects",
+                                "statement": "It is determined that all steps of the Development Tests have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No defects occurred."
                             },
                             "documentHistory": [
                                 {
