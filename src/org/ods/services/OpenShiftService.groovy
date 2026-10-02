@@ -76,6 +76,14 @@ class OpenShiftService {
         ).toString().trim().toInteger() >= limit
     }
 
+    static boolean canPullImages(IPipelineSteps steps, String project) {
+        steps.sh(
+            script: "oc auth can-i get imagestreams.image.openshift.io --subresource=layers -n '${project}' --quiet",
+            label: "Check image pull permission in OpenShift project '${project}'",
+            returnStatus: true
+        ) == 0
+    }
+
     static boolean envExists(IPipelineSteps steps, String project) {
         def exists = steps.sh(
             script: "oc project ${project} &> /dev/null",
