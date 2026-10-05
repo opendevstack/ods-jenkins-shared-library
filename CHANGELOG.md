@@ -1,12 +1,13 @@
 # Changelog
 ## Unreleased
 
+### Added
 * Add the missing feature of reporting unit tests of ods-infra components in DTR ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
 * Add the missing feature of reporting unit tests of ods-library components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
 
-### Added
 ### Changed
 * Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
+* switch to image pull permission check before image pull in orchestration ([#1301](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1301))
 
 ### Fixed
 * fix helm in orchestration pipeline not adding the helmValues with global prefix like in component pipeline ([#1295]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1295)
