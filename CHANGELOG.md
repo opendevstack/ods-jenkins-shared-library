@@ -1,10 +1,13 @@
 # Changelog
 ## Unreleased
 
+### Added
 * Add the missing feature of reporting unit tests of ods-library & ods-infra components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
 
-### Added
 ### Changed
+* Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
+* switch to image pull permission check before image pull in orchestration ([#1301](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1301))
+
 ### Fixed
 
 ## [4.13.3] - 2026-09-30
