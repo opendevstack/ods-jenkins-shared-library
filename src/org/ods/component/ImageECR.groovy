@@ -75,7 +75,11 @@ class ImageECR implements IImageRepository {
     }
 
     private String getECRRegistry() {
-        return "${awsEnvironmentVars.account}.dkr.ecr.${awsEnvironmentVars.region}.amazonaws.com"
+        return "${awsEnvironmentVars.account}.dkr.ecr.${awsEnvironmentVars.region}.${getAWSDomain()}"
+    }
+
+    private String getAWSDomain() {
+        return awsEnvironmentVars.awsdomain ?: 'amazonaws.com'
     }
 
     private void executeCommand(String command, boolean showError = true) {
