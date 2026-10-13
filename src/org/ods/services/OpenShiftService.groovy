@@ -39,7 +39,11 @@ class OpenShiftService {
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
-            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
+            script: """
+                    set +x
+                    oc login ${apiUrl} --token=${apiToken} >& /dev/null
+                    set -x
+                    """,
             label: "login to external cluster (${apiUrl})"
         )
     }
@@ -70,6 +74,14 @@ class OpenShiftService {
             script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
             label: "check ocp environment maximum for '${projectId}-*'"
         ).toString().trim().toInteger() >= limit
+    }
+
+    static boolean canPullImages(IPipelineSteps steps, String project) {
+        steps.sh(
+            script: "oc auth can-i get imagestreams.image.openshift.io --subresource=layers -n '${project}' --quiet",
+            label: "Check image pull permission in OpenShift project '${project}'",
+            returnStatus: true
+        ) == 0
     }
 
     static boolean envExists(IPipelineSteps steps, String project) {
@@ -1495,9 +1507,10 @@ class OpenShiftService {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
         def success = steps.sh(
             script: """
-               ${logger.shellScriptDebugFlag}
+                set +x
                 oc login ${kubeUrl} --insecure-skip-tls-verify=true \
                 --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+                set -x
             """,
             returnStatus: true,
             label: 'Check if OCP session exists'
