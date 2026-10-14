@@ -3,6 +3,25 @@
 
 ### Added
 * Added awsdomain: ... (optional, defaults to 'amazonaws.com')[#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
+
+### Changed
+
+### Fixed
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.14.0] - 2026-10-13
+
+### Added
+
+### Changed
+
+### Fixed
+* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.14.0] - 2026-10-13
+
+### Added
+* Added awsdomain: ... (optional, defaults to 'amazonaws.com')[#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
 * Add the missing feature of reporting unit tests of ods-library & ods-infra components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
 
 ### Changed
@@ -13,9 +32,6 @@
 * fix helm in orchestration pipeline not adding the helmValues with global prefix like in component pipeline ([#1295]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1295)
 * Fix login/relogin to openshift cluster ([#1294](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1294))
 * Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
-
-### Fixed
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 
 ## [4.13.3] - 2026-09-30
 ### Changed
