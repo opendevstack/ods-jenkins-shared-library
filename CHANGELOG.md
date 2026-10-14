@@ -2,7 +2,7 @@
 ## Unreleased
 
 ### Added
-* Added awsdomain: ... (optional, defaults to 'amazonaws.com')[#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
+* Added awsdomain parameter as optional, defaults is 'amazonaws.com', to RolloutOpenShiftDeploymentOptions [#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
 
 ### Changed
 
