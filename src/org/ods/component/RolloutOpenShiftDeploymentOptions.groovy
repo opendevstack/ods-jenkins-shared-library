@@ -140,6 +140,7 @@ class RolloutOpenShiftDeploymentOptions extends Options {
      *  account: "..."
      *  eksCluster: "..."
      *  region: ...
+     *  awsdomain: ... (optional, defaults to 'amazonaws.com')
      *  credentials:
      *      key: ... (e.g. projectName-cd-aws-us-access-key-id-dev)
      *      secret: ... (e.g. projectName-cd-aws-us-secret-access-key-dev)
