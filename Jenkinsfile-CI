@@ -109,6 +109,10 @@ def restartOCTakesSometimeInSeconds(){
     return startupTime
 }
 
+def echoInfo(msg){
+    echo "\033[32m ${msg} \033[0m"
+}
+
 def gradle(script, returnStatusParam=false){
     sh "echo \"no_nexus=true\" > gradle.properties"
     echoInfo "----- ----- ----- ----- ----- ----- ----- -----"
