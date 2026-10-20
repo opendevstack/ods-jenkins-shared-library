@@ -12,16 +12,6 @@
 ## [4.14.0] - 2026-10-13
 
 ### Added
-
-### Changed
-
-### Fixed
-* Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
-
-## [4.14.0] - 2026-10-13
-
-### Added
-* Added awsdomain: ... (optional, defaults to 'amazonaws.com')[#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
 * Add the missing feature of reporting unit tests of ods-library & ods-infra components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
 
 ### Changed
