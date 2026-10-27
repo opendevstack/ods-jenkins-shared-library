@@ -8,6 +8,7 @@
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix error linking bugs to tests in previous releases ([#1304](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1304))
 
 ## [4.14.0] - 2026-10-13
 
