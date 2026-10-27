@@ -141,7 +141,7 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text, "1.0") >> bug
 
         then:
-        1 * jira.createIssueLinkTypeBlocks(bug, {
+        1 * jira.createIssueLinkType('Relates', bug, {
             // the Jira issue that shall be linked to the bug
             it.key == "NET-140"
         })
@@ -179,7 +179,7 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * jira.createIssueTypeBug(project.jiraProjectKey, 'Failure/Error in test', failures.first().text, "1.0") >> bug
 
         then:
-        1 * jira.createIssueLinkTypeBlocks(bug, {
+        1 * jira.createIssueLinkTypeBlocks('Relates', bug, {
             // the Jira issue that shall be linked to the bug
             it.key == "NET-140"
         })
