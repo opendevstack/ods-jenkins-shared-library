@@ -179,7 +179,7 @@ class JiraUseCase {
                     testIssue.bugs << bug.key
 
                     // Add a link to the current bug on the Jira test issue (within Jira)
-                    this.jira.createIssueLinkTypeBlocks(bug, testIssue)
+                    this.jira.createIssueLinkType('Relates', bug, testIssue)
 
                     bugAffectedTestIssues << [(testIssue.key): testIssue]
                 }
