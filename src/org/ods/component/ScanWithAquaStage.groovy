@@ -429,7 +429,8 @@ class ScanWithAquaStage extends Stage {
                     .any { it.equalsIgnoreCase(REMOTE_EXPLOIT_TYPE) }
                     && (vulnerability?.aqua_severity as String)?.equalsIgnoreCase(CRITICAL_AQUA_SEVERITY)
                     && !StringUtils.isEmpty((vulnerability?.solution as String).trim())) {
-                    if (Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {
+                    if (Boolean.parseBoolean(vulnerability?.already_suppressed as String)
+                        || Boolean.parseBoolean(vulnerability?.already_acknowledged as String)) {
                         whitelistedRECVs.add(vulnerability.name)
                     } else {
                         result.push(vulnerability)
