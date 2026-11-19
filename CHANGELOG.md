@@ -9,6 +9,7 @@
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
 * Fix error linking bugs to tests in previous releases ([#1304](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1304))
+* Manage already_suppressed or already_acknowledged in Aqua JSON response ([#1305](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1305))
 
 ## [4.14.0] - 2026-10-13
 
