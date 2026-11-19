@@ -35,12 +35,12 @@ class GitTagSpec extends SpecHelper {
 
         where:
         tagList                                                                                               | version | changeId | envToken      || result
-        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D"                                                            | "1"     | "A"      | "Q"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0b0-D"
-        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1-D"                  | "1"     | "A"      | "Q"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b0-D"
+        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D"                                                            | "1"     | "A"      | "D"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0b0-D"
         "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1-D"                  | "1"     | "A"      | "D"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b0-D"
-        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-Q\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1-Q"                  | "1"     | "A"      | "P"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b0-Q"
-        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b99-D"               | "1"     | "A"      | "Q"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b99-D"
-        ""                                                                                                    | "1"     | "A"      | "P"           || "null"
+        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1-D"                  | "1"     | "A"      | "D"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b0-D"
+        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-Q\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1-Q"                  | "1"     | "A"      | "Q"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b0-Q"
+        "${GitService.ODS_GIT_TAG_PREFIX}v1-A-0-D\n${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b99-D"               | "1"     | "A"      | "D"           || "${GitService.ODS_GIT_TAG_PREFIX}v1-A-1b99-D"
+        ""                                                                                                    | "1"     | "A"      | "Q"           || "null"
     }
 
 }

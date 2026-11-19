@@ -232,7 +232,7 @@ class FixtureHelper {
             ],
             "NET-1066": [
                 "key"        : "NET-1066",
-                "name"       : "Discrepancy Log for P",
+                "name"       : "Defect Log for P",
                 "description": "C-DIL for P",
                 "status"     : "DONE",
                 "labels"     : [
@@ -241,7 +241,7 @@ class FixtureHelper {
             ],
             "NET-1064": [
                 "key"        : "NET-1064",
-                "name"       : "Discrepancy Log for Q",
+                "name"       : "Defect Log for Q",
                 "description": "C-DIL for Q",
                 "status"     : "DONE",
                 "labels"     : [
@@ -250,7 +250,7 @@ class FixtureHelper {
             ],
             "NET-1142": [
                 "key": "NET-1142",
-                "name": "Discrepancy Log for D",
+                "name": "Defect Log for D",
                 "description": "C-DIL for D",
                 "status": "DONE",
                 "labels": [

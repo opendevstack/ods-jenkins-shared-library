@@ -1,13 +1,42 @@
 # Changelog
-
 ## Unreleased
 
 ### Added
+* Added awsdomain parameter as optional, defaults is 'amazonaws.com', to RolloutOpenShiftDeploymentOptions [#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
 
 ### Changed
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+* Fix error linking bugs to tests in previous releases ([#1304](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1304))
+
+## [4.14.0] - 2026-10-13
+
+### Added
+* Add the missing feature of reporting unit tests of ods-library & ods-infra components in DTR and Jira ([#1290](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1290))
+
+### Changed
+* Added environment configurator ([#1284](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1284))
+* switch to image pull permission check before image pull in orchestration ([#1301](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1301))
+
+### Fixed
+* fix helm in orchestration pipeline not adding the helmValues with global prefix like in component pipeline ([#1295]https://github.com/opendevstack/ods-jenkins-shared-library/pull/1295)
+* Fix login/relogin to openshift cluster ([#1294](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1294))
+* Fix OCP Token exposure to ensure it is not shown within logs ([#1288](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1288))
+
+## [4.13.3] - 2026-09-30
+### Changed
+* Replace discrepancy with defect for CFTR docs  ([#1298](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1298))
+* Updated properties sent to docgen according to new leva templates updates ([#1296](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1296))
+* Rename Discrepancy Log title to Defect Log ([#1297](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1297))
+
+## [4.13.2] - 2026-08-24
+### Fixed
+* Fix error when bug description exceeds 32Kb ([#1292](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1292))
+
+## [4.13.1] - 2026-08-17
+### Fixed
+* Add the feature of sending to Jira the unit test report of ods-infra components ([#1287](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1287))
 
 ## [4.13.0] - 2026-06-30
 ### Changed

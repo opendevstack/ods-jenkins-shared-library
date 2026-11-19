@@ -12,6 +12,31 @@ import util.SpecHelper
 
 class OpenShiftServiceSpec extends SpecHelper {
 
+    @Unroll
+    def "image pull permission in #project with status #statusCode is #allowed"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+
+        when:
+        def result = OpenShiftService.canPullImages(steps, project)
+
+        then:
+        1 * steps.sh([
+            script: "oc auth can-i get imagestreams.image.openshift.io --subresource=layers -n '${project}' --quiet",
+            label: "Check image pull permission in OpenShift project '${project}'",
+            returnStatus: true
+        ]) >> statusCode
+        result == allowed
+        0 * steps._
+
+        where:
+        project      | statusCode || allowed
+        'ods'        | 0          || true
+        'ods'        | 1          || false
+        'ods'        | 2          || false
+        'custom-ods' | 0          || true
+    }
+
     def "image info for image URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
