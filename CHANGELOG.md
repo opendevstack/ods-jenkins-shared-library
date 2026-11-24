@@ -2,12 +2,17 @@
 ## Unreleased
 
 ### Added
-* Added awsdomain parameter as optional, defaults is 'amazonaws.com', to RolloutOpenShiftDeploymentOptions [#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
 
 ### Changed
 
 ### Fixed
 * Fix Tailor deployment drifts for D, Q envs ([#1055](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1055))
+
+## [4.14.1] - 2026-11-24
+### Added
+* Added awsdomain parameter as optional, defaults is 'amazonaws.com', to RolloutOpenShiftDeploymentOptions [#1303](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1303)
+
+### Fixed
 * Fix error linking bugs to tests in previous releases ([#1304](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1304))
 * Manage already_suppressed or already_acknowledged in Aqua JSON response ([#1305](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1305))
 
